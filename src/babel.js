@@ -11,7 +11,8 @@ var PREFIXES = [
   '/** @babel */',
   '"use babel"',
   '\'use babel\'',
-  '/* @flow */'
+  '/* @flow */',
+  '// @flow'
 ]
 
 var PREFIX_LENGTH = Math.max.apply(Math, PREFIXES.map(function (prefix) {

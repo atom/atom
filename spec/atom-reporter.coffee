@@ -33,6 +33,8 @@ formatStackTrace = (spec, message='', stackTrace) ->
       line = line.trim()
         # at jasmine.Spec.<anonymous> (path:1:2) -> at path:1:2
         .replace(/^at jasmine\.Spec\.<anonymous> \(([^)]+)\)/, 'at $1')
+        # at jasmine.Spec.it (path:1:2) -> at path:1:2
+        .replace(/^at jasmine\.Spec\.f*it \(([^)]+)\)/, 'at $1')
         # at it (path:1:2) -> at path:1:2
         .replace(/^at f*it \(([^)]+)\)/, 'at $1')
         # at spec/file-test.js -> at file-test.js

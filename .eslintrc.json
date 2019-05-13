@@ -1,0 +1,3 @@
+{
+  "extends": "./script/node_modules/eslint-config-standard/eslintrc.json"
+}

@@ -198,6 +198,13 @@ class Cursor extends Model {
     return this.editor.scopeDescriptorForBufferPosition(this.getBufferPosition())
   }
 
+  // Public: Retrieves the syntax tree scope descriptor for the cursor's current position.
+  //
+  // Returns a {ScopeDescriptor}
+  getSyntaxTreeScopeDescriptor () {
+    return this.editor.syntaxTreeScopeDescriptorForBufferPosition(this.getBufferPosition())
+  }
+
   // Public: Returns true if this cursor has no non-whitespace characters before
   // its current position.
   hasPrecedingCharactersOnLine () {
@@ -326,7 +333,9 @@ class Cursor extends Model {
 
   // Public: Moves the cursor to the bottom of the buffer.
   moveToBottom () {
+    const column = this.goalColumn
     this.setBufferPosition(this.editor.getEofBufferPosition())
+    this.goalColumn = column
   }
 
   // Public: Moves the cursor to the beginning of the line.
@@ -664,7 +673,7 @@ class Cursor extends Model {
   // Returns a {RegExp}.
   wordRegExp (options) {
     const nonWordCharacters = _.escapeRegExp(this.getNonWordCharacters())
-    let source = `^[\t\r ]*$|[^\\s${nonWordCharacters}]+`
+    let source = `^[\t ]*$|[^\\s${nonWordCharacters}]+`
     if (!options || options.includeNonWordCharacters !== false) {
       source += `|${`[${nonWordCharacters}]+`}`
     }
@@ -711,6 +720,7 @@ class Cursor extends Model {
   changePosition (options, fn) {
     this.clearSelection({autoscroll: false})
     fn()
+    this.goalColumn = null
     const autoscroll = (options && options.autoscroll != null)
       ? options.autoscroll
       : this.isLastCursor()

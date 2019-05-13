@@ -1,6 +1,6 @@
 name: 'Some Language'
 
-id: 'some-language'
+scopeName: 'some-language'
 
 type: 'tree-sitter'
 

@@ -189,12 +189,12 @@ class BufferedProcess {
       output += data
     })
     wmicProcess.stdout.on('close', () => {
-      const pidsToKill = output.split(/\s+/)
-        .filter((pid) => /^\d+$/.test(pid))
-        .map((pid) => parseInt(pid))
-        .filter((pid) => pid !== parentPid && pid > 0 && pid < Infinity)
+      for (let pid of output.split(/\s+/)) {
+        if (!/^\d{1,10}$/.test(pid)) continue
+        pid = parseInt(pid, 10)
 
-      for (let pid of pidsToKill) {
+        if (!pid || pid === parentPid) continue
+
         try {
           process.kill(pid)
         } catch (error) {}

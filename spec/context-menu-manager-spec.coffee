@@ -333,3 +333,46 @@ describe "ContextMenuManager", ->
             }
           ]
         ])
+
+  describe "::templateForEvent(target) (sorting)", ->
+    it "applies simple sorting rules", ->
+      contextMenu.add('.parent': [{
+        label: 'My Command',
+        command: "test:my-command",
+        after: ["test:my-other-command"]
+      }, {
+        label: 'My Other Command',
+        command: "test:my-other-command",
+      }])
+      dispatchedEvent = {target: parent}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([{
+        label: 'My Other Command',
+        command: 'test:my-other-command',
+      }, {
+        label: 'My Command',
+        command: 'test:my-command',
+        after: ["test:my-other-command"]
+      }])
+
+    it "applies sorting rules recursively to submenus", ->
+      contextMenu.add('.parent': [{
+        submenu: [{
+          label: 'My Command',
+          command: "test:my-command",
+          after: ["test:my-other-command"]
+        }, {
+          label: 'My Other Command',
+          command: "test:my-other-command",
+        }]
+      }])
+      dispatchedEvent = {target: parent}
+      expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([{
+        submenu: [{
+          label: 'My Other Command',
+          command: 'test:my-other-command',
+        }, {
+          label: 'My Command',
+          command: 'test:my-command',
+          after: ["test:my-other-command"]
+        }]
+      }])

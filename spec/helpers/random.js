@@ -1,5 +1,5 @@
 const WORDS = require('./words')
-const {Point, Range} = require('text-buffer')
+const { Point, Range } = require('text-buffer')
 
 exports.getRandomBufferRange = function getRandomBufferRange (random, buffer) {
   const endRow = random(buffer.getLineCount())

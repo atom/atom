@@ -3,6 +3,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 const spawnSync = require('./spawn-sync')
+const { path7za } = require('7zip-bin')
 
 const CONFIG = require('../config')
 
@@ -19,7 +20,7 @@ module.exports = function (packagedAppPath) {
 function getArchiveName () {
   switch (process.platform) {
     case 'darwin': return 'atom-mac.zip'
-    case 'win32': return 'atom-windows.zip'
+    case 'win32': return `atom-${process.arch === 'x64' ? 'x64-' : ''}windows.zip`
     default: return `atom-${getLinuxArchiveArch()}.tar.gz`
   }
 }
@@ -44,7 +45,7 @@ function compress (inputDirPath, outputArchivePath) {
     compressCommand = 'zip'
     compressArguments = ['-r', '--symlinks']
   } else if (process.platform === 'win32') {
-    compressCommand = '7z.exe'
+    compressCommand = path7za
     compressArguments = ['a', '-r']
   } else {
     compressCommand = 'tar'

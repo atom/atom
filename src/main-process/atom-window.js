@@ -1,8 +1,8 @@
 const {BrowserWindow, app, dialog, ipcMain} = require('electron')
 const path = require('path')
-const fs = require('fs')
 const url = require('url')
 const {EventEmitter} = require('events')
+const StartupTime = require('../startup-time')
 
 const ICON_PATH = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
 
@@ -12,6 +12,8 @@ let nextId = 0
 module.exports =
 class AtomWindow extends EventEmitter {
   constructor (atomApplication, fileRecoveryService, settings = {}) {
+    StartupTime.addMarker('main-process:atom-window:start')
+
     super()
 
     this.id = nextId++
@@ -23,9 +25,7 @@ class AtomWindow extends EventEmitter {
     this.devMode = settings.devMode
     this.resourcePath = settings.resourcePath
 
-    let {pathToOpen, locationsToOpen} = settings
-    if (!locationsToOpen && pathToOpen) locationsToOpen = [{pathToOpen}]
-    if (!locationsToOpen) locationsToOpen = []
+    const locationsToOpen = settings.locationsToOpen || []
 
     this.loadedPromise = new Promise(resolve => { this.resolveLoadedPromise = resolve })
     this.closedPromise = new Promise(resolve => { this.resolveClosedPromise = resolve })
@@ -51,13 +51,17 @@ class AtomWindow extends EventEmitter {
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
     if (process.platform === 'linux') options.icon = ICON_PATH
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden'
-    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hidden-inset'
+    if (this.shouldAddCustomInsetTitleBar()) options.titleBarStyle = 'hiddenInset'
     if (this.shouldHideTitleBar()) options.frame = false
-    this.browserWindow = new BrowserWindow(options)
+
+    const BrowserWindowConstructor = settings.browserWindowConstructor || BrowserWindow
+    this.browserWindow = new BrowserWindowConstructor(options)
 
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
       get: () => JSON.stringify(Object.assign({
-        userSettings: this.atomApplication.configFile.get()
+        userSettings: !this.isSpec
+          ? this.atomApplication.configFile.get()
+          : null
       }, this.loadSettings))
     })
 
@@ -71,25 +75,27 @@ class AtomWindow extends EventEmitter {
     if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false
     if (this.loadSettings.clearWindowState == null) this.loadSettings.clearWindowState = false
 
-    if (!this.loadSettings.initialPaths) {
-      this.loadSettings.initialPaths = []
-      for (const {pathToOpen} of locationsToOpen) {
-        if (!pathToOpen) continue
-        const stat = fs.statSyncNoException(pathToOpen) || null
-        if (stat && stat.isDirectory()) {
-          this.loadSettings.initialPaths.push(pathToOpen)
-        } else {
-          const parentDirectory = path.dirname(pathToOpen)
-          if ((stat && stat.isFile()) || fs.existsSync(parentDirectory)) {
-            this.loadSettings.initialPaths.push(parentDirectory)
-          } else {
-            this.loadSettings.initialPaths.push(pathToOpen)
-          }
-        }
-      }
-    }
+    this.addLocationsToOpen(locationsToOpen)
 
-    this.loadSettings.initialPaths.sort()
+    this.loadSettings.hasOpenFiles = locationsToOpen
+      .some(location => location.pathToOpen && !location.isDirectory)
+    this.loadSettings.initialProjectRoots = this.projectRoots
+
+    StartupTime.addMarker('main-process:atom-window:end')
+
+    // Expose the startup markers to the renderer process, so we can have unified
+    // measures about startup time between the main process and the renderer process.
+    Object.defineProperty(this.browserWindow, 'startupMarkers', {
+      get: () => {
+        // We only want to make the main process startup data available once,
+        // so if the window is refreshed or a new window is opened, the
+        // renderer process won't use it again.
+        const timingData = StartupTime.exportData()
+        StartupTime.deleteData()
+
+        return timingData
+      }
+    })
 
     // Only send to the first non-spec window created
     if (includeShellLoadTime && !this.isSpec) {
@@ -99,7 +105,6 @@ class AtomWindow extends EventEmitter {
       }
     }
 
-    this.representedDirectoryPaths = this.loadSettings.initialPaths
     if (!this.loadSettings.env) this.env = this.loadSettings.env
 
     this.browserWindow.on('window:loaded', () => {
@@ -136,8 +141,8 @@ class AtomWindow extends EventEmitter {
     if (hasPathToOpen && !this.isSpecWindow()) this.openLocations(locationsToOpen)
   }
 
-  hasProjectPath () {
-    return this.representedDirectoryPaths.length > 0
+  hasProjectPaths () {
+    return this.projectRoots.length > 0
   }
 
   setupContextMenu () {
@@ -148,23 +153,26 @@ class AtomWindow extends EventEmitter {
     })
   }
 
-  containsPaths (paths) {
-    return paths.every(p => this.containsPath(p))
+  containsLocations (locations) {
+    return locations.every(location => this.containsLocation(location))
   }
 
-  containsPath (pathToCheck) {
-    if (!pathToCheck) return false
-    const stat = fs.statSyncNoException(pathToCheck)
-    if (stat && stat.isDirectory()) return false
+  containsLocation (location) {
+    if (!location.pathToOpen) return false
 
-    return this.representedDirectoryPaths.some(projectPath =>
-      pathToCheck === projectPath || pathToCheck.startsWith(path.join(projectPath, path.sep))
-    )
+    return this.projectRoots.some(projectPath => {
+      if (location.pathToOpen === projectPath) return true
+      if (location.pathToOpen.startsWith(path.join(projectPath, path.sep))) {
+        if (!location.exists) return true
+        if (!location.isDirectory) return true
+      }
+      return false
+    })
   }
 
   handleEvents () {
     this.browserWindow.on('close', async event => {
-      if (!this.atomApplication.quitting && !this.unloading) {
+      if ((!this.atomApplication.quitting || this.atomApplication.quittingForUpdate) && !this.unloading) {
         event.preventDefault()
         this.unloading = true
         this.atomApplication.saveCurrentWindowOptions(false)
@@ -183,6 +191,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
         message: 'Editor is not responding',
         detail:
           'The editor is not responding. Would you like to force close it or just keep waiting?'
@@ -200,6 +209,7 @@ class AtomWindow extends EventEmitter {
       dialog.showMessageBox(this.browserWindow, {
         type: 'warning',
         buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
         message: 'The editor has crashed',
         detail: 'Please report this issue to https://github.com/atom/atom'
       }, response => {
@@ -246,6 +256,7 @@ class AtomWindow extends EventEmitter {
   }
 
   async openLocations (locationsToOpen) {
+    this.addLocationsToOpen(locationsToOpen)
     await this.loadedPromise
     this.sendMessage('open-locations', locationsToOpen)
   }
@@ -256,6 +267,18 @@ class AtomWindow extends EventEmitter {
 
   didFailToReadUserSettings (message) {
     this.sendMessage('did-fail-to-read-user-settings', message)
+  }
+
+  addLocationsToOpen (locationsToOpen) {
+    const roots = new Set(this.projectRoots || [])
+    for (const {pathToOpen, isDirectory} of locationsToOpen) {
+      if (isDirectory) {
+        roots.add(pathToOpen)
+      }
+    }
+
+    this.projectRoots = Array.from(roots)
+    this.projectRoots.sort()
   }
 
   replaceEnvironment (env) {
@@ -390,7 +413,7 @@ class AtomWindow extends EventEmitter {
   showSaveDialog (options, callback) {
     options = Object.assign({
       title: 'Save File',
-      defaultPath: this.representedDirectoryPaths[0]
+      defaultPath: this.projectRoots[0]
     }, options)
 
     if (typeof callback === 'function') {
@@ -422,10 +445,10 @@ class AtomWindow extends EventEmitter {
     return this.browserWindow.setRepresentedFilename(representedFilename)
   }
 
-  setRepresentedDirectoryPaths (representedDirectoryPaths) {
-    this.representedDirectoryPaths = representedDirectoryPaths
-    this.representedDirectoryPaths.sort()
-    this.loadSettings.initialPaths = this.representedDirectoryPaths
+  setProjectRoots (projectRootPaths) {
+    this.projectRoots = projectRootPaths
+    this.projectRoots.sort()
+    this.loadSettings.initialProjectRoots = this.projectRoots
     return this.atomApplication.saveCurrentWindowOptions()
   }
 
@@ -439,5 +462,9 @@ class AtomWindow extends EventEmitter {
 
   disableZoom () {
     return this.browserWindow.webContents.setVisualZoomLevelLimits(1, 1)
+  }
+
+  getLoadedPromise () {
+    return this.loadedPromise
   }
 }

@@ -329,13 +329,21 @@ const configSchema = {
         default: 40
       },
       fileSystemWatcher: {
-        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes. Polling may be useful for network drives, but will be more costly in terms of CPU overhead.<br>This setting will require a relaunch of Atom to take effect.',
         type: 'string',
-        default: 'native',
+        default: 'experimental',
         enum: [
           {
             value: 'native',
-            description: 'Native operating system APIs'
+            description: 'Native operating system APIs (@atom/nsfw)'
+          },
+          {
+            value: 'experimental',
+            description: 'Experimental (@atom/notify)'
+          },
+          {
+            value: 'poll',
+            description: 'Polling'
           },
           {
             value: 'atom',
@@ -343,10 +351,30 @@ const configSchema = {
           }
         ]
       },
+      fileSystemWatcherPollInterval: {
+        description: "If the 'Polling' option is selected for the file system watcher, this will be the interval between polls.",
+        type: 'number',
+        default: 1000
+      },
       useTreeSitterParsers: {
         type: 'boolean',
-        default: false,
-        description: 'Experimental: Use the new Tree-sitter parsing system for supported languages.'
+        default: true,
+        description: 'Use Tree-sitter parsers for supported languages.'
+      },
+      colorProfile: {
+        description: "Specify whether Atom should use the operating system's color profile (recommended) or an alternative color profile.<br>Changing this setting will require a relaunch of Atom to take effect.",
+        type: 'string',
+        default: 'default',
+        enum: [
+          {
+            value: 'default',
+            description: 'Use color profile configured in the operating system'
+          },
+          {
+            value: 'srgb',
+            description: 'Use sRGB color profile'
+          }
+        ]
       }
     }
   },
@@ -372,7 +400,7 @@ const configSchema = {
       // These can be used as globals or scoped, thus defaults.
       fontFamily: {
         type: 'string',
-        default: '',
+        default: 'Menlo, Consolas, DejaVu Sans Mono, monospace',
         description: 'The name of the font family used for editor text.'
       },
       fontSize: {

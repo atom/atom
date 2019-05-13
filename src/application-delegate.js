@@ -1,12 +1,23 @@
 const {ipcRenderer, remote, shell} = require('electron')
 const ipcHelpers = require('./ipc-helpers')
-const {Disposable} = require('event-kit')
+const {Emitter, Disposable} = require('event-kit')
 const getWindowLoadSettings = require('./get-window-load-settings')
 
 module.exports =
 class ApplicationDelegate {
   constructor () {
     this.pendingSettingsUpdateCount = 0
+    this._ipcMessageEmitter = null
+  }
+
+  ipcMessageEmitter () {
+    if (!this._ipcMessageEmitter) {
+      this._ipcMessageEmitter = new Emitter()
+      ipcRenderer.on('message', (event, message, detail) => {
+        this._ipcMessageEmitter.emit(message, detail)
+      })
+    }
+    return this._ipcMessageEmitter
   }
 
   getWindowLoadSettings () { return getWindowLoadSettings() }
@@ -159,8 +170,8 @@ class ApplicationDelegate {
     return ipcRenderer.send('add-recent-document', filename)
   }
 
-  setRepresentedDirectoryPaths (paths) {
-    return ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
+  setProjectRoots (paths) {
+    return ipcHelpers.call('window-method', 'setProjectRoots', paths)
   }
 
   setAutoHideWindowMenuBar (autoHide) {
@@ -179,31 +190,23 @@ class ApplicationDelegate {
     return remote.systemPreferences.getUserDefault(key, type)
   }
 
-  async setUserSettings (config) {
+  async setUserSettings (config, configFilePath) {
     this.pendingSettingsUpdateCount++
     try {
-      await ipcHelpers.call('set-user-settings', config)
+      await ipcHelpers.call('set-user-settings', JSON.stringify(config), configFilePath)
     } finally {
       this.pendingSettingsUpdateCount--
     }
   }
 
   onDidChangeUserSettings (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'did-change-user-settings') {
-        if (this.pendingSettingsUpdateCount === 0) callback(detail)
-      }
-    }
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('did-change-user-settings', detail => {
+      if (this.pendingSettingsUpdateCount === 0) callback(detail)
+    })
   }
 
   onDidFailToReadUserSettings (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'did-fail-to-read-user-settings') callback(detail)
-    }
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('did-fail-to-read-user-setting', callback)
   }
 
   confirm (options, callback) {
@@ -236,7 +239,7 @@ class ApplicationDelegate {
         return chosen
       } else {
         const callback = buttons[buttonLabels[chosen]]
-        if (typeof callback === 'function') callback()
+        if (typeof callback === 'function') return callback()
       }
     }
   }
@@ -249,7 +252,7 @@ class ApplicationDelegate {
       this.getCurrentWindow().showSaveDialog(options, callback)
     } else {
       // Sync
-      if (typeof params === 'string') {
+      if (typeof options === 'string') {
         options = {defaultPath: options}
       }
       return this.getCurrentWindow().showSaveDialog(options)
@@ -261,24 +264,14 @@ class ApplicationDelegate {
   }
 
   onDidOpenLocations (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'open-locations') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('open-locations', callback)
   }
 
   onUpdateAvailable (callback) {
-    const outerCallback = (event, message, detail) => {
-      // TODO: Yes, this is strange that `onUpdateAvailable` is listening for
-      // `did-begin-downloading-update`. We currently have no mechanism to know
-      // if there is an update, so begin of downloading is a good proxy.
-      if (message === 'did-begin-downloading-update') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    // TODO: Yes, this is strange that `onUpdateAvailable` is listening for
+    // `did-begin-downloading-update`. We currently have no mechanism to know
+    // if there is an update, so begin of downloading is a good proxy.
+    return this.ipcMessageEmitter().on('did-begin-downloading-update', callback)
   }
 
   onDidBeginDownloadingUpdate (callback) {
@@ -286,40 +279,19 @@ class ApplicationDelegate {
   }
 
   onDidBeginCheckingForUpdate (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'checking-for-update') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('checking-for-update', callback)
   }
 
   onDidCompleteDownloadingUpdate (callback) {
-    const outerCallback = (event, message, detail) => {
-      // TODO: We could rename this event to `did-complete-downloading-update`
-      if (message === 'update-available') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('update-available', callback)
   }
 
   onUpdateNotAvailable (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'update-not-available') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('update-not-available', callback)
   }
 
   onUpdateError (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'update-error') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+    return this.ipcMessageEmitter().on('update-error', callback)
   }
 
   onApplicationMenuCommand (handler) {

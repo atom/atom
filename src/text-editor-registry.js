@@ -185,7 +185,7 @@ class TextEditorRegistry {
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    atom.grammars.maintainGrammar(editor.getBuffer())
+    atom.grammars.maintainLanguageMode(editor.getBuffer())
   }
 
   // Deprecated: Force a {TextEditor} to use a different grammar than the
@@ -205,7 +205,7 @@ class TextEditorRegistry {
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    return editor.getBuffer().getLanguageMode().grammar.scopeName
+    return atom.grammars.getAssignedLanguageId(editor.getBuffer())
   }
 
   // Deprecated: Remove any grammar override that has been set for the given {TextEditor}.
@@ -218,7 +218,7 @@ class TextEditorRegistry {
   async updateAndMonitorEditorSettings (editor, oldLanguageMode) {
     await this.initialPackageActivationPromise
     this.updateEditorSettingsForLanguageMode(editor, oldLanguageMode)
-    await this.subscribeToSettingsForEditorScope(editor)
+    this.subscribeToSettingsForEditorScope(editor)
   }
 
   updateEditorSettingsForLanguageMode (editor, oldLanguageMode) {
@@ -246,7 +246,9 @@ class TextEditorRegistry {
     }
   }
 
-  async subscribeToSettingsForEditorScope (editor) {
+  subscribeToSettingsForEditorScope (editor) {
+    if (!this.editorsWithMaintainedConfig) return
+
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
 

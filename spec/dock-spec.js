@@ -2,7 +2,9 @@
 
 const Grim = require('grim')
 
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
+import etch from 'etch'
+
+const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 
 describe('Dock', () => {
   describe('when a dock is activated', () => {
@@ -13,7 +15,12 @@ describe('Dock', () => {
       dock.onDidChangeVisible(didChangeVisibleSpy)
 
       expect(dock.isVisible()).toBe(false)
-      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+      expect(document.activeElement).toBe(
+        atom.workspace
+          .getCenter()
+          .getActivePane()
+          .getElement()
+      )
       dock.activate()
       expect(dock.isVisible()).toBe(true)
       expect(document.activeElement).toBe(dock.getActivePane().getElement())
@@ -33,7 +40,12 @@ describe('Dock', () => {
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(true)
 
       dock.hide()
-      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+      expect(document.activeElement).toBe(
+        atom.workspace
+          .getCenter()
+          .getActivePane()
+          .getElement()
+      )
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false)
 
       dock.activate()
@@ -41,13 +53,18 @@ describe('Dock', () => {
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(true)
 
       dock.toggle()
-      expect(document.activeElement).toBe(atom.workspace.getCenter().getActivePane().getElement())
+      expect(document.activeElement).toBe(
+        atom.workspace
+          .getCenter()
+          .getActivePane()
+          .getElement()
+      )
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false)
 
       // Don't change focus if the dock was not focused in the first place
       const modalElement = document.createElement('div')
       modalElement.setAttribute('tabindex', -1)
-      atom.workspace.addModalPanel({item: modalElement})
+      atom.workspace.addModalPanel({ item: modalElement })
       modalElement.focus()
       expect(document.activeElement).toBe(modalElement)
 
@@ -65,13 +82,18 @@ describe('Dock', () => {
     it('opens the dock', async () => {
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' }
+        getDefaultLocation () {
+          return 'left'
+        }
       }
 
-      await atom.workspace.open(item, {activatePane: false})
+      await atom.workspace.open(item, { activatePane: false })
       expect(atom.workspace.getLeftDock().isVisible()).toBe(false)
 
-      atom.workspace.getLeftDock().getPanes()[0].activate()
+      atom.workspace
+        .getLeftDock()
+        .getPanes()[0]
+        .activate()
       expect(atom.workspace.getLeftDock().isVisible()).toBe(true)
     })
   })
@@ -142,44 +164,64 @@ describe('Dock', () => {
 
   describe('when the dock resize handle is double-clicked', () => {
     describe('when the dock is open', () => {
-      it('resizes a vertically-oriented dock to the current item\'s preferred width', async () => {
+      it("resizes a vertically-oriented dock to the current item's preferred width", async () => {
         jasmine.attachToDOM(atom.workspace.getElement())
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return 142 },
-          getPreferredHeight() { return 122 }
+          getDefaultLocation () {
+            return 'left'
+          },
+          getPreferredWidth () {
+            return 142
+          },
+          getPreferredHeight () {
+            return 122
+          }
         }
 
         await atom.workspace.open(item)
         const dock = atom.workspace.getLeftDock()
         const dockElement = dock.getElement()
 
-        dock.setState({size: 300})
+        dock.setState({ size: 300 })
+        await getNextUpdatePromise()
         expect(dockElement.offsetWidth).toBe(300)
-        dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
+        dockElement
+          .querySelector('.atom-dock-resize-handle')
+          .dispatchEvent(new MouseEvent('mousedown', { detail: 2 }))
+        await getNextUpdatePromise()
 
         expect(dockElement.offsetWidth).toBe(item.getPreferredWidth())
       })
 
-      it('resizes a horizontally-oriented dock to the current item\'s preferred width', async () => {
+      it("resizes a horizontally-oriented dock to the current item's preferred width", async () => {
         jasmine.attachToDOM(atom.workspace.getElement())
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredWidth() { return 122 },
-          getPreferredHeight() { return 142 }
+          getDefaultLocation () {
+            return 'bottom'
+          },
+          getPreferredWidth () {
+            return 122
+          },
+          getPreferredHeight () {
+            return 142
+          }
         }
 
         await atom.workspace.open(item)
         const dock = atom.workspace.getBottomDock()
         const dockElement = dock.getElement()
 
-        dock.setState({size: 300})
+        dock.setState({ size: 300 })
+        await getNextUpdatePromise()
         expect(dockElement.offsetHeight).toBe(300)
-        dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
+        dockElement
+          .querySelector('.atom-dock-resize-handle')
+          .dispatchEvent(new MouseEvent('mousedown', { detail: 2 }))
+        await getNextUpdatePromise()
 
         expect(dockElement.offsetHeight).toBe(item.getPreferredHeight())
       })
@@ -191,19 +233,31 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredWidth() { return 122 },
-          getPreferredHeight() { return 142 }
+          getDefaultLocation () {
+            return 'bottom'
+          },
+          getPreferredWidth () {
+            return 122
+          },
+          getPreferredHeight () {
+            return 142
+          }
         }
 
-        await atom.workspace.open(item, {activatePane: false})
+        await atom.workspace.open(item, { activatePane: false })
 
         const dockElement = atom.workspace.getBottomDock().getElement()
-        dockElement.querySelector('.atom-dock-resize-handle').dispatchEvent(new MouseEvent('mousedown', {detail: 2}))
+        dockElement
+          .querySelector('.atom-dock-resize-handle')
+          .dispatchEvent(new MouseEvent('mousedown', { detail: 2 }))
         expect(dockElement.offsetHeight).toBe(0)
-        expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(0)
+        expect(dockElement.querySelector('.atom-dock-inner').offsetHeight).toBe(
+          0
+        )
         // The content should be masked away.
-        expect(dockElement.querySelector('.atom-dock-mask').offsetHeight).toBe(0)
+        expect(dockElement.querySelector('.atom-dock-mask').offsetHeight).toBe(
+          0
+        )
       })
     })
   })
@@ -215,8 +269,12 @@ describe('Dock', () => {
 
         const createItem = preferredWidth => ({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return preferredWidth }
+          getDefaultLocation () {
+            return 'left'
+          },
+          getPreferredWidth () {
+            return preferredWidth
+          }
         })
 
         const dock = atom.workspace.getLeftDock()
@@ -250,7 +308,9 @@ describe('Dock', () => {
 
         const item = {
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' }
+          getDefaultLocation () {
+            return 'left'
+          }
         }
         const dock = atom.workspace.getLeftDock()
         expect(dock.getPaneItems()).toHaveLength(0)
@@ -268,11 +328,15 @@ describe('Dock', () => {
 
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 122 },
-        serialize: () => ({deserializer: 'DockTestItem'})
+        getDefaultLocation () {
+          return 'left'
+        },
+        getPreferredWidth () {
+          return 122
+        },
+        serialize: () => ({ deserializer: 'DockTestItem' })
       }
-      const itemDeserializer = atom.deserializers.add({
+      atom.deserializers.add({
         name: 'DockTestItem',
         deserialize: () => item
       })
@@ -280,10 +344,10 @@ describe('Dock', () => {
       const dockElement = dock.getElement()
 
       await atom.workspace.open(item)
-      dock.setState({size: 150})
+      dock.setState({ size: 150 })
       expect(dockElement.offsetWidth).toBe(150)
       const serialized = dock.serialize()
-      dock.setState({size: 122})
+      dock.setState({ size: 122 })
       expect(dockElement.offsetWidth).toBe(122)
       dock.destroyActivePane()
       dock.deserialize(serialized, atom.deserializers)
@@ -295,8 +359,12 @@ describe('Dock', () => {
 
       const item = {
         element: document.createElement('div'),
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 122 }
+        getDefaultLocation () {
+          return 'left'
+        },
+        getPreferredWidth () {
+          return 122
+        }
       }
       const dock = atom.workspace.getLeftDock()
 
@@ -310,22 +378,29 @@ describe('Dock', () => {
   })
 
   describe('drag handling', () => {
-    it('expands docks to match the preferred size of the dragged item', () => {
+    it('expands docks to match the preferred size of the dragged item', async () => {
       jasmine.attachToDOM(atom.workspace.getElement())
 
       const element = document.createElement('div')
       element.setAttribute('is', 'tabs-tab')
       element.item = {
         element,
-        getDefaultLocation() { return 'left' },
-        getPreferredWidth() { return 144 }
+        getDefaultLocation () {
+          return 'left'
+        },
+        getPreferredWidth () {
+          return 144
+        }
       }
 
       const dragEvent = new DragEvent('dragstart')
-      Object.defineProperty(dragEvent, 'target', {value: element})
+      Object.defineProperty(dragEvent, 'target', { value: element })
 
       atom.workspace.getElement().handleDragStart(dragEvent)
-      expect(atom.workspace.getLeftDock().wrapperElement.offsetWidth).toBe(144)
+      await getNextUpdatePromise()
+      expect(atom.workspace.getLeftDock().refs.wrapperElement.offsetWidth).toBe(
+        144
+      )
     })
 
     it('does nothing when text nodes are dragged', () => {
@@ -334,9 +409,11 @@ describe('Dock', () => {
       const textNode = document.createTextNode('hello')
 
       const dragEvent = new DragEvent('dragstart')
-      Object.defineProperty(dragEvent, 'target', {value: textNode})
+      Object.defineProperty(dragEvent, 'target', { value: textNode })
 
-      expect(() => atom.workspace.getElement().handleDragStart(dragEvent)).not.toThrow()
+      expect(() =>
+        atom.workspace.getElement().handleDragStart(dragEvent)
+      ).not.toThrow()
     })
   })
 

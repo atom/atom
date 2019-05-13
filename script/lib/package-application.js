@@ -23,6 +23,7 @@ module.exports = function () {
     arch: process.platform === 'darwin' ? 'x64' : HOST_ARCH, // OS X is 64-bit only
     asar: {unpack: buildAsarUnpackGlobExpression()},
     buildVersion: CONFIG.appMetadata.version,
+    derefSymlinks: false,
     download: {cache: CONFIG.electronDownloadPath},
     dir: CONFIG.intermediateAppPath,
     electronVersion: CONFIG.appMetadata.electronVersion,
@@ -110,6 +111,7 @@ function buildAsarUnpackGlobExpression () {
     path.join('**', 'node_modules', 'spellchecker', '**'),
     path.join('**', 'node_modules', 'dugite', 'git', '**'),
     path.join('**', 'node_modules', 'github', 'bin', '**'),
+    path.join('**', 'node_modules', 'vscode-ripgrep', 'bin', '**'),
     path.join('**', 'resources', 'atom.png')
   ]
 
@@ -118,18 +120,18 @@ function buildAsarUnpackGlobExpression () {
 
 function getAppName () {
   if (process.platform === 'darwin') {
-    return CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+    return CONFIG.appName
   } else {
     return 'atom'
   }
 }
 
-function runPackager (options) {
-  return electronPackager(options)
-    .then(packageOutputDirPaths => {
-      assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
-      return renamePackagedAppDir(packageOutputDirPaths[0])
-    })
+async function runPackager (options) {
+  const packageOutputDirPaths = await electronPackager(options)
+
+  assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
+
+  return renamePackagedAppDir(packageOutputDirPaths[0])
 }
 
 function renamePackagedAppDir (packageOutputDirPath) {
@@ -140,7 +142,7 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(path.join(packageOutputDirPath, appBundleName), packagedAppPath)
   } else if (process.platform === 'linux') {
-    const appName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
+    const appName = CONFIG.channel !== 'stable' ? `atom-${CONFIG.channel}` : 'atom'
     let architecture
     if (HOST_ARCH === 'ia32') {
       architecture = 'i386'
@@ -153,10 +155,9 @@ function renamePackagedAppDir (packageOutputDirPath) {
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
-    const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
-    packagedAppPath = path.join(CONFIG.buildOutputPath, appName)
+    packagedAppPath = path.join(CONFIG.buildOutputPath, CONFIG.appName)
     if (process.platform === 'win32' && HOST_ARCH !== 'ia32') {
-      packagedAppPath += ` ${HOST_ARCH}`
+      packagedAppPath += ` ${process.arch}`
     }
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)

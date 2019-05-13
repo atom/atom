@@ -1,10 +1,12 @@
 /** @babel */
 
-const {ipcRenderer} = require('electron')
+const { ipcRenderer } = require('electron')
+const etch = require('etch')
 const path = require('path')
 const temp = require('temp').track()
-const {Disposable} = require('event-kit')
-const {it, fit, ffit, fffit, beforeEach, afterEach} = require('./async-spec-helpers')
+const { Disposable } = require('event-kit')
+
+const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 
 describe('WorkspaceElement', () => {
   afterEach(() => {
@@ -32,19 +34,39 @@ describe('WorkspaceElement', () => {
       const dock = atom.workspace.getLeftDock()
       dock.show()
       jasmine.attachToDOM(atom.workspace.getElement())
-      expect(atom.workspace.getActivePaneContainer()).toBe(atom.workspace.getCenter())
-      dock.getActivePane().getElement().focus()
+      expect(atom.workspace.getActivePaneContainer()).toBe(
+        atom.workspace.getCenter()
+      )
+      dock
+        .getActivePane()
+        .getElement()
+        .focus()
       expect(atom.workspace.getActivePaneContainer()).toBe(dock)
     })
   })
 
   describe('finding the nearest visible pane in a specific direction', () => {
-    let pane1, pane2, pane3, pane4, pane5, pane6, pane7, pane8, pane9,
-      leftDockPane, rightDockPane, bottomDockPane, workspace, workspaceElement
+    let nearestPaneElement,
+      pane1,
+      pane2,
+      pane3,
+      pane4,
+      pane5,
+      pane6,
+      pane7,
+      pane8,
+      leftDockPane,
+      rightDockPane,
+      bottomDockPane,
+      workspace,
+      workspaceElement
 
     beforeEach(function () {
       atom.config.set('core.destroyEmptyPanes', false)
-      expect(document.hasFocus()).toBe(true, 'Document needs to be focused to run this test')
+      expect(document.hasFocus()).toBe(
+        true,
+        'Document needs to be focused to run this test'
+      )
 
       workspace = atom.workspace
 
@@ -74,7 +96,7 @@ describe('WorkspaceElement', () => {
       pane6 = pane5.splitRight()
 
       pane8 = pane7.splitRight()
-      pane9 = pane8.splitRight()
+      pane8.splitRight()
 
       const leftDock = workspace.getLeftDock()
       const rightDock = workspace.getRightDock()
@@ -101,14 +123,20 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane above', () => {
       describe('when there are multiple rows above the pane', () => {
         it('returns the pane in the adjacent row above', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane8)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'above',
+            pane8
+          )
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no rows above the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', pane2)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'above',
+            pane2
+          )
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -116,7 +144,10 @@ describe('WorkspaceElement', () => {
       describe('when the bottom dock contains the pane', () => {
         it('returns the pane in the adjacent row above', () => {
           workspace.getBottomDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('above', bottomDockPane)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'above',
+            bottomDockPane
+          )
           expect(nearestPaneElement).toBe(pane7.getElement())
         })
       })
@@ -125,14 +156,20 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane below', () => {
       describe('when there are multiple rows below the pane', () => {
         it('returns the pane in the adjacent row below', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane2)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'below',
+            pane2
+          )
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no rows below the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'below',
+            pane8
+          )
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -141,7 +178,10 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's bottommost row contains the pane", () => {
           it("returns the pane in the bottom dock's adjacent row below", () => {
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('below', pane8)
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+              'below',
+              pane8
+            )
             expect(nearestPaneElement).toBe(bottomDockPane.getElement())
           })
         })
@@ -151,14 +191,20 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane to the left', () => {
       describe('when there are multiple columns to the left of the pane', () => {
         it('returns the pane in the adjacent column to the left', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane6)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'left',
+            pane6
+          )
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no columns to the left of the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'left',
+            pane4
+          )
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -166,7 +212,10 @@ describe('WorkspaceElement', () => {
       describe('when the right dock contains the pane', () => {
         it('returns the pane in the adjacent column to the left', () => {
           workspace.getRightDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', rightDockPane)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'left',
+            rightDockPane
+          )
           expect(nearestPaneElement).toBe(pane3.getElement())
         })
       })
@@ -175,7 +224,10 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's leftmost column contains the pane", () => {
           it("returns the pane in the left dock's adjacent column to the left", () => {
             workspace.getLeftDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', pane4)
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+              'left',
+              pane4
+            )
             expect(nearestPaneElement).toBe(leftDockPane.getElement())
           })
         })
@@ -184,7 +236,10 @@ describe('WorkspaceElement', () => {
           it("returns the pane in the left dock's adjacent column to the left", () => {
             workspace.getLeftDock().show()
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('left', bottomDockPane)
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+              'left',
+              bottomDockPane
+            )
             expect(nearestPaneElement).toBe(leftDockPane.getElement())
           })
         })
@@ -194,14 +249,20 @@ describe('WorkspaceElement', () => {
     describe('finding the nearest pane to the right', () => {
       describe('when there are multiple columns to the right of the pane', () => {
         it('returns the pane in the adjacent column to the right', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane4)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'right',
+            pane4
+          )
           expect(nearestPaneElement).toBe(pane5.getElement())
         })
       })
 
       describe('when there are no columns to the right of the pane', () => {
         it('returns null', () => {
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'right',
+            pane6
+          )
           expect(nearestPaneElement).toBeUndefined() // TODO Expect toBeNull()
         })
       })
@@ -209,7 +270,10 @@ describe('WorkspaceElement', () => {
       describe('when the left dock contains the pane', () => {
         it('returns the pane in the adjacent column to the right', () => {
           workspace.getLeftDock().show()
-          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', leftDockPane)
+          nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+            'right',
+            leftDockPane
+          )
           expect(nearestPaneElement).toBe(pane1.getElement())
         })
       })
@@ -218,7 +282,10 @@ describe('WorkspaceElement', () => {
         describe("when the workspace center's rightmost column contains the pane", () => {
           it("returns the pane in the right dock's adjacent column to the right", () => {
             workspace.getRightDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', pane6)
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+              'right',
+              pane6
+            )
             expect(nearestPaneElement).toBe(rightDockPane.getElement())
           })
         })
@@ -227,7 +294,10 @@ describe('WorkspaceElement', () => {
           it("returns the pane in the right dock's adjacent column to the right", () => {
             workspace.getRightDock().show()
             workspace.getBottomDock().show()
-            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection('right', bottomDockPane)
+            nearestPaneElement = workspaceElement.nearestVisiblePaneInDirection(
+              'right',
+              bottomDockPane
+            )
             expect(nearestPaneElement).toBe(rightDockPane.getElement())
           })
         })
@@ -240,7 +310,10 @@ describe('WorkspaceElement', () => {
 
     beforeEach(function () {
       atom.config.set('core.destroyEmptyPanes', false)
-      expect(document.hasFocus()).toBe(true, 'Document needs to be focused to run this test')
+      expect(document.hasFocus()).toBe(
+        true,
+        'Document needs to be focused to run this test'
+      )
 
       workspace = atom.workspace
       expect(workspace.getLeftDock().isVisible()).toBe(false)
@@ -264,16 +337,14 @@ describe('WorkspaceElement', () => {
           startingPane.activate()
           workspaceElement.focusPaneViewAbove()
           expect(document.activeElement).toBe(paneAbove.getElement())
-        })
-      )
+        }))
 
       describe('when there are no rows above the focused pane', () =>
         it('keeps the current pane focused', function () {
           startingPane.activate()
           workspaceElement.focusPaneViewAbove()
           expect(document.activeElement).toBe(startingPane.getElement())
-        })
-      )
+        }))
     })
 
     describe('::focusPaneViewBelow()', function () {
@@ -283,16 +354,14 @@ describe('WorkspaceElement', () => {
           startingPane.activate()
           workspaceElement.focusPaneViewBelow()
           expect(document.activeElement).toBe(paneBelow.getElement())
-        })
-      )
+        }))
 
       describe('when there are no rows below the focused pane', () =>
         it('keeps the current pane focused', function () {
           startingPane.activate()
           workspaceElement.focusPaneViewBelow()
           expect(document.activeElement).toBe(startingPane.getElement())
-        })
-      )
+        }))
     })
 
     describe('::focusPaneViewOnLeft()', function () {
@@ -302,16 +371,14 @@ describe('WorkspaceElement', () => {
           startingPane.activate()
           workspaceElement.focusPaneViewOnLeft()
           expect(document.activeElement).toBe(paneOnLeft.getElement())
-        })
-      )
+        }))
 
       describe('when there are no columns to the left of the focused pane', () =>
         it('keeps the current pane focused', function () {
           startingPane.activate()
           workspaceElement.focusPaneViewOnLeft()
           expect(document.activeElement).toBe(startingPane.getElement())
-        })
-      )
+        }))
     })
 
     describe('::focusPaneViewOnRight()', function () {
@@ -321,16 +388,14 @@ describe('WorkspaceElement', () => {
           startingPane.activate()
           workspaceElement.focusPaneViewOnRight()
           expect(document.activeElement).toBe(paneOnRight.getElement())
-        })
-      )
+        }))
 
       describe('when there are no columns to the right of the focused pane', () =>
         it('keeps the current pane focused', function () {
           startingPane.activate()
           workspaceElement.focusPaneViewOnRight()
           expect(document.activeElement).toBe(startingPane.getElement())
-        })
-      )
+        }))
     })
 
     describe('::moveActiveItemToPaneAbove(keepOriginal)', function () {
@@ -343,8 +408,7 @@ describe('WorkspaceElement', () => {
           workspaceElement.moveActiveItemToPaneAbove()
           expect(workspace.paneForItem(item)).toBe(paneAbove)
           expect(paneAbove.getActiveItem()).toBe(item)
-        })
-      )
+        }))
 
       describe('when there are no rows above the focused pane', () =>
         it('keeps the active pane focused', function () {
@@ -353,8 +417,7 @@ describe('WorkspaceElement', () => {
           startingPane.activateItem(item)
           workspaceElement.moveActiveItemToPaneAbove()
           expect(workspace.paneForItem(item)).toBe(startingPane)
-        })
-      )
+        }))
 
       describe('when `keepOriginal: true` is passed in the params', () =>
         it('keeps the item and adds a copy of it to the adjacent pane', function () {
@@ -364,11 +427,10 @@ describe('WorkspaceElement', () => {
           const paneAbove = startingPane.splitUp()
           startingPane.activate()
           startingPane.activateItem(itemA)
-          workspaceElement.moveActiveItemToPaneAbove({keepOriginal: true})
+          workspaceElement.moveActiveItemToPaneAbove({ keepOriginal: true })
           expect(workspace.paneForItem(itemA)).toBe(startingPane)
           expect(paneAbove.getActiveItem()).toBe(itemB)
-        })
-      )
+        }))
     })
 
     describe('::moveActiveItemToPaneBelow(keepOriginal)', function () {
@@ -381,8 +443,7 @@ describe('WorkspaceElement', () => {
           workspaceElement.moveActiveItemToPaneBelow()
           expect(workspace.paneForItem(item)).toBe(paneBelow)
           expect(paneBelow.getActiveItem()).toBe(item)
-        })
-      )
+        }))
 
       describe('when there are no rows below the focused pane', () =>
         it('keeps the active item in the focused pane', function () {
@@ -391,8 +452,7 @@ describe('WorkspaceElement', () => {
           startingPane.activateItem(item)
           workspaceElement.moveActiveItemToPaneBelow()
           expect(workspace.paneForItem(item)).toBe(startingPane)
-        })
-      )
+        }))
 
       describe('when `keepOriginal: true` is passed in the params', () =>
         it('keeps the item and adds a copy of it to the adjacent pane', function () {
@@ -402,11 +462,10 @@ describe('WorkspaceElement', () => {
           const paneBelow = startingPane.splitDown()
           startingPane.activate()
           startingPane.activateItem(itemA)
-          workspaceElement.moveActiveItemToPaneBelow({keepOriginal: true})
+          workspaceElement.moveActiveItemToPaneBelow({ keepOriginal: true })
           expect(workspace.paneForItem(itemA)).toBe(startingPane)
           expect(paneBelow.getActiveItem()).toBe(itemB)
-        })
-      )
+        }))
     })
 
     describe('::moveActiveItemToPaneOnLeft(keepOriginal)', function () {
@@ -419,8 +478,7 @@ describe('WorkspaceElement', () => {
           workspaceElement.moveActiveItemToPaneOnLeft()
           expect(workspace.paneForItem(item)).toBe(paneOnLeft)
           expect(paneOnLeft.getActiveItem()).toBe(item)
-        })
-      )
+        }))
 
       describe('when there are no columns to the left of the focused pane', () =>
         it('keeps the active item in the focused pane', function () {
@@ -429,8 +487,7 @@ describe('WorkspaceElement', () => {
           startingPane.activateItem(item)
           workspaceElement.moveActiveItemToPaneOnLeft()
           expect(workspace.paneForItem(item)).toBe(startingPane)
-        })
-      )
+        }))
 
       describe('when `keepOriginal: true` is passed in the params', () =>
         it('keeps the item and adds a copy of it to the adjacent pane', function () {
@@ -440,11 +497,10 @@ describe('WorkspaceElement', () => {
           const paneOnLeft = startingPane.splitLeft()
           startingPane.activate()
           startingPane.activateItem(itemA)
-          workspaceElement.moveActiveItemToPaneOnLeft({keepOriginal: true})
+          workspaceElement.moveActiveItemToPaneOnLeft({ keepOriginal: true })
           expect(workspace.paneForItem(itemA)).toBe(startingPane)
           expect(paneOnLeft.getActiveItem()).toBe(itemB)
-        })
-      )
+        }))
     })
 
     describe('::moveActiveItemToPaneOnRight(keepOriginal)', function () {
@@ -457,8 +513,7 @@ describe('WorkspaceElement', () => {
           workspaceElement.moveActiveItemToPaneOnRight()
           expect(workspace.paneForItem(item)).toBe(paneOnRight)
           expect(paneOnRight.getActiveItem()).toBe(item)
-        })
-      )
+        }))
 
       describe('when there are no columns to the right of the focused pane', () =>
         it('keeps the active item in the focused pane', function () {
@@ -467,8 +522,7 @@ describe('WorkspaceElement', () => {
           startingPane.activateItem(item)
           workspaceElement.moveActiveItemToPaneOnRight()
           expect(workspace.paneForItem(item)).toBe(startingPane)
-        })
-      )
+        }))
 
       describe('when `keepOriginal: true` is passed in the params', () =>
         it('keeps the item and adds a copy of it to the adjacent pane', function () {
@@ -478,11 +532,10 @@ describe('WorkspaceElement', () => {
           const paneOnRight = startingPane.splitRight()
           startingPane.activate()
           startingPane.activateItem(itemA)
-          workspaceElement.moveActiveItemToPaneOnRight({keepOriginal: true})
+          workspaceElement.moveActiveItemToPaneOnRight({ keepOriginal: true })
           expect(workspace.paneForItem(itemA)).toBe(startingPane)
           expect(paneOnRight.getActiveItem()).toBe(itemB)
-        })
-      )
+        }))
     })
 
     describe('::moveActiveItemToNearestPaneInDirection(direction, params)', () => {
@@ -496,10 +549,14 @@ describe('WorkspaceElement', () => {
           workspace.getBottomDock().show()
           startingPane.activate()
           startingPane.activateItem(item)
-          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: false})
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
+            keepOriginal: false
+          })
           expect(workspace.paneForItem(item)).toBe(startingPane)
 
-          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
+            keepOriginal: true
+          })
           expect(workspace.paneForItem(item)).toBe(startingPane)
         })
       })
@@ -513,7 +570,9 @@ describe('WorkspaceElement', () => {
           startingPane.activate()
           startingPane.activateItem(item)
           workspaceElement.focusPaneViewAbove()
-          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {keepOriginal: true})
+          workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
+            keepOriginal: true
+          })
           expect(workspace.paneForItem(item)).toBe(startingPane)
           expect(paneBelow.getItems().length).toEqual(0)
         })
@@ -523,30 +582,69 @@ describe('WorkspaceElement', () => {
 
   describe('mousing over docks', () => {
     let workspaceElement
+    let originalTimeout = jasmine.getEnv().defaultTimeoutInterval
 
     beforeEach(() => {
       workspaceElement = atom.workspace.getElement()
       workspaceElement.style.width = '600px'
       workspaceElement.style.height = '300px'
       jasmine.attachToDOM(workspaceElement)
+
+      // To isolate this test from unintended events happening on the host machine,
+      // we remove any listener that could cause interferences.
+      window.removeEventListener(
+        'mousemove',
+        workspaceElement.handleEdgesMouseMove
+      )
+      workspaceElement.htmlElement.removeEventListener(
+        'mouseleave',
+        workspaceElement.handleCenterLeave
+      )
+
+      jasmine.getEnv().defaultTimeoutInterval = 10000
+    })
+
+    afterEach(() => {
+      jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+
+      window.addEventListener(
+        'mousemove',
+        workspaceElement.handleEdgesMouseMove
+      )
+      workspaceElement.htmlElement.addEventListener(
+        'mouseleave',
+        workspaceElement.handleCenterLeave
+      )
     })
 
     it('shows the toggle button when the dock is open', async () => {
       await Promise.all([
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'left' },
-          getPreferredWidth() { return 150 }
+          getDefaultLocation () {
+            return 'left'
+          },
+          getPreferredWidth () {
+            return 150
+          }
         }),
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'right' },
-          getPreferredWidth() { return 150 }
+          getDefaultLocation () {
+            return 'right'
+          },
+          getPreferredWidth () {
+            return 150
+          }
         }),
         atom.workspace.open({
           element: document.createElement('div'),
-          getDefaultLocation() { return 'bottom' },
-          getPreferredHeight() { return 100 }
+          getDefaultLocation () {
+            return 'bottom'
+          },
+          getPreferredHeight () {
+            return 100
+          }
         })
       ])
 
@@ -564,124 +662,150 @@ describe('WorkspaceElement', () => {
       // --- Right Dock ---
 
       // Mouse over where the toggle button would be if the dock were hovered
-      moveMouse({clientX: 440, clientY: 150})
+      moveMouse({ clientX: 440, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
       // Mouse over the dock
-      moveMouse({clientX: 460, clientY: 150})
+      moveMouse({ clientX: 460, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonVisible(rightDock, 'icon-chevron-right')
       expectToggleButtonHidden(bottomDock)
 
       // Mouse over the toggle button
-      moveMouse({clientX: 440, clientY: 150})
+      moveMouse({ clientX: 440, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonVisible(rightDock, 'icon-chevron-right')
       expectToggleButtonHidden(bottomDock)
 
       // Click the toggle button
-      rightDock.toggleButton.innerElement.click()
+      rightDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(rightDock.isVisible()).toBe(false)
       expectToggleButtonHidden(rightDock)
 
       // Mouse to edge of the window
-      moveMouse({clientX: 575, clientY: 150})
+      moveMouse({ clientX: 575, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(rightDock)
-      moveMouse({clientX: 598, clientY: 150})
+      moveMouse({ clientX: 598, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonVisible(rightDock, 'icon-chevron-left')
 
       // Click the toggle button again
-      rightDock.toggleButton.innerElement.click()
+      rightDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(rightDock.isVisible()).toBe(true)
       expectToggleButtonVisible(rightDock, 'icon-chevron-right')
 
       // --- Left Dock ---
 
       // Mouse over where the toggle button would be if the dock were hovered
-      moveMouse({clientX: 160, clientY: 150})
+      moveMouse({ clientX: 160, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
       // Mouse over the dock
-      moveMouse({clientX: 140, clientY: 150})
+      moveMouse({ clientX: 140, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonVisible(leftDock, 'icon-chevron-left')
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
       // Mouse over the toggle button
-      moveMouse({clientX: 160, clientY: 150})
+      moveMouse({ clientX: 160, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonVisible(leftDock, 'icon-chevron-left')
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
       // Click the toggle button
-      leftDock.toggleButton.innerElement.click()
+      leftDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(leftDock.isVisible()).toBe(false)
       expectToggleButtonHidden(leftDock)
 
       // Mouse to edge of the window
-      moveMouse({clientX: 25, clientY: 150})
+      moveMouse({ clientX: 25, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
-      moveMouse({clientX: 2, clientY: 150})
+      moveMouse({ clientX: 2, clientY: 150 })
+      await getNextUpdatePromise()
       expectToggleButtonVisible(leftDock, 'icon-chevron-right')
 
       // Click the toggle button again
-      leftDock.toggleButton.innerElement.click()
+      leftDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(leftDock.isVisible()).toBe(true)
       expectToggleButtonVisible(leftDock, 'icon-chevron-left')
 
       // --- Bottom Dock ---
 
       // Mouse over where the toggle button would be if the dock were hovered
-      moveMouse({clientX: 300, clientY: 190})
+      moveMouse({ clientX: 300, clientY: 190 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonHidden(rightDock)
       expectToggleButtonHidden(bottomDock)
 
       // Mouse over the dock
-      moveMouse({clientX: 300, clientY: 210})
+      moveMouse({ clientX: 300, clientY: 210 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonHidden(rightDock)
       expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
 
       // Mouse over the toggle button
-      moveMouse({clientX: 300, clientY: 195})
+      moveMouse({ clientX: 300, clientY: 195 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
       expectToggleButtonHidden(rightDock)
       expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
 
       // Click the toggle button
-      bottomDock.toggleButton.innerElement.click()
+      bottomDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(bottomDock.isVisible()).toBe(false)
       expectToggleButtonHidden(bottomDock)
 
       // Mouse to edge of the window
-      moveMouse({clientX: 300, clientY: 290})
+      moveMouse({ clientX: 300, clientY: 290 })
+      await getNextUpdatePromise()
       expectToggleButtonHidden(leftDock)
-      moveMouse({clientX: 300, clientY: 299})
+      moveMouse({ clientX: 300, clientY: 299 })
+      await getNextUpdatePromise()
       expectToggleButtonVisible(bottomDock, 'icon-chevron-up')
 
       // Click the toggle button again
-      bottomDock.toggleButton.innerElement.click()
+      bottomDock.refs.toggleButton.refs.innerElement.click()
+      await getNextUpdatePromise()
       expect(bottomDock.isVisible()).toBe(true)
       expectToggleButtonVisible(bottomDock, 'icon-chevron-down')
     })
 
-    function moveMouse(coordinates) {
-      window.dispatchEvent(new MouseEvent('mousemove', coordinates))
+    function moveMouse (coordinates) {
+      // Simulate a mouse move event by calling the method that handles that event.
+      workspaceElement.updateHoveredDock({x: coordinates.clientX, y: coordinates.clientY})
       advanceClock(100)
     }
 
-    function expectToggleButtonHidden(dock) {
-      expect(dock.toggleButton.element).not.toHaveClass('atom-dock-toggle-button-visible')
+    function expectToggleButtonHidden (dock) {
+      expect(dock.refs.toggleButton.element).not.toHaveClass(
+        'atom-dock-toggle-button-visible'
+      )
     }
 
-    function expectToggleButtonVisible(dock, iconClass) {
-      expect(dock.toggleButton.element).toHaveClass('atom-dock-toggle-button-visible')
-      expect(dock.toggleButton.iconElement).toHaveClass(iconClass)
+    function expectToggleButtonVisible (dock, iconClass) {
+      expect(dock.refs.toggleButton.element).toHaveClass(
+        'atom-dock-toggle-button-visible'
+      )
+      expect(dock.refs.toggleButton.refs.iconElement).toHaveClass(iconClass)
     }
   })
 
@@ -689,10 +813,12 @@ describe('WorkspaceElement', () => {
     it('has a class based on the style of the scrollbar', () => {
       let observeCallback
       const scrollbarStyle = require('scrollbar-style')
-      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake(cb => {
-        observeCallback = cb
-        return new Disposable(() => {})
-      })
+      spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake(
+        cb => {
+          observeCallback = cb
+          return new Disposable(() => {})
+        }
+      )
 
       const workspaceElement = atom.workspace.getElement()
       observeCallback('legacy')
@@ -717,11 +843,15 @@ describe('WorkspaceElement', () => {
 
     it("updates the font-size based on the 'editor.fontSize' config value", async () => {
       const initialCharWidth = editor.getDefaultCharWidth()
-      expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
+      expect(getComputedStyle(editorElement).fontSize).toBe(
+        atom.config.get('editor.fontSize') + 'px'
+      )
 
       atom.config.set('editor.fontSize', atom.config.get('editor.fontSize') + 5)
       await editorElement.component.getNextUpdatePromise()
-      expect(getComputedStyle(editorElement).fontSize).toBe(atom.config.get('editor.fontSize') + 'px')
+      expect(getComputedStyle(editorElement).fontSize).toBe(
+        atom.config.get('editor.fontSize') + 'px'
+      )
       expect(editor.getDefaultCharWidth()).toBeGreaterThan(initialCharWidth)
     })
 
@@ -741,7 +871,9 @@ describe('WorkspaceElement', () => {
       const initialLineHeight = editor.getLineHeightInPixels()
       atom.config.set('editor.lineHeight', '30px')
       await editorElement.component.getNextUpdatePromise()
-      expect(getComputedStyle(editorElement).lineHeight).toBe(atom.config.get('editor.lineHeight'))
+      expect(getComputedStyle(editorElement).lineHeight).toBe(
+        atom.config.get('editor.lineHeight')
+      )
       expect(editor.getLineHeightInPixels()).not.toBe(initialLineHeight)
     })
 
@@ -750,37 +882,47 @@ describe('WorkspaceElement', () => {
       atom.config.set('editor.fontSize', 12)
 
       // Zoom out
-      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
-        wheelDeltaY: -10,
-        ctrlKey: true
-      }))
+      editorElement.querySelector('span').dispatchEvent(
+        new WheelEvent('mousewheel', {
+          wheelDeltaY: -10,
+          ctrlKey: true
+        })
+      )
       expect(atom.config.get('editor.fontSize')).toBe(11)
 
       // Zoom in
-      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
-        wheelDeltaY: 10,
-        ctrlKey: true
-      }))
+      editorElement.querySelector('span').dispatchEvent(
+        new WheelEvent('mousewheel', {
+          wheelDeltaY: 10,
+          ctrlKey: true
+        })
+      )
       expect(atom.config.get('editor.fontSize')).toBe(12)
 
       // Not on an atom-text-editor
-      workspaceElement.dispatchEvent(new WheelEvent('mousewheel', {
-        wheelDeltaY: 10,
-        ctrlKey: true
-      }))
+      workspaceElement.dispatchEvent(
+        new WheelEvent('mousewheel', {
+          wheelDeltaY: 10,
+          ctrlKey: true
+        })
+      )
       expect(atom.config.get('editor.fontSize')).toBe(12)
 
       // No ctrl key
-      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
-        wheelDeltaY: 10
-      }))
+      editorElement.querySelector('span').dispatchEvent(
+        new WheelEvent('mousewheel', {
+          wheelDeltaY: 10
+        })
+      )
       expect(atom.config.get('editor.fontSize')).toBe(12)
 
       atom.config.set('editor.zoomFontWhenCtrlScrolling', false)
-      editorElement.querySelector('span').dispatchEvent(new WheelEvent('mousewheel', {
-        wheelDeltaY: 10,
-        ctrlKey: true
-      }))
+      editorElement.querySelector('span').dispatchEvent(
+        new WheelEvent('mousewheel', {
+          wheelDeltaY: 10,
+          ctrlKey: true
+        })
+      )
       expect(atom.config.get('editor.fontSize')).toBe(12)
     })
   })
@@ -789,22 +931,40 @@ describe('WorkspaceElement', () => {
     it('inserts panel container elements in the correct places in the DOM', () => {
       const workspaceElement = atom.workspace.getElement()
 
-      const leftContainer = workspaceElement.querySelector('atom-panel-container.left')
-      const rightContainer = workspaceElement.querySelector('atom-panel-container.right')
+      const leftContainer = workspaceElement.querySelector(
+        'atom-panel-container.left'
+      )
+      const rightContainer = workspaceElement.querySelector(
+        'atom-panel-container.right'
+      )
       expect(leftContainer.nextSibling).toBe(workspaceElement.verticalAxis)
       expect(rightContainer.previousSibling).toBe(workspaceElement.verticalAxis)
 
-      const topContainer = workspaceElement.querySelector('atom-panel-container.top')
-      const bottomContainer = workspaceElement.querySelector('atom-panel-container.bottom')
+      const topContainer = workspaceElement.querySelector(
+        'atom-panel-container.top'
+      )
+      const bottomContainer = workspaceElement.querySelector(
+        'atom-panel-container.bottom'
+      )
       expect(topContainer.nextSibling).toBe(workspaceElement.paneContainer)
-      expect(bottomContainer.previousSibling).toBe(workspaceElement.paneContainer)
+      expect(bottomContainer.previousSibling).toBe(
+        workspaceElement.paneContainer
+      )
 
-      const headerContainer = workspaceElement.querySelector('atom-panel-container.header')
-      const footerContainer = workspaceElement.querySelector('atom-panel-container.footer')
+      const headerContainer = workspaceElement.querySelector(
+        'atom-panel-container.header'
+      )
+      const footerContainer = workspaceElement.querySelector(
+        'atom-panel-container.footer'
+      )
       expect(headerContainer.nextSibling).toBe(workspaceElement.horizontalAxis)
-      expect(footerContainer.previousSibling).toBe(workspaceElement.horizontalAxis)
+      expect(footerContainer.previousSibling).toBe(
+        workspaceElement.horizontalAxis
+      )
 
-      const modalContainer = workspaceElement.querySelector('atom-panel-container.modal')
+      const modalContainer = workspaceElement.querySelector(
+        'atom-panel-container.modal'
+      )
       expect(modalContainer.parentNode).toBe(workspaceElement)
     })
 
@@ -814,18 +974,20 @@ describe('WorkspaceElement', () => {
       expect(workspaceElement.offsetWidth).toBeGreaterThan(0)
 
       const headerItem = document.createElement('div')
-      atom.workspace.addHeaderPanel({item: headerItem})
+      atom.workspace.addHeaderPanel({ item: headerItem })
       expect(headerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
 
       const footerItem = document.createElement('div')
-      atom.workspace.addFooterPanel({item: footerItem})
+      atom.workspace.addFooterPanel({ item: footerItem })
       expect(footerItem.offsetWidth).toEqual(workspaceElement.offsetWidth)
     })
 
     it('shrinks horizontal axis according to header/footer panels height', () => {
       const workspaceElement = atom.workspace.getElement()
       workspaceElement.style.height = '100px'
-      const horizontalAxisElement = workspaceElement.querySelector('atom-workspace-axis.horizontal')
+      const horizontalAxisElement = workspaceElement.querySelector(
+        'atom-workspace-axis.horizontal'
+      )
       jasmine.attachToDOM(workspaceElement)
 
       const originalHorizontalAxisHeight = horizontalAxisElement.offsetHeight
@@ -834,15 +996,19 @@ describe('WorkspaceElement', () => {
 
       const headerItem = document.createElement('div')
       headerItem.style.height = '10px'
-      atom.workspace.addHeaderPanel({item: headerItem})
+      atom.workspace.addHeaderPanel({ item: headerItem })
       expect(headerItem.offsetHeight).toBeGreaterThan(0)
 
       const footerItem = document.createElement('div')
       footerItem.style.height = '15px'
-      atom.workspace.addFooterPanel({item: footerItem})
+      atom.workspace.addFooterPanel({ item: footerItem })
       expect(footerItem.offsetHeight).toBeGreaterThan(0)
 
-      expect(horizontalAxisElement.offsetHeight).toEqual(originalHorizontalAxisHeight - headerItem.offsetHeight - footerItem.offsetHeight)
+      expect(horizontalAxisElement.offsetHeight).toEqual(
+        originalHorizontalAxisHeight -
+          headerItem.offsetHeight -
+          footerItem.offsetHeight
+      )
     })
   })
 
@@ -871,27 +1037,60 @@ describe('WorkspaceElement', () => {
 
       // No active item. Use first project directory.
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs',
+        path.join(projectPaths[0], 'spec'),
+        {}
+      )
       ipcRenderer.send.reset()
 
       // Active item doesn't implement ::getPath(). Use first project directory.
       const item = document.createElement('div')
       atom.workspace.getActivePane().activateItem(item)
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs',
+        path.join(projectPaths[0], 'spec'),
+        {}
+      )
       ipcRenderer.send.reset()
 
       // Active item has no path. Use first project directory.
       item.getPath = () => null
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[0], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs',
+        path.join(projectPaths[0], 'spec'),
+        {}
+      )
       ipcRenderer.send.reset()
 
       // Active item has path. Use project path for item path.
       item.getPath = () => path.join(projectPaths[1], 'a-file.txt')
       atom.commands.dispatch(workspaceElement, 'window:run-package-specs')
-      expect(ipcRenderer.send).toHaveBeenCalledWith('run-package-specs', path.join(projectPaths[1], 'spec'))
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs',
+        path.join(projectPaths[1], 'spec'),
+        {}
+      )
       ipcRenderer.send.reset()
+    })
+
+    it('passes additional options to the spec window', () => {
+      const workspaceElement = atom.workspace.getElement()
+      spyOn(ipcRenderer, 'send')
+
+      const projectPath = temp.mkdirSync('dir1-')
+      atom.project.setPaths([projectPath])
+      workspaceElement.runPackageSpecs({
+        env: { ATOM_GITHUB_BABEL_ENV: 'coverage' }
+      })
+
+      expect(ipcRenderer.send).toHaveBeenCalledWith(
+        'run-package-specs',
+        path.join(projectPath, 'spec'),
+        { env: { ATOM_GITHUB_BABEL_ENV: 'coverage' } }
+      )
     })
   })
 })

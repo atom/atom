@@ -2,6 +2,7 @@ const {dialog} = require('electron')
 const crypto = require('crypto')
 const Path = require('path')
 const fs = require('fs-plus')
+const mkdirp = require('mkdirp')
 
 module.exports =
 class FileRecoveryService {
@@ -147,15 +148,18 @@ async function tryStatFile (path) {
 
 async function copyFile (source, destination, mode) {
   return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(source)
-    readStream
-      .on('error', reject)
-      .once('open', () => {
-        const writeStream = fs.createWriteStream(destination, {mode})
-        writeStream
-          .on('error', reject)
-          .on('open', () => readStream.pipe(writeStream))
-          .once('close', () => resolve())
-      })
+    mkdirp(Path.dirname(destination), (error) => {
+      if (error) return reject(error)
+      const readStream = fs.createReadStream(source)
+      readStream
+        .on('error', reject)
+        .once('open', () => {
+          const writeStream = fs.createWriteStream(destination, {mode})
+          writeStream
+            .on('error', reject)
+            .on('open', () => readStream.pipe(writeStream))
+            .once('close', () => resolve())
+        })
+    })
   })
 }

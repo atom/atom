@@ -1,7 +1,7 @@
 'use strict'
 
 const electronInstaller = require('electron-winstaller')
-const fs = require('fs-extra')
+const fs = require('fs')
 const glob = require('glob')
 const path = require('path')
 
@@ -16,17 +16,32 @@ module.exports = (packagedAppPath) => {
     loadingGif: path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'loading.gif'),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
-    remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.appMetadata.version}`,
+    noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
+    remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
+    setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
 
   const cleanUp = () => {
-    for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/*.nupkg`)) {
-      if (!nupkgPath.includes(CONFIG.appMetadata.version)) {
+    const releasesPath = `${CONFIG.buildOutputPath}/RELEASES`
+    if (process.arch === 'x64' && fs.existsSync(releasesPath)) {
+      fs.renameSync(releasesPath, `${releasesPath}-x64`)
+    }
+
+    for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/atom-*.nupkg`)) {
+      if (!nupkgPath.includes(CONFIG.computedAppVersion)) {
         console.log(`Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`)
-        fs.removeSync(nupkgPath)
+        fs.unlinkSync(nupkgPath)
+      } else {
+        if (process.arch === 'x64') {
+          // Use the original .nupkg filename to generate the `atom-x64` name by inserting `-x64` after `atom`
+          const newNupkgPath = nupkgPath.replace('atom-', 'atom-x64-')
+          fs.renameSync(nupkgPath, newNupkgPath)
+        }
       }
     }
+
+    return `${CONFIG.buildOutputPath}/${options.setupExe}`
   }
 
   console.log(`Creating Windows Installer for ${packagedAppPath}`)

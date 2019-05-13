@@ -24,11 +24,25 @@ module.exports = ({blobStore}) ->
     ApplicationDelegate = require '../src/application-delegate'
     Clipboard = require '../src/clipboard'
     TextEditor = require '../src/text-editor'
+    {updateProcessEnv} = require('./update-process-env')
     require './electron-shims'
 
-    {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths} = getWindowLoadSettings()
+    ipcRenderer.on 'environment', (event, env) ->
+      updateProcessEnv(env)
 
-    unless headless
+    {testRunnerPath, legacyTestRunnerPath, headless, logFile, testPaths, env} = getWindowLoadSettings()
+
+    if headless
+      # Install console functions that output to stdout and stderr.
+      util = require 'util'
+
+      Object.defineProperties process,
+        stdout: {value: remote.process.stdout}
+        stderr: {value: remote.process.stderr}
+
+      console.log = (args...) -> process.stdout.write "#{util.format(args...)}\n"
+      console.error = (args...) -> process.stderr.write "#{util.format(args...)}\n"
+    else
       # Show window synchronously so a focusout doesn't fire on input elements
       # that are focused in the very first spec run.
       remote.getCurrentWindow().show()
@@ -58,6 +72,8 @@ module.exports = ({blobStore}) ->
     exportsPath = path.join(getWindowLoadSettings().resourcePath, 'exports')
     require('module').globalPaths.push(exportsPath)
     process.env.NODE_PATH = exportsPath # Set NODE_PATH env variable since tasks may need it.
+
+    updateProcessEnv(env)
 
     # Set up optional transpilation for packages under test if any
     FindParentDir = require 'find-parent-dir'

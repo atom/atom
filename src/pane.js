@@ -41,13 +41,13 @@ class Pane {
       )
     }
 
-    return new Pane(Object.assign(state, {
+    return new Pane(Object.assign({
       deserializerManager: deserializers,
       notificationManager: notifications,
       viewRegistry: views,
       config,
       applicationDelegate
-    }))
+    }, state))
   }
 
   constructor (params = {}) {
@@ -155,9 +155,17 @@ class Pane {
 
   getFlexScale () { return this.flexScale }
 
-  increaseSize () { this.setFlexScale(this.getFlexScale() * 1.1) }
+  increaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() * 1.1)
+    }
+  }
 
-  decreaseSize () { this.setFlexScale(this.getFlexScale() / 1.1) }
+  decreaseSize () {
+    if (this.getContainer().getPanes().length > 1) {
+      this.setFlexScale(this.getFlexScale() / 1.1)
+    }
+  }
 
   /*
   Section: Event Subscription
@@ -385,7 +393,6 @@ class Pane {
 
   // Called by the view layer to indicate that the pane has gained focus.
   focus () {
-    this.focused = true
     return this.activate()
   }
 
@@ -606,15 +613,15 @@ class Pane {
 
     if (this.items.includes(item)) return
 
+    const itemSubscriptions = new CompositeDisposable()
+    this.subscriptionsPerItem.set(item, itemSubscriptions)
     if (typeof item.onDidDestroy === 'function') {
-      const itemSubscriptions = new CompositeDisposable()
       itemSubscriptions.add(item.onDidDestroy(() => this.removeItem(item, false)))
-      if (typeof item.onDidTerminatePendingState === 'function') {
-        itemSubscriptions.add(item.onDidTerminatePendingState(() => {
-          if (this.getPendingItem() === item) this.clearPendingItem()
-        }))
-      }
-      this.subscriptionsPerItem.set(item, itemSubscriptions)
+    }
+    if (typeof item.onDidTerminatePendingState === 'function') {
+      itemSubscriptions.add(item.onDidTerminatePendingState(() => {
+        if (this.getPendingItem() === item) this.clearPendingItem()
+      }))
     }
 
     this.items.splice(index, 0, item)
@@ -1003,6 +1010,8 @@ class Pane {
   // Public: Makes this pane the *active* pane, causing it to gain focus.
   activate () {
     if (this.isDestroyed()) throw new Error('Pane has been destroyed')
+    this.focused = true
+
     if (this.container) this.container.didActivatePane(this)
     this.emitter.emit('did-activate')
   }

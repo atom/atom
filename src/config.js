@@ -8,6 +8,8 @@ const Color = require('./color')
 const ScopedPropertyStore = require('scoped-property-store')
 const ScopeDescriptor = require('./scope-descriptor')
 
+const schemaEnforcers = {}
+
 // Essential: Used to access all of Atom's configuration details.
 //
 // An instance of this class is always available as the `atom.config` global.
@@ -41,7 +43,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 // ### Value Coercion
 //
 // Config settings each have a type specified by way of a
-// [schema](json-schema.org). For example we might an integer setting that only
+// [schema](json-schema.org). For example we might want an integer setting that only
 // allows integers greater than `0`:
 //
 // ```coffee
@@ -263,6 +265,22 @@ const ScopeDescriptor = require('./scope-descriptor')
 //     ]
 // ```
 //
+// If you only have a few elements, you can display your enum as a list of
+// radio buttons in the settings view rather than a select list. To do so,
+// specify `radio: true` as a sibling property to the `enum` array.
+//
+// ```coffee
+// config:
+//   someSetting:
+//     type: 'string'
+//     default: 'foo'
+//     enum: [
+//       {value: 'foo', description: 'Foo mode. You want this.'}
+//       {value: 'bar', description: 'Bar mode. Nobody wants that!'}
+//     ]
+//     radio: true
+// ```
+//
 // Usage:
 //
 // ```coffee
@@ -309,7 +327,7 @@ const ScopeDescriptor = require('./scope-descriptor')
 // * **bold** - `**bold**`
 // * *italics* - `*italics*`
 // * [links](https://atom.io) - `[links](https://atom.io)`
-// * `code spans` - `\`code spans\``
+// * `code spans` - `` `code spans` ``
 // * line breaks - `line breaks<br/>`
 // * ~~strikethrough~~ - `~~strikethrough~~`
 //
@@ -359,8 +377,6 @@ const ScopeDescriptor = require('./scope-descriptor')
 //
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
-const schemaEnforcers = {}
-
 class Config {
   static addSchemaEnforcer (typeName, enforcerFunction) {
     if (schemaEnforcers[typeName] == null) { schemaEnforcers[typeName] = [] }
@@ -422,14 +438,18 @@ class Config {
       type: 'object',
       properties: {}
     }
+
     this.defaultSettings = {}
     this.settings = {}
+    this.projectSettings = {}
+    this.projectFile = null
+
     this.scopedSettingsStore = new ScopedPropertyStore()
 
     this.settingsLoaded = false
     this.transactDepth = 0
     this.pendingOperations = []
-    this.legacyScopeAliases = {}
+    this.legacyScopeAliases = new Map()
     this.requestSave = _.debounce(() => this.save(), 1)
   }
 
@@ -618,13 +638,13 @@ class Config {
           keyPath,
           options
         )
-      legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
       if (legacyScopeDescriptor) {
         result.push(...Array.from(this.scopedSettingsStore.getAll(
-            legacyScopeDescriptor.getScopeChain(),
-            keyPath,
-            options
-          ) || []))
+           legacyScopeDescriptor.getScopeChain(),
+           keyPath,
+           options
+         ) || []))
       }
     } else {
       result = []
@@ -687,11 +707,13 @@ class Config {
       this.pendingOperations.push(() => this.set(keyPath, value, options))
     }
 
-    const scopeSelector = options.scopeSelector
+    // We should never use the scoped store to set global settings, since they are kept directly
+    // in the config object.
+    const scopeSelector = options.scopeSelector !== '*' ? options.scopeSelector : undefined
     let source = options.source
     const shouldSave = options.save != null ? options.save : true
 
-    if (source && !scopeSelector) {
+    if (source && !scopeSelector && source !== this.projectFile) {
       throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
     }
 
@@ -708,7 +730,7 @@ class Config {
     if (scopeSelector != null) {
       this.setRawScopedValue(keyPath, value, source, scopeSelector)
     } else {
-      this.setRawValue(keyPath, value)
+      this.setRawValue(keyPath, value, {source})
     }
 
     if (source === this.mainSource && shouldSave && this.settingsLoaded) {
@@ -818,12 +840,8 @@ class Config {
     }
   }
 
-  addLegacyScopeAlias (languageId, legacyScopeName) {
-    this.legacyScopeAliases[languageId] = legacyScopeName
-  }
-
-  removeLegacyScopeAlias (languageId) {
-    delete this.legacyScopeAliases[languageId]
+  getLegacyScopeDescriptorForNewScopeDescriptor (scopeDescriptor) {
+    return null
   }
 
   /*
@@ -933,7 +951,12 @@ class Config {
   Section: Private methods managing global settings
   */
 
-  resetUserSettings (newSettings) {
+  resetUserSettings (newSettings, options = {}) {
+    this._resetSettings(newSettings, options)
+  }
+
+  _resetSettings (newSettings, options = {}) {
+    const source = options.source
     newSettings = Object.assign({}, newSettings)
     if (newSettings.global != null) {
       newSettings['*'] = newSettings.global
@@ -944,13 +967,16 @@ class Config {
       const scopedSettings = newSettings
       newSettings = newSettings['*']
       delete scopedSettings['*']
-      this.resetUserScopedSettings(scopedSettings)
+      this.resetScopedSettings(scopedSettings, {source})
     }
 
     return this.transact(() => {
-      this.settings = {}
+      this._clearUnscopedSettingsForSource(source)
       this.settingsLoaded = true
-      for (let key in newSettings) { const value = newSettings[key]; this.set(key, value, {save: false}) }
+      for (let key in newSettings) {
+        const value = newSettings[key]
+        this.set(key, value, {save: false, source})
+      }
       if (this.pendingOperations.length) {
         for (let op of this.pendingOperations) { op() }
         this.pendingOperations = []
@@ -958,10 +984,39 @@ class Config {
     })
   }
 
+  _clearUnscopedSettingsForSource (source) {
+    if (source === this.projectFile) {
+      this.projectSettings = {}
+    } else {
+      this.settings = {}
+    }
+  }
+
+  resetProjectSettings (newSettings, projectFile) {
+    // Sets the scope and source of all project settings to `path`.
+    newSettings = Object.assign({}, newSettings)
+    const oldProjectFile = this.projectFile
+    this.projectFile = projectFile
+    if (this.projectFile != null) {
+      this._resetSettings(newSettings, {source: this.projectFile})
+    } else {
+      this.scopedSettingsStore.removePropertiesForSource(oldProjectFile)
+      this.projectSettings = {}
+    }
+  }
+
+  clearProjectSettings () {
+    this.resetProjectSettings({}, null)
+  }
+
   getRawValue (keyPath, options = {}) {
     let value
     if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
       value = getValueAtKeyPath(this.settings, keyPath)
+      if (this.projectFile != null) {
+        const projectValue = getValueAtKeyPath(this.projectSettings, keyPath)
+        value = (projectValue === undefined) ? value : projectValue
+      }
     }
 
     let defaultValue
@@ -980,19 +1035,22 @@ class Config {
     }
   }
 
-  setRawValue (keyPath, value) {
+  setRawValue (keyPath, value, options = {}) {
+    const source = options.source ? options.source : undefined
+    const settingsToChange = source === this.projectFile ? 'projectSettings' : 'settings'
     const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
+
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
-        deleteValueAtKeyPath(this.settings, keyPath)
+        deleteValueAtKeyPath(this[settingsToChange], keyPath)
       } else {
-        this.settings = null
+        this[settingsToChange] = null
       }
     } else {
       if (keyPath != null) {
-        setValueAtKeyPath(this.settings, keyPath, value)
+        setValueAtKeyPath(this[settingsToChange], keyPath, value)
       } else {
-        this.settings = value
+        this[settingsToChange] = value
       }
     }
     return this.emitChangeEvent()
@@ -1052,7 +1110,7 @@ class Config {
   deepClone (object) {
     if (object instanceof Color) {
       return object.clone()
-    } else if (_.isArray(object)) {
+    } else if (Array.isArray(object)) {
       return object.map(value => this.deepClone(value))
     } else if (isPlainObject(object)) {
       return _.mapObject(object, (key, value) => [key, this.deepClone(value)])
@@ -1158,15 +1216,22 @@ class Config {
   */
 
   priorityForSource (source) {
-    return (source === this.mainSource) ? 1000 : 0
+    switch (source) {
+      case this.mainSource:
+        return 1000
+      case this.projectFile:
+        return 2000
+      default:
+        return 0
+    }
   }
 
   emitChangeEvent () {
     if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
   }
 
-  resetUserScopedSettings (newScopedSettings) {
-    const source = this.mainSource
+  resetScopedSettings (newScopedSettings, options = {}) {
+    const source = options.source == null ? this.mainSource : options.source
     const priority = this.priorityForSource(source)
     this.scopedSettingsStore.removePropertiesForSource(source)
 
@@ -1202,7 +1267,7 @@ class Config {
       options
     )
 
-    const legacyScopeDescriptor = this.getLegacyScopeDescriptor(scopeDescriptor)
+    const legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
     if (result != null) {
       return result
     } else if (legacyScopeDescriptor) {
@@ -1229,15 +1294,6 @@ class Config {
         callback(event)
       }
     })
-  }
-
-  getLegacyScopeDescriptor (scopeDescriptor) {
-    const legacyAlias = this.legacyScopeAliases[scopeDescriptor.scopes[0]]
-    if (legacyAlias) {
-      const scopes = scopeDescriptor.scopes.slice()
-      scopes[0] = legacyAlias
-      return new ScopeDescriptor({scopes})
-    }
   }
 };
 
@@ -1415,7 +1471,7 @@ Config.addSchemaEnforcers({
   }
 })
 
-let isPlainObject = value => _.isObject(value) && !_.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
+let isPlainObject = value => _.isObject(value) && !Array.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
 
 let sortObject = value => {
   if (!isPlainObject(value)) { return value }

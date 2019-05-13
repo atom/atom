@@ -5,9 +5,16 @@ const temp = require('temp').track()
 const parseCommandLine = require('./parse-command-line')
 const startCrashReporter = require('../crash-reporter-start')
 const atomPaths = require('../atom-paths')
+const fs = require('fs')
+const CSON = require('season')
+const Config = require('../config')
+const StartupTime = require('../startup-time')
 
-module.exports = function start (resourcePath, startTime) {
+StartupTime.setStartTime()
+
+module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
+  StartupTime.addMarker('main-process:start')
 
   process.on('uncaughtException', function (error = {}) {
     if (error.message != null) {
@@ -35,9 +42,17 @@ module.exports = function start (resourcePath, startTime) {
   app.commandLine.appendSwitch('enable-experimental-web-platform-features')
 
   const args = parseCommandLine(process.argv.slice(1))
+  args.resourcePath = normalizeDriveLetterName(resourcePath)
+  args.devResourcePath = normalizeDriveLetterName(devResourcePath)
+
   atomPaths.setAtomHome(app.getPath('home'))
   atomPaths.setUserData(app)
-  setupCompileCache()
+
+  const config = getConfig()
+  const colorProfile = config.get('core.colorProfile')
+  if (colorProfile && colorProfile !== 'default') {
+    app.commandLine.appendSwitch('force-color-profile', colorProfile)
+  }
 
   if (handleStartupEventWithSquirrel()) {
     return
@@ -74,7 +89,9 @@ module.exports = function start (resourcePath, startTime) {
     app.setPath('userData', temp.mkdirSync('atom-test-data'))
   }
 
+  StartupTime.addMarker('main-process:electron-onready:start')
   app.on('ready', function () {
+    StartupTime.addMarker('main-process:electron-onready:end')
     app.removeListener('open-file', addPathToOpen)
     app.removeListener('open-url', addUrlToOpen)
     const AtomApplication = require(path.join(args.resourcePath, 'src', 'main-process', 'atom-application'))
@@ -92,8 +109,28 @@ function handleStartupEventWithSquirrel () {
   return SquirrelUpdate.handleStartupEvent(app, squirrelCommand)
 }
 
-function setupCompileCache () {
-  const CompileCache = require('../compile-cache')
-  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
-  CompileCache.install(process.resourcesPath, require)
+function getConfig () {
+  const config = new Config()
+
+  let configFilePath
+  if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.json'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.json')
+  } else if (fs.existsSync(path.join(process.env.ATOM_HOME, 'config.cson'))) {
+    configFilePath = path.join(process.env.ATOM_HOME, 'config.cson')
+  }
+
+  if (configFilePath) {
+    const configFileData = CSON.readFileSync(configFilePath)
+    config.resetUserSettings(configFileData)
+  }
+
+  return config
+}
+
+function normalizeDriveLetterName (filePath) {
+  if (process.platform === 'win32' && filePath) {
+    return filePath.replace(/^([a-z]):/, ([driveLetter]) => driveLetter.toUpperCase() + ':')
+  } else {
+    return filePath
+  }
 }

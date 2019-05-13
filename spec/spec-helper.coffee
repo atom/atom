@@ -12,7 +12,8 @@ FindParentDir = require 'find-parent-dir'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
-clipboard = require '../src/safe-clipboard'
+TreeSitterLanguageMode = require '../src/tree-sitter-language-mode'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -101,6 +102,7 @@ beforeEach ->
 
   # make tokenization synchronous
   TextMateLanguageMode.prototype.chunkSize = Infinity
+  TreeSitterLanguageMode.prototype.syncTimeoutMicros = Infinity
   spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   # Without this spy, TextEditor.onDidTokenize callbacks would not be called

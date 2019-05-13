@@ -1,0 +1,44 @@
+atom-text-editor {
+  color: @syntax-text-color;
+  background-color: @syntax-background-color;
+
+  .gutter {
+    color: @syntax-gutter-text-color;
+    background-color: @syntax-gutter-background-color;
+
+    .line-number {
+      &.cursor-line {
+        background-color: @syntax-gutter-background-color-selected;
+      }
+    }
+  }
+
+  .invisible-character {
+    color: @syntax-invisible-character-color;
+  }
+
+  .indent-guide {
+    color: @syntax-indent-guide-color;
+  }
+
+  .cursor {
+    border-color: @syntax-cursor-color;
+  }
+
+  .cursor-line {
+    background-color: @syntax-cursor-line;
+  }
+
+  .selection .region {
+    background-color: @syntax-selection-color;
+  }
+
+  .fold-marker:after,
+  .gutter .line-number.folded {
+    color: @magenta;
+  }
+
+  .bracket-matcher .region {
+    border-color: @magenta;
+  }
+}

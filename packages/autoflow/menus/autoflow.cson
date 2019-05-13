@@ -1,0 +1,11 @@
+'menu': [
+  {
+    'label': 'Edit'
+    'submenu': [
+      {
+        'label': 'Reflow Selection'
+        'command': 'autoflow:reflow-selection'
+      }
+    ]
+  }
+]
