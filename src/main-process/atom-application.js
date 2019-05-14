@@ -608,7 +608,11 @@ class AtomApplication extends EventEmitter {
 
     this.configFile.onDidError(message => {
       const window = this.focusedWindow() || this.getLastFocusedWindow()
-      if (window) window.didFailToReadUserSettings(message)
+      if (window) {
+        window.didFailToReadUserSettings(message)
+      } else {
+        console.error(message)
+      }
     })
 
     this.disposable.add(ipcHelpers.on(app, 'before-quit', async event => {
