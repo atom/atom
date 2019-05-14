@@ -3,6 +3,9 @@
 if command -v "cygpath" > /dev/null; then
   # We have cygpath to do the conversion
   ATOMCMD=$(cygpath "$(dirname "$0")/atom.cmd" -a -w)
+elif command -v "wslpath" > /dev/null; then
+  # We have wslpath to do the conversion
+  ATOMCMD=$(wslpath -aw "$(dirname "$0")/atom.cmd")
 else
   pushd "$(dirname "$0")" > /dev/null
   if [[ $(uname -r) == *-Microsoft ]]; then
