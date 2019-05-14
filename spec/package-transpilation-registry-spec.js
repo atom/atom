@@ -1,18 +1,15 @@
 /** @babel */
-import fs from 'fs'
 import path from 'path'
-
-import {it, fit, ffit, fffit, beforeEach, afterEach} from './async-spec-helpers'
 
 import PackageTranspilationRegistry from '../src/package-transpilation-registry'
 
 const originalCompiler = {
   getCachePath: (sourceCode, filePath) => {
-    return "orig-cache-path"
+    return 'orig-cache-path'
   },
 
   compile: (sourceCode, filePath) => {
-    return sourceCode + "-original-compiler"
+    return sourceCode + '-original-compiler'
   },
 
   shouldCompile: (sourceCode, filePath) => {
@@ -20,7 +17,7 @@ const originalCompiler = {
   }
 }
 
-describe("PackageTranspilationRegistry", () => {
+describe('PackageTranspilationRegistry', () => {
   let registry
   let wrappedCompiler
 
@@ -47,20 +44,36 @@ describe("PackageTranspilationRegistry", () => {
     const hitPath = path.join('/path/to/lib/file.js')
     const hitPathCoffee = path.join('/path/to/file2.coffee')
     const missPath = path.join('/path/other/file3.js')
-    const hitPathMissSubdir =path.join('/path/to/file4.js')
+    const hitPathMissSubdir = path.join('/path/to/file4.js')
     const hitPathMissExt = path.join('/path/to/file5.ts')
     const nodeModulesFolder = path.join('/path/to/lib/node_modules/file6.js')
     const hitNonStandardExt = path.join('/path/to/file7.omgwhatisthis')
 
-    const jsSpec = { glob: "lib/**/*.js", transpiler: './transpiler-js', options: { type: 'js' } }
-    const coffeeSpec = { glob: "*.coffee", transpiler: './transpiler-coffee', options: { type: 'coffee' } }
-    const omgSpec = { glob: "*.omgwhatisthis", transpiler: './transpiler-omg', options: { type: 'omg' } }
+    const jsSpec = {
+      glob: 'lib/**/*.js',
+      transpiler: './transpiler-js',
+      options: { type: 'js' }
+    }
+    const coffeeSpec = {
+      glob: '*.coffee',
+      transpiler: './transpiler-coffee',
+      options: { type: 'coffee' }
+    }
+    const omgSpec = {
+      glob: '*.omgwhatisthis',
+      transpiler: './transpiler-omg',
+      options: { type: 'omg' }
+    }
 
-    const expectedMeta = { name: 'my-package', path: path.join('/path/to'), meta: { some: 'metadata' } }
+    const expectedMeta = {
+      name: 'my-package',
+      path: path.join('/path/to'),
+      meta: { some: 'metadata' }
+    }
 
     const jsTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-js"}
+        return { code: sourceCode + '-transpiler-js' }
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -70,7 +83,7 @@ describe("PackageTranspilationRegistry", () => {
 
     const coffeeTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-coffee"}
+        return { code: sourceCode + '-transpiler-coffee' }
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -80,7 +93,7 @@ describe("PackageTranspilationRegistry", () => {
 
     const omgTranspiler = {
       transpile: (sourceCode, filePath, options) => {
-        return {code: sourceCode + "-transpiler-omg"}
+        return { code: sourceCode + '-transpiler-omg' }
       },
 
       getCacheKeyData: (sourceCode, filePath, options) => {
@@ -89,72 +102,135 @@ describe("PackageTranspilationRegistry", () => {
     }
 
     beforeEach(() => {
-      jsSpec._transpilerSource = "js-transpiler-source"
-      coffeeSpec._transpilerSource = "coffee-transpiler-source"
-      omgTranspiler._transpilerSource = "omg-transpiler-source"
+      jsSpec._transpilerSource = 'js-transpiler-source'
+      coffeeSpec._transpilerSource = 'coffee-transpiler-source'
+      omgTranspiler._transpilerSource = 'omg-transpiler-source'
 
-      spyOn(registry, "getTranspiler").andCallFake(spec => {
+      spyOn(registry, 'getTranspiler').andCallFake(spec => {
         if (spec.transpiler === './transpiler-js') return jsTranspiler
         if (spec.transpiler === './transpiler-coffee') return coffeeTranspiler
         if (spec.transpiler === './transpiler-omg') return omgTranspiler
         throw new Error('bad transpiler path ' + spec.transpiler)
       })
 
-      registry.addTranspilerConfigForPath(path.join('/path/to'), 'my-package', { some: 'metadata' }, [
-        jsSpec, coffeeSpec, omgSpec
-      ])
+      registry.addTranspilerConfigForPath(
+        path.join('/path/to'),
+        'my-package',
+        { some: 'metadata' },
+        [jsSpec, coffeeSpec, omgSpec]
+      )
     })
 
     it('always returns true from shouldCompile for a file in that dir that match a glob', () => {
       spyOn(originalCompiler, 'shouldCompile').andReturn(false)
       expect(wrappedCompiler.shouldCompile('source', hitPath)).toBe(true)
       expect(wrappedCompiler.shouldCompile('source', hitPathCoffee)).toBe(true)
-      expect(wrappedCompiler.shouldCompile('source', hitNonStandardExt)).toBe(true)
-      expect(wrappedCompiler.shouldCompile('source', hitPathMissExt)).toBe(false)
-      expect(wrappedCompiler.shouldCompile('source', hitPathMissSubdir)).toBe(false)
+      expect(wrappedCompiler.shouldCompile('source', hitNonStandardExt)).toBe(
+        true
+      )
+      expect(wrappedCompiler.shouldCompile('source', hitPathMissExt)).toBe(
+        false
+      )
+      expect(wrappedCompiler.shouldCompile('source', hitPathMissSubdir)).toBe(
+        false
+      )
       expect(wrappedCompiler.shouldCompile('source', missPath)).toBe(false)
-      expect(wrappedCompiler.shouldCompile('source', nodeModulesFolder)).toBe(false)
+      expect(wrappedCompiler.shouldCompile('source', nodeModulesFolder)).toBe(
+        false
+      )
     })
 
     it('calls getCacheKeyData on the transpiler to get additional cache key data', () => {
-      spyOn(registry, "getTranspilerPath").andReturn("./transpiler-js")
+      spyOn(registry, 'getTranspilerPath').andReturn('./transpiler-js')
       spyOn(jsTranspiler, 'getCacheKeyData').andCallThrough()
 
       wrappedCompiler.getCachePath('source', missPath, jsSpec)
-      expect(jsTranspiler.getCacheKeyData).not.toHaveBeenCalledWith('source', missPath, jsSpec.options, expectedMeta)
+      expect(jsTranspiler.getCacheKeyData).not.toHaveBeenCalledWith(
+        'source',
+        missPath,
+        jsSpec.options,
+        expectedMeta
+      )
       wrappedCompiler.getCachePath('source', hitPath, jsSpec)
-      expect(jsTranspiler.getCacheKeyData).toHaveBeenCalledWith('source', hitPath, jsSpec.options, expectedMeta)
+      expect(jsTranspiler.getCacheKeyData).toHaveBeenCalledWith(
+        'source',
+        hitPath,
+        jsSpec.options,
+        expectedMeta
+      )
     })
 
     it('compiles files matching a glob with the associated transpiler, and the old one otherwise', () => {
-      spyOn(jsTranspiler, "transpile").andCallThrough()
-      spyOn(coffeeTranspiler, "transpile").andCallThrough()
-      spyOn(omgTranspiler, "transpile").andCallThrough()
+      spyOn(jsTranspiler, 'transpile').andCallThrough()
+      spyOn(coffeeTranspiler, 'transpile').andCallThrough()
+      spyOn(omgTranspiler, 'transpile').andCallThrough()
 
-      expect(wrappedCompiler.compile('source', hitPath)).toEqual('source-transpiler-js')
-      expect(jsTranspiler.transpile).toHaveBeenCalledWith('source', hitPath, jsSpec.options, expectedMeta)
-      expect(wrappedCompiler.compile('source', hitPathCoffee)).toEqual('source-transpiler-coffee')
-      expect(coffeeTranspiler.transpile).toHaveBeenCalledWith('source', hitPathCoffee, coffeeSpec.options, expectedMeta)
-      expect(wrappedCompiler.compile('source', hitNonStandardExt)).toEqual('source-transpiler-omg')
-      expect(omgTranspiler.transpile).toHaveBeenCalledWith('source', hitNonStandardExt, omgSpec.options, expectedMeta)
+      expect(wrappedCompiler.compile('source', hitPath)).toEqual(
+        'source-transpiler-js'
+      )
+      expect(jsTranspiler.transpile).toHaveBeenCalledWith(
+        'source',
+        hitPath,
+        jsSpec.options,
+        expectedMeta
+      )
+      expect(wrappedCompiler.compile('source', hitPathCoffee)).toEqual(
+        'source-transpiler-coffee'
+      )
+      expect(coffeeTranspiler.transpile).toHaveBeenCalledWith(
+        'source',
+        hitPathCoffee,
+        coffeeSpec.options,
+        expectedMeta
+      )
+      expect(wrappedCompiler.compile('source', hitNonStandardExt)).toEqual(
+        'source-transpiler-omg'
+      )
+      expect(omgTranspiler.transpile).toHaveBeenCalledWith(
+        'source',
+        hitNonStandardExt,
+        omgSpec.options,
+        expectedMeta
+      )
 
-      expect(wrappedCompiler.compile('source', missPath)).toEqual('source-original-compiler')
-      expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual('source-original-compiler')
-      expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual('source-original-compiler')
-      expect(wrappedCompiler.compile('source', nodeModulesFolder)).toEqual('source-original-compiler')
+      expect(wrappedCompiler.compile('source', missPath)).toEqual(
+        'source-original-compiler'
+      )
+      expect(wrappedCompiler.compile('source', hitPathMissExt)).toEqual(
+        'source-original-compiler'
+      )
+      expect(wrappedCompiler.compile('source', hitPathMissSubdir)).toEqual(
+        'source-original-compiler'
+      )
+      expect(wrappedCompiler.compile('source', nodeModulesFolder)).toEqual(
+        'source-original-compiler'
+      )
     })
 
-    describe('when the packages root path contains node_modules', () =>{
+    describe('when the packages root path contains node_modules', () => {
       beforeEach(() => {
-        registry.addTranspilerConfigForPath(path.join('/path/with/node_modules/in/root'), 'my-other-package', { some: 'metadata' }, [
-          jsSpec
-        ])
+        registry.addTranspilerConfigForPath(
+          path.join('/path/with/node_modules/in/root'),
+          'my-other-package',
+          { some: 'metadata' },
+          [jsSpec]
+        )
       })
 
       it('returns appropriate values from shouldCompile', () => {
         spyOn(originalCompiler, 'shouldCompile').andReturn(false)
-        expect(wrappedCompiler.shouldCompile('source', '/path/with/node_modules/in/root/lib/test.js')).toBe(true)
-        expect(wrappedCompiler.shouldCompile('source', '/path/with/node_modules/in/root/lib/node_modules/test.js')).toBe(false)
+        expect(
+          wrappedCompiler.shouldCompile(
+            'source',
+            '/path/with/node_modules/in/root/lib/test.js'
+          )
+        ).toBe(true)
+        expect(
+          wrappedCompiler.shouldCompile(
+            'source',
+            '/path/with/node_modules/in/root/lib/node_modules/test.js'
+          )
+        ).toBe(false)
       })
     })
   })

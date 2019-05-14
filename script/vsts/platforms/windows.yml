@@ -27,6 +27,9 @@ jobs:
   - script: |
       ECHO Installing npm-windows-upgrade
       npm install --global --production npm-windows-upgrade
+    displayName: Install npm-windows-upgrade
+
+  - script: |
       ECHO Upgrading npm
       npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
     displayName: Install npm 6.2.0
@@ -35,6 +38,20 @@ jobs:
       cd script\vsts
       npm install
     displayName: Install Windows build dependencies
+
+  - script: |
+      node script\vsts\windows-run.js script\bootstrap.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+      CI: true
+      CI_PROVIDER: VSTS
+      NPM_BIN_PATH: "D:\\a\\_tool\\node\\8.9.3\\x64\\npm.cmd"
+    displayName: Bootstrap build environment
+
+  - script: node script\vsts\windows-run.js script\lint.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+    displayName: Run linter
 
   - script: |
       IF NOT EXIST C:\tmp MKDIR C:\tmp
@@ -52,6 +69,7 @@ jobs:
         )
       )
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       BUILD_ARCH: $(buildArch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
@@ -60,18 +78,63 @@ jobs:
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
     displayName: Build Atom
 
-  - script: node script\vsts\windows-run.js script\lint.cmd
-    env:
-      BUILD_ARCH: $(buildArch)
-    displayName: Run linter
-
-  - script: node script\vsts\windows-run.js script\test.cmd
+  - powershell: |
+      # Normalize %TEMP% as a long (non 8.3) path to avoid assertion failures comparing paths in temp folders
+      $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
+      node script\vsts\windows-run.js script\test.cmd
     env:
       CI: true
       CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
       BUILD_ARCH: $(buildArch)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: >
+      node script\vsts\windows-run.js script\postprocess-junit-results.cmd
+      --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)\junit
+      testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: Windows $(buildArch)
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - script: |
+      IF NOT EXIST "%ARTIFACT_STAGING_DIR%\crash-reports" MKDIR "%ARTIFACT_STAGING_DIR%\crash-reports"
+      IF EXIST "%Temp%\Atom Crashes" (
+        FOR %%a in ("%Temp%\Atom Crashes\*.dmp") DO XCOPY "%%a" "%ARTIFACT_STAGING_DIR%\crash-reports" /I
+      )
+    displayName: Stage crash reports
+    condition: failed()
+    env:
+      ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
+      ArtifactName: crash-reports
+    displayName: Publish crash reports on non-release branch
+    condition: and(failed(), eq(variables['ATOM_RELEASES_S3_KEY'], ''))
+
+  - script: >
+      node $(Build.SourcesDirectory)\script\vsts\upload-crash-reports.js --crash-report-path "%ARTIFACT_STAGING_DIR%\crash-reports" --s3-path "vsts-artifacts/%BUILD_ID%/"
+    env:
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+      ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
+      BUILD_ID: $(Build.BuildId)
+    displayName: Upload crash reports to S3 on release branch
+    condition: and(failed(), ne(variables['ATOM_RELEASES_S3_KEY'], ''))
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -96,6 +159,15 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
     condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-x64-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-x64-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
 
   - task: PublishBuildArtifacts@1
     inputs:
@@ -128,6 +200,15 @@ jobs:
       ArtifactType: Container
     displayName: Upload atom-$(ReleaseVersion)-full.nupkg
     condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactName: atom-$(ReleaseVersion)-delta.nupkg
+      ArtifactType: Container
+    displayName: Upload atom-$(ReleaseVersion)-delta.nupkg
+    condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+    continueOnError: true  # Nightly builds don't produce delta packages yet, so don't fail the build
 
   - task: PublishBuildArtifacts@1
     inputs:

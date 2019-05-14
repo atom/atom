@@ -39,7 +39,7 @@ class AutoUpdater extends EventEmitter {
   }
 
   supportsUpdates () {
-    SquirrelUpdate.existsSync()
+    return SquirrelUpdate.existsSync()
   }
 
   checkForUpdates () {

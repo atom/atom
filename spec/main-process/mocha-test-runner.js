@@ -1,9 +1,8 @@
 const Mocha = require('mocha')
 const fs = require('fs-plus')
-const {assert} = require('chai')
+const { assert } = require('chai')
 
-module.exports =
-function (testPaths) {
+module.exports = function (testPaths) {
   global.assert = assert
 
   let reporterOptions = {

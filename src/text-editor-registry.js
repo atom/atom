@@ -185,7 +185,7 @@ class TextEditorRegistry {
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    atom.grammars.maintainGrammar(editor.getBuffer())
+    atom.grammars.maintainLanguageMode(editor.getBuffer())
   }
 
   // Deprecated: Force a {TextEditor} to use a different grammar than the

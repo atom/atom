@@ -9,6 +9,10 @@ module.exports = {
     "selector-type-no-unknown": null,
     "function-comma-space-after": null, // TODO: enable?
     "font-family-no-missing-generic-family-keyword": null, // needed for octicons (no sensible fallback)
+    "block-opening-brace-space-before": null,
+    "block-closing-brace-empty-line-before": null,
+    "declaration-colon-space-after": null,
+    "declaration-block-single-line-max-declarations": null,
     "declaration-empty-line-before": null, // TODO: enable?
     "declaration-block-trailing-semicolon": null, // TODO: enable
     "no-descending-specificity": null,

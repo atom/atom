@@ -79,6 +79,7 @@ scopes:
 
   '''
   use_wildcard > identifier:nth-child(0),
+  use_wildcard > scoped_identifier > identifier:nth-child(2),
   scoped_type_identifier > identifier:nth-child(0),
   scoped_type_identifier > scoped_identifier:nth-child(0) > identifier,
   scoped_identifier > identifier:nth-child(0),

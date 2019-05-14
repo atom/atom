@@ -14,7 +14,7 @@
     ]
   },
   "dependencies": {
-    "underscore-plus": "1.x"
+    "underscore-plus": "^1.7.0"
   },
   "devDependencies": {
     "standard": "^10.0.3"
