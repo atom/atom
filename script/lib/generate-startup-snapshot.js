@@ -47,7 +47,6 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'git-utils', 'src', 'git.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
