@@ -736,9 +736,11 @@ class Pane {
 
   // Public: Destroy the active item and activate the next item.
   //
+  // * `force` (optional) {Boolean} Same behavior as destroyItem(item, force)
+  //
   // Returns a {Promise} that resolves when the item is destroyed.
-  destroyActiveItem () {
-    return this.destroyItem(this.activeItem)
+  destroyActiveItem (force) {
+    return this.destroyItem(this.activeItem, force)
   }
 
   // Public: Destroy the given item.
@@ -781,18 +783,22 @@ class Pane {
   }
 
   // Public: Destroy all items.
-  destroyItems () {
+  //
+  // * `force` (optional) {Boolean} Same behavior as destroyItem(item, force)
+  destroyItems (force) {
     return Promise.all(
-      this.getItems().map(item => this.destroyItem(item))
+      this.getItems().map(item => this.destroyItem(item, force))
     )
   }
 
   // Public: Destroy all items except for the active item.
-  destroyInactiveItems () {
+  //
+  // * `force` (optional) {Boolean} Same behavior as destroyItem(item, force)
+  destroyInactiveItems (force) {
     return Promise.all(
       this.getItems()
         .filter(item => item !== this.activeItem)
-        .map(item => this.destroyItem(item))
+        .map(item => this.destroyItem(item, force))
     )
   }
 
