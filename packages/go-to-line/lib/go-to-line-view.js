@@ -29,13 +29,13 @@ class GoToLineView {
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
       this.close()
     })
-    this.miniEditor.onWillInsertText((arg) => {
+    this.miniEditor.onWillInsertText(arg => {
       if (arg.text.match(/[^0-9:]/)) {
         arg.cancel()
       }
     })
     this.miniEditor.onDidChange(() => {
-      this.navigate({keepOpen: true})
+      this.navigate({ keepOpen: true })
     })
   }
 
@@ -62,9 +62,11 @@ class GoToLineView {
 
     const currentRow = editor.getCursorBufferPosition().row
     const rowLineNumber = lineNumber.split(/:+/)[0] || ''
-    const row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
+    const row =
+      rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
     const columnLineNumber = lineNumber.split(/:+/)[1] || ''
-    const column = columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1
+    const column =
+      columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1
 
     const position = new Point(row, column)
     editor.setCursorBufferPosition(position)
@@ -83,7 +85,10 @@ class GoToLineView {
   }
 
   restoreFocus () {
-    if (this.previouslyFocusedElement && this.previouslyFocusedElement.parentElement) {
+    if (
+      this.previouslyFocusedElement &&
+      this.previouslyFocusedElement.parentElement
+    ) {
       return this.previouslyFocusedElement.focus()
     }
     atom.views.getView(atom.workspace).focus()
@@ -93,7 +98,8 @@ class GoToLineView {
     if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return
     this.storeFocusedElement()
     this.panel.show()
-    this.message.textContent = 'Enter a <row> or <row>:<column> to go there. Examples: "3" for row 3 or "2:7" for row 2 and column 7'
+    this.message.textContent =
+      'Enter a <row> or <row>:<column> to go there. Examples: "3" for row 3 or "2:7" for row 2 and column 7'
     this.miniEditor.element.focus()
   }
 }

@@ -55,6 +55,9 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp(path.join('node_modules', '.bin', 'pegjs')),
   escapeRegExp(path.join('node_modules', 'spellchecker', 'vendor', 'hunspell') + path.sep) + '.*',
 
+  // node_modules of the fuzzy-native package are only required for building it.
+  escapeRegExp(path.join('node_modules', 'fuzzy-native', 'node_modules')),
+
   // Ignore *.cc and *.h files from native modules
   escapeRegExp(path.sep) + '.+\\.(cc|h)$',
 

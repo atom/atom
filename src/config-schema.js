@@ -329,17 +329,17 @@ const configSchema = {
         default: 40
       },
       fileSystemWatcher: {
-        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes.',
+        description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes. Polling may be useful for network drives, but will be more costly in terms of CPU overhead.<br>This setting will require a relaunch of Atom to take effect.',
         type: 'string',
-        default: 'native',
+        default: 'experimental',
         enum: [
           {
             value: 'native',
-            description: 'Native operating system APIs'
+            description: 'Native operating system APIs (@atom/nsfw)'
           },
           {
             value: 'experimental',
-            description: 'Experimental filesystem watching library'
+            description: 'Experimental (@atom/notify)'
           },
           {
             value: 'poll',
@@ -350,6 +350,11 @@ const configSchema = {
             description: 'Emulated with Atom events'
           }
         ]
+      },
+      fileSystemWatcherPollInterval: {
+        description: "If the 'Polling' option is selected for the file system watcher, this will be the interval between polls.",
+        type: 'number',
+        default: 1000
       },
       useTreeSitterParsers: {
         type: 'boolean',

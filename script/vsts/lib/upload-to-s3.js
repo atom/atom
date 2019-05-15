@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const aws = require('aws-sdk')
 
-module.exports = function (s3Key, s3Secret, s3Bucket, directory, assets) {
+module.exports = function (s3Key, s3Secret, s3Bucket, directory, assets, acl = 'public-read') {
   const s3 = new aws.S3({
     accessKeyId: s3Key,
     secretAccessKey: s3Secret,
@@ -37,7 +37,7 @@ module.exports = function (s3Key, s3Secret, s3Bucket, directory, assets) {
       console.info(`Uploading ${assetPath}`)
       const params = {
         Key: `${directory}${path.basename(assetPath)}`,
-        ACL: 'public-read',
+        ACL: acl,
         Body: fs.createReadStream(assetPath)
       }
 

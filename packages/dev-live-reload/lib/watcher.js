@@ -1,8 +1,7 @@
-const {CompositeDisposable, File, Directory, Emitter} = require('atom')
+const { CompositeDisposable, File, Directory, Emitter } = require('atom')
 const path = require('path')
 
-module.exports =
-class Watcher {
+module.exports = class Watcher {
   constructor () {
     this.destroy = this.destroy.bind(this)
     this.emitter = new Emitter()
@@ -66,7 +65,10 @@ class Watcher {
   }
 
   isInAsarArchive (pathToCheck) {
-    const {resourcePath} = atom.getLoadSettings()
-    return pathToCheck.startsWith(`${resourcePath}${path.sep}`) && path.extname(resourcePath) === '.asar'
+    const { resourcePath } = atom.getLoadSettings()
+    return (
+      pathToCheck.startsWith(`${resourcePath}${path.sep}`) &&
+      path.extname(resourcePath) === '.asar'
+    )
   }
 }

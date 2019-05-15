@@ -1,15 +1,24 @@
 Grim = require 'grim'
 fs = require 'fs-plus'
+temp = require 'temp'
 path = require 'path'
 {ipcRenderer} = require 'electron'
+
+temp.track()
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
   require 'jasmine-tagged'
 
-  if process.env.TEST_JUNIT_XML_PATH
-    require 'jasmine-reporters'
-    jasmine.getEnv().addReporter new jasmine.JUnitXmlReporter(process.env.TEST_JUNIT_XML_PATH, true, true)
+  # Rewrite global jasmine functions to have support for async tests.
+  # This way packages can create async specs without having to import these from the
+  # async-spec-helpers file.
+  global.it = asyncifyJasmineFn global.it, 1
+  global.fit = asyncifyJasmineFn global.fit, 1
+  global.ffit = asyncifyJasmineFn global.ffit, 1
+  global.fffit = asyncifyJasmineFn global.fffit, 1
+  global.beforeEach = asyncifyJasmineFn global.beforeEach, 0
+  global.afterEach = asyncifyJasmineFn global.afterEach, 0
 
   # Allow document.title to be assigned in specs without screwing up spec window title
   documentTitle = null
@@ -17,13 +26,27 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
     get: -> documentTitle
     set: (title) -> documentTitle = title
 
+  userHome = process.env.ATOM_HOME or path.join(fs.getHomeDirectory(), '.atom')
+  atomHome = temp.mkdirSync prefix: 'atom-test-home-'
+  if process.env.APM_TEST_PACKAGES
+    testPackages = process.env.APM_TEST_PACKAGES.split /\s+/
+    fs.makeTreeSync path.join(atomHome, 'packages')
+    for packName in testPackages
+      userPack = path.join(userHome, 'packages', packName)
+      loadablePack = path.join(atomHome, 'packages', packName)
+
+      try
+        fs.symlinkSync userPack, loadablePack, 'dir'
+      catch
+        fs.copySync userPack, loadablePack
+
   ApplicationDelegate = require '../src/application-delegate'
   applicationDelegate = new ApplicationDelegate()
   applicationDelegate.setRepresentedFilename = ->
   applicationDelegate.setWindowDocumentEdited = ->
   window.atom = buildAtomEnvironment({
     applicationDelegate, window, document,
-    configDirPath: process.env.ATOM_HOME
+    configDirPath: atomHome
     enablePersistence: false
   })
 
@@ -39,6 +62,15 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
   TimeReporter = require './time-reporter'
   jasmineEnv.addReporter(new TimeReporter())
+
+  if process.env.TEST_JUNIT_XML_PATH
+    {JasmineJUnitReporter} = require './jasmine-junit-reporter'
+    process.stdout.write "Outputting JUnit XML to <#{process.env.TEST_JUNIT_XML_PATH}>\n"
+    outputDir = path.dirname(process.env.TEST_JUNIT_XML_PATH)
+    fileBase = path.basename(process.env.TEST_JUNIT_XML_PATH, '.xml')
+
+    jasmineEnv.addReporter new JasmineJUnitReporter(outputDir, true, false, fileBase, true)
+
   jasmineEnv.setIncludedTags([process.platform])
 
   jasmineContent = document.createElement('div')
@@ -48,6 +80,28 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
 
   jasmineEnv.execute()
   promise
+
+asyncifyJasmineFn = (fn, callbackPosition) ->
+  (args...) ->
+    if typeof args[callbackPosition] is 'function'
+      callback = args[callbackPosition]
+
+      args[callbackPosition] = (args...) ->
+        result = callback.apply this, args
+        if result instanceof Promise
+          waitsForPromise(-> result)
+
+    fn.apply this, args
+
+waitsForPromise = (fn) ->
+  promise = fn()
+
+  global.waitsFor('spec promise to resolve', (done) ->
+    promise.then(done, (error) ->
+      jasmine.getEnv().currentSpec.fail error
+      done()
+    )
+  )
 
 disableFocusMethods = ->
   ['fdescribe', 'ffdescribe', 'fffdescribe', 'fit', 'ffit', 'fffit'].forEach (methodName) ->
@@ -94,8 +148,7 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
     else
       ipcRenderer.send 'write-to-stderr', str
 
-  {TerminalReporter} = require 'jasmine-tagged'
-  new TerminalReporter
+  options =
     print: (str) ->
       log(str)
     onComplete: (runner) ->
@@ -109,3 +162,10 @@ buildTerminalReporter = (logFile, resolveWithExitCode) ->
         resolveWithExitCode(1)
       else
         resolveWithExitCode(0)
+
+  if process.env.ATOM_JASMINE_REPORTER is 'list'
+    {JasmineListReporter} = require './jasmine-list-reporter'
+    new JasmineListReporter(options)
+  else
+    {TerminalReporter} = require 'jasmine-tagged'
+    new TerminalReporter(options)

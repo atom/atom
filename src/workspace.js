@@ -1065,6 +1065,12 @@ module.exports = class Workspace extends Model {
         if (typeof item.setCursorBufferPosition === 'function') {
           item.setCursorBufferPosition([initialLine, initialColumn])
         }
+        if (typeof item.unfoldBufferRow === 'function') {
+          item.unfoldBufferRow(initialLine)
+        }
+        if (typeof item.scrollToBufferPosition === 'function') {
+          item.scrollToBufferPosition([initialLine, initialColumn], { center: true })
+        }
       }
 
       const index = pane.getActiveItemIndex()
@@ -1543,9 +1549,9 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToFontSize () {
-    return this.config.onDidChange('editor.fontSize', ({oldValue}) => {
+    return this.config.onDidChange('editor.fontSize', () => {
       if (this.originalFontSize == null) {
-        this.originalFontSize = oldValue
+        this.originalFontSize = this.config.get('editor.fontSize')
       }
     })
   }
@@ -1785,8 +1791,8 @@ module.exports = class Workspace extends Model {
   //     (default: true)
   //   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
   //     forced closer to the edges of the window. (default: 100)
-  //   * `autoFocus` (optional) {Boolean} true if you want modal focus managed for you by Atom.
-  //     Atom will automatically focus your modal panel's first tabbable element when the modal
+  //   * `autoFocus` (optional) {Boolean|Element} true if you want modal focus managed for you by Atom.
+  //     Atom will automatically focus on this element or your modal panel's first tabbable element when the modal
   //     opens and will restore the previously selected element when the modal closes. Atom will
   //     also automatically restrict user tab focus within your modal while it is open.
   //     (default: false)

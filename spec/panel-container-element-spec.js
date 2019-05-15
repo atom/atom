@@ -6,8 +6,7 @@ const PanelContainer = require('../src/panel-container')
 describe('PanelContainerElement', () => {
   let jasmineContent, element, container
 
-  class TestPanelContainerItem {
-  }
+  class TestPanelContainerItem {}
 
   class TestPanelContainerItemElement_ extends HTMLElement {
     createdCallback () {
@@ -17,23 +16,25 @@ describe('PanelContainerElement', () => {
       this.model = model
       return this
     }
-    focus() {}
+    focus () {}
   }
 
   const TestPanelContainerItemElement = document.registerElement(
     'atom-test-container-item-element',
-    {prototype: TestPanelContainerItemElement_.prototype}
+    { prototype: TestPanelContainerItemElement_.prototype }
   )
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content')
 
-    atom.views.addViewProvider(
-      TestPanelContainerItem,
-      model => new TestPanelContainerItemElement().initialize(model)
+    atom.views.addViewProvider(TestPanelContainerItem, model =>
+      new TestPanelContainerItemElement().initialize(model)
     )
 
-    container = new PanelContainer({viewRegistry: atom.views, location: 'left'})
+    container = new PanelContainer({
+      viewRegistry: atom.views,
+      location: 'left'
+    })
     element = container.getElement()
     jasmineContent.appendChild(element)
   })
@@ -50,9 +51,18 @@ describe('PanelContainerElement', () => {
 
   describe('adding and removing panels', () => {
     it('allows panels to be inserted at any position', () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem(), priority: 10}, atom.views)
-      const panel2 = new Panel({item: new TestPanelContainerItem(), priority: 5}, atom.views)
-      const panel3 = new Panel({item: new TestPanelContainerItem(), priority: 8}, atom.views)
+      const panel1 = new Panel(
+        { item: new TestPanelContainerItem(), priority: 10 },
+        atom.views
+      )
+      const panel2 = new Panel(
+        { item: new TestPanelContainerItem(), priority: 5 },
+        atom.views
+      )
+      const panel3 = new Panel(
+        { item: new TestPanelContainerItem(), priority: 8 },
+        atom.views
+      )
 
       container.addPanel(panel1)
       container.addPanel(panel2)
@@ -67,7 +77,10 @@ describe('PanelContainerElement', () => {
       it('adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed', () => {
         expect(element.childNodes.length).toBe(0)
 
-        const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
+        const panel1 = new Panel(
+          { item: new TestPanelContainerItem() },
+          atom.views
+        )
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe(1)
         expect(element.childNodes[0]).toHaveClass('left')
@@ -76,7 +89,10 @@ describe('PanelContainerElement', () => {
 
         expect(element.childNodes[0].tagName).toBe('ATOM-PANEL')
 
-        const panel2 = new Panel({item: new TestPanelContainerItem()}, atom.views)
+        const panel2 = new Panel(
+          { item: new TestPanelContainerItem() },
+          atom.views
+        )
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe(2)
 
@@ -88,12 +104,14 @@ describe('PanelContainerElement', () => {
 
         panel2.destroy()
         expect(element.childNodes.length).toBe(0)
-      })
-    )
+      }))
 
     describe('when the container is at the bottom location', () => {
       beforeEach(() => {
-        container = new PanelContainer({viewRegistry: atom.views, location: 'bottom'})
+        container = new PanelContainer({
+          viewRegistry: atom.views,
+          location: 'bottom'
+        })
         element = container.getElement()
         jasmineContent.appendChild(element)
       })
@@ -101,7 +119,10 @@ describe('PanelContainerElement', () => {
       it('adds atom-panel elements when a new panel is added to the container; removes them when the panels are destroyed', () => {
         expect(element.childNodes.length).toBe(0)
 
-        const panel1 = new Panel({item: new TestPanelContainerItem(), className: 'one'}, atom.views)
+        const panel1 = new Panel(
+          { item: new TestPanelContainerItem(), className: 'one' },
+          atom.views
+        )
         container.addPanel(panel1)
         expect(element.childNodes.length).toBe(1)
         expect(element.childNodes[0]).toHaveClass('bottom')
@@ -110,7 +131,10 @@ describe('PanelContainerElement', () => {
         expect(element.childNodes[0].tagName).toBe('ATOM-PANEL')
         expect(panel1.getElement()).toHaveClass('one')
 
-        const panel2 = new Panel({item: new TestPanelContainerItem(), className: 'two'}, atom.views)
+        const panel2 = new Panel(
+          { item: new TestPanelContainerItem(), className: 'two' },
+          atom.views
+        )
         container.addPanel(panel2)
         expect(element.childNodes.length).toBe(2)
         expect(panel2.getElement()).toHaveClass('two')
@@ -126,18 +150,27 @@ describe('PanelContainerElement', () => {
 
   describe('when the container is modal', () => {
     beforeEach(() => {
-      container = new PanelContainer({viewRegistry: atom.views, location: 'modal'})
+      container = new PanelContainer({
+        viewRegistry: atom.views,
+        location: 'modal'
+      })
       element = container.getElement()
       jasmineContent.appendChild(element)
     })
 
     it('allows only one panel to be visible at a time', () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
+      const panel1 = new Panel(
+        { item: new TestPanelContainerItem() },
+        atom.views
+      )
       container.addPanel(panel1)
 
       expect(panel1.getElement().style.display).not.toBe('none')
 
-      const panel2 = new Panel({item: new TestPanelContainerItem()}, atom.views)
+      const panel2 = new Panel(
+        { item: new TestPanelContainerItem() },
+        atom.views
+      )
       container.addPanel(panel2)
 
       expect(panel1.getElement().style.display).toBe('none')
@@ -150,7 +183,10 @@ describe('PanelContainerElement', () => {
     })
 
     it("adds the 'modal' class to panels", () => {
-      const panel1 = new Panel({item: new TestPanelContainerItem()}, atom.views)
+      const panel1 = new Panel(
+        { item: new TestPanelContainerItem() },
+        atom.views
+      )
       container.addPanel(panel1)
 
       expect(panel1.getElement()).toHaveClass('modal')
@@ -161,12 +197,12 @@ describe('PanelContainerElement', () => {
       expect(panel1.getElement()).toHaveClass('from-top')
     })
 
-    describe("autoFocus", () => {
-      function createPanel() {
+    describe('autoFocus', () => {
+      function createPanel (autoFocus = true) {
         const panel = new Panel(
           {
             item: new TestPanelContainerItem(),
-            autoFocus: true,
+            autoFocus: autoFocus,
             visible: false
           },
           atom.views
@@ -176,7 +212,7 @@ describe('PanelContainerElement', () => {
         return panel
       }
 
-      it("focuses the first tabbable item if available", () => {
+      it('focuses the first tabbable item if available', () => {
         const panel = createPanel()
         const panelEl = panel.getElement()
         const inputEl = document.createElement('input')
@@ -188,7 +224,21 @@ describe('PanelContainerElement', () => {
         expect(document.activeElement).toBe(inputEl)
       })
 
-      it("focuses the entire panel item when no tabbable item is available and the panel is focusable", () => {
+      it('focuses the autoFocus element if available', () => {
+        const inputEl1 = document.createElement('input')
+        const inputEl2 = document.createElement('input')
+        const panel = createPanel(inputEl2)
+        const panelEl = panel.getElement()
+
+        panelEl.appendChild(inputEl1)
+        panelEl.appendChild(inputEl2)
+        expect(document.activeElement).not.toBe(inputEl2)
+
+        panel.show()
+        expect(document.activeElement).toBe(inputEl2)
+      })
+
+      it('focuses the entire panel item when no tabbable item is available and the panel is focusable', () => {
         const panel = createPanel()
         const panelEl = panel.getElement()
 
@@ -197,7 +247,7 @@ describe('PanelContainerElement', () => {
         expect(panelEl.focus).toHaveBeenCalled()
       })
 
-      it("returns focus to the original activeElement", () => {
+      it('returns focus to the original activeElement', () => {
         const panel = createPanel()
         const previousActiveElement = document.activeElement
         const panelEl = panel.getElement()

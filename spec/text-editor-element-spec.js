@@ -1,4 +1,3 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
 const TextEditor = require('../src/text-editor')
 const TextEditorElement = require('../src/text-editor-element')
 
@@ -9,7 +8,8 @@ describe('TextEditorElement', () => {
     jasmineContent = document.body.querySelector('#jasmine-content')
     // Force scrollbars to be visible regardless of local system configuration
     const scrollbarStyle = document.createElement('style')
-    scrollbarStyle.textContent = 'atom-text-editor ::-webkit-scrollbar { -webkit-appearance: none }'
+    scrollbarStyle.textContent =
+      'atom-text-editor ::-webkit-scrollbar { -webkit-appearance: none }'
     jasmine.attachToDOM(scrollbarStyle)
   })
 
@@ -53,7 +53,7 @@ describe('TextEditorElement', () => {
   })
 
   it("only assigns 'placeholder-text' on the model if the attribute is present", () => {
-    const editor = new TextEditor({placeholderText: 'placeholder'})
+    const editor = new TextEditor({ placeholderText: 'placeholder' })
     editor.getElement()
     expect(editor.getPlaceholderText()).toBe('placeholder')
   })
@@ -70,8 +70,8 @@ describe('TextEditorElement', () => {
     expect(element.getModel().isLineNumberGutterVisible()).toBe(false)
   })
 
-  it("honors the 'readonly' attribute", async function() {
-    jasmineContent.innerHTML = "<atom-text-editor readonly>"
+  it("honors the 'readonly' attribute", async function () {
+    jasmineContent.innerHTML = '<atom-text-editor readonly>'
     const element = jasmineContent.firstChild
 
     expect(element.getComponent().isInputEnabled()).toBe(false)
@@ -108,11 +108,10 @@ describe('TextEditorElement', () => {
   describe('when the model is assigned', () =>
     it("adds the 'mini' attribute if .isMini() returns true on the model", async () => {
       const element = buildTextEditorElement()
-      element.getModel().update({mini: true})
+      element.getModel().update({ mini: true })
       await atom.views.getNextUpdatePromise()
       expect(element.hasAttribute('mini')).toBe(true)
-    })
-  )
+    }))
 
   describe('when the editor is attached to the DOM', () =>
     it('mounts the component and unmounts when removed from the dom', () => {
@@ -125,8 +124,7 @@ describe('TextEditorElement', () => {
 
       jasmine.attachToDOM(element)
       expect(element.component.attached).toBe(true)
-    })
-  )
+    }))
 
   describe('when the editor is detached from the DOM and then reattached', () => {
     it('does not render duplicate line numbers', () => {
@@ -145,17 +143,23 @@ describe('TextEditorElement', () => {
     it('does not render duplicate decorations in custom gutters', () => {
       const editor = new TextEditor()
       editor.setText('1\n2\n3')
-      editor.addGutter({name: 'test-gutter'})
+      editor.addGutter({ name: 'test-gutter' })
       const marker = editor.markBufferRange([[0, 0], [2, 0]])
-      editor.decorateMarker(marker, {type: 'gutter', gutterName: 'test-gutter'})
+      editor.decorateMarker(marker, {
+        type: 'gutter',
+        gutterName: 'test-gutter'
+      })
       const element = editor.getElement()
 
       jasmine.attachToDOM(element)
-      const initialDecorationCount = element.querySelectorAll('.decoration').length
+      const initialDecorationCount = element.querySelectorAll('.decoration')
+        .length
 
       element.remove()
       jasmine.attachToDOM(element)
-      expect(element.querySelectorAll('.decoration').length).toBe(initialDecorationCount)
+      expect(element.querySelectorAll('.decoration').length).toBe(
+        initialDecorationCount
+      )
     })
 
     it('can be re-focused using the previous `document.activeElement`', () => {
@@ -194,7 +198,9 @@ describe('TextEditorElement', () => {
     it("doesn't trigger a blur event on the editor element when focusing an already focused editor element", () => {
       let blurCalled = false
       const element = buildTextEditorElement()
-      element.addEventListener('blur', () => { blurCalled = true })
+      element.addEventListener('blur', () => {
+        blurCalled = true
+      })
 
       jasmineContent.appendChild(element)
       expect(document.activeElement).toBe(document.body)
@@ -216,13 +222,15 @@ describe('TextEditorElement', () => {
         }
       }
 
-      document.registerElement('element-that-focuses-child',
-        {prototype: ElementThatFocusesChild.prototype}
-      )
+      document.registerElement('element-that-focuses-child', {
+        prototype: ElementThatFocusesChild.prototype
+      })
 
       it('proxies the focus event to the hidden input', () => {
         const element = buildTextEditorElement()
-        const parentElement = document.createElement('element-that-focuses-child')
+        const parentElement = document.createElement(
+          'element-that-focuses-child'
+        )
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
         expect(document.activeElement).toBe(element.querySelector('input'))
@@ -236,7 +244,7 @@ describe('TextEditorElement', () => {
         parentElement.style.width = '0px'
         parentElement.style.height = '0px'
 
-        const element = buildTextEditorElement({attach: false})
+        const element = buildTextEditorElement({ attach: false })
         parentElement.appendChild(element)
         jasmineContent.appendChild(parentElement)
 
@@ -249,7 +257,7 @@ describe('TextEditorElement', () => {
   describe('::setModel', () => {
     describe('when the element does not have an editor yet', () => {
       it('uses the supplied one', () => {
-        const element = buildTextEditorElement({attach: false})
+        const element = buildTextEditorElement({ attach: false })
         const editor = new TextEditor()
         element.setModel(editor)
         jasmine.attachToDOM(element)
@@ -260,7 +268,7 @@ describe('TextEditorElement', () => {
 
     describe('when the element already has an editor', () => {
       it('unbinds it and then swaps it with the supplied one', async () => {
-        const element = buildTextEditorElement({attach: true})
+        const element = buildTextEditorElement({ attach: true })
         const previousEditor = element.getModel()
         expect(previousEditor.element).toBe(element)
 
@@ -275,7 +283,7 @@ describe('TextEditorElement', () => {
 
   describe('::onDidAttach and ::onDidDetach', () =>
     it('invokes callbacks when the element is attached and detached', () => {
-      const element = buildTextEditorElement({attach: false})
+      const element = buildTextEditorElement({ attach: false })
 
       const attachedCallback = jasmine.createSpy('attachedCallback')
       const detachedCallback = jasmine.createSpy('detachedCallback')
@@ -292,8 +300,7 @@ describe('TextEditorElement', () => {
 
       expect(attachedCallback).not.toHaveBeenCalled()
       expect(detachedCallback).toHaveBeenCalled()
-    })
-  )
+    }))
 
   describe('::setUpdatedSynchronously', () => {
     it('controls whether the text editor is updated synchronously', () => {
@@ -318,7 +325,7 @@ describe('TextEditorElement', () => {
 
   describe('::getDefaultCharacterWidth', () => {
     it('returns 0 before the element is attached', () => {
-      const element = buildTextEditorElement({attach: false})
+      const element = buildTextEditorElement({ attach: false })
       expect(element.getDefaultCharacterWidth()).toBe(0)
     })
 
@@ -341,7 +348,7 @@ describe('TextEditorElement', () => {
       const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
 
       expect(element.getMaxScrollTop()).toBe(0)
-      await editor.update({autoHeight: false})
+      await editor.update({ autoHeight: false })
 
       element.style.height = 100 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
@@ -354,13 +361,12 @@ describe('TextEditorElement', () => {
       element.style.height = 200 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
       expect(element.getMaxScrollTop()).toBe(0)
-    })
-  )
+    }))
 
   describe('::setScrollTop and ::setScrollLeft', () => {
     it('changes the scroll position', async () => {
-      element = buildTextEditorElement()
-      element.getModel().update({autoHeight: false})
+      const element = buildTextEditorElement()
+      element.getModel().update({ autoHeight: false })
       element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
       element.setHeight(20)
       await element.getNextUpdatePromise()
@@ -387,8 +393,7 @@ describe('TextEditorElement', () => {
       element.getModel().setMini(false)
       await element.getNextUpdatePromise()
       expect(element.hasAttribute('mini')).toBe(false)
-    })
-  )
+    }))
 
   describe('::intersectsVisibleRowRange(start, end)', () => {
     it('returns true if the given row range intersects the visible row range', async () => {
@@ -396,7 +401,7 @@ describe('TextEditorElement', () => {
       const editor = element.getModel()
       const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
 
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       element.getModel().setText('x\n'.repeat(20))
       element.style.height = 120 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
@@ -419,7 +424,7 @@ describe('TextEditorElement', () => {
       const editor = element.getModel()
       const horizontalScrollbarHeight = element.component.getHorizontalScrollbarHeight()
 
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       element.getModel().setText('xxxxxxxxxxxxxxxxxxxxxx\n'.repeat(20))
       element.style.height = 120 + horizontalScrollbarHeight + 'px'
       await element.getNextUpdatePromise()
@@ -445,7 +450,7 @@ describe('TextEditorElement', () => {
 
     beforeEach(async () => {
       element = buildTextEditorElement()
-      element.getModel().update({autoHeight: false})
+      element.getModel().update({ autoHeight: false })
       element.getModel().setText('lorem\nipsum\ndolor\nsit\namet')
       element.setHeight(20)
       await element.getNextUpdatePromise()
@@ -456,7 +461,9 @@ describe('TextEditorElement', () => {
     describe('::onDidChangeScrollTop(callback)', () =>
       it('triggers even when subscribing before attaching the element', () => {
         const positions = []
-        const subscription1 = element.onDidChangeScrollTop(p => positions.push(p))
+        const subscription1 = element.onDidChangeScrollTop(p =>
+          positions.push(p)
+        )
         element.onDidChangeScrollTop(p => positions.push(p))
 
         positions.length = 0
@@ -475,13 +482,14 @@ describe('TextEditorElement', () => {
         positions.length = 0
         element.setScrollTop(30)
         expect(positions).toEqual([30])
-      })
-    )
+      }))
 
     describe('::onDidChangeScrollLeft(callback)', () =>
       it('triggers even when subscribing before attaching the element', () => {
         const positions = []
-        const subscription1 = element.onDidChangeScrollLeft(p => positions.push(p))
+        const subscription1 = element.onDidChangeScrollLeft(p =>
+          positions.push(p)
+        )
         element.onDidChangeScrollLeft(p => positions.push(p))
 
         positions.length = 0
@@ -500,7 +508,6 @@ describe('TextEditorElement', () => {
         positions.length = 0
         element.setScrollLeft(30)
         expect(positions).toEqual([30])
-      })
-    )
+      }))
   })
 })
