@@ -1,11 +1,11 @@
-'use babel'
+const {dialog} = require('electron')
+const crypto = require('crypto')
+const Path = require('path')
+const fs = require('fs-plus')
+const mkdirp = require('mkdirp')
 
-import {dialog} from 'electron'
-import crypto from 'crypto'
-import Path from 'path'
-import fs from 'fs-plus'
-
-export default class FileRecoveryService {
+module.exports =
+class FileRecoveryService {
   constructor (recoveryDirectory) {
     this.recoveryDirectory = recoveryDirectory
     this.recoveryFilesByFilePath = new Map()
@@ -13,15 +13,16 @@ export default class FileRecoveryService {
     this.windowsByRecoveryFile = new Map()
   }
 
-  willSavePath (window, path) {
-    if (!fs.existsSync(path)) return
+  async willSavePath (window, path) {
+    const stats = await tryStatFile(path)
+    if (!stats) return
 
     const recoveryPath = Path.join(this.recoveryDirectory, RecoveryFile.fileNameForPath(path))
     const recoveryFile =
-      this.recoveryFilesByFilePath.get(path) || new RecoveryFile(path, recoveryPath)
+      this.recoveryFilesByFilePath.get(path) || new RecoveryFile(path, stats.mode, recoveryPath)
 
     try {
-      recoveryFile.retain()
+      await recoveryFile.retain()
     } catch (err) {
       console.log(`Couldn't retain ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
       return
@@ -39,11 +40,11 @@ export default class FileRecoveryService {
     this.recoveryFilesByFilePath.set(path, recoveryFile)
   }
 
-  didSavePath (window, path) {
+  async didSavePath (window, path) {
     const recoveryFile = this.recoveryFilesByFilePath.get(path)
     if (recoveryFile != null) {
       try {
-        recoveryFile.release()
+        await recoveryFile.release()
       } catch (err) {
         console.log(`Couldn't release ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`)
       }
@@ -53,27 +54,31 @@ export default class FileRecoveryService {
     }
   }
 
-  didCrashWindow (window) {
+  async didCrashWindow (window) {
     if (!this.recoveryFilesByWindow.has(window)) return
 
+    const promises = []
     for (const recoveryFile of this.recoveryFilesByWindow.get(window)) {
-      try {
-        recoveryFile.recoverSync()
-      } catch (error) {
-        const message = 'A file that Atom was saving could be corrupted'
-        const detail =
-          `Error ${error.code}. There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
-          `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
-        console.log(detail)
-        dialog.showMessageBox(window.browserWindow, {type: 'info', buttons: ['OK'], message, detail})
-      } finally {
-        for (let window of this.windowsByRecoveryFile.get(recoveryFile)) {
-          this.recoveryFilesByWindow.get(window).delete(recoveryFile)
-        }
-        this.windowsByRecoveryFile.delete(recoveryFile)
-        this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
-      }
+      promises.push(recoveryFile.recover()
+        .catch(error => {
+          const message = 'A file that Atom was saving could be corrupted'
+          const detail =
+            `Error ${error.code}. There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
+            `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`
+          console.log(detail)
+          dialog.showMessageBox(window, {type: 'info', buttons: ['OK'], message, detail}, () => { /* noop callback to get async behavior */ })
+        })
+        .then(() => {
+          for (let window of this.windowsByRecoveryFile.get(recoveryFile)) {
+            this.recoveryFilesByWindow.get(window).delete(recoveryFile)
+          }
+          this.windowsByRecoveryFile.delete(recoveryFile)
+          this.recoveryFilesByFilePath.delete(recoveryFile.originalPath)
+        })
+      )
     }
+
+    await Promise.all(promises)
   }
 
   didCloseWindow (window) {
@@ -94,36 +99,67 @@ class RecoveryFile {
     return `${basename}-${randomSuffix}${extension}`
   }
 
-  constructor (originalPath, recoveryPath) {
+  constructor (originalPath, fileMode, recoveryPath) {
     this.originalPath = originalPath
+    this.fileMode = fileMode
     this.recoveryPath = recoveryPath
     this.refCount = 0
   }
 
-  storeSync () {
-    fs.copyFileSync(this.originalPath, this.recoveryPath)
+  async store () {
+    await copyFile(this.originalPath, this.recoveryPath, this.fileMode)
   }
 
-  recoverSync () {
-    fs.copyFileSync(this.recoveryPath, this.originalPath)
-    this.removeSync()
+  async recover () {
+    await copyFile(this.recoveryPath, this.originalPath, this.fileMode)
+    await this.remove()
   }
 
-  removeSync () {
-    fs.unlinkSync(this.recoveryPath)
+  async remove () {
+    return new Promise((resolve, reject) =>
+      fs.unlink(this.recoveryPath, error =>
+        error && error.code !== 'ENOENT' ? reject(error) : resolve()
+      )
+    )
   }
 
-  retain () {
-    if (this.isReleased()) this.storeSync()
+  async retain () {
+    if (this.isReleased()) await this.store()
     this.refCount++
   }
 
-  release () {
+  async release () {
     this.refCount--
-    if (this.isReleased()) this.removeSync()
+    if (this.isReleased()) await this.remove()
   }
 
   isReleased () {
     return this.refCount === 0
   }
+}
+
+async function tryStatFile (path) {
+  return new Promise((resolve, reject) =>
+    fs.stat(path, (error, result) =>
+      resolve(error == null && result)
+    )
+  )
+}
+
+async function copyFile (source, destination, mode) {
+  return new Promise((resolve, reject) => {
+    mkdirp(Path.dirname(destination), (error) => {
+      if (error) return reject(error)
+      const readStream = fs.createReadStream(source)
+      readStream
+        .on('error', reject)
+        .once('open', () => {
+          const writeStream = fs.createWriteStream(destination, {mode})
+          writeStream
+            .on('error', reject)
+            .on('open', () => readStream.pipe(writeStream))
+            .once('close', () => resolve())
+        })
+    })
+  })
 }

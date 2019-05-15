@@ -163,7 +163,7 @@ class GitRepository {
   // Public: Invoke the given callback when a multiple files' statuses have
   // changed. For example, on window focus, the status of all the paths in the
   // repo is checked. If any of them have changed, this will be fired. Call
-  // {::getPathStatus(path)} to get the status for your path of choice.
+  // {::getPathStatus} to get the status for your path of choice.
   //
   // * `callback` {Function}
   //

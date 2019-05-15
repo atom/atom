@@ -1,0 +1,38 @@
+@import "ui-variables";
+
+//
+// Panels
+// --------------------------------------------------
+
+.tool-panel, // deprecated: .tool-panel
+.panel, // deprecated: .panel
+atom-panel {
+  background-color: @tool-panel-background-color;
+}
+
+.inset-panel {
+  border-radius: @component-border-radius;
+  background-color: @inset-panel-background-color;
+}
+
+.panel-heading {
+  margin: 0;
+  padding: @component-padding;
+  border-radius: 0;
+  font-size: @font-size;
+  line-height: 1;
+  background-color: @panel-heading-background-color;
+
+  .inset-panel & {
+    border-radius: @component-border-radius @component-border-radius 0 0;
+  }
+
+  .btn {
+    @btn-height: @component-line-height - 5px;
+    height: @btn-height;
+    line-height: @btn-height;
+    font-size: @font-size - 2px;
+    position: relative;
+    top: -5px;
+  }
+}

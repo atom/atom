@@ -263,7 +263,7 @@ describe "PaneElement", ->
         event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
         paneElement.dispatchEvent(event)
         expect(atom.applicationDelegate.open.callCount).toBe 1
-        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2']
+        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2'], here: true
 
     describe "when a non-file is dragged to the pane", ->
       it "does nothing", ->

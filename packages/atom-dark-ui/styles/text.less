@@ -1,0 +1,86 @@
+h1,
+h2,
+h3 {
+  line-height: 1em;
+  margin-bottom: 15px
+}
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.2em; }
+
+p {
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: normal;
+}
+
+pre {
+  box-shadow: none;
+  color: @text-color;
+  background: @inset-panel-background-color;
+  border-radius: @component-border-radius;
+  border: none;
+  margin: 0;
+}
+
+code {
+  .text(highlight);
+  background: @background-color-highlight;
+  border-radius: @component-border-radius;
+}
+
+.markdown-preview code {
+  text-shadow: none;
+}
+
+.selected { .text(highlight); }
+
+.text-smaller { font-size: 0.9em; }
+
+.text-subtle { .text(subtle); }
+.text-highlight { .text(highlight); }
+
+.text-error { .text(error); }
+.text-info {
+  .text(info);
+  &:hover { color: @text-color-info; }
+}
+.text-warning {
+  .text(warning);
+  &:hover { color: @text-color-warning; }
+}
+.text-success {
+  .text(success);
+  &:hover { color: @text-color-success; }
+}
+
+.highlight {
+  color: @text-color-highlight;
+  font-weight: bold;
+  text-shadow: none;
+  background-color: @background-color-highlight;
+  border-radius: @component-border-radius;
+  padding: 1px 3px;
+}
+
+.highlight-color(@name, @color, @text-color) {
+  .highlight-@{name} {
+    color: lighten(saturate(@text-color, 0%), 30%);
+    font-weight: bold;
+    text-shadow: none;
+    background-color: fadeout(@color, 60%);
+    border-radius: @component-border-radius;
+    padding: 1px 3px;
+  }
+}
+.highlight-color(info, @background-color-info, @text-color-info);
+.highlight-color(warning, @background-color-warning, @text-color-warning);
+.highlight-color(error, @background-color-error, @text-color-error);
+.highlight-color(success, @background-color-success, @text-color-success);
+
+.results-view .path-details.list-item {
+  color: darken(@text-color-highlight, 18%);
+}

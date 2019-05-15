@@ -1,8 +1,7 @@
-/** @babel */
+const SelectListView = require('atom-select-list')
 
-import SelectListView from 'atom-select-list'
-
-export default class ReopenProjectListView {
+module.exports =
+class ReopenProjectListView {
   constructor (callback) {
     this.callback = callback
     this.selectListView = new SelectListView({

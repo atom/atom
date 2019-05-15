@@ -1,0 +1,24 @@
+trigger: none  # No CI builds, only PR builds
+
+resources:
+  containers:
+  - container: atom-linux-ci
+    image: daviwil/atom-linux-ci:latest
+
+jobs:
+
+- job: GetReleaseVersion
+  steps:
+  # This has to be done separately because VSTS inexplicably
+  # exits the script block after `npm install` completes.
+  - script: |
+      cd script\vsts
+      npm install
+    displayName: npm install
+  - script: node script\vsts\get-release-version.js
+    name: Version
+
+# Import OS-specific build definitions
+- template: platforms/windows.yml
+- template: platforms/macos.yml
+- template: platforms/linux.yml

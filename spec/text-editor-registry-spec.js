@@ -1,10 +1,8 @@
-/** @babel */
-
-import TextEditorRegistry from '../src/text-editor-registry'
-import TextEditor from '../src/text-editor'
-import TextBuffer from 'text-buffer'
-import {it, fit, ffit, fffit} from './async-spec-helpers'
-import dedent from 'dedent'
+const TextEditorRegistry = require('../src/text-editor-registry')
+const TextEditor = require('../src/text-editor')
+const TextBuffer = require('text-buffer')
+const { Point, Range } = TextBuffer
+const dedent = require('dedent')
 
 describe('TextEditorRegistry', function () {
   let registry, editor, initialPackageActivation
@@ -16,10 +14,13 @@ describe('TextEditorRegistry', function () {
       assert: atom.assert,
       config: atom.config,
       grammarRegistry: atom.grammars,
-      packageManager: {deferredActivationHooks: null}
+      packageManager: { deferredActivationHooks: null }
     })
 
-    editor = new TextEditor({autoHeight: false})
+    editor = new TextEditor({ autoHeight: false })
+    expect(
+      atom.grammars.assignLanguageMode(editor, 'text.plain.null-grammar')
+    ).toBe(true)
   })
 
   afterEach(function () {
@@ -68,121 +69,12 @@ describe('TextEditorRegistry', function () {
       await atom.packages.activatePackage('language-javascript')
       await atom.packages.activatePackage('language-c')
 
-      atom.config.set('editor.tabLength', 8, {scope: '.source.js'})
+      atom.config.set('editor.tabLength', 8, { scope: '.source.js' })
 
-      const editor = registry.build({buffer: new TextBuffer({filePath: 'test.js'})})
-      expect(editor.getGrammar().name).toBe("JavaScript")
-      expect(editor.getTabLength()).toBe(8)
-    })
-  })
-
-  describe('.maintainGrammar', function () {
-    it('assigns a grammar to the editor based on its path', async function () {
-      await atom.packages.activatePackage('language-javascript')
-      await atom.packages.activatePackage('language-c')
-
-      editor.getBuffer().setPath('test.js')
-      registry.maintainGrammar(editor)
-
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      editor.getBuffer().setPath('test.c')
-      expect(editor.getGrammar().name).toBe('C')
-    })
-
-    it('updates the editor\'s grammar when a more appropriate grammar is added for its path', async function () {
-      expect(editor.getGrammar().name).toBe('Null Grammar')
-
-      editor.getBuffer().setPath('test.js')
-      registry.maintainGrammar(editor)
-      await atom.packages.activatePackage('language-javascript')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-    })
-
-    it('returns a disposable that can be used to stop the registry from updating the editor', async function () {
-      await atom.packages.activatePackage('language-javascript')
-
-      const previousSubscriptionCount = getSubscriptionCount(editor)
-      const disposable = registry.maintainGrammar(editor)
-      expect(getSubscriptionCount(editor)).toBeGreaterThan(previousSubscriptionCount)
-      expect(registry.editorsWithMaintainedGrammar.size).toBe(1)
-
-      editor.getBuffer().setPath('test.js')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      editor.getBuffer().setPath('test.txt')
-      expect(editor.getGrammar().name).toBe('Null Grammar')
-
-      disposable.dispose()
-      expect(getSubscriptionCount(editor)).toBe(previousSubscriptionCount)
-      expect(registry.editorsWithMaintainedGrammar.size).toBe(0)
-
-      editor.getBuffer().setPath('test.js')
-      expect(editor.getGrammar().name).toBe('Null Grammar')
-      expect(retainedEditorCount(registry)).toBe(0)
-    })
-
-    describe('when called twice with a given editor', function () {
-      it('does nothing the second time', async function () {
-        await atom.packages.activatePackage('language-javascript')
-        const disposable1 = registry.maintainGrammar(editor)
-        const disposable2 = registry.maintainGrammar(editor)
-
-        editor.getBuffer().setPath('test.js')
-        expect(editor.getGrammar().name).toBe('JavaScript')
-
-        disposable2.dispose()
-        editor.getBuffer().setPath('test.txt')
-        expect(editor.getGrammar().name).toBe('Null Grammar')
-
-        disposable1.dispose()
-        editor.getBuffer().setPath('test.js')
-        expect(editor.getGrammar().name).toBe('Null Grammar')
+      const editor = registry.build({
+        buffer: new TextBuffer({ filePath: 'test.js' })
       })
-    })
-  })
-
-  describe('.setGrammarOverride', function () {
-    it('sets the editor\'s grammar and does not update it based on other criteria', async function () {
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      registry.setGrammarOverride(editor, 'source.c')
-      expect(editor.getGrammar().name).toBe('C')
-
-      editor.getBuffer().setPath('file-3.rb')
-      await atom.packages.activatePackage('language-ruby')
-      expect(editor.getGrammar().name).toBe('C')
-
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('C')
-    })
-  })
-
-  describe('.clearGrammarOverride', function () {
-    it('resumes setting the grammar based on its path and content', async function () {
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      editor.getBuffer().setPath('file-1.js')
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      registry.setGrammarOverride(editor, 'source.c')
-      expect(registry.getGrammarOverride(editor)).toBe('source.c')
-      expect(editor.getGrammar().name).toBe('C')
-
-      registry.clearGrammarOverride(editor)
-      expect(editor.getGrammar().name).toBe('JavaScript')
-
-      editor.getBuffer().setPath('file-3.rb')
-      await atom.packages.activatePackage('language-ruby')
-      expect(editor.getGrammar().name).toBe('Ruby')
-      expect(registry.getGrammarOverride(editor)).toBe(undefined)
+      expect(editor.getTabLength()).toBe(8)
     })
   })
 
@@ -192,20 +84,28 @@ describe('TextEditorRegistry', function () {
 
       const editor2 = new TextEditor()
 
-      editor2.setGrammar(atom.grammars.selectGrammar('test.js'))
+      atom.grammars.assignLanguageMode(editor2, 'source.js')
 
       registry.maintainConfig(editor)
       registry.maintainConfig(editor2)
       await initialPackageActivation
 
-      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual(['text.plain.null-grammar'])
-      expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual(['source.js'])
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual([
+        'text.plain.null-grammar'
+      ])
+      expect(editor2.getRootScopeDescriptor().getScopesArray()).toEqual([
+        'source.js'
+      ])
 
       expect(editor.getEncoding()).toBe('utf8')
       expect(editor2.getEncoding()).toBe('utf8')
 
-      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.text.plain.null-grammar'})
-      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+      atom.config.set('core.fileEncoding', 'utf16le', {
+        scopeSelector: '.text.plain.null-grammar'
+      })
+      atom.config.set('core.fileEncoding', 'utf16be', {
+        scopeSelector: '.source.js'
+      })
 
       expect(editor.getEncoding()).toBe('utf16le')
       expect(editor2.getEncoding()).toBe('utf16be')
@@ -242,37 +142,88 @@ describe('TextEditorRegistry', function () {
       expect(editor.getEncoding()).toBe('utf16be')
     })
 
-    it('updates the editor\'s settings when its grammar changes', async function () {
+    it("updates the editor's settings when its grammar changes", async function () {
       await atom.packages.activatePackage('language-javascript')
 
       registry.maintainConfig(editor)
       await initialPackageActivation
 
-      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+      atom.config.set('core.fileEncoding', 'utf16be', {
+        scopeSelector: '.source.js'
+      })
       expect(editor.getEncoding()).toBe('utf8')
 
-      atom.config.set('core.fileEncoding', 'utf16le', {scopeSelector: '.source.js'})
+      atom.config.set('core.fileEncoding', 'utf16le', {
+        scopeSelector: '.source.js'
+      })
       expect(editor.getEncoding()).toBe('utf8')
 
-      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+      atom.grammars.assignLanguageMode(editor, 'source.js')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16le')
 
-      atom.config.set('core.fileEncoding', 'utf16be', {scopeSelector: '.source.js'})
+      atom.config.set('core.fileEncoding', 'utf16be', {
+        scopeSelector: '.source.js'
+      })
       expect(editor.getEncoding()).toBe('utf16be')
 
-      editor.setGrammar(atom.grammars.selectGrammar('test.txt'))
+      atom.grammars.assignLanguageMode(editor, 'text.plain.null-grammar')
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf8')
     })
 
-    it('returns a disposable that can be used to stop the registry from updating the editor\'s config', async function () {
+    it("preserves editor settings that haven't changed between previous and current language modes", async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      editor.setEncoding('utf16le')
+      expect(editor.getEncoding()).toBe('utf16le')
+
+      expect(editor.isSoftWrapped()).toBe(false)
+      editor.setSoftWrapped(true)
+      expect(editor.isSoftWrapped()).toBe(true)
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+      expect(editor.isSoftWrapped()).toBe(true)
+    })
+
+    it('updates editor settings that have changed between previous and current language modes', async function () {
+      await atom.packages.activatePackage('language-javascript')
+
+      registry.maintainConfig(editor)
+      await initialPackageActivation
+
+      expect(editor.getEncoding()).toBe('utf8')
+      atom.config.set('core.fileEncoding', 'utf16be', {
+        scopeSelector: '.text.plain.null-grammar'
+      })
+      atom.config.set('core.fileEncoding', 'utf16le', {
+        scopeSelector: '.source.js'
+      })
+      expect(editor.getEncoding()).toBe('utf16be')
+
+      editor.setEncoding('utf8')
+      expect(editor.getEncoding()).toBe('utf8')
+
+      atom.grammars.assignLanguageMode(editor, 'source.js')
+      await initialPackageActivation
+      expect(editor.getEncoding()).toBe('utf16le')
+    })
+
+    it("returns a disposable that can be used to stop the registry from updating the editor's config", async function () {
       await atom.packages.activatePackage('language-javascript')
 
       const previousSubscriptionCount = getSubscriptionCount(editor)
       const disposable = registry.maintainConfig(editor)
       await initialPackageActivation
-      expect(getSubscriptionCount(editor)).toBeGreaterThan(previousSubscriptionCount)
+      expect(getSubscriptionCount(editor)).toBeGreaterThan(
+        previousSubscriptionCount
+      )
       expect(registry.editorsWithMaintainedConfig.size).toBe(1)
 
       atom.config.set('core.fileEncoding', 'utf16be')
@@ -289,7 +240,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the encoding based on the config', async function () {
-      editor.update({encoding: 'utf8'})
+      editor.update({ encoding: 'utf8' })
       expect(editor.getEncoding()).toBe('utf8')
 
       atom.config.set('core.fileEncoding', 'utf16le')
@@ -302,7 +253,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the tab length based on the config', async function () {
-      editor.update({tabLength: 4})
+      editor.update({ tabLength: 4 })
       expect(editor.getTabLength()).toBe(4)
 
       atom.config.set('editor.tabLength', 8)
@@ -329,12 +280,11 @@ describe('TextEditorRegistry', function () {
     })
 
     describe('when the "tabType" config setting is "auto"', function () {
-      it('enables or disables soft tabs based on the editor\'s content', async function () {
+      it("enables or disables soft tabs based on the editor's content", async function () {
+        await initialPackageActivation
         await atom.packages.activatePackage('language-javascript')
-        editor.setGrammar(atom.grammars.selectGrammar('test.js'))
+        atom.grammars.assignLanguageMode(editor, 'source.js')
         atom.config.set('editor.tabType', 'auto')
-
-        registry.maintainConfig(editor)
         await initialPackageActivation
 
         editor.setText(dedent`
@@ -342,28 +292,33 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        let disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
 
+        /* eslint-disable no-tabs */
         editor.setText(dedent`
           {
           	hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        /* eslint-enable no-tabs */
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
-        editor.setText(dedent`
+        editor.setTextInBufferRange(
+          new Range(Point.ZERO, Point.ZERO),
+          dedent`
           /*
            * Comment with a leading space.
            */
-          {
-          ${'\t'}hello;
-          }
-        ` + editor.getText())
-        editor.tokenizedBuffer.retokenizeLines()
+        ` + '\n'
+        )
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
+        /* eslint-disable no-tabs */
         editor.setText(dedent`
           /*
            * Comment with a leading space.
@@ -373,8 +328,9 @@ describe('TextEditorRegistry', function () {
           	hello;
           }
         `)
-
-        editor.tokenizedBuffer.retokenizeLines()
+        /* eslint-enable no-tabs */
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(false)
 
         editor.setText(dedent`
@@ -386,7 +342,8 @@ describe('TextEditorRegistry', function () {
             hello;
           }
         `)
-        editor.tokenizedBuffer.retokenizeLines()
+        disposable.dispose()
+        disposable = registry.maintainConfig(editor)
         expect(editor.getSoftTabs()).toBe(true)
       })
     })
@@ -407,7 +364,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables soft tabs based on the config', async function () {
-      editor.update({softTabs: true})
+      editor.update({ softTabs: true })
       expect(editor.getSoftTabs()).toBe(true)
 
       atom.config.set('editor.tabType', 'hard')
@@ -424,7 +381,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables atomic soft tabs based on the config', async function () {
-      editor.update({atomicSoftTabs: true})
+      editor.update({ atomicSoftTabs: true })
       expect(editor.hasAtomicSoftTabs()).toBe(true)
 
       atom.config.set('editor.atomicSoftTabs', false)
@@ -437,7 +394,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables cursor on selection visibility based on the config', async function () {
-      editor.update({showCursorOnSelection: true})
+      editor.update({ showCursorOnSelection: true })
       expect(editor.getShowCursorOnSelection()).toBe(true)
 
       atom.config.set('editor.showCursorOnSelection', false)
@@ -450,7 +407,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables line numbers based on the config', async function () {
-      editor.update({showLineNumbers: true})
+      editor.update({ showLineNumbers: true })
       expect(editor.showLineNumbers).toBe(true)
 
       atom.config.set('editor.showLineNumbers', false)
@@ -463,8 +420,8 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the invisibles based on the config', async function () {
-      const invisibles1 = {'tab': 'a', 'cr': false, eol: false, space: false}
-      const invisibles2 = {'tab': 'b', 'cr': false, eol: false, space: false}
+      const invisibles1 = { tab: 'a', cr: false, eol: false, space: false }
+      const invisibles2 = { tab: 'b', cr: false, eol: false, space: false }
 
       editor.update({
         showInvisibles: true,
@@ -486,7 +443,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables the indent guide based on the config', async function () {
-      editor.update({showIndentGuide: true})
+      editor.update({ showIndentGuide: true })
       expect(editor.doesShowIndentGuide()).toBe(true)
 
       atom.config.set('editor.showIndentGuide', false)
@@ -499,7 +456,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables soft wrap based on the config', async function () {
-      editor.update({softWrapped: true})
+      editor.update({ softWrapped: true })
       expect(editor.isSoftWrapped()).toBe(true)
 
       atom.config.set('editor.softWrap', false)
@@ -512,7 +469,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the soft wrap indent length based on the config', async function () {
-      editor.update({softWrapHangingIndentLength: 4})
+      editor.update({ softWrapHangingIndentLength: 4 })
       expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
 
       atom.config.set('editor.softWrapHangingIndent', 2)
@@ -529,7 +486,7 @@ describe('TextEditorRegistry', function () {
         softWrapped: true,
         preferredLineLength: 80,
         editorWidthInChars: 120,
-        softWrapAtPreferredLineLength: true,
+        softWrapAtPreferredLineLength: true
       })
 
       expect(editor.getSoftWrapColumn()).toBe(80)
@@ -547,7 +504,7 @@ describe('TextEditorRegistry', function () {
     it('allows for custom definition of maximum soft wrap based on config', async function () {
       editor.update({
         softWrapped: false,
-        maxScreenLineLength: 1500,
+        maxScreenLineLength: 1500
       })
 
       expect(editor.getSoftWrapColumn()).toBe(1500)
@@ -560,7 +517,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the preferred line length based on the config', async function () {
-      editor.update({preferredLineLength: 80})
+      editor.update({ preferredLineLength: 80 })
       expect(editor.getPreferredLineLength()).toBe(80)
 
       atom.config.set('editor.preferredLineLength', 110)
@@ -573,7 +530,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables auto-indent based on the config', async function () {
-      editor.update({autoIndent: true})
+      editor.update({ autoIndent: true })
       expect(editor.shouldAutoIndent()).toBe(true)
 
       atom.config.set('editor.autoIndent', false)
@@ -586,7 +543,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables auto-indent-on-paste based on the config', async function () {
-      editor.update({autoIndentOnPaste: true})
+      editor.update({ autoIndentOnPaste: true })
       expect(editor.shouldAutoIndentOnPaste()).toBe(true)
 
       atom.config.set('editor.autoIndentOnPaste', false)
@@ -599,7 +556,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('enables or disables scrolling past the end of the buffer based on the config', async function () {
-      editor.update({scrollPastEnd: true})
+      editor.update({ scrollPastEnd: true })
       expect(editor.getScrollPastEnd()).toBe(true)
 
       atom.config.set('editor.scrollPastEnd', false)
@@ -612,7 +569,7 @@ describe('TextEditorRegistry', function () {
     })
 
     it('sets the undo grouping interval based on the config', async function () {
-      editor.update({undoGroupingInterval: 300})
+      editor.update({ undoGroupingInterval: 300 })
       expect(editor.getUndoGroupingInterval()).toBe(300)
 
       atom.config.set('editor.undoGroupingInterval', 600)
@@ -624,21 +581,8 @@ describe('TextEditorRegistry', function () {
       expect(editor.getUndoGroupingInterval()).toBe(300)
     })
 
-    it('sets the non-word characters based on the config', async function () {
-      editor.update({nonWordCharacters: '()'})
-      expect(editor.getNonWordCharacters()).toBe('()')
-
-      atom.config.set('editor.nonWordCharacters', '(){}')
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getNonWordCharacters()).toBe('(){}')
-
-      atom.config.set('editor.nonWordCharacters', '(){}[]')
-      expect(editor.getNonWordCharacters()).toBe('(){}[]')
-    })
-
     it('sets the scroll sensitivity based on the config', async function () {
-      editor.update({scrollSensitivity: 50})
+      editor.update({ scrollSensitivity: 50 })
       expect(editor.getScrollSensitivity()).toBe(50)
 
       atom.config.set('editor.scrollSensitivity', 60)
@@ -650,24 +594,9 @@ describe('TextEditorRegistry', function () {
       expect(editor.getScrollSensitivity()).toBe(70)
     })
 
-    it('gives the editor a scoped-settings delegate based on the config', async function () {
-      atom.config.set('editor.nonWordCharacters', '()')
-      atom.config.set('editor.nonWordCharacters', '(){}', {scopeSelector: '.a.b .c.d'})
-      atom.config.set('editor.nonWordCharacters', '(){}[]', {scopeSelector: '.e.f *'})
-
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-
-      let delegate = editor.getScopedSettingsDelegate()
-
-      expect(delegate.getNonWordCharacters(['a.b', 'c.d'])).toBe('(){}')
-      expect(delegate.getNonWordCharacters(['e.f', 'g.h'])).toBe('(){}[]')
-      expect(delegate.getNonWordCharacters(['i.j'])).toBe('()')
-    })
-
     describe('when called twice with a given editor', function () {
       it('does nothing the second time', async function () {
-        editor.update({scrollSensitivity: 50})
+        editor.update({ scrollSensitivity: 50 })
 
         const disposable1 = registry.maintainConfig(editor)
         const disposable2 = registry.maintainConfig(editor)
@@ -686,53 +615,15 @@ describe('TextEditorRegistry', function () {
       })
     })
   })
-
-  describe('serialization', function () {
-    it('persists editors\' grammar overrides', async function () {
-      const editor2 = new TextEditor()
-
-      await atom.packages.activatePackage('language-c')
-      await atom.packages.activatePackage('language-html')
-      await atom.packages.activatePackage('language-javascript')
-
-      registry.maintainGrammar(editor)
-      registry.maintainGrammar(editor2)
-      registry.setGrammarOverride(editor, 'source.c')
-      registry.setGrammarOverride(editor2, 'source.js')
-
-      await atom.packages.deactivatePackage('language-javascript')
-
-      const editorCopy = TextEditor.deserialize(editor.serialize(), atom)
-      const editor2Copy = TextEditor.deserialize(editor2.serialize(), atom)
-
-      const registryCopy = new TextEditorRegistry({
-        assert: atom.assert,
-        config: atom.config,
-        grammarRegistry: atom.grammars,
-        packageManager: {deferredActivationHooks: null}
-      })
-      registryCopy.deserialize(JSON.parse(JSON.stringify(registry.serialize())))
-
-      expect(editorCopy.getGrammar().name).toBe('Null Grammar')
-      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
-
-      registryCopy.maintainGrammar(editorCopy)
-      registryCopy.maintainGrammar(editor2Copy)
-      expect(editorCopy.getGrammar().name).toBe('C')
-      expect(editor2Copy.getGrammar().name).toBe('Null Grammar')
-
-      await atom.packages.activatePackage('language-javascript')
-      expect(editorCopy.getGrammar().name).toBe('C')
-      expect(editor2Copy.getGrammar().name).toBe('JavaScript')
-    })
-  })
 })
 
 function getSubscriptionCount (editor) {
-  return editor.emitter.getTotalListenerCount() +
+  return (
+    editor.emitter.getTotalListenerCount() +
     editor.tokenizedBuffer.emitter.getTotalListenerCount() +
     editor.buffer.emitter.getTotalListenerCount() +
     editor.displayLayer.emitter.getTotalListenerCount()
+  )
 }
 
 function retainedEditorCount (registry) {

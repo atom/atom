@@ -1,0 +1,45 @@
+
+atom-notifications {
+  font-size: @ui-size * 1.2;
+
+  atom-notification {
+    width: 32em;
+    &.has-detail {
+      width: 32em;
+    }
+
+    &:first-child.has-close .message {
+      padding-right: 9em;
+    }
+    &:only-child.has-close .message,
+    &.has-close .message {
+      padding-right: 2.5em;
+    }
+    .item {
+      padding: @ui-padding/2;
+    }
+
+    .detail,
+    .description {
+      font-size: .85em;
+    }
+
+    &.icon:before {
+      padding-top: .85em;
+    }
+    .close {
+      width: 2.5em;
+      height: 3em;
+      line-height: 3em;
+      font-size: inherit;
+    }
+    .close-all.btn {
+      top: .5em;
+      right: 2.5em;
+    }
+    .btn-copy-report {
+      line-height: 2em;
+      margin-left: .5em;
+    }
+  }
+}

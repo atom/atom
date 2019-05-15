@@ -24,8 +24,7 @@ describe('Gutter', () => {
       expect(gutter.isVisible()).toBe(false)
       // An event should only be emitted when the visibility changes.
       expect(events.length).toBe(1)
-    })
-  )
+    }))
 
   describe('::show', () =>
     it('shows the gutter if it is hidden.', () => {
@@ -45,8 +44,7 @@ describe('Gutter', () => {
       expect(gutter.isVisible()).toBe(true)
       // An event should only be emitted when the visibility changes.
       expect(events.length).toBe(1)
-    })
-  )
+    }))
 
   describe('::destroy', () => {
     let mockGutterContainer, mockGutterContainerRemovedGutters
@@ -61,21 +59,23 @@ describe('Gutter', () => {
     })
 
     it('removes the gutter from its container.', () => {
-      const gutter = new Gutter(mockGutterContainer, {name})
+      const gutter = new Gutter(mockGutterContainer, { name })
       gutter.destroy()
       expect(mockGutterContainerRemovedGutters).toEqual([gutter])
     })
 
     it('calls all callbacks registered on ::onDidDestroy.', () => {
-      const gutter = new Gutter(mockGutterContainer, {name})
+      const gutter = new Gutter(mockGutterContainer, { name })
       let didDestroy = false
-      gutter.onDidDestroy(() => { didDestroy = true })
+      gutter.onDidDestroy(() => {
+        didDestroy = true
+      })
       gutter.destroy()
       expect(didDestroy).toBe(true)
     })
 
     it('does not allow destroying the line-number gutter', () => {
-      const gutter = new Gutter(mockGutterContainer, {name: 'line-number'})
+      const gutter = new Gutter(mockGutterContainer, { name: 'line-number' })
       expect(gutter.destroy).toThrow()
     })
   })

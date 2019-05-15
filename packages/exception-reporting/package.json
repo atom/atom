@@ -1,0 +1,20 @@
+{
+  "name": "exception-reporting",
+  "main": "./lib/main",
+  "version": "0.43.1",
+  "description": "Reports uncaught Atom exceptions to the Atom team via bugsnag.com",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.48.0"
+  },
+  "dependencies": {
+    "fs-plus": "^3.0.0",
+    "node-uuid": "~1.4.7",
+    "stack-trace": "0.0.9",
+    "underscore-plus": "^1.7.0"
+  },
+  "devDependencies": {
+    "semver": "^5.3.0"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "dev-live-reload",
+  "main": "./lib/main",
+  "version": "0.48.1",
+  "description": "Live reload atom themes and packages.",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "dependencies": {
+    "fs-plus": "^3.0.0"
+  },
+  "engines": {
+    "atom": "*"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
+  }
+}

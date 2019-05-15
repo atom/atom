@@ -1,6 +1,4 @@
-/** @babel */
-
-import {TextEditor, TextBuffer} from 'atom'
+const {TextEditor, TextBuffer} = require('atom')
 
 const MIN_SIZE_IN_KB = 0 * 1024
 const MAX_SIZE_IN_KB = 10 * 1024
@@ -8,7 +6,7 @@ const SIZE_STEP_IN_KB = 1024
 const LINE_TEXT = 'Lorem ipsum dolor sit amet\n'
 const TEXT = LINE_TEXT.repeat(Math.ceil(MAX_SIZE_IN_KB * 1024 / LINE_TEXT.length))
 
-export default async function ({test}) {
+module.exports = async ({test}) => {
   const data = []
 
   document.body.appendChild(atom.workspace.getElement())
@@ -27,6 +25,7 @@ export default async function ({test}) {
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, autoHeight: false, largeFileMode: true})
+    atom.grammars.autoAssignLanguageMode(buffer)
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
 

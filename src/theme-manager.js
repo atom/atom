@@ -103,7 +103,7 @@ class ThemeManager {
 
   warnForNonExistentThemes () {
     let themeNames = this.config.get('core.themes') || []
-    if (!_.isArray(themeNames)) { themeNames = [themeNames] }
+    if (!Array.isArray(themeNames)) { themeNames = [themeNames] }
     for (let themeName of themeNames) {
       if (!themeName || (typeof themeName !== 'string') || !this.packageManager.resolvePackagePath(themeName)) {
         console.warn(`Enabled theme '${themeName}' is not installed.`)
@@ -116,7 +116,7 @@ class ThemeManager {
   // Returns an array of theme names in the order that they should be activated.
   getEnabledThemeNames () {
     let themeNames = this.config.get('core.themes') || []
-    if (!_.isArray(themeNames)) { themeNames = [themeNames] }
+    if (!Array.isArray(themeNames)) { themeNames = [themeNames] }
     themeNames = themeNames.filter((themeName) =>
       (typeof themeName === 'string') && this.packageManager.resolvePackagePath(themeName)
     )
@@ -136,12 +136,12 @@ class ThemeManager {
       ]
       themeNames = _.intersection(themeNames, builtInThemeNames)
       if (themeNames.length === 0) {
-        themeNames = ['atom-dark-syntax', 'atom-dark-ui']
+        themeNames = ['one-dark-syntax', 'one-dark-ui']
       } else if (themeNames.length === 1) {
-        if (_.endsWith(themeNames[0], '-ui')) {
-          themeNames.unshift('atom-dark-syntax')
+        if (themeNames[0].endsWith('-ui')) {
+          themeNames.unshift('one-dark-syntax')
         } else {
-          themeNames.push('atom-dark-ui')
+          themeNames.push('one-dark-ui')
         }
       }
     }

@@ -1,5 +1,3 @@
-/** @babel */
-
 const path = require('path')
 
 // Private: re-join the segments split from an absolute path to form another absolute path.

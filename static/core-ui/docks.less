@@ -1,0 +1,215 @@
+@import 'ui-variables';
+@import 'syntax-variables';
+
+@atom-dock-toggle-button-size: 50px;
+@atom-dock-resize-handle-size: 4px;
+
+// Dock --------------
+
+// The actual dock element is used as a kind of placeholder in the DOM, relative
+// to which its children can be positioned.
+atom-dock {
+  display: flex;
+  position: relative;
+}
+
+.atom-dock-inner {
+  display: flex;
+
+  &.bottom { width: 100%; }
+  &.left, &.right { height: 100%; }
+
+  // Make sure to center the toggle buttons
+  &.bottom { flex-direction: column; }
+  align-items: center;
+
+  // Position the docks flush with their side of the editor.
+  &.right { right: 0; }
+  &.bottom { bottom: 0; }
+  &.left { left: 0; }
+
+  // Position the docks flush with their side of the editor.
+  &.right { right: 0; }
+  &.bottom { bottom: 0; }
+  &.left { left: 0; }
+
+  &:not(.atom-dock-open) {
+    // The dock should only take up space when it's active (i.e. it shouldn't
+    // take up space when you're dragging something into it).
+    position: absolute;
+    z-index: 10; // An arbitrary number. Seems high enough. ¯\_(ツ)_/¯
+  }
+}
+
+.atom-dock-mask {
+  position: relative;
+  background-color: @tool-panel-background-color;
+  overflow: hidden; // Mask the content.
+
+  // One of these will be overridden by the component with an explicit size.
+  // Which depends on the position of the dock.
+  width: 100%;
+  height: 100%;
+
+  transition: none;
+  &.atom-dock-should-animate {
+    transition: width 0.2s ease-out, height 0.2s ease-out;
+  }
+}
+
+.atom-dock-content-wrapper {
+  position: absolute;
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+
+  // The contents of the dock should be "stuck" to the moving edge of the mask,
+  // so it looks like they're sliding in (instead of being unmasked in place).
+  &.right { left: 0; }
+  &.bottom { top: 0; }
+  &.left { right: 0; }
+
+  // Use flex-direction to put the resize handle in the correct place.
+  &.left { flex-direction: row-reverse; }
+  &.bottom { flex-direction: column; }
+  &.right { flex-direction: row; }
+}
+
+// Toggle button --------------
+
+.atom-dock-toggle-button {
+  position: absolute;
+  overflow: hidden; // Mask half of the circle.
+
+  // Must be > .scrollbar-content and inactive atom-dock
+  z-index: 11;
+
+  // Position the toggle button target at the edge of the dock. It's important
+  // that this is absolutely positioned so that it doesn't expand the area of
+  // its container (which would block mouse events).
+  &.right { right: 100%; }
+  &.bottom { bottom: 100%; }
+  &.left { left: 100%; }
+
+  width: @atom-dock-toggle-button-size;
+  height: @atom-dock-toggle-button-size;
+  &.bottom { height: @atom-dock-toggle-button-size / 2; }
+  &.left, &.right { width: @atom-dock-toggle-button-size / 2; }
+
+  .atom-dock-toggle-button-inner {
+    width: @atom-dock-toggle-button-size;
+    height: @atom-dock-toggle-button-size;
+    border-radius: @atom-dock-toggle-button-size / 2;
+
+    position: absolute;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    // Promote to own layer, fixes rendering issue atom/atom#14915
+    will-change: transform;
+
+    &.right {
+      left: 0;
+    }
+    &.bottom {
+      top: 0;
+    }
+    &.left {
+      right: 0;
+    }
+  }
+
+  // Hide the button.
+  &:not(.atom-dock-toggle-button-visible) {
+    .atom-dock-toggle-button-inner {
+      &.right { transform: translateX(50%); }
+      &.bottom { transform: translateY(50%); }
+      &.left { transform: translateX(-50%); }
+    }
+  }
+
+  // Center the icon.
+  @offset: 8px;
+  .atom-dock-toggle-button-inner {
+    &.right .icon { transform: translateX(-@offset); }
+    &.bottom .icon { transform: translateY(-@offset); }
+    &.left .icon { transform: translateX(@offset); }
+  }
+
+  // Animate the icon.
+  .icon {
+    transition: opacity 0.1s ease-in 0.1s; // intro
+    opacity: 1;
+
+    &::before {
+      // Shrink the icon element to the size of the character.
+      width: auto;
+      margin: 0;
+    }
+  }
+  &:not(.atom-dock-toggle-button-visible) .icon {
+    opacity: 0;
+    transition: opacity 0.2s ease-out 0s; // outro
+  }
+
+  .atom-dock-toggle-button-inner {
+    background-color: @tool-panel-background-color;
+    border: 1px solid @pane-item-border-color;
+    transition: transform 0.2s ease-out 0s; // intro
+  }
+
+  &:not(.atom-dock-toggle-button-visible) {
+    // Don't contribute to mouseenter/drag events when not visible.
+    pointer-events: none;
+
+    .atom-dock-toggle-button-inner {
+      transition: transform 0.2s ease-out 0.1s; // outro
+    }
+  }
+}
+
+// Resize handle --------------
+
+.atom-dock-resize-handle {
+  width: auto;
+  height: auto;
+  flex: 0 0 auto;
+
+  // Use the resize cursor when the handle's resizable
+  &.atom-dock-resize-handle-resizable {
+    &.left, &.right { cursor: col-resize; }
+    &.bottom { cursor: row-resize; }
+  }
+
+  &.left, &.right { width: @atom-dock-resize-handle-size; }
+  &.bottom { height: @atom-dock-resize-handle-size; }
+}
+
+// Cursor overlay --------------
+
+.atom-dock-cursor-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+
+  &.left,
+  &.right {
+    cursor: col-resize;
+  }
+
+  &.bottom {
+    cursor: row-resize;
+  }
+
+  &:not(.atom-dock-cursor-overlay-visible) {
+    display: none;
+  }
+}

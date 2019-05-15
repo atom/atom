@@ -7,9 +7,11 @@ const {CompositeDisposable, Disposable, Emitter} = require('event-kit')
 const TextBuffer = require('text-buffer')
 const {Point, Range} = TextBuffer
 const DecorationManager = require('./decoration-manager')
-const TokenizedBuffer = require('./tokenized-buffer')
 const Cursor = require('./cursor')
 const Selection = require('./selection')
+const NullGrammar = require('./null-grammar')
+const TextMateLanguageMode = require('./text-mate-language-mode')
+const ScopeDescriptor = require('./scope-descriptor')
 
 const TextMateScopeSelector = require('first-mate').ScopeSelector
 const GutterContainer = require('./gutter-container')
@@ -21,6 +23,8 @@ const SERIALIZATION_VERSION = 1
 const NON_WHITESPACE_REGEXP = /\S/
 const ZERO_WIDTH_NBSP = '\ufeff'
 let nextId = 0
+
+const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 
 // Essential: This class represents all essential editing state for a single
 // {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -38,9 +42,10 @@ let nextId = 0
 // then be called with all current editor instances and also when any editor is
 // created in the future.
 //
-// ```coffee
-// atom.workspace.observeTextEditors (editor) ->
+// ```js
+// atom.workspace.observeTextEditors(editor => {
 //   editor.insertText('Hello World')
+// })
 // ```
 //
 // ## Buffer vs. Screen Coordinates
@@ -86,12 +91,13 @@ class TextEditor {
   static deserialize (state, atomEnvironment) {
     if (state.version !== SERIALIZATION_VERSION) return null
 
-    try {
-      const tokenizedBuffer = TokenizedBuffer.deserialize(state.tokenizedBuffer, atomEnvironment)
-      if (!tokenizedBuffer) return null
+    let bufferId = state.tokenizedBuffer
+      ? state.tokenizedBuffer.bufferId
+      : state.bufferId
 
-      state.tokenizedBuffer = tokenizedBuffer
-      state.tabLength = state.tokenizedBuffer.getTabLength()
+    try {
+      state.buffer = atomEnvironment.project.bufferForIdSync(bufferId)
+      if (!state.buffer) return null
     } catch (error) {
       if (error.syscall === 'read') {
         return // Error reading the file, don't deserialize an editor for it
@@ -100,8 +106,14 @@ class TextEditor {
       }
     }
 
-    state.buffer = state.tokenizedBuffer.buffer
     state.assert = atomEnvironment.assert.bind(atomEnvironment)
+
+    // Semantics of the readOnly flag have changed since its introduction.
+    // Only respect readOnly2, which has been set with the current readOnly semantics.
+    delete state.readOnly
+    state.readOnly = state.readOnly2
+    delete state.readOnly2
+
     const editor = new TextEditor(state)
     if (state.registered) {
       const disposable = atomEnvironment.textEditors.add(editor)
@@ -116,14 +128,19 @@ class TextEditor {
     }
 
     this.id = params.id != null ? params.id : nextId++
+    if (this.id >= nextId) {
+      // Ensure that new editors get unique ids:
+      nextId = this.id + 1
+    }
     this.initialScrollTopRow = params.initialScrollTopRow
     this.initialScrollLeftColumn = params.initialScrollLeftColumn
     this.decorationManager = params.decorationManager
     this.selectionsMarkerLayer = params.selectionsMarkerLayer
     this.mini = (params.mini != null) ? params.mini : false
+    this.keyboardInputEnabled = (params.keyboardInputEnabled != null) ? params.keyboardInputEnabled : true
+    this.readOnly = (params.readOnly != null) ? params.readOnly : false
     this.placeholderText = params.placeholderText
     this.showLineNumbers = params.showLineNumbers
-    this.largeFileMode = params.largeFileMode
     this.assert = params.assert || (condition => condition)
     this.showInvisibles = (params.showInvisibles != null) ? params.showInvisibles : true
     this.autoHeight = params.autoHeight
@@ -142,7 +159,6 @@ class TextEditor {
     this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
     this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
     this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.nonWordCharacters = (params.nonWordCharacters != null) ? params.nonWordCharacters : "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
     this.softWrapped = (params.softWrapped != null) ? params.softWrapped : false
     this.softWrapAtPreferredLineLength = (params.softWrapAtPreferredLineLength != null) ? params.softWrapAtPreferredLineLength : false
     this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
@@ -171,17 +187,20 @@ class TextEditor {
     this.selections = []
     this.hasTerminatedPendingState = false
 
-    this.buffer = params.buffer || new TextBuffer({
-      shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
-    })
+    if (params.buffer) {
+      this.buffer = params.buffer
+    } else {
+      this.buffer = new TextBuffer({
+        shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
+      })
+      this.buffer.setLanguageMode(new TextMateLanguageMode({buffer: this.buffer, config: atom.config}))
+    }
 
-    this.tokenizedBuffer = params.tokenizedBuffer || new TokenizedBuffer({
-      grammar: params.grammar,
-      tabLength,
-      buffer: this.buffer,
-      largeFileMode: this.largeFileMode,
-      assert: this.assert
+    const languageMode = this.buffer.getLanguageMode()
+    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
+      this.emitter.emit('did-tokenize')
     })
+    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
 
     if (params.displayLayer) {
       this.displayLayer = params.displayLayer
@@ -214,10 +233,8 @@ class TextEditor {
 
     this.defaultMarkerLayer = this.displayLayer.addMarkerLayer()
     if (!this.selectionsMarkerLayer) {
-      this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true})
+      this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true, role: 'selections'})
     }
-
-    this.displayLayer.setTextDecorationLayer(this.tokenizedBuffer)
 
     this.decorationManager = new DecorationManager(this)
     this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'cursor'})
@@ -241,6 +258,7 @@ class TextEditor {
     this.gutterContainer = new GutterContainer(this)
     this.lineNumberGutter = this.gutterContainer.addGutter({
       name: 'line-number',
+      type: 'line-number',
       priority: 0,
       visible: params.lineNumberGutterVisible
     })
@@ -271,9 +289,8 @@ class TextEditor {
     return this
   }
 
-  get languageMode () {
-    return this.tokenizedBuffer
-  }
+  get languageMode () { return this.buffer.getLanguageMode() }
+  get tokenizedBuffer () { return this.buffer.getLanguageMode() }
 
   get rowsPerPage () {
     return this.getRowsPerPage()
@@ -319,10 +336,6 @@ class TextEditor {
           this.undoGroupingInterval = value
           break
 
-        case 'nonWordCharacters':
-          this.nonWordCharacters = value
-          break
-
         case 'scrollSensitivity':
           this.scrollSensitivity = value
           break
@@ -344,8 +357,7 @@ class TextEditor {
           break
 
         case 'tabLength':
-          if (value > 0 && value !== this.tokenizedBuffer.getTabLength()) {
-            this.tokenizedBuffer.setTabLength(value)
+          if (value > 0 && value !== this.displayLayer.tabLength) {
             displayLayerParams.tabLength = value
           }
           break
@@ -398,6 +410,24 @@ class TextEditor {
             } else {
               this.decorateCursorLine()
             }
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+          }
+          break
+
+        case 'readOnly':
+          if (value !== this.readOnly) {
+            this.readOnly = value
+            if (this.component != null) {
+              this.component.scheduleUpdate()
+            }
+          }
+          break
+
+        case 'keyboardInputEnabled':
+          if (value !== this.keyboardInputEnabled) {
+            this.keyboardInputEnabled = value
             if (this.component != null) {
               this.component.scheduleUpdate()
             }
@@ -513,34 +543,31 @@ class TextEditor {
   }
 
   serialize () {
-    const tokenizedBufferState = this.tokenizedBuffer.serialize()
-
     return {
       deserializer: 'TextEditor',
       version: SERIALIZATION_VERSION,
 
-      // TODO: Remove this forward-compatible fallback once 1.8 reaches stable.
-      displayBuffer: {tokenizedBuffer: tokenizedBufferState},
-
-      tokenizedBuffer: tokenizedBufferState,
       displayLayerId: this.displayLayer.id,
       selectionsMarkerLayerId: this.selectionsMarkerLayer.id,
 
       initialScrollTopRow: this.getScrollTopRow(),
       initialScrollLeftColumn: this.getScrollLeftColumn(),
 
+      tabLength: this.displayLayer.tabLength,
       atomicSoftTabs: this.displayLayer.atomicSoftTabs,
       softWrapHangingIndentLength: this.displayLayer.softWrapHangingIndent,
 
       id: this.id,
+      bufferId: this.buffer.id,
       softTabs: this.softTabs,
       softWrapped: this.softWrapped,
       softWrapAtPreferredLineLength: this.softWrapAtPreferredLineLength,
       preferredLineLength: this.preferredLineLength,
       mini: this.mini,
+      readOnly2: this.readOnly, // readOnly encompassed both readOnly and keyboardInputEnabled
+      keyboardInputEnabled: this.keyboardInputEnabled,
       editorWidthInChars: this.editorWidthInChars,
       width: this.width,
-      largeFileMode: this.largeFileMode,
       maxScreenLineLength: this.maxScreenLineLength,
       registered: this.registered,
       invisibles: this.invisibles,
@@ -553,6 +580,7 @@ class TextEditor {
 
   subscribeToBuffer () {
     this.buffer.retain()
+    this.disposables.add(this.buffer.onDidChangeLanguageMode(this.handleLanguageModeChange.bind(this)))
     this.disposables.add(this.buffer.onDidChangePath(() => {
       this.emitter.emit('did-change-title', this.getTitle())
       this.emitter.emit('did-change-path', this.getPath())
@@ -576,7 +604,6 @@ class TextEditor {
   }
 
   subscribeToDisplayLayer () {
-    this.disposables.add(this.tokenizedBuffer.onDidChangeGrammar(this.handleGrammarChange.bind(this)))
     this.disposables.add(this.displayLayer.onDidChange(changes => {
       this.mergeIntersectingSelections()
       if (this.component) this.component.didChangeDisplayLayer(changes)
@@ -596,7 +623,6 @@ class TextEditor {
     this.alive = false
     this.disposables.dispose()
     this.displayLayer.destroy()
-    this.tokenizedBuffer.destroy()
     for (let selection of this.selections.slice()) {
       selection.destroy()
     }
@@ -731,7 +757,9 @@ class TextEditor {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeGrammar (callback) {
-    return this.emitter.on('did-change-grammar', callback)
+    return this.buffer.onDidChangeLanguageMode(() => {
+      callback(this.buffer.getLanguageMode().grammar)
+    })
   }
 
   // Extended: Calls your `callback` when the result of {::isModified} changes.
@@ -931,9 +959,6 @@ class TextEditor {
     return this.decorationManager.onDidUpdateDecorations(callback)
   }
 
-  // Essential: Retrieves the current {TextBuffer}.
-  getBuffer () { return this.buffer }
-
   // Retrieves the current buffer's URI.
   getURI () { return this.buffer.getUri() }
 
@@ -947,7 +972,7 @@ class TextEditor {
       selectionsMarkerLayer,
       softTabs,
       suppressCursorCreation: true,
-      tabLength: this.tokenizedBuffer.getTabLength(),
+      tabLength: this.getTabLength(),
       initialScrollTopRow: this.getScrollTopRow(),
       initialScrollLeftColumn: this.getScrollLeftColumn(),
       assert: this.assert,
@@ -960,13 +985,30 @@ class TextEditor {
   }
 
   // Controls visibility based on the given {Boolean}.
-  setVisible (visible) { this.tokenizedBuffer.setVisible(visible) }
+  setVisible (visible) {
+    if (visible) {
+      const languageMode = this.buffer.getLanguageMode()
+      if (languageMode.startTokenizing) languageMode.startTokenizing()
+    }
+  }
 
   setMini (mini) {
     this.update({mini})
   }
 
   isMini () { return this.mini }
+
+  setReadOnly (readOnly) {
+    this.update({readOnly})
+  }
+
+  isReadOnly () { return this.readOnly }
+
+  enableKeyboardInput (enabled) {
+    this.update({keyboardInputEnabled: enabled})
+  }
+
+  isKeyboardInputEnabled () { return this.keyboardInputEnabled }
 
   onDidChangeMini (callback) {
     return this.emitter.on('did-change-mini', callback)
@@ -975,6 +1017,10 @@ class TextEditor {
   setLineNumberGutterVisible (lineNumberGutterVisible) { this.update({lineNumberGutterVisible}) }
 
   isLineNumberGutterVisible () { return this.lineNumberGutter.isVisible() }
+
+  anyLineNumberGutterVisible () {
+    return this.getGutters().some(gutter => gutter.type === 'line-number' && gutter.visible)
+  }
 
   onDidChangeLineNumberGutterVisible (callback) {
     return this.emitter.on('did-change-line-number-gutter-visible', callback)
@@ -1025,6 +1071,15 @@ class TextEditor {
     } else {
       return this.editorWidthInChars
     }
+  }
+
+  /*
+  Section: Buffer
+  */
+
+  // Essential: Retrieves the current {TextBuffer}.
+  getBuffer () {
+    return this.buffer
   }
 
   /*
@@ -1287,7 +1342,12 @@ class TextEditor {
   // Essential: Replaces the entire contents of the buffer with the given {String}.
   //
   // * `text` A {String} to replace with
-  setText (text) { return this.buffer.setText(text) }
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  setText (text, options = {}) {
+    if (!this.ensureWritable('setText', options)) return
+    return this.buffer.setText(text)
+  }
 
   // Essential: Set the text in the given {Range} in buffer coordinates.
   //
@@ -1295,10 +1355,12 @@ class TextEditor {
   // * `text` A {String}
   // * `options` (optional) {Object}
   //   * `normalizeLineEndings` (optional) {Boolean} (default: true)
-  //   * `undo` (optional) {String} 'skip' will skip the undo system
+  //   * `undo` (optional) *Deprecated* {String} 'skip' will skip the undo system. This property is deprecated. Call groupLastChanges() on the {TextBuffer} afterward instead.
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   //
   // Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange (range, text, options) {
+  setTextInBufferRange (range, text, options = {}) {
+    if (!this.ensureWritable('setTextInBufferRange', options)) return
     return this.getBuffer().setTextInRange(range, text, options)
   }
 
@@ -1307,37 +1369,57 @@ class TextEditor {
   // * `text` A {String} representing the text to insert.
   // * `options` (optional) See {Selection::insertText}.
   //
-  // Returns a {Range} when the text has been inserted
-  // Returns a {Boolean} false when the text has not been inserted
+  // Returns a {Range} when the text has been inserted. Returns a {Boolean} `false` when the text has not been inserted.
   insertText (text, options = {}) {
+    if (!this.ensureWritable('insertText', options)) return
     if (!this.emitWillInsertTextEvent(text)) return false
+
+    let groupLastChanges = false
+    if (options.undo === 'skip') {
+      options = Object.assign({}, options)
+      delete options.undo
+      groupLastChanges = true
+    }
 
     const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0
     if (options.autoIndentNewline == null) options.autoIndentNewline = this.shouldAutoIndent()
     if (options.autoDecreaseIndent == null) options.autoDecreaseIndent = this.shouldAutoIndent()
-    return this.mutateSelectedText(selection => {
+    const result = this.mutateSelectedText(selection => {
       const range = selection.insertText(text, options)
       const didInsertEvent = {text, range}
       this.emitter.emit('did-insert-text', didInsertEvent)
       return range
     }, groupingInterval)
+    if (groupLastChanges) this.buffer.groupLastChanges()
+    return result
   }
 
   // Essential: For each selection, replace the selected text with a newline.
-  insertNewline (options) {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewline (options = {}) {
     return this.insertText('\n', options)
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
   // following the cursor. Otherwise delete the selected text.
-  delete () {
-    return this.mutateSelectedText(selection => selection.delete())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  delete (options = {}) {
+    if (!this.ensureWritable('delete', options)) return
+    return this.mutateSelectedText(selection => selection.delete(options))
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
   // preceding the cursor. Otherwise delete the selected text.
-  backspace () {
-    return this.mutateSelectedText(selection => selection.backspace())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  backspace (options = {}) {
+    if (!this.ensureWritable('backspace', options)) return
+    return this.mutateSelectedText(selection => selection.backspace(options))
   }
 
   // Extended: Mutate the text of all the selections in a single transaction.
@@ -1358,7 +1440,12 @@ class TextEditor {
 
   // Move lines intersecting the most recent selection or multiple selections
   // up by one row in screen coordinates.
-  moveLineUp () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveLineUp (options = {}) {
+    if (!this.ensureWritable('moveLineUp', options)) return
+
     const selections = this.getSelectedBufferRanges().sort((a, b) => a.compare(b))
 
     if (selections[0].start.row === 0) return
@@ -1426,7 +1513,12 @@ class TextEditor {
 
   // Move lines intersecting the most recent selection or multiple selections
   // down by one row in screen coordinates.
-  moveLineDown () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveLineDown (options = {}) {
+    if (!this.ensureWritable('moveLineDown', options)) return
+
     const selections = this.getSelectedBufferRanges()
     selections.sort((a, b) => b.compare(a))
 
@@ -1498,7 +1590,11 @@ class TextEditor {
   }
 
   // Move any active selections one column to the left.
-  moveSelectionLeft () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveSelectionLeft (options = {}) {
+    if (!this.ensureWritable('moveSelectionLeft', options)) return
     const selections = this.getSelectedBufferRanges()
     const noSelectionAtStartOfLine = selections.every(selection => selection.start.column !== 0)
 
@@ -1522,7 +1618,11 @@ class TextEditor {
   }
 
   // Move any active selections one column to the right.
-  moveSelectionRight () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  moveSelectionRight (options = {}) {
+    if (!this.ensureWritable('moveSelectionRight', options)) return
     const selections = this.getSelectedBufferRanges()
     const noSelectionAtEndOfLine = selections.every(selection => {
       return selection.end.column !== this.buffer.lineLengthForRow(selection.end.row)
@@ -1547,7 +1647,12 @@ class TextEditor {
     }
   }
 
-  duplicateLines () {
+  // Duplicate all lines containing active selections.
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  duplicateLines (options = {}) {
+    if (!this.ensureWritable('duplicateLines', options)) return
     this.transact(() => {
       const selections = this.getSelectionsOrderedByBufferPosition()
       const previousSelectionRanges = []
@@ -1634,7 +1739,11 @@ class TextEditor {
   //
   // If the selection is empty, the characters preceding and following the cursor
   // are swapped. Otherwise, the selected characters are reversed.
-  transpose () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  transpose (options = {}) {
+    if (!this.ensureWritable('transpose', options)) return
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
         selection.selectRight()
@@ -1652,23 +1761,35 @@ class TextEditor {
   //
   // For each selection, if the selection is empty, converts the containing word
   // to upper case. Otherwise convert the selected text to upper case.
-  upperCase () {
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toUpperCase())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  upperCase (options = {}) {
+    if (!this.ensureWritable('upperCase', options)) return
+    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toUpperCase(options))
   }
 
   // Extended: Convert the selected text to lower case.
   //
   // For each selection, if the selection is empty, converts the containing word
   // to upper case. Otherwise convert the selected text to upper case.
-  lowerCase () {
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toLowerCase())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  lowerCase (options = {}) {
+    if (!this.ensureWritable('lowerCase', options)) return
+    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toLowerCase(options))
   }
 
   // Extended: Toggle line comments for rows intersecting selections.
   //
   // If the current grammar doesn't support comments, does nothing.
-  toggleLineCommentsInSelection () {
-    this.mutateSelectedText(selection => selection.toggleLineComments())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  toggleLineCommentsInSelection (options = {}) {
+    if (!this.ensureWritable('toggleLineCommentsInSelection', options)) return
+    this.mutateSelectedText(selection => selection.toggleLineComments(options))
   }
 
   // Convert multiple lines to a single line.
@@ -1679,20 +1800,32 @@ class TextEditor {
   //
   // Joining a line means that multiple lines are converted to a single line with
   // the contents of each of the original non-empty lines separated by a space.
-  joinLines () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  joinLines (options = {}) {
+    if (!this.ensureWritable('joinLines', options)) return
     this.mutateSelectedText(selection => selection.joinLines())
   }
 
   // Extended: For each cursor, insert a newline at beginning the following line.
-  insertNewlineBelow () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewlineBelow (options = {}) {
+    if (!this.ensureWritable('insertNewlineBelow', options)) return
     this.transact(() => {
       this.moveToEndOfLine()
-      this.insertNewline()
+      this.insertNewline(options)
     })
   }
 
   // Extended: For each cursor, insert a newline at the end of the preceding line.
-  insertNewlineAbove () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  insertNewlineAbove (options = {}) {
+    if (!this.ensureWritable('insertNewlineAbove', options)) return
     this.transact(() => {
       const bufferRow = this.getCursorBufferPosition().row
       const indentLevel = this.indentationForBufferRow(bufferRow)
@@ -1700,7 +1833,7 @@ class TextEditor {
 
       this.moveToBeginningOfLine()
       this.moveLeft()
-      this.insertNewline()
+      this.insertNewline(options)
 
       if (this.shouldAutoIndent() && (this.indentationForBufferRow(bufferRow) < indentLevel)) {
         this.setIndentationForBufferRow(bufferRow, indentLevel)
@@ -1716,62 +1849,117 @@ class TextEditor {
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing word that precede the cursor. Otherwise delete the
   // selected text.
-  deleteToBeginningOfWord () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfWord())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfWord (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfWord', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfWord(options))
   }
 
   // Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
   // previous word boundary.
-  deleteToPreviousWordBoundary () {
-    this.mutateSelectedText(selection => selection.deleteToPreviousWordBoundary())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToPreviousWordBoundary (options = {}) {
+    if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return
+    this.mutateSelectedText(selection => selection.deleteToPreviousWordBoundary(options))
   }
 
   // Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
   // next word boundary.
-  deleteToNextWordBoundary () {
-    this.mutateSelectedText(selection => selection.deleteToNextWordBoundary())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToNextWordBoundary (options = {}) {
+    if (!this.ensureWritable('deleteToNextWordBoundary', options)) return
+    this.mutateSelectedText(selection => selection.deleteToNextWordBoundary(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing subword following the cursor. Otherwise delete the selected
   // text.
-  deleteToBeginningOfSubword () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfSubword())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfSubword (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfSubword(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing subword following the cursor. Otherwise delete the selected
   // text.
-  deleteToEndOfSubword () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfSubword())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfSubword (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfSubword', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfSubword(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing line that precede the cursor. Otherwise delete the
   // selected text.
-  deleteToBeginningOfLine () {
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfLine())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToBeginningOfLine (options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfLine', options)) return
+    this.mutateSelectedText(selection => selection.deleteToBeginningOfLine(options))
   }
 
   // Extended: For each selection, if the selection is not empty, deletes the
   // selection; otherwise, deletes all characters of the containing line
   // following the cursor. If the cursor is already at the end of the line,
   // deletes the following newline.
-  deleteToEndOfLine () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfLine())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfLine (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfLine', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfLine(options))
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
   // of the containing word following the cursor. Otherwise delete the selected
   // text.
-  deleteToEndOfWord () {
-    this.mutateSelectedText(selection => selection.deleteToEndOfWord())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteToEndOfWord (options = {}) {
+    if (!this.ensureWritable('deleteToEndOfWord', options)) return
+    this.mutateSelectedText(selection => selection.deleteToEndOfWord(options))
   }
 
   // Extended: Delete all lines intersecting selections.
-  deleteLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  deleteLine (options = {}) {
+    if (!this.ensureWritable('deleteLine', options)) return
     this.mergeSelectionsOnSameRows()
-    this.mutateSelectedText(selection => selection.deleteLine())
+    this.mutateSelectedText(selection => selection.deleteLine(options))
+  }
+
+  // Private: Ensure that this editor is not marked read-only before allowing a buffer modification to occur. If
+  // the editor is read-only, require an explicit opt-in option to proceed (`bypassReadOnly`) or throw an Error.
+  ensureWritable (methodName, opts) {
+    if (!opts.bypassReadOnly && this.isReadOnly()) {
+      if (atom.inDevMode() || atom.inSpecMode()) {
+        const e = new Error('Attempt to mutate a read-only TextEditor')
+        e.detail =
+          `Your package is attempting to call ${methodName} on an editor that has been marked read-only. ` +
+          'Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before attempting ' +
+          'modifications.'
+        throw e
+      }
+
+      return false
+    }
+
+    return true
   }
 
   /*
@@ -1779,14 +1967,22 @@ class TextEditor {
   */
 
   // Essential: Undo the last change.
-  undo () {
-    this.avoidMergingSelections(() => this.buffer.undo())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  undo (options = {}) {
+    if (!this.ensureWritable('undo', options)) return
+    this.avoidMergingSelections(() => this.buffer.undo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
 
   // Essential: Redo the last change.
-  redo () {
-    this.avoidMergingSelections(() => this.buffer.redo())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
+  redo (options = {}) {
+    if (!this.ensureWritable('redo', options)) return
+    this.avoidMergingSelections(() => this.buffer.redo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
     this.getLastSelection().autoscroll()
   }
 
@@ -1803,7 +1999,13 @@ class TextEditor {
   //   still 'groupable', the two transactions are merged with respect to undo and redo.
   // * `fn` A {Function} to call inside the transaction.
   transact (groupingInterval, fn) {
-    return this.buffer.transact(groupingInterval, fn)
+    const options = {selectionsMarkerLayer: this.selectionsMarkerLayer}
+    if (typeof groupingInterval === 'function') {
+      fn = groupingInterval
+    } else {
+      options.groupingInterval = groupingInterval
+    }
+    return this.buffer.transact(options, fn)
   }
 
   // Extended: Abort an open transaction, undoing any operations performed so far
@@ -1814,7 +2016,9 @@ class TextEditor {
   // with {::revertToCheckpoint} and {::groupChangesSinceCheckpoint}.
   //
   // Returns a checkpoint value.
-  createCheckpoint () { return this.buffer.createCheckpoint() }
+  createCheckpoint () {
+    return this.buffer.createCheckpoint({selectionsMarkerLayer: this.selectionsMarkerLayer})
+  }
 
   // Extended: Revert the buffer to the state it was in when the given
   // checkpoint was created.
@@ -1838,7 +2042,9 @@ class TextEditor {
   // * `checkpoint` The checkpoint from which to group changes.
   //
   // Returns a {Boolean} indicating whether the operation succeeded.
-  groupChangesSinceCheckpoint (checkpoint) { return this.buffer.groupChangesSinceCheckpoint(checkpoint) }
+  groupChangesSinceCheckpoint (checkpoint) {
+    return this.buffer.groupChangesSinceCheckpoint(checkpoint, {selectionsMarkerLayer: this.selectionsMarkerLayer})
+  }
 
   /*
   Section: TextEditor Coordinates
@@ -1929,11 +2135,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipBufferPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipBufferPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at buffer row 2 is 10 characters long
-  // editor.clipBufferPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at buffer row 2 is 10 characters long
+  // editor.clipBufferPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `bufferPosition` The {Point} representing the position to clip.
@@ -1958,11 +2164,11 @@ class TextEditor {
   //
   // ## Examples
   //
-  // ```coffee
-  // editor.clipScreenPosition([-1, -1]) # -> `[0, 0]`
+  // ```js
+  // editor.clipScreenPosition([-1, -1]) // -> `[0, 0]`
   //
-  // # When the line at screen row 2 is 10 characters long
-  // editor.clipScreenPosition([2, Infinity]) # -> `[2, 10]`
+  // // When the line at screen row 2 is 10 characters long
+  // editor.clipScreenPosition([2, Infinity]) // -> `[2, 10]`
   // ```
   //
   // * `screenPosition` The {Point} representing the position to clip.
@@ -2015,14 +2221,17 @@ class TextEditor {
   //
   // The following are the supported decorations types:
   //
-  // * __line__: Adds your CSS `class` to the line nodes within the range
-  //     marked by the marker
-  // * __line-number__: Adds your CSS `class` to the line number nodes within the
-  //     range marked by the marker
-  // * __highlight__: Adds a new highlight div to the editor surrounding the
-  //     range marked by the marker. When the user selects text, the selection is
-  //     visualized with a highlight decoration internally. The structure of this
-  //     highlight will be
+  // * __line__: Adds the given CSS `class` to the lines overlapping the rows
+  //     spanned by the marker.
+  // * __line-number__: Adds the given CSS `class` to the line numbers overlapping
+  //     the rows spanned by the marker
+  // * __text__: Injects spans into all text overlapping the marked range, then adds
+  //     the given `class` or `style` to these spans. Use this to manipulate the foreground
+  //     color or styling of text in a range.
+  // * __highlight__: Creates an absolutely-positioned `.highlight` div to the editor
+  //     containing nested divs that cover the marked region. For example, when the user
+  //     selects text, the selection is implemented with a highlight decoration. The structure
+  //     of this highlight will be:
   //     ```html
   //     <div class="highlight <your-class>">
   //       <!-- Will be one region for each row in the range. Spans 2 lines? There will be 2 regions. -->
@@ -2030,45 +2239,25 @@ class TextEditor {
   //     </div>
   //     ```
   // * __overlay__: Positions the view associated with the given item at the head
-  //     or tail of the given `DisplayMarker`.
-  // * __gutter__: A decoration that tracks a {DisplayMarker} in a {Gutter}. Gutter
-  //     decorations are created by calling {Gutter::decorateMarker} on the
-  //     desired `Gutter` instance.
+  //     or tail of the given `DisplayMarker`, depending on the `position` property.
+  // * __gutter__: Tracks a {DisplayMarker} in a {Gutter}. Gutter decorations are created
+  //     by calling {Gutter::decorateMarker} on the desired `Gutter` instance.
   // * __block__: Positions the view associated with the given item before or
-  //     after the row of the given `TextEditorMarker`.
+  //     after the row of the given {DisplayMarker}, depending on the `position` property.
+  //     Block decorations at the same screen row are ordered by their `order` property.
+  // * __cursor__: Render a cursor at the head of the {DisplayMarker}. If multiple cursor decorations
+  //     are created for the same marker, their class strings and style objects are combined
+  //     into a single cursor. This decoration type may be used to style existing cursors
+  //     by passing in their markers or to render artificial cursors that don't actaully
+  //     exist in the model by passing a marker that isn't associated with a real cursor.
   //
   // ## Arguments
   //
   // * `marker` A {DisplayMarker} you want this decoration to follow.
   // * `decorationParams` An {Object} representing the decoration e.g.
   //   `{type: 'line-number', class: 'linter-error'}`
-  //   * `type` There are several supported decoration types. The behavior of the
-  //     types are as follows:
-  //     * `line` Adds the given `class` to the lines overlapping the rows
-  //        spanned by the `DisplayMarker`.
-  //     * `line-number` Adds the given `class` to the line numbers overlapping
-  //       the rows spanned by the `DisplayMarker`.
-  //     * `text` Injects spans into all text overlapping the marked range,
-  //       then adds the given `class` or `style` properties to these spans.
-  //       Use this to manipulate the foreground color or styling of text in
-  //       a given range.
-  //     * `highlight` Creates an absolutely-positioned `.highlight` div
-  //       containing nested divs to cover the marked region. For example, this
-  //       is used to implement selections.
-  //     * `overlay` Positions the view associated with the given item at the
-  //       head or tail of the given `DisplayMarker`, depending on the `position`
-  //       property.
-  //     * `gutter` Tracks a {DisplayMarker} in a {Gutter}. Created by calling
-  //       {Gutter::decorateMarker} on the desired `Gutter` instance.
-  //     * `block` Positions the view associated with the given item before or
-  //       after the row of the given `TextEditorMarker`, depending on the `position`
-  //       property.
-  //     * `cursor` Renders a cursor at the head of the given marker. If multiple
-  //       decorations are created for the same marker, their class strings and
-  //       style objects are combined into a single cursor. You can use this
-  //       decoration type to style existing cursors by passing in their markers
-  //       or render artificial cursors that don't actually exist in the model
-  //       by passing a marker that isn't actually associated with a cursor.
+  //   * `type` Determines the behavior and appearance of this {Decoration}. Supported decoration types
+  //     and their uses are listed above.
   //   * `class` This CSS class will be applied to the decorated line number,
   //     line, text spans, highlight regions, cursors, or overlay.
   //   * `style` An {Object} containing CSS style properties to apply to the
@@ -2094,12 +2283,15 @@ class TextEditor {
   //     Controls where the view is positioned relative to the `TextEditorMarker`.
   //     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   //     `'before'` (the default) or `'after'` for block decorations.
+  //   * `order` (optional) Only applicable to decorations of type `block`. Controls
+  //      where the view is positioned relative to other block decorations at the
+  //      same screen row. If unspecified, block decorations render oldest to newest.
   //   * `avoidOverflow` (optional) Only applicable to decorations of type
   //      `overlay`. Determines whether the decoration adjusts its horizontal or
   //      vertical position to remain fully visible when it would otherwise
   //      overflow the editor. Defaults to `true`.
   //
-  // Returns a {Decoration} object
+  // Returns the created {Decoration} object.
   decorateMarker (marker, decorationParams) {
     return this.decorationManager.decorateMarker(marker, decorationParams)
   }
@@ -2646,7 +2838,7 @@ class TextEditor {
     return this.cursors.slice()
   }
 
-  // Extended: Get all {Cursors}s, ordered by their position in the buffer
+  // Extended: Get all {Cursor}s, ordered by their position in the buffer
   // instead of the order in which they were added.
   //
   // Returns an {Array} of {Selection}s.
@@ -3056,6 +3248,36 @@ class TextEditor {
     return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
   }
 
+  // Extended: For each selection, select the syntax node that contains
+  // that selection.
+  selectLargerSyntaxNode () {
+    const languageMode = this.buffer.getLanguageMode()
+    if (!languageMode.getRangeForSyntaxNodeContainingRange) return
+
+    this.expandSelectionsForward(selection => {
+      const currentRange = selection.getBufferRange()
+      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(currentRange)
+      if (newRange) {
+        if (!selection._rangeStack) selection._rangeStack = []
+        selection._rangeStack.push(currentRange)
+        selection.setBufferRange(newRange)
+      }
+    })
+  }
+
+  // Extended: Undo the effect a preceding call to {::selectLargerSyntaxNode}.
+  selectSmallerSyntaxNode () {
+    this.expandSelectionsForward(selection => {
+      if (selection._rangeStack) {
+        const lastRange = selection._rangeStack[selection._rangeStack.length - 1]
+        if (lastRange && selection.getBufferRange().containsRange(lastRange)) {
+          selection._rangeStack.length--
+          selection.setBufferRange(lastRange)
+        }
+      }
+    })
+  }
+
   // Extended: Select the range of the given marker if it is valid.
   //
   // * `marker` A {DisplayMarker}
@@ -3353,7 +3575,7 @@ class TextEditor {
   // Essential: Get the on-screen length of tab characters.
   //
   // Returns a {Number}.
-  getTabLength () { return this.tokenizedBuffer.getTabLength() }
+  getTabLength () { return this.displayLayer.tabLength }
 
   // Essential: Set the on-screen length of tab characters. Setting this to a
   // {Number} This will override the `editor.tabLength` setting.
@@ -3384,9 +3606,10 @@ class TextEditor {
   // Returns a {Boolean} or undefined if no non-comment lines had leading
   // whitespace.
   usesSoftTabs () {
+    const languageMode = this.buffer.getLanguageMode()
+    const hasIsRowCommented = languageMode.isRowCommented
     for (let bufferRow = 0, end = Math.min(1000, this.buffer.getLastRow()); bufferRow <= end; bufferRow++) {
-      const tokenizedLine = this.tokenizedBuffer.tokenizedLines[bufferRow]
-      if (tokenizedLine && tokenizedLine.isComment()) continue
+      if (hasIsRowCommented && languageMode.isRowCommented(bufferRow)) continue
       const line = this.buffer.lineForRow(bufferRow)
       if (line[0] === ' ') return true
       if (line[0] === '\t') return false
@@ -3489,13 +3712,21 @@ class TextEditor {
   }
 
   // Extended: Indent rows intersecting selections by one level.
-  indentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.indentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  indentSelectedRows (options = {}) {
+    if (!this.ensureWritable('indentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.indentSelectedRows(options))
   }
 
   // Extended: Outdent rows intersecting selections by one level.
-  outdentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.outdentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  outdentSelectedRows (options = {}) {
+    if (!this.ensureWritable('outdentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.outdentSelectedRows(options))
   }
 
   // Extended: Get the indentation level of the given line of text.
@@ -3509,18 +3740,38 @@ class TextEditor {
   //
   // Returns a {Number}.
   indentLevelForLine (line) {
-    return this.tokenizedBuffer.indentLevelForLine(line)
+    const tabLength = this.getTabLength()
+    let indentLength = 0
+    for (let i = 0, {length} = line; i < length; i++) {
+      const char = line[i]
+      if (char === '\t') {
+        indentLength += tabLength - (indentLength % tabLength)
+      } else if (char === ' ') {
+        indentLength++
+      } else {
+        break
+      }
+    }
+    return indentLength / tabLength
   }
 
   // Extended: Indent rows intersecting selections based on the grammar's suggested
   // indent level.
-  autoIndentSelectedRows () {
-    return this.mutateSelectedText(selection => selection.autoIndentSelectedRows())
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  autoIndentSelectedRows (options = {}) {
+    if (!this.ensureWritable('autoIndentSelectedRows', options)) return
+    return this.mutateSelectedText(selection => selection.autoIndentSelectedRows(options))
   }
 
   // Indent all lines intersecting selections. See {Selection::indent} for more
   // information.
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
   indent (options = {}) {
+    if (!this.ensureWritable('indent', options)) return
     if (options.autoIndent == null) options.autoIndent = this.shouldAutoIndent()
     this.mutateSelectedText(selection => selection.indent(options))
   }
@@ -3542,27 +3793,24 @@ class TextEditor {
 
   // Essential: Get the current {Grammar} of this editor.
   getGrammar () {
-    return this.tokenizedBuffer.grammar
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.getGrammar && languageMode.getGrammar() || NullGrammar
   }
 
-  // Essential: Set the current {Grammar} of this editor.
+  // Deprecated: Set the current {Grammar} of this editor.
   //
   // Assigning a grammar will cause the editor to re-tokenize based on the new
   // grammar.
   //
   // * `grammar` {Grammar}
   setGrammar (grammar) {
-    return this.tokenizedBuffer.setGrammar(grammar)
-  }
-
-  // Reload the grammar based on the file name.
-  reloadGrammar () {
-    return this.tokenizedBuffer.reloadGrammar()
+    const buffer = this.getBuffer()
+    buffer.setLanguageMode(atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer))
   }
 
   // Experimental: Get a notification when async tokenization is completed.
   onDidTokenize (callback) {
-    return this.tokenizedBuffer.onDidTokenize(callback)
+    return this.emitter.on('did-tokenize', callback)
   }
 
   /*
@@ -3573,21 +3821,47 @@ class TextEditor {
   // e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   // {Config::get} to get language specific config values.
   getRootScopeDescriptor () {
-    return this.tokenizedBuffer.rootScopeDescriptor
+    return this.buffer.getLanguageMode().rootScopeDescriptor
   }
 
-  // Essential: Get the syntactic scopeDescriptor for the given position in buffer
+  // Essential: Get the syntactic {ScopeDescriptor} for the given position in buffer
   // coordinates. Useful with {Config::get}.
   //
   // For example, if called with a position inside the parameter list of an
-  // anonymous CoffeeScript function, the method returns the following array:
-  // `["source.coffee", "meta.inline.function.coffee", "variable.parameter.function.coffee"]`
+  // anonymous CoffeeScript function, this method returns a {ScopeDescriptor} with
+  // the following scopes array:
+  // `["source.coffee", "meta.function.inline.coffee", "meta.parameters.coffee", "variable.parameter.function.coffee"]`
   //
-  // * `bufferPosition` A {Point} or {Array} of [row, column].
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
   scopeDescriptorForBufferPosition (bufferPosition) {
-    return this.tokenizedBuffer.scopeDescriptorForPosition(bufferPosition)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.scopeDescriptorForPosition
+      ? languageMode.scopeDescriptorForPosition(bufferPosition)
+      : new ScopeDescriptor({scopes: ['text']})
+  }
+
+  // Essential: Get the syntactic tree {ScopeDescriptor} for the given position in buffer
+  // coordinates or the syntactic {ScopeDescriptor} for TextMate language mode
+  //
+  // For example, if called with a position inside the parameter list of a
+  // JavaScript class function, this method returns a {ScopeDescriptor} with
+  // the following syntax nodes array:
+  // `["source.js", "program", "expression_statement", "assignment_expression", "class", "class_body", "method_definition", "formal_parameters", "identifier"]`
+  // if tree-sitter is used
+  // and the following scopes array:
+  // `["source.js"]`
+  // if textmate is used
+  //
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
+  //
+  // Returns a {ScopeDescriptor}.
+  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition) {
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.syntaxTreeScopeDescriptorForPosition
+      ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition)
+      : this.scopeDescriptorForBufferPosition(bufferPosition)
   }
 
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
@@ -3604,7 +3878,7 @@ class TextEditor {
   }
 
   bufferRangeForScopeAtPosition (scopeSelector, position) {
-    return this.tokenizedBuffer.bufferRangeForScopeAtPosition(scopeSelector, position)
+    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, position)
   }
 
   // Extended: Determine if the given row is entirely a comment
@@ -3621,8 +3895,13 @@ class TextEditor {
     return this.getLastCursor().getScopeDescriptor()
   }
 
+  // Get the syntax nodes at the cursor.
+  getCursorSyntaxTreeScope () {
+    return this.getLastCursor().getSyntaxTreeScopeDescriptor()
+  }
+
   tokenForBufferPosition (bufferPosition) {
-    return this.tokenizedBuffer.tokenForPosition(bufferPosition)
+    return this.buffer.getLanguageMode().tokenForPosition(bufferPosition)
   }
 
   /*
@@ -3657,14 +3936,18 @@ class TextEditor {
   }
 
   // Essential: For each selection, cut the selected text.
-  cutSelectedText () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutSelectedText (options = {}) {
+    if (!this.ensureWritable('cutSelectedText', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
         selection.selectLine()
-        selection.cut(maintainClipboard, true)
+        selection.cut(maintainClipboard, true, options.bypassReadOnly)
       } else {
-        selection.cut(maintainClipboard, false)
+        selection.cut(maintainClipboard, false, options.bypassReadOnly)
       }
       maintainClipboard = true
     })
@@ -3678,7 +3961,8 @@ class TextEditor {
   // corresponding clipboard selection text.
   //
   // * `options` (optional) See {Selection::insertText}.
-  pasteText (options) {
+  pasteText (options = {}) {
+    if (!this.ensureWritable('parseText', options)) return
     options = Object.assign({}, options)
     let {text: clipboardText, metadata} = this.constructor.clipboard.readWithMetadata()
     if (!this.emitWillInsertTextEvent(clipboardText)) return false
@@ -3719,10 +4003,14 @@ class TextEditor {
   // Essential: For each selection, if the selection is empty, cut all characters
   // of the containing screen line following the cursor. Otherwise cut the selected
   // text.
-  cutToEndOfLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutToEndOfLine (options = {}) {
+    if (!this.ensureWritable('cutToEndOfLine', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfLine(maintainClipboard)
+      selection.cutToEndOfLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
@@ -3730,10 +4018,14 @@ class TextEditor {
   // Essential: For each selection, if the selection is empty, cut all characters
   // of the containing buffer line following the cursor. Otherwise cut the
   // selected text.
-  cutToEndOfBufferLine () {
+  //
+  // * `options` (optional) {Object}
+  //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
+  cutToEndOfBufferLine (options = {}) {
+    if (!this.ensureWritable('cutToEndOfBufferLine', options)) return
     let maintainClipboard = false
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfBufferLine(maintainClipboard)
+      selection.cutToEndOfBufferLine(maintainClipboard, options)
       maintainClipboard = true
     })
   }
@@ -3749,7 +4041,11 @@ class TextEditor {
   // level.
   foldCurrentRow () {
     const {row} = this.getCursorBufferPosition()
-    const range = this.tokenizedBuffer.getFoldableRangeContainingPoint(Point(row, Infinity))
+    const languageMode = this.buffer.getLanguageMode()
+    const range = (
+      languageMode.getFoldableRangeContainingPoint &&
+      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity), this.getTabLength())
+    )
     if (range) return this.displayLayer.foldBufferRange(range)
   }
 
@@ -3768,8 +4064,12 @@ class TextEditor {
   // * `bufferRow` A {Number}.
   foldBufferRow (bufferRow) {
     let position = Point(bufferRow, Infinity)
+    const languageMode = this.buffer.getLanguageMode()
     while (true) {
-      const foldableRange = this.tokenizedBuffer.getFoldableRangeContainingPoint(position, this.getTabLength())
+      const foldableRange = (
+        languageMode.getFoldableRangeContainingPoint &&
+        languageMode.getFoldableRangeContainingPoint(position, this.getTabLength())
+      )
       if (foldableRange) {
         const existingFolds = this.displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
         if (existingFolds.length === 0) {
@@ -3803,8 +4103,13 @@ class TextEditor {
 
   // Extended: Fold all foldable lines.
   foldAll () {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRanges &&
+      languageMode.getFoldableRanges(this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.tokenizedBuffer.getFoldableRanges(this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3812,16 +4117,21 @@ class TextEditor {
   // Extended: Unfold all existing folds.
   unfoldAll () {
     const result = this.displayLayer.destroyAllFolds()
-    this.scrollToCursorPosition()
+    if (result.length > 0) this.scrollToCursorPosition()
     return result
   }
 
   // Extended: Fold all foldable lines at the given indent level.
   //
-  // * `level` A {Number}.
+  // * `level` A {Number} starting at 0.
   foldAllAtIndentLevel (level) {
+    const languageMode = this.buffer.getLanguageMode()
+    const foldableRanges = (
+      languageMode.getFoldableRangesAtIndentLevel &&
+      languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength())
+    )
     this.displayLayer.destroyAllFolds()
-    for (let range of this.tokenizedBuffer.getFoldableRangesAtIndentLevel(level, this.getTabLength())) {
+    for (let range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range)
     }
   }
@@ -3834,7 +4144,8 @@ class TextEditor {
   //
   // Returns a {Boolean}.
   isFoldableAtBufferRow (bufferRow) {
-    return this.tokenizedBuffer.isFoldableAtRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
   }
 
   // Extended: Determine whether the given row in screen coordinates is foldable.
@@ -3924,6 +4235,29 @@ class TextEditor {
   //       window. (default: -100)
   //   * `visible` (optional) {Boolean} specifying whether the gutter is visible
   //       initially after being created. (default: true)
+  //   * `type` (optional) {String} specifying the type of gutter to create. `'decorated'`
+  //       gutters are useful as a destination for decorations created with {Gutter::decorateMarker}.
+  //       `'line-number'` gutters.
+  //   * `class` (optional) {String} added to the CSS classnames of the gutter's root DOM element.
+  //   * `labelFn` (optional) {Function} called by a `'line-number'` gutter to generate the label for each line number
+  //       element. Should return a {String} that will be used to label the corresponding line.
+  //     * `lineData` an {Object} containing information about each line to label.
+  //       * `bufferRow` {Number} indicating the zero-indexed buffer index of this line.
+  //       * `screenRow` {Number} indicating the zero-indexed screen index.
+  //       * `foldable` {Boolean} that is `true` if a fold may be created here.
+  //       * `softWrapped` {Boolean} if this screen row is the soft-wrapped continuation of the same buffer row.
+  //       * `maxDigits` {Number} the maximum number of digits necessary to represent any known screen row.
+  //   * `onMouseDown` (optional) {Function} to be called when a mousedown event is received by a line-number
+  //        element within this `type: 'line-number'` {Gutter}. If unspecified, the default behavior is to select the
+  //        clicked buffer row.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
+  //   * `onMouseMove` (optional) {Function} to be called when a mousemove event occurs on a line-number element within
+  //        within this `type: 'line-number'` {Gutter}.
+  //     * `lineData` an {Object} containing information about the line that's being clicked.
+  //       * `bufferRow` {Number} of the originating line element
+  //       * `screenRow` {Number}
   //
   // Returns the newly-created {Gutter}.
   addGutter (options) {
@@ -4039,18 +4373,6 @@ class TextEditor {
   Section: Config
   */
 
-  // Experimental: Supply an object that will provide the editor with settings
-  // for specific syntactic scopes. See the `ScopedSettingsDelegate` in
-  // `text-editor-registry.js` for an example implementation.
-  setScopedSettingsDelegate (scopedSettingsDelegate) {
-    this.scopedSettingsDelegate = scopedSettingsDelegate
-    this.tokenizedBuffer.scopedSettingsDelegate = this.scopedSettingsDelegate
-  }
-
-  // Experimental: Retrieve the {Object} that provides the editor with settings
-  // for specific syntactic scopes.
-  getScopedSettingsDelegate () { return this.scopedSettingsDelegate }
-
   // Experimental: Is auto-indentation enabled for this editor?
   //
   // Returns a {Boolean}.
@@ -4098,21 +4420,34 @@ class TextEditor {
   // for the purpose of word-based cursor movements.
   //
   // Returns a {String} containing the non-word characters.
-  getNonWordCharacters (scopes) {
-    if (this.scopedSettingsDelegate && this.scopedSettingsDelegate.getNonWordCharacters) {
-      return this.scopedSettingsDelegate.getNonWordCharacters(scopes) || this.nonWordCharacters
-    } else {
-      return this.nonWordCharacters
-    }
+  getNonWordCharacters (position) {
+    const languageMode = this.buffer.getLanguageMode()
+    return (
+      languageMode.getNonWordCharacters &&
+      languageMode.getNonWordCharacters(position || Point(0, 0))
+    ) || DEFAULT_NON_WORD_CHARACTERS
   }
 
   /*
   Section: Event Handlers
   */
 
-  handleGrammarChange () {
+  handleLanguageModeChange () {
     this.unfoldAll()
-    return this.emitter.emit('did-change-grammar', this.getGrammar())
+    if (this.languageModeSubscription) {
+      this.languageModeSubscription.dispose()
+      this.disposables.remove(this.languageModeSubscription)
+    }
+    const languageMode = this.buffer.getLanguageMode()
+
+    if (this.component && this.component.visible && languageMode.startTokenizing) {
+      languageMode.startTokenizing()
+    }
+    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
+      this.emitter.emit('did-tokenize')
+    })
+    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
+    this.emitter.emit('did-change-grammar', languageMode.grammar)
   }
 
   /*
@@ -4382,7 +4717,11 @@ class TextEditor {
   */
 
   suggestedIndentForBufferRow (bufferRow, options) {
-    return this.tokenizedBuffer.suggestedIndentForBufferRow(bufferRow, options)
+    const languageMode = this.buffer.getLanguageMode()
+    return (
+      languageMode.suggestedIndentForBufferRow &&
+      languageMode.suggestedIndentForBufferRow(bufferRow, this.getTabLength(), options)
+    )
   }
 
   // Given a buffer row, indent it.
@@ -4407,17 +4746,21 @@ class TextEditor {
   }
 
   autoDecreaseIndentForBufferRow (bufferRow) {
-    const indentLevel = this.tokenizedBuffer.suggestedIndentForEditedBufferRow(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    const indentLevel = (
+      languageMode.suggestedIndentForEditedBufferRow &&
+      languageMode.suggestedIndentForEditedBufferRow(bufferRow, this.getTabLength())
+    )
     if (indentLevel != null) this.setIndentationForBufferRow(bufferRow, indentLevel)
   }
 
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
-  toggleLineCommentsForBufferRows (start, end) {
-    let {
-      commentStartString,
-      commentEndString
-    } = this.tokenizedBuffer.commentStringsForPosition(Point(start, 0))
+  toggleLineCommentsForBufferRows (start, end, options = {}) {
+    const languageMode = this.buffer.getLanguageMode()
+    let {commentStartString, commentEndString} =
+      languageMode.commentStringsForPosition &&
+      languageMode.commentStringsForPosition(new Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
 
@@ -4443,6 +4786,23 @@ class TextEditor {
           const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
           this.buffer.insert([start, indentLength], commentStartString + ' ')
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
+
+          // Prevent the cursor from selecting / passing the delimiters
+          // See https://github.com/atom/atom/pull/17519
+          if (options.correctSelection && options.selection) {
+            const endLineLength = this.buffer.lineLengthForRow(end)
+            const oldRange = options.selection.getBufferRange()
+            if (oldRange.isEmpty()) {
+              if (oldRange.start.column === endLineLength) {
+                const endCol = endLineLength - commentEndString.length - 1
+                options.selection.setBufferRange([[end, endCol], [end, endCol]], {autoscroll: false})
+              }
+            } else {
+              const startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
+              const endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), {autoscroll: false})
+            }
+          }
         })
       }
     } else {
@@ -4487,8 +4847,7 @@ class TextEditor {
               ? minBlankIndentLevel
               : 0
 
-        const tabLength = this.getTabLength()
-        const indentString = ' '.repeat(tabLength * minIndentLevel)
+        const indentString = this.buildIndentString(minIndentLevel)
         for (let row = start; row <= end; row++) {
           const line = this.buffer.lineForRow(row)
           if (NON_WHITESPACE_REGEXP.test(line)) {
@@ -4508,20 +4867,21 @@ class TextEditor {
   rowRangeForParagraphAtBufferRow (bufferRow) {
     if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(bufferRow))) return
 
-    const isCommented = this.tokenizedBuffer.isRowCommented(bufferRow)
+    const languageMode = this.buffer.getLanguageMode()
+    const isCommented = languageMode.isRowCommented(bufferRow)
 
     let startRow = bufferRow
     while (startRow > 0) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(startRow - 1))) break
-      if (this.tokenizedBuffer.isRowCommented(startRow - 1) !== isCommented) break
+      if (languageMode.isRowCommented(startRow - 1) !== isCommented) break
       startRow--
     }
 
     let endRow = bufferRow
     const rowCount = this.getLineCount()
-    while (endRow < rowCount) {
+    while (endRow + 1 < rowCount) {
       if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1))) break
-      if (this.tokenizedBuffer.isRowCommented(endRow + 1) !== isCommented) break
+      if (languageMode.isRowCommented(endRow + 1) !== isCommented) break
       endRow++
     }
 

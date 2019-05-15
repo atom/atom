@@ -82,6 +82,7 @@ Tooltip.prototype.init = function (element, options) {
       var eventIn, eventOut
 
       if (trigger === 'hover') {
+        this.hideOnKeydownOutsideOfTooltip = () => this.hide()
         if (this.options.selector) {
           eventIn = 'mouseover'
           eventOut = 'mouseout'
@@ -218,6 +219,10 @@ Tooltip.prototype.show = function () {
   if (this.hasContent() && this.enabled) {
     if (this.hideOnClickOutsideOfTooltip) {
       window.addEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+    }
+
+    if (this.hideOnKeydownOutsideOfTooltip) {
+      window.addEventListener('keydown', this.hideOnKeydownOutsideOfTooltip, true)
     }
 
     var tip = this.getTooltipElement()
@@ -357,6 +362,10 @@ Tooltip.prototype.hide = function (callback) {
 
   if (this.hideOnClickOutsideOfTooltip) {
     window.removeEventListener('click', this.hideOnClickOutsideOfTooltip, true)
+  }
+
+  if (this.hideOnKeydownOutsideOfTooltip) {
+    window.removeEventListener('keydown', this.hideOnKeydownOutsideOfTooltip, true)
   }
 
   this.tip && this.tip.classList.remove('in')

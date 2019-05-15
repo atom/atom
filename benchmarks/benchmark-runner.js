@@ -1,11 +1,9 @@
-/** @babel */
+const Chart = require('chart.js')
+const glob = require('glob')
+const fs = require('fs-plus')
+const path = require('path')
 
-import Chart from 'chart.js'
-import glob from 'glob'
-import fs from 'fs-plus'
-import path from 'path'
-
-export default async function ({test, benchmarkPaths}) {
+module.exports = async ({test, benchmarkPaths}) => {
   document.body.style.backgroundColor = '#ffffff'
   document.body.style.overflow = 'auto'
 
@@ -40,7 +38,8 @@ export default async function ({test, benchmarkPaths}) {
       if (data.points.length > 1) {
         const canvas = document.createElement('canvas')
         benchmarkContainer.appendChild(canvas)
-        const chart = new Chart(canvas, {
+        // eslint-disable-next-line no-new
+        new Chart(canvas, {
           type: 'line',
           data: {
             datasets: [{label: key, fill: false, data: data.points}]

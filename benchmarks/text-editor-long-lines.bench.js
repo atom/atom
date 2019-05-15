@@ -1,8 +1,6 @@
-/** @babel */
-
-import path from 'path'
-import fs from 'fs'
-import {TextEditor, TextBuffer} from 'atom'
+const path = require('path')
+const fs = require('fs')
+const {TextEditor, TextBuffer} = require('atom')
 
 const SIZES_IN_KB = [
   512,
@@ -12,7 +10,7 @@ const SIZES_IN_KB = [
 const REPEATED_TEXT = fs.readFileSync(path.join(__dirname, '..', 'spec', 'fixtures', 'sample.js'), 'utf8').replace(/\n/g, '')
 const TEXT = REPEATED_TEXT.repeat(Math.ceil(SIZES_IN_KB[SIZES_IN_KB.length - 1] * 1024 / REPEATED_TEXT.length))
 
-export default async function ({test}) {
+module.exports = async ({test}) => {
   const data = []
 
   const workspaceElement = atom.workspace.getElement()
@@ -34,7 +32,7 @@ export default async function ({test}) {
     let t0 = window.performance.now()
     const buffer = new TextBuffer({text})
     const editor = new TextEditor({buffer, autoHeight: false, largeFileMode: true})
-    editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+    atom.grammars.assignLanguageMode(buffer, 'source.js')
     atom.workspace.getActivePane().activateItem(editor)
     let t1 = window.performance.now()
 

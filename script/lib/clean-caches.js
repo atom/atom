@@ -14,6 +14,7 @@ module.exports = function () {
     path.join(CONFIG.atomHomeDirPath, '.apm'),
     path.join(CONFIG.atomHomeDirPath, '.npm'),
     path.join(CONFIG.atomHomeDirPath, 'compile-cache'),
+    path.join(CONFIG.atomHomeDirPath, 'snapshot-cache'),
     path.join(CONFIG.atomHomeDirPath, 'atom-shell'),
     path.join(CONFIG.atomHomeDirPath, 'electron'),
     path.join(os.tmpdir(), 'atom-build'),

@@ -51,6 +51,7 @@ class PaneContainer {
 
   deserialize (state, deserializerManager) {
     if (state.version !== SERIALIZATION_VERSION) return
+    this.itemRegistry = new ItemRegistry()
     this.setRoot(deserializerManager.deserialize(state.root))
     this.activePane = find(this.getRoot().getPanes(), pane => pane.id === state.activePaneId) || this.getPanes()[0]
     if (this.config.get('core.destroyEmptyPanes')) this.destroyEmptyPanes()
@@ -281,7 +282,7 @@ class PaneContainer {
 
       this.cancelStoppedChangingActivePaneItemTimeout()
       // `setTimeout()` isn't available during the snapshotting phase, but that's okay.
-      if (typeof setTimeout === 'function') {
+      if (!global.isGeneratingSnapshot) {
         this.stoppedChangingActivePaneItemTimeout = setTimeout(() => {
           this.stoppedChangingActivePaneItemTimeout = null
           this.emitter.emit('did-stop-changing-active-pane-item', activeItem)

@@ -56,10 +56,10 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateGlobalTextEditorStyleSheet () {
-    const styleSheetSource = `atom-text-editor {
-  font-size: ${this.config.get('editor.fontSize')}px;
-  font-family: ${this.config.get('editor.fontFamily')};
-  line-height: ${this.config.get('editor.lineHeight')};
+    const styleSheetSource = `atom-workspace {
+  --editor-font-size: ${this.config.get('editor.fontSize')}px;
+  --editor-font-family: ${this.config.get('editor.fontFamily')};
+  --editor-line-height: ${this.config.get('editor.lineHeight')};
 }`
     this.styleManager.addStyleSheet(styleSheetSource, {sourcePath: 'global-text-editor-styles', priority: -1})
   }
@@ -92,7 +92,13 @@ class WorkspaceElement extends HTMLElement {
         window.removeEventListener('dragstart', this.handleDragStart)
         window.removeEventListener('dragend', this.handleDragEnd, true)
         window.removeEventListener('drop', this.handleDrop, true)
-      })
+      }),
+      ...[this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+        .map(dock => dock.onDidChangeHovered(hovered => {
+          if (hovered) this.hoveredDock = dock
+          else if (dock === this.hoveredDock) this.hoveredDock = null
+          this.checkCleanupDockHoverEvents()
+        }))
     )
     this.initializeContent()
     this.observeScrollbarStyle()
@@ -104,6 +110,7 @@ class WorkspaceElement extends HTMLElement {
 
     this.addEventListener('mousewheel', this.handleMousewheel.bind(this), true)
     window.addEventListener('dragstart', this.handleDragStart)
+    window.addEventListener('mousemove', this.handleEdgesMouseMove)
 
     this.panelContainers = {
       top: this.model.panelContainers.top.getElement(),
@@ -130,6 +137,10 @@ class WorkspaceElement extends HTMLElement {
     this.paneContainer.addEventListener('mouseleave', this.handleCenterLeave)
 
     return this
+  }
+
+  destroy () {
+    this.subscriptions.dispose()
   }
 
   getModel () { return this.model }
@@ -169,7 +180,6 @@ class WorkspaceElement extends HTMLElement {
     // being hovered.
     this.cursorInCenter = false
     this.updateHoveredDock({x: event.pageX, y: event.pageY})
-    window.addEventListener('mousemove', this.handleEdgesMouseMove)
     window.addEventListener('dragend', this.handleDockDragEnd)
   }
 
@@ -182,24 +192,17 @@ class WorkspaceElement extends HTMLElement {
   }
 
   updateHoveredDock (mousePosition) {
-    this.hoveredDock = null
-    for (let location in this.model.paneContainers) {
-      if (location !== 'center') {
-        const dock = this.model.paneContainers[location]
-        if (!this.hoveredDock && dock.pointWithinHoverArea(mousePosition)) {
-          this.hoveredDock = dock
-          dock.setHovered(true)
-        } else {
-          dock.setHovered(false)
-        }
-      }
-    }
-    this.checkCleanupDockHoverEvents()
+    // If we haven't left the currently hovered dock, don't change anything.
+    if (this.hoveredDock && this.hoveredDock.pointWithinHoverArea(mousePosition, true)) return
+
+    const docks = [this.model.getLeftDock(), this.model.getRightDock(), this.model.getBottomDock()]
+    const nextHoveredDock =
+      docks.find(dock => dock !== this.hoveredDock && dock.pointWithinHoverArea(mousePosition))
+    docks.forEach(dock => { dock.setHovered(dock === nextHoveredDock) })
   }
 
   checkCleanupDockHoverEvents () {
     if (this.cursorInCenter && !this.hoveredDock) {
-      window.removeEventListener('mousemove', this.handleEdgesMouseMove)
       window.removeEventListener('dragend', this.handleDockDragEnd)
     }
   }
@@ -307,7 +310,7 @@ class WorkspaceElement extends HTMLElement {
     }
   }
 
-  runPackageSpecs () {
+  runPackageSpecs (options = {}) {
     const activePaneItem = this.model.getActivePaneItem()
     const activePath = activePaneItem && typeof activePaneItem.getPath === 'function' ? activePaneItem.getPath() : null
     let projectPath
@@ -323,7 +326,7 @@ class WorkspaceElement extends HTMLElement {
         specPath = testPath
       }
 
-      ipcRenderer.send('run-package-specs', specPath)
+      ipcRenderer.send('run-package-specs', specPath, options)
     }
   }
 

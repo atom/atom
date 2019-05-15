@@ -1,11 +1,9 @@
-/** @babel */
+const {remote} = require('electron')
+const path = require('path')
+const ipcHelpers = require('./ipc-helpers')
+const util = require('util')
 
-import {remote} from 'electron'
-import path from 'path'
-import ipcHelpers from './ipc-helpers'
-import util from 'util'
-
-export default async function () {
+module.exports = async function () {
   const getWindowLoadSettings = require('./get-window-load-settings')
   const {test, headless, resourcePath, benchmarkPaths} = getWindowLoadSettings()
   try {
