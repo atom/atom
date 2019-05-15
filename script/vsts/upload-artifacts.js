@@ -4,6 +4,7 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const glob = require('glob')
+const spawnSync = require('../lib/spawn-sync')
 const publishRelease = require('publish-release')
 const releaseNotes = require('./lib/release-notes')
 const uploadToS3 = require('./lib/upload-to-s3')
@@ -93,6 +94,11 @@ async function uploadArtifacts () {
 
     console.log(`New release notes:\n\n${newReleaseNotes}`)
 
+    const releaseSha =
+        !isNightlyRelease
+            ? spawnSync('git', ['rev-parse', 'HEAD']).stdout.toString().trimEnd()
+            : undefined
+
     console.log(`Creating GitHub release v${releaseVersion}`)
     const release =
       await publishReleaseAsync({
@@ -101,6 +107,7 @@ async function uploadArtifacts () {
         repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
         name: CONFIG.computedAppVersion,
         notes: newReleaseNotes,
+        target_commitish: releaseSha,
         tag: `v${CONFIG.computedAppVersion}`,
         draft: !isNightlyRelease,
         prerelease: CONFIG.channel !== 'stable',
