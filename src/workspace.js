@@ -1903,9 +1903,7 @@ module.exports = class Workspace extends Model {
         leadingContextLineCount: options.leadingContextLineCount || 0,
         trailingContextLineCount: options.trailingContextLineCount || 0,
         didMatch: result => {
-          console.log("didMatch", result)
           if (!this.project.isPathModified(result.filePath)) {
-            console.log("!!!!!!!!!!!!!!!!!!!!")
             return iterator(result)
           }
         },
@@ -1930,7 +1928,7 @@ module.exports = class Workspace extends Model {
         var matches = []
         buffer.scan(regex, match => matches.push(match))
         if (matches.length > 0) {
-          iterator({filePath, matches})
+          iterator({ filePath, matches })
         }
       }
     }

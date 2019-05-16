@@ -2407,20 +2407,20 @@ describe('Workspace', () => {
     })
   })
 
-  for (const ripgrep of [true, /* false */]) {
+  for (const ripgrep of [true, false]) {
     describe(`::scan(regex, options, callback) { ripgrep: ${ripgrep} }`, () => {
-      function scan(regex, options, iterator) {
-        return atom.workspace.scan(regex, {...options, ripgrep}, iterator)
+      function scan (regex, options, iterator) {
+        return atom.workspace.scan(regex, { ...options, ripgrep }, iterator)
       }
 
       describe('when called with a regex', () => {
-        fit('calls the callback with all regex results in all files in the project', async () => {
+        it('calls the callback with all regex results in all files in the project', async () => {
           const results = []
           await scan(
             /(a)+/,
             { leadingContextLineCount: 1, trailingContextLineCount: 1 },
             result => results.push(result)
-           )
+          )
 
           expect(results).toHaveLength(3)
           expect(results[0].filePath).toBe(
@@ -2433,7 +2433,7 @@ describe('Workspace', () => {
             lineTextOffset: 0,
             range: [[0, 0], [0, 3]],
             leadingContextLines: [],
-            trailingContextLines: ripgrep ? [] : ['cc aa cc']
+            trailingContextLines: ['cc aa cc']
           })
         })
 
@@ -2902,6 +2902,72 @@ describe('Workspace', () => {
                 expect(fakeSearch2.cancelled).toBe(true)
               })
             })
+          })
+        })
+      })
+
+      describe('leadingContextLineCount and trailingContextLineCount options', () => {
+        async function search ({ leadingContextLineCount, trailingContextLineCount }) {
+          const results = []
+          await scan(
+            /result/,
+            { leadingContextLineCount, trailingContextLineCount },
+            result => results.push(result)
+          )
+
+          return {
+            leadingContext: results[0].matches.map(result => result.leadingContextLines),
+            trailingContext: results[0].matches.map(result => result.trailingContextLines)
+          }
+        }
+
+        const expectedLeadingContext = [
+          ['line 1', 'line 2', 'line 3', 'line 4', 'line 5'],
+          ['line 6', 'line 7', 'line 8', 'line 9', 'line 10'],
+          ['line 7', 'line 8', 'line 9', 'line 10', 'result 2'],
+          ['line 10', 'result 2', 'result 3', 'line 11', 'line 12']
+        ];
+        const expectedTrailingContext = [
+          ['line 6', 'line 7', 'line 8', 'line 9', 'line 10'],
+          ['result 3', 'line 11', 'line 12', 'result 4', 'line 13'],
+          ['line 11', 'line 12', 'result 4', 'line 13', 'line 14'],
+          ['line 13', 'line 14', 'line 15']
+        ]
+
+        it('returns valid contexts no matter how many lines are requested', async () => {
+          expect(
+            await search({})
+          ).toEqual({
+            leadingContext: [[], [], [], []],
+            trailingContext: [[], [], [], []]
+          })
+
+          expect(
+            await search({ leadingContextLineCount: 1, trailingContextLineCount: 1 })
+          ).toEqual({
+            leadingContext: expectedLeadingContext.map(result => result.slice(-1)),
+            trailingContext: expectedTrailingContext.map(result => result.slice(0, 1))
+          })
+
+          expect(
+            await search({ leadingContextLineCount: 2, trailingContextLineCount: 2 })
+          ).toEqual({
+            leadingContext: expectedLeadingContext.map(result => result.slice(-2)),
+            trailingContext: expectedTrailingContext.map(result => result.slice(0, 2))
+          })
+
+          expect(
+            await search({ leadingContextLineCount: 5, trailingContextLineCount: 5 })
+          ).toEqual({
+            leadingContext: expectedLeadingContext.map(result => result.slice(-5)),
+            trailingContext: expectedTrailingContext.map(result => result.slice(0, 5))
+          })
+
+          expect(
+            await search({ leadingContextLineCount: 2, trailingContextLineCount: 3 })
+          ).toEqual({
+            leadingContext: expectedLeadingContext.map(result => result.slice(-2)),
+            trailingContext: expectedTrailingContext.map(result => result.slice(0, 3))
           })
         })
       })
