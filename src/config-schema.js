@@ -331,7 +331,7 @@ const configSchema = {
       fileSystemWatcher: {
         description: 'Choose the underlying implementation used to watch for filesystem changes. Emulating changes will miss any events caused by applications other than Atom, but may help prevent crashes or freezes. Polling may be useful for network drives, but will be more costly in terms of CPU overhead.<br>This setting will require a relaunch of Atom to take effect.',
         type: 'string',
-        default: 'experimental',
+        default: 'native',
         enum: [
           {
             value: 'native',
