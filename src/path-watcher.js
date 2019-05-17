@@ -586,8 +586,7 @@ class PathWatcherManager {
     if (this.useExperimentalWatcher()) {
       if (!this.notifyWatcher) {
         const options = {
-          transformBinPath: (binPath) => binPath.replace(/\bapp\.asar\b/, 'app.asar.unpacked'),
-          onError: error => {
+          onError: (error) => {
             throw new Error(`Error watching file system: ${error}`)
           }
         }
