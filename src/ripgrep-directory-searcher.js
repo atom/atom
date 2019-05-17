@@ -114,7 +114,7 @@ module.exports = class RipgrepDirectorySearcher {
   search (directories, regexp, options) {
     // Delay the require of vscode-ripgrep to not mess with the snapshot creation.
     if (!this.rgPath) {
-      this.rgPath = require('vscode-ripgrep').rgPath
+      this.rgPath = require('vscode-ripgrep').rgPath.replace(/\bapp\.asar\b/, 'app.asar.unpacked')
     }
 
     const paths = directories.map(d => d.getPath())
