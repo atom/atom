@@ -74,10 +74,6 @@ function updateTrailingContexts (message, pendingTrailingContexts, options) {
 }
 
 module.exports = class RipgrepDirectorySearcher {
-  constructor () {
-    this.rgPath = require('vscode-ripgrep').rgPath
-  }
-
   canSearchDirectory () {
     return true
   }
@@ -116,6 +112,11 @@ module.exports = class RipgrepDirectorySearcher {
   // Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   // invoked before the `DirectorySearch` is determined, it will resolve the `DirectorySearch`.
   search (directories, regexp, options) {
+    // Delay the require of vscode-ripgrep to not mess with the snapshot creation.
+    if (!this.rgPath) {
+      this.rgPath = require('vscode-ripgrep').rgPath
+    }
+
     const paths = directories.map(d => d.getPath())
 
     const args = ['--json', '--regexp', regexp.source]
