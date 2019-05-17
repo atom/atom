@@ -59,7 +59,7 @@ describe('Project', () => {
       })
     })
 
-    it('does not deserialize paths that are now files', async () => {
+    it('does not deserialize paths that are now files', () => {
       const childPath = path.join(temp.mkdirSync('atom-spec-project'), 'child')
       fs.mkdirSync(childPath)
 
@@ -70,21 +70,22 @@ describe('Project', () => {
         grammarRegistry: atom.grammars
       })
       atom.project.setPaths([childPath])
-      await stopAllWatchers()
       const state = atom.project.serialize()
 
       fs.rmdirSync(childPath)
       fs.writeFileSync(childPath, 'surprise!\n')
 
       let err = null
-      try {
-        await deserializedProject.deserialize(state, atom.deserializers)
-      } catch (e) {
-        err = e
-      }
+      waitsForPromise(() =>
+        deserializedProject.deserialize(state, atom.deserializers).catch(e => {
+          err = e
+        })
+      )
 
-      expect(deserializedProject.getPaths()).toEqual([])
-      expect(err.missingProjectPaths).toEqual([childPath])
+      runs(() => {
+        expect(deserializedProject.getPaths()).toEqual([])
+        expect(err.missingProjectPaths).toEqual([childPath])
+      })
     })
 
     it('does not include unretained buffers in the serialized state', () => {
@@ -1055,20 +1056,18 @@ describe('Project', () => {
     afterEach(() => sub.dispose())
 
     const waitForEvents = paths => {
-      const remaining = new Set(paths.map(path => fs.realpathSync(path)))
+      const remaining = new Set(paths.map(p => fs.realpathSync(p)))
       return new Promise((resolve, reject) => {
         checkCallback = () => {
           for (let event of events) {
             remaining.delete(event.path)
           }
           if (remaining.size === 0) {
-            clearTimeout(timeout)
             resolve()
           }
         }
 
         const expire = () => {
-          clearTimeout(interval)
           checkCallback = () => {}
           console.error('Paths not seen:', remaining)
           reject(
@@ -1076,33 +1075,37 @@ describe('Project', () => {
           )
         }
 
-        const interval = setInterval(checkCallback, 100)
-        const timeout = setTimeout(expire, 2000)
+        checkCallback()
+        setTimeout(expire, 2000)
       })
     }
 
-    it('reports filesystem changes within project paths', async () => {
+    it('reports filesystem changes within project paths', () => {
       const dirOne = temp.mkdirSync('atom-spec-project-one')
       const fileOne = path.join(dirOne, 'file-one.txt')
       const fileTwo = path.join(dirOne, 'file-two.txt')
       const dirTwo = temp.mkdirSync('atom-spec-project-two')
       const fileThree = path.join(dirTwo, 'file-three.txt')
 
-      await stopAllWatchers()
+      // Ensure that all preexisting watchers are stopped
+      waitsForPromise(() => stopAllWatchers())
 
-      atom.project.setPaths([dirOne])
+      runs(() => atom.project.setPaths([dirOne]))
+      waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
 
-      await atom.project.getWatcherPromise(dirOne)
+      runs(() => {
+        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
 
-      expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined)
+        fs.writeFileSync(fileThree, 'three\n')
+        fs.writeFileSync(fileTwo, 'two\n')
+        fs.writeFileSync(fileOne, 'one\n')
+      })
 
-      fs.writeFileSync(fileThree, 'three\n')
-      fs.writeFileSync(fileTwo, 'two\n')
-      fs.writeFileSync(fileOne, 'one\n')
+      waitsForPromise(() => waitForEvents([fileOne, fileTwo]))
 
-      await waitForEvents([fileOne, fileTwo])
-
-      expect(events.some(event => event.path === fileThree)).toBeFalsy()
+      runs(() =>
+        expect(events.some(event => event.path === fileThree)).toBeFalsy()
+      )
     })
   })
 
