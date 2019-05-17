@@ -97,7 +97,7 @@ async function uploadArtifacts () {
     const releaseSha =
         !isNightlyRelease
             ? spawnSync('git', ['rev-parse', 'HEAD']).stdout.toString().trimEnd()
-            : undefined
+            : 'master' // Nightly tags are created in atom/atom-nightly-releases so the SHA is irrelevant
 
     console.log(`Creating GitHub release v${releaseVersion}`)
     const release =
