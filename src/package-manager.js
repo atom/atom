@@ -674,6 +674,7 @@ module.exports = class PackageManager {
       this.emitter.emit('did-activate-initial-packages')
       this.activatePromise = null
     })
+    return this.activatePromise
   }
 
   registerURIHandlerForPackage (packageName, handler) {
