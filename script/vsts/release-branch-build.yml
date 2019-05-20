@@ -21,7 +21,7 @@ jobs:
   - script: node script\vsts\get-release-version.js
     name: Version
 
-# Import OS-specific build definitions
+# Import OS-specific build definitions.
 - template: platforms/windows.yml
 - template: platforms/macos.yml
 - template: platforms/linux.yml
