@@ -6,7 +6,7 @@ trigger:
 resources:
   containers:
   - container: atom-linux-ci
-    image: daviwil/atom-linux-ci:latest
+    image: atomeditor/atom-linux-ci:latest
 
 jobs:
 
