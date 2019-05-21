@@ -102,6 +102,10 @@ if (!argv.generateApiDocs) {
           break
         }
         case 'win32': {
+          if (argv.testSign) {
+            console.log('Test signing is not supported on Windows, skipping.'.gray)
+          }
+
           if (argv.codeSign) {
             const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
             if (argv.createWindowsInstaller) {
@@ -117,8 +121,6 @@ if (!argv.generateApiDocs) {
                 argv.codeSign && codeSignOnWindows([installerPath])
                 return packagedAppPath
               })
-          } else if (argv.testSign) {
-            console.log('Test signing is not supported on Windows, skipping.'.gray)
           } else {
             console.log('Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'.gray)
           }
