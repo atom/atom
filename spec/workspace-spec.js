@@ -2422,6 +2422,8 @@ describe('Workspace', () => {
             result => results.push(result)
           )
 
+          results.sort((a, b) => a.filePath.localeCompare(b.filePath))
+
           expect(results).toHaveLength(3)
           expect(results[0].filePath).toBe(
             atom.project.getDirectories()[0].resolve('a')
@@ -2437,71 +2439,65 @@ describe('Workspace', () => {
           })
         })
 
-        it('works with with escaped literals (like $ and ^)', () => {
+        it('works with with escaped literals (like $ and ^)', async () => {
           const results = []
-          waitsForPromise(() =>
-            atom.workspace.scan(
-              /\$\w+/,
-              { leadingContextLineCount: 1, trailingContextLineCount: 1 },
-              result => results.push(result)
-            )
+          await scan(
+            /\$\w+/,
+            { leadingContextLineCount: 1, trailingContextLineCount: 1 },
+            result => results.push(result)
           )
 
-          runs(() => {
-            expect(results.length).toBe(1)
-            const { filePath, matches } = results[0]
-            expect(filePath).toBe(atom.project.getDirectories()[0].resolve('a'))
-            expect(matches).toHaveLength(1)
-            expect(matches[0]).toEqual({
-              matchText: '$bill',
-              lineText: 'dollar$bill',
-              lineTextOffset: 0,
-              range: [[2, 6], [2, 11]],
-              leadingContextLines: ['cc aa cc'],
-              trailingContextLines: []
-            })
+          expect(results.length).toBe(1)
+          const { filePath, matches } = results[0]
+          expect(filePath).toBe(atom.project.getDirectories()[0].resolve('a'))
+          expect(matches).toHaveLength(1)
+          expect(matches[0]).toEqual({
+            matchText: '$bill',
+            lineText: 'dollar$bill',
+            lineTextOffset: 0,
+            range: [[2, 6], [2, 11]],
+            leadingContextLines: ['cc aa cc'],
+            trailingContextLines: []
           })
         })
 
-        it('works on evil filenames', () => {
+        it('works on evil filenames', async () => {
           atom.config.set('core.excludeVcsIgnoredPaths', false)
           platform.generateEvilFiles()
           atom.project.setPaths([path.join(__dirname, 'fixtures', 'evil-files')])
           const paths = []
           let matches = []
-          waitsForPromise(() =>
-            atom.workspace.scan(/evil/, result => {
-              paths.push(result.filePath)
-              matches = matches.concat(result.matches)
-            })
-          )
 
-          runs(() => {
-            _.each(matches, m => expect(m.matchText).toEqual('evil'))
-
-            if (platform.isWindows()) {
-              expect(paths.length).toBe(3)
-              expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
-              expect(paths[1]).toMatch(/file with spaces.txt$/)
-              expect(path.basename(paths[2])).toBe('utfa\u0306.md')
-            } else {
-              expect(paths.length).toBe(5)
-              expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
-              expect(paths[1]).toMatch(/file with spaces.txt$/)
-              expect(paths[2]).toMatch(/goddam\nnewlines$/m)
-              expect(paths[3]).toMatch(/quote".txt$/m)
-              expect(path.basename(paths[4])).toBe('utfa\u0306.md')
-            }
+          await scan(/evil/, {}, result => {
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
           })
+
+          // Sort the paths to make the test deterministic.
+          paths.sort()
+
+          _.each(matches, m => expect(m.matchText).toEqual('evil'))
+
+          if (platform.isWindows()) {
+            expect(paths.length).toBe(3)
+            expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
+            expect(paths[1]).toMatch(/file with spaces.txt$/)
+            expect(path.basename(paths[2])).toBe('utfa\u0306.md')
+          } else {
+            expect(paths.length).toBe(5)
+            expect(paths[0]).toMatch(/a_file_with_utf8.txt$/)
+            expect(paths[1]).toMatch(/file with spaces.txt$/)
+            expect(paths[2]).toMatch(/goddam\nnewlines$/m)
+            expect(paths[3]).toMatch(/quote".txt$/m)
+            expect(path.basename(paths[4])).toBe('utfa\u0306.md')
+          }
         })
 
-        it('ignores case if the regex includes the `i` flag', () => {
+        it('ignores case if the regex includes the `i` flag', async () => {
           const results = []
-          waitsForPromise(() =>
-            atom.workspace.scan(/DOLLAR/i, result => results.push(result))
-          )
+          await scan(/DOLLAR/i, {}, result => results.push(result))
 
-          runs(() => expect(results).toHaveLength(1))
+          expect(results).toHaveLength(1)
         })
 
         describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
@@ -2541,19 +2537,18 @@ describe('Workspace', () => {
             }
           })
 
-          it('excludes ignored files', () => {
+          it('excludes ignored files', async () => {
             atom.project.setPaths([projectPath])
             atom.config.set('core.excludeVcsIgnoredPaths', true)
             const resultHandler = jasmine.createSpy('result found')
-            waitsForPromise(() =>
-              atom.workspace.scan(/match/, results => resultHandler())
-            )
 
-            runs(() => expect(resultHandler).not.toHaveBeenCalled())
+            await scan(/match/, {}, () => resultHandler())
+
+            expect(resultHandler).not.toHaveBeenCalled()
           })
         })
 
-        it('includes only files when a directory filter is specified', () => {
+        it('includes only files when a directory filter is specified', async () => {
           const projectPath = path.join(path.join(__dirname, 'fixtures', 'dir'))
           atom.project.setPaths([projectPath])
 
@@ -2561,100 +2556,76 @@ describe('Workspace', () => {
 
           const paths = []
           let matches = []
-          waitsForPromise(() =>
-            atom.workspace.scan(
-              /aaa/,
-              { paths: [`a-dir${path.sep}`] },
-              result => {
-                paths.push(result.filePath)
-                matches = matches.concat(result.matches)
-              }
-            )
+
+          await scan(
+            /aaa/,
+            { paths: [`a-dir${path.sep}`] },
+            result => {
+              paths.push(result.filePath)
+              matches = matches.concat(result.matches)
+            }
           )
 
-          runs(() => {
-            expect(paths.length).toBe(1)
-            expect(paths[0]).toBe(filePath)
-            expect(matches.length).toBe(1)
-          })
+          expect(paths.length).toBe(1)
+          expect(paths[0]).toBe(filePath)
+          expect(matches.length).toBe(1)
         })
 
-        it("includes files and folders that begin with a '.'", () => {
+        it("includes files and folders that begin with a '.'", async () => {
           const projectPath = temp.mkdirSync('atom-spec-workspace')
           const filePath = path.join(projectPath, '.text')
           fs.writeFileSync(filePath, 'match this')
           atom.project.setPaths([projectPath])
           const paths = []
           let matches = []
-          waitsForPromise(() =>
-            atom.workspace.scan(/match this/, result => {
-              paths.push(result.filePath)
-              matches = matches.concat(result.matches)
-            })
-          )
 
-          runs(() => {
-            expect(paths.length).toBe(1)
-            expect(paths[0]).toBe(filePath)
-            expect(matches.length).toBe(1)
+          await scan(/match this/, {}, result => {
+            paths.push(result.filePath)
+            matches = matches.concat(result.matches)
           })
+
+          expect(paths.length).toBe(1)
+          expect(paths[0]).toBe(filePath)
+          expect(matches.length).toBe(1)
         })
 
-        it('excludes values in core.ignoredNames', () => {
+        it('excludes values in core.ignoredNames', async () => {
           const ignoredNames = atom.config.get('core.ignoredNames')
           ignoredNames.push('a')
           atom.config.set('core.ignoredNames', ignoredNames)
 
           const resultHandler = jasmine.createSpy('result found')
-          waitsForPromise(() =>
-            atom.workspace.scan(/dollar/, results => resultHandler())
-          )
+          await scan(/dollar/, {}, () => resultHandler())
 
-          runs(() => expect(resultHandler).not.toHaveBeenCalled())
+          expect(resultHandler).not.toHaveBeenCalled()
         })
 
-        it('scans buffer contents if the buffer is modified', () => {
-          let editor = null
+        it('scans buffer contents if the buffer is modified', async () => {
           const results = []
+          const editor = await atom.workspace.open('a')
 
-          waitsForPromise(() =>
-            atom.workspace.open('a').then(o => {
-              editor = o
-              editor.setText('Elephant')
-            })
+          editor.setText('Elephant')
+
+          await scan(/a|Elephant/, {}, result => results.push(result))
+
+          expect(results).toHaveLength(3)
+          const resultForA = _.find(
+            results,
+            ({ filePath }) => path.basename(filePath) === 'a'
           )
-
-          waitsForPromise(() =>
-            atom.workspace.scan(/a|Elephant/, result => results.push(result))
-          )
-
-          runs(() => {
-            expect(results).toHaveLength(3)
-            const resultForA = _.find(
-              results,
-              ({ filePath }) => path.basename(filePath) === 'a'
-            )
-            expect(resultForA.matches).toHaveLength(1)
-            expect(resultForA.matches[0].matchText).toBe('Elephant')
-          })
+          expect(resultForA.matches).toHaveLength(1)
+          expect(resultForA.matches[0].matchText).toBe('Elephant')
         })
 
-        it('ignores buffers outside the project', () => {
-          let editor = null
+        it('ignores buffers outside the project', async () => {
           const results = []
+          const editor = await atom.workspace.open(temp.openSync().path)
 
-          waitsForPromise(() =>
-            atom.workspace.open(temp.openSync().path).then(o => {
-              editor = o
-              editor.setText('Elephant')
-            })
-          )
+          editor.setText('Elephant')
 
-          waitsForPromise(() =>
-            atom.workspace.scan(/Elephant/, result => results.push(result))
-          )
+          await scan(/Elephant/, {}, result => results.push(result))
 
-          runs(() => expect(results).toHaveLength(0))
+          expect(results).toHaveLength(0)
         })
 
         describe('when the project has multiple root directories', () => {
@@ -2676,74 +2647,66 @@ describe('Workspace', () => {
             atom.project.addPath(dir2)
           })
 
-          it("searches matching files in all of the project's root directories", () => {
+          it("searches matching files in all of the project's root directories", async () => {
             const resultPaths = []
-            waitsForPromise(() =>
-              atom.workspace.scan(/aaaa/, ({ filePath }) =>
-                resultPaths.push(filePath)
-              )
+
+            await scan(/aaaa/, {}, ({ filePath }) =>
+              resultPaths.push(filePath)
             )
 
-            runs(() => expect(resultPaths.sort()).toEqual([file1, file2].sort()))
+            expect(resultPaths.sort()).toEqual([file1, file2].sort())
           })
 
           describe('when an inclusion path starts with the basename of a root directory', () => {
-            it('interprets the inclusion path as starting from that directory', () => {
-              waitsForPromise(() => {
-                const resultPaths = []
-                return atom.workspace
-                  .scan(/aaaa/, { paths: ['dir'] }, ({ filePath }) => {
-                    if (!resultPaths.includes(filePath)) {
-                      resultPaths.push(filePath)
-                    }
-                  })
-                  .then(() => expect(resultPaths).toEqual([file1]))
+            it('interprets the inclusion path as starting from that directory', async () => {
+
+              let resultPaths = []
+              await scan(/aaaa/, { paths: ['dir'] }, ({ filePath }) => {
+                if (!resultPaths.includes(filePath)) {
+                  resultPaths.push(filePath)
+                }
               })
 
-              waitsForPromise(() => {
-                const resultPaths = []
-                return atom.workspace
-                  .scan(
-                    /aaaa/,
-                    { paths: [path.join('dir', 'a-dir')] },
-                    ({ filePath }) => {
-                      if (!resultPaths.includes(filePath)) {
-                        resultPaths.push(filePath)
-                      }
-                    }
-                  )
-                  .then(() => expect(resultPaths).toEqual([file1]))
-              })
+              expect(resultPaths).toEqual([file1])
 
-              waitsForPromise(() => {
-                const resultPaths = []
-                return atom.workspace
-                  .scan(
-                    /aaaa/,
-                    { paths: [path.basename(dir2)] },
-                    ({ filePath }) => {
-                      if (!resultPaths.includes(filePath)) {
-                        resultPaths.push(filePath)
-                      }
-                    }
-                  )
-                  .then(() => expect(resultPaths).toEqual([file2]))
-              })
+              resultPaths = []
+              await scan(
+                /aaaa/,
+                { paths: [path.join('dir', 'a-dir')] },
+                ({ filePath }) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
+                }
+              )
 
-              waitsForPromise(() => {
-                const resultPaths = []
-                return atom.workspace
-                  .scan(
-                    /aaaa/,
-                    { paths: [path.join(path.basename(dir2), 'a-dir')] },
-                    ({ filePath }) => {
-                      if (!resultPaths.includes(filePath)) {
-                        resultPaths.push(filePath)
-                      }
-                    }
-                  )
-                  .then(() => expect(resultPaths).toEqual([file2]))
-              })
+              expect(resultPaths).toEqual([file1])
+
+              resultPaths = []
+              await scan(
+                /aaaa/,
+                { paths: [path.basename(dir2)] },
+                ({ filePath }) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
+                }
+              )
+
+              expect(resultPaths).toEqual([file2])
+
+              resultPaths = []
+              await scan(
+                /aaaa/,
+                { paths: [path.join(path.basename(dir2), 'a-dir')] },
+                ({ filePath }) => {
+                  if (!resultPaths.includes(filePath)) {
+                    resultPaths.push(filePath)
+                  }
+                }
+              )
+
+              expect(resultPaths).toEqual([file2])
             })
           })
 
@@ -2795,7 +2758,7 @@ describe('Workspace', () => {
               waitsFor(() => atom.workspace.directorySearchers.length > 0)
             })
 
-            it('can override the DefaultDirectorySearcher on a per-directory basis', () => {
+            it('can override the DefaultDirectorySearcher on a per-directory basis', async () => {
               const foreignFilePath = 'ssh://foreign-directory:8080/hello.txt'
               const numPathsSearchedInDir2 = 1
               const numPathsToPretendToSearchInCustomDirectorySearcher = 10
@@ -2820,29 +2783,26 @@ describe('Workspace', () => {
 
               const resultPaths = []
               const onPathsSearched = jasmine.createSpy('onPathsSearched')
-              waitsForPromise(() =>
-                atom.workspace.scan(/aaaa/, { onPathsSearched }, ({ filePath }) =>
-                  resultPaths.push(filePath)
-                )
+
+              await scan(/aaaa/, { onPathsSearched }, ({ filePath }) =>
+                resultPaths.push(filePath)
               )
 
-              runs(() => {
-                expect(resultPaths.sort()).toEqual(
-                  [foreignFilePath, file2].sort()
-                )
-                // onPathsSearched should be called once by each DirectorySearcher. The order is not
-                // guaranteed, so we can only verify the total number of paths searched is correct
-                // after the second call.
-                expect(onPathsSearched.callCount).toBe(2)
-                expect(onPathsSearched.mostRecentCall.args[0]).toBe(
-                  numPathsToPretendToSearchInCustomDirectorySearcher +
-                    numPathsSearchedInDir2
-                )
-              })
+              expect(resultPaths.sort()).toEqual(
+                [foreignFilePath, file2].sort()
+              )
+              // onPathsSearched should be called once by each DirectorySearcher. The order is not
+              // guaranteed, so we can only verify the total number of paths searched is correct
+              // after the second call.
+              expect(onPathsSearched.callCount).toBe(2)
+              expect(onPathsSearched.mostRecentCall.args[0]).toBe(
+                numPathsToPretendToSearchInCustomDirectorySearcher +
+                  numPathsSearchedInDir2
+              )
             })
 
-            it('can be cancelled when the object returned by scan() has its cancel() method invoked', () => {
-              const thenable = atom.workspace.scan(/aaaa/, () => {})
+            it('can be cancelled when the object returned by scan() has its cancel() method invoked', async () => {
+              const thenable = scan(/aaaa/, {}, () => {})
               let resultOfPromiseSearch = null
 
               waitsFor('fakeSearch to be defined', () => fakeSearch != null)
@@ -2881,7 +2841,7 @@ describe('Workspace', () => {
               )
 
               let didReject = false
-              const promise = (cancelableSearch = atom.workspace.scan(
+              const promise = (cancelableSearch = scan(
                 /aaaa/,
                 () => {}
               ))
