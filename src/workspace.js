@@ -1947,9 +1947,9 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      const onFailure = function () {
+      const onFailure = function (error) {
         for (let promise of allSearches) { promise.cancel() }
-        reject()
+        reject(error)
       }
 
       searchPromise.then(onSuccess, onFailure)

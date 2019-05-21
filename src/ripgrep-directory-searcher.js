@@ -1,4 +1,5 @@
 const { spawn } = require('child_process')
+const path = require('path')
 
 // `ripgrep` and `scandal` have a different way of handling the trailing and leading
 // context lines:
@@ -49,7 +50,7 @@ function updateLeadingContext (message, pendingLeadingContext, options) {
   }
 
   if (options.leadingContextLineCount) {
-    pendingLeadingContext.push(message.data.lines.text.trim())
+    pendingLeadingContext.push(cleanResultLine(message.data.lines.text))
 
     if (pendingLeadingContext.length > options.leadingContextLineCount) {
       pendingLeadingContext.shift()
@@ -64,13 +65,17 @@ function updateTrailingContexts (message, pendingTrailingContexts, options) {
 
   if (options.trailingContextLineCount) {
     for (const trailingContextLines of pendingTrailingContexts) {
-      trailingContextLines.push(message.data.lines.text.trim())
+      trailingContextLines.push(cleanResultLine(message.data.lines.text))
 
       if (trailingContextLines.length === options.trailingContextLineCount) {
         pendingTrailingContexts.delete(trailingContextLines)
       }
     }
   }
+}
+
+function cleanResultLine (resultLine) {
+  return resultLine[resultLine.length - 1] === '\n' ? resultLine.slice(0, -1) : resultLine
 }
 
 module.exports = class RipgrepDirectorySearcher {
@@ -97,7 +102,7 @@ module.exports = class RipgrepDirectorySearcher {
   //         * `matchText` {String} The text that matched the `regex` used for the search.
   //         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
   //   * `didError` {Function} call with an Error if there is a problem during the search.
-  //   * `didSearchPaths` {Function} periodically call with the number of paths searched thus far.
+  //   * `didSearchPaths` {Function} periodically call with the number of paths searched that contain results thus far.
   //   * `inclusions` {Array} of glob patterns (as strings) to search within. Note that this
   //   array may be empty, indicating that all files should be searched.
   //
@@ -112,35 +117,91 @@ module.exports = class RipgrepDirectorySearcher {
   // Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   // invoked before the `DirectorySearch` is determined, it will resolve the `DirectorySearch`.
   search (directories, regexp, options) {
+    const numPathsFound = { num: 0 }
+
+    const allPromises = directories.map(
+      directory => this.searchInDirectory(directory, regexp, options, numPathsFound)
+    )
+
+    const promise = Promise.all(allPromises)
+
+    promise.cancel = () => {
+      for (const promise of allPromises) {
+        promise.cancel()
+      }
+    }
+
+    return promise
+  }
+
+  searchInDirectory (directory, regexp, options, numPathsFound) {
+    let regexpStr = regexp.source
+
+    // ripgrep handles `--` as the arguments separator, so we need to escape it if the
+    // user searches for that exact same string.
+    if (regexpStr === '--') {
+      regexpStr = '\\-\\-'
+    }
+
     // Delay the require of vscode-ripgrep to not mess with the snapshot creation.
     if (!this.rgPath) {
       this.rgPath = require('vscode-ripgrep').rgPath.replace(/\bapp\.asar\b/, 'app.asar.unpacked')
     }
 
-    const paths = directories.map(d => d.getPath())
+    const directoryPath = directory.getPath()
 
-    const args = ['--json', '--regexp', regexp.source]
+    const args = ['--hidden', '--json', '--regexp', regexpStr]
     if (options.leadingContextLineCount) {
       args.push('--before-context', options.leadingContextLineCount)
     }
     if (options.trailingContextLineCount) {
       args.push('--after-context', options.trailingContextLineCount)
     }
-    args.push(...paths)
+    if (regexp.ignoreCase) {
+      args.push('--ignore-case')
+    }
+    for (const inclusion of this.prepareGlobs(options.inclusions, directoryPath)) {
+      args.push('--glob', inclusion)
+    }
+    for (const exclusion of this.prepareGlobs(options.exclusions, directoryPath)) {
+      args.push('--glob', '!' + exclusion)
+    }
+
+    args.push(directoryPath)
 
     const child = spawn(this.rgPath, args, {
-      stdio: ['pipe', 'pipe', 'inherit']
+      cwd: directory.getPath(),
+      stdio: ['pipe', 'pipe', 'pipe']
     })
 
     const didMatch = options.didMatch || (() => {})
+    let cancelled = false
 
-    return new Promise(resolve => {
+    const returnedPromise = new Promise((resolve, reject) => {
       let buffer = ''
+      let bufferError = ''
       let pendingEvent
       let pendingLeadingContext
       let pendingTrailingContexts
 
+      child.on('close', (code, signal) => {
+        // code 1 is used when no results are found.
+        if (code !== null && code > 1) {
+          reject(new Error(bufferError))
+        } else {
+          resolve()
+        }
+      })
+
+      child.stderr.on('data', chunk => {
+        bufferError += chunk
+      })
+
       child.stdout.on('data', chunk => {
+        if (cancelled) {
+          return
+        }
+
         buffer += chunk
         const lines = buffer.split('\n')
         buffer = lines.pop()
@@ -164,7 +225,7 @@ module.exports = class RipgrepDirectorySearcher {
             for (const submatch of message.data.submatches) {
               pendingEvent.matches.push({
                 matchText: submatch.match.text,
-                lineText: message.data.lines.text.trim(),
+                lineText: cleanResultLine(message.data.lines.text),
                 lineTextOffset: 0,
                 range: [[startRow, submatch.start], [startRow, submatch.end]],
                 leadingContextLines: [...pendingLeadingContext],
@@ -172,16 +233,58 @@ module.exports = class RipgrepDirectorySearcher {
               })
             }
           } else if (message.type === 'end') {
+            options.didSearchPaths(++numPathsFound.num)
             didMatch(pendingEvent)
             pendingEvent = null
-          } else if (message.type === 'summary') {
-            resolve()
-            return
           }
 
           updateLeadingContext(message, pendingLeadingContext, options)
         }
       })
     })
+
+    returnedPromise.cancel = () => {
+      child.kill()
+      cancelled = true
+    }
+
+    return returnedPromise
+  }
+
+  // We need to prepare the "globs" that we receive from the user to make their behaviour more
+  // user-friendly (e.g when adding `src/` the user probably means `src/**/*`).
+  // This helper function takes care of that.
+  prepareGlobs (globs, projectRootPath) {
+    const output = []
+
+    for (let pattern of globs) {
+      if (pattern.length === 0) {
+        continue
+      }
+
+      const projectName = path.basename(projectRootPath)
+
+      // The user can just search inside one of the opened projects. When we detect
+      // this scenario we just consider the glob to include every file.
+      if (pattern === projectName) {
+        output.push('**/*')
+        continue
+      }
+
+      if (pattern.startsWith(projectName + '/')) {
+        pattern = pattern.slice(projectName.length + 1)
+      }
+
+      if (pattern.endsWith('/')) {
+        pattern = pattern.slice(0, -1)
+      }
+
+      pattern = pattern.startsWith('**/') ? pattern : `**/${pattern}`
+
+      output.push(pattern)
+      output.push(pattern.endsWith('/**') ? pattern : `${pattern}/**`)
+    }
+
+    return output
   }
 }
