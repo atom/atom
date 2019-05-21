@@ -23,7 +23,7 @@ On macOS, you will need to configure a "Mac Development" certificate for your lo
 
 ## How to use it
 
-1. Since you probably want to try upgrading an installed Atom release to a newer version, start your shell and set the `ATOM_RELEASE_VERSION` environment var to the desired version:
+1. Since you probably want to try upgrading an installed Atom release to a newer version, start your shell and set the `ATOM_RELEASE_VERSION` environment var to the version that you want the server to advertise as the latest version:
 
    **Windows**
    ```
