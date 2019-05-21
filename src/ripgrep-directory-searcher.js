@@ -258,6 +258,10 @@ module.exports = class RipgrepDirectorySearcher {
     const output = []
 
     for (let pattern of globs) {
+      // we need to replace path separators by slashes since globs should
+      // always use always slashes as path separators.
+      pattern = pattern.replace(new RegExp(`\\${path.sep}`, 'g'), '/')
+
       if (pattern.length === 0) {
         continue
       }
