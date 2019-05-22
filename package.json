@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "3.1.9",
+  "electronVersion": "2.0.18",
   "dependencies": {
     "@atom/nsfw": "1.0.22",
     "@atom/source-map-support": "^0.3.4",
@@ -93,7 +93,7 @@
     "language-less": "https://www.atom.io/api/packages/language-less/versions/0.34.3/tarball",
     "language-make": "https://www.atom.io/api/packages/language-make/versions/0.23.0/tarball",
     "language-mustache": "https://www.atom.io/api/packages/language-mustache/versions/0.14.5/tarball",
-    "language-objective-c": "https://www.atom.io/api/packages/language-objective-c/versions/0.15.1/tarball",
+    "language-objective-c": "https://www.atom.io/api/packages/language-objective-c/versions/0.16.0/tarball",
     "language-perl": "https://www.atom.io/api/packages/language-perl/versions/0.38.1/tarball",
     "language-php": "https://www.atom.io/api/packages/language-php/versions/0.44.1/tarball",
     "language-property-list": "https://www.atom.io/api/packages/language-property-list/versions/0.9.1/tarball",
@@ -245,7 +245,7 @@
     "language-less": "0.34.3",
     "language-make": "0.23.0",
     "language-mustache": "0.14.5",
-    "language-objective-c": "0.15.1",
+    "language-objective-c": "0.16.0",
     "language-perl": "0.38.1",
     "language-php": "0.44.1",
     "language-property-list": "0.9.1",

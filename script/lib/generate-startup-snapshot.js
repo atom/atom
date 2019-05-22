@@ -105,36 +105,22 @@ module.exports = function (packagedAppPath) {
       {env: Object.assign({}, process.env, {ELECTRON_RUN_AS_NODE: 1})}
     )
 
-    console.log('Generating startup blob with mksnapshot')
-    childProcess.spawnSync(
-      process.execPath, [
-        path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'mksnapshot.js'),
-        snapshotScriptPath,
-        '--output_dir',
-        CONFIG.buildOutputPath
-      ]
+    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
+    console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
+    childProcess.execFileSync(
+      path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
+      ['--no-use_ic', snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
     )
 
     let startupBlobDestinationPath
     if (process.platform === 'darwin') {
-      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources`
+      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
     } else {
-      startupBlobDestinationPath = packagedAppPath
+      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
     }
 
-    const snapshotBinaries = ['v8_context_snapshot.bin', 'snapshot_blob.bin']
-    for (let snapshotBinary of snapshotBinaries) {
-      const destinationPath = path.join(startupBlobDestinationPath, snapshotBinary)
-      console.log(`Moving generated startup blob into "${destinationPath}"`)
-      try {
-        fs.unlinkSync(destinationPath)
-      } catch (err) {
-        // Doesn't matter if the file doesn't exist already
-        if (!err.code || err.code !== 'ENOENT') {
-          throw err
-        }
-      }
-      fs.renameSync(path.join(CONFIG.buildOutputPath, snapshotBinary), destinationPath)
-    }
+    console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
+    fs.unlinkSync(startupBlobDestinationPath)
+    fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
   })
 }
