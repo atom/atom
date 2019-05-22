@@ -92,6 +92,35 @@ function getPositionFromColumn (lines, column) {
   return [currentLine - 1, column - previousLength]
 }
 
+function processUnicodeMatch (match) {
+  if (match.lines.text.length === Buffer.byteLength(match.lines.text)) {
+    // fast codepath for lines that only contain characters of 1 byte length.
+    return
+  }
+
+  let remainingBuffer = Buffer.from(match.lines.text)
+  let currentLength = 0
+  let previousPosition = 0
+
+  function convertPosition (position) {
+    const currentBuffer = remainingBuffer.slice(0, position - previousPosition)
+    currentLength = currentBuffer.toString().length + currentLength
+    remainingBuffer = remainingBuffer.slice(position)
+
+    previousPosition = position
+
+    return currentLength
+  }
+
+  // Iterate over all the submatches to find the convert the start and end values
+  // (which come as bytes from ripgrep) to character positions.
+  // We can do this because submatches come ordered by position.
+  for (const submatch of match.submatches) {
+    submatch.start = convertPosition(submatch.start)
+    submatch.end = convertPosition(submatch.end)
+  }
+}
+
 // This function processes a ripgrep submatch to create the correct
 // range. This is mostly needed for multi-line results, since the range
 // will have differnt start and end rows and we need to calculate these
@@ -247,7 +276,6 @@ module.exports = class RipgrepDirectorySearcher {
         buffer = lines.pop()
         for (const line of lines) {
           const message = JSON.parse(line)
-
           updateTrailingContexts(message, pendingTrailingContexts, options)
 
           if (message.type === 'begin') {
@@ -260,6 +288,8 @@ module.exports = class RipgrepDirectorySearcher {
           } else if (message.type === 'match') {
             const trailingContextLines = []
             pendingTrailingContexts.add(trailingContextLines)
+
+            processUnicodeMatch(message.data)
 
             for (const submatch of message.data.submatches) {
               const { lineText, range } = processSubmatch(

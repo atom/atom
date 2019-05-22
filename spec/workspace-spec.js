@@ -2647,6 +2647,28 @@ describe('Workspace', () => {
           })
         }
 
+        it('returns results on lines with unicode strings', async () => {
+          const results = []
+
+          await scan(
+            /line with unico/,
+            {},
+            result => results.push(result)
+          )
+          expect(results.length).toBe(1)
+          const { filePath, matches } = results[0]
+          expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-with-unicode'))
+          expect(matches).toHaveLength(1)
+          expect(matches[0]).toEqual({
+            matchText: 'line with unico',
+            lineText: 'ДДДДДДДДДДДДДДДДДД line with unicode',
+            lineTextOffset: 0,
+            range: [[0, 19], [0, 34]],
+            leadingContextLines: [],
+            trailingContextLines: []
+          })
+        })
+
         describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
           let projectPath
           let ignoredPath
