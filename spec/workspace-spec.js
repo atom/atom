@@ -2500,6 +2500,153 @@ describe('Workspace', () => {
           expect(results).toHaveLength(1)
         })
 
+        if (ripgrep) {
+          describe('newlines on regexps', async () => {
+            it('returns multiline results from regexps', async () => {
+              const results = []
+
+              await scan(
+                /first\nsecond/,
+                {},
+                result => results.push(result)
+              )
+
+              expect(results.length).toBe(1)
+              const { filePath, matches } = results[0]
+              expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-with-newline-literal'))
+              expect(matches).toHaveLength(1)
+              expect(matches[0]).toEqual({
+                matchText: 'first\nsecond',
+                lineText: 'first\nsecond\\nthird',
+                lineTextOffset: 0,
+                range: [[3, 0], [4, 6]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+            })
+
+            it('returns correctly the context lines', async () => {
+              const results = []
+
+              await scan(
+                /first\nsecond/,
+                {
+                  leadingContextLineCount: 2,
+                  trailingContextLineCount: 2
+                },
+                result => results.push(result)
+              )
+
+              expect(results.length).toBe(1)
+              const { filePath, matches } = results[0]
+              expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-with-newline-literal'))
+              expect(matches).toHaveLength(1)
+              expect(matches[0]).toEqual({
+                matchText: 'first\nsecond',
+                lineText: 'first\nsecond\\nthird',
+                lineTextOffset: 0,
+                range: [[3, 0], [4, 6]],
+                leadingContextLines: [
+                  'newline2',
+                  'newline3'
+                ],
+                trailingContextLines: [
+                  'newline4',
+                  'newline5'
+                ]
+              })
+            })
+
+            it('returns multiple results from the same line', async () => {
+              const results = []
+
+              await scan(
+                /line\d\nne/,
+                {},
+                result => results.push(result)
+              )
+
+              results.sort((a, b) => a.filePath.localeCompare(b.filePath))
+
+              expect(results.length).toBe(1)
+
+              const { filePath, matches } = results[0]
+              expect(filePath).toBe(
+                atom.project.getDirectories()[0].resolve('file-with-newline-literal')
+              )
+              expect(matches).toHaveLength(3)
+              expect(matches[0]).toEqual({
+                matchText: 'line1\nne',
+                lineText: 'newline1\nnewline2',
+                lineTextOffset: 0,
+                range: [[0, 3], [1, 2]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+              expect(matches[1]).toEqual({
+                matchText: 'line2\nne',
+                lineText: 'newline2\nnewline3',
+                lineTextOffset: 0,
+                range: [[1, 3], [2, 2]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+              expect(matches[2]).toEqual({
+                matchText: 'line4\nne',
+                lineText: 'newline4\nnewline5',
+                lineTextOffset: 0,
+                range: [[5, 3], [6, 2]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+            })
+
+            it('works with escaped newlines', async () => {
+              const results = []
+
+              await scan(
+                /second\\nthird/,
+                {},
+                result => results.push(result)
+              )
+              expect(results.length).toBe(1)
+              const { filePath, matches } = results[0]
+              expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-with-newline-literal'))
+              expect(matches).toHaveLength(1)
+              expect(matches[0]).toEqual({
+                matchText: 'second\\nthird',
+                lineText: 'second\\nthird',
+                lineTextOffset: 0,
+                range: [[4, 0], [4, 13]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+            })
+
+            it('matches a regexp ending with a newline', async () => {
+              const results = []
+
+              await scan(
+                /newline3\n/,
+                {},
+                result => results.push(result)
+              )
+              expect(results.length).toBe(1)
+              const { filePath, matches } = results[0]
+              expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-with-newline-literal'))
+              expect(matches).toHaveLength(1)
+              expect(matches[0]).toEqual({
+                matchText: 'newline3\n',
+                lineText: 'newline3',
+                lineTextOffset: 0,
+                range: [[2, 0], [3, 0]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              })
+            })
+          })
+        }
+
         describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
           let projectPath
           let ignoredPath

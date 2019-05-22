@@ -1962,12 +1962,6 @@ module.exports = class Workspace extends Model {
       allSearches.map((promise) => promise.cancel())
     }
 
-    // Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
-    // method in the find-and-replace package expects the object returned by this method to have a
-    // `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = onSuccessOrFailure => {
-      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
-    }
     return cancellablePromise
   }
 

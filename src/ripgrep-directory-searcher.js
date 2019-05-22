@@ -78,6 +78,49 @@ function cleanResultLine (resultLine) {
   return resultLine[resultLine.length - 1] === '\n' ? resultLine.slice(0, -1) : resultLine
 }
 
+function getPositionFromColumn (lines, column) {
+  let currentLength = 0
+  let currentLine = 0
+  let previousLength = 0
+
+  while (column >= currentLength) {
+    previousLength = currentLength
+    currentLength += lines[currentLine].length + 1
+    currentLine++
+  }
+
+  return [currentLine - 1, column - previousLength]
+}
+
+// This function processes a ripgrep submatch to create the correct
+// range. This is mostly needed for multi-line results, since the range
+// will have differnt start and end rows and we need to calculate these
+// based on the lines that ripgrep returns.
+function processSubmatch (submatch, lineText, offsetRow) {
+  const lineParts = lineText.split('\n')
+
+  const start = getPositionFromColumn(lineParts, submatch.start)
+  const end = getPositionFromColumn(lineParts, submatch.end)
+
+  // Make sure that the lineText string only contains lines that are
+  // relevant to this submatch. This means getting rid of lines above
+  // the start row and below the end row.
+  for (let i = start[0]; i > 0; i--) {
+    lineParts.shift()
+  }
+  while (end[0] < lineParts.length - 1) {
+    lineParts.pop()
+  }
+
+  start[0] += offsetRow
+  end[0] += offsetRow
+
+  return {
+    range: [start, end],
+    lineText: cleanResultLine(lineParts.join('\n'))
+  }
+}
+
 module.exports = class RipgrepDirectorySearcher {
   canSearchDirectory () {
     return true
@@ -135,20 +178,13 @@ module.exports = class RipgrepDirectorySearcher {
   }
 
   searchInDirectory (directory, regexp, options, numPathsFound) {
-    let regexpStr = regexp.source
-
-    // ripgrep handles `--` as the arguments separator, so we need to escape it if the
-    // user searches for that exact same string.
-    if (regexpStr === '--') {
-      regexpStr = '\\-\\-'
-    }
-
     // Delay the require of vscode-ripgrep to not mess with the snapshot creation.
     if (!this.rgPath) {
       this.rgPath = require('vscode-ripgrep').rgPath.replace(/\bapp\.asar\b/, 'app.asar.unpacked')
     }
 
     const directoryPath = directory.getPath()
+    const regexpStr = this.prepareRegexp(regexp.source)
 
     const args = ['--hidden', '--json', '--regexp', regexpStr]
     if (options.leadingContextLineCount) {
@@ -165,6 +201,10 @@ module.exports = class RipgrepDirectorySearcher {
     }
     for (const exclusion of this.prepareGlobs(options.exclusions, directoryPath)) {
       args.push('--glob', '!' + exclusion)
+    }
+
+    if (this.isMultilineRegexp(regexpStr)) {
+      args.push('--multiline')
     }
 
     args.push(directoryPath)
@@ -218,16 +258,21 @@ module.exports = class RipgrepDirectorySearcher {
             pendingLeadingContext = []
             pendingTrailingContexts = new Set()
           } else if (message.type === 'match') {
-            const startRow = message.data.line_number - 1
             const trailingContextLines = []
             pendingTrailingContexts.add(trailingContextLines)
 
             for (const submatch of message.data.submatches) {
+              const { lineText, range } = processSubmatch(
+                submatch,
+                message.data.lines.text,
+                message.data.line_number - 1
+              )
+
               pendingEvent.matches.push({
                 matchText: submatch.match.text,
-                lineText: cleanResultLine(message.data.lines.text),
+                lineText,
                 lineTextOffset: 0,
-                range: [[startRow, submatch.start], [startRow, submatch.end]],
+                range,
                 leadingContextLines: [...pendingLeadingContext],
                 trailingContextLines
               })
@@ -290,5 +335,23 @@ module.exports = class RipgrepDirectorySearcher {
     }
 
     return output
+  }
+
+  prepareRegexp (regexpStr) {
+    // ripgrep handles `--` as the arguments separator, so we need to escape it if the
+    // user searches for that exact same string.
+    if (regexpStr === '--') {
+      return '\\-\\-'
+    }
+
+    return regexpStr
+  }
+
+  isMultilineRegexp (regexpStr) {
+    if (regexpStr.includes('\\n')) {
+      return true
+    }
+
+    return false
   }
 }
