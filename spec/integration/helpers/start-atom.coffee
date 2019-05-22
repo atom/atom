@@ -129,7 +129,10 @@ module.exports = (args, env, fn) ->
       errorCode = null
       chromedriver.on "exit", (code, signal) ->
         errorCode = code unless signal?
+      chromedriver.stdout.on "data", (log) ->
+        console.log(log.toString())
       chromedriver.stderr.on "data", (log) ->
+        console.log(log.toString())
         chromedriverLogs.push(log.toString())
       chromedriver.stderr.on "close", ->
         resolve(errorCode)
