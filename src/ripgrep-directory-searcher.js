@@ -344,6 +344,10 @@ module.exports = class RipgrepDirectorySearcher {
       return '\\-\\-'
     }
 
+    // ripgrep is quite picky about unnecessarily escaped sequences, so we need to unescape
+    // them: https://github.com/BurntSushi/ripgrep/issues/434.
+    regexpStr = regexpStr.replace(/\\\//g, '/')
+
     return regexpStr
   }
 
