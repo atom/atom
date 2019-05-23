@@ -46,7 +46,7 @@
     "sync-request": "3.0.1",
     "tello": "1.0.7",
     "terser": "^3.8.1",
-    "webdriverio": "2.4.5",
+    "webdriverio": "^5.9.1",
     "yargs": "4.8.1"
   }
 }
