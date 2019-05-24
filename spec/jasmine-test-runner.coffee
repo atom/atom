@@ -51,7 +51,7 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   })
 
   require './spec-helper'
-  disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI
+  # disableFocusMethods() if process.env.JANKY_SHA1 or process.env.CI
   requireSpecs(testPath) for testPath in testPaths
 
   setSpecType('user')
