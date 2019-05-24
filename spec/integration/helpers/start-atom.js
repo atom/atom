@@ -9,7 +9,7 @@ const {spawn} = require('child_process')
 const webdriverio = require('../../../script/node_modules/webdriverio')
 
 const AtomPath = remote.process.argv[0]
-const AtomLauncherPath = path.join(__dirname, '..', 'helpers', 'atom-launcher.cmd')
+const AtomLauncherPath = path.join(__dirname, '..', 'helpers', 'atom-launcher.sh')
 const ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'script', 'node_modules', 'electron-chromedriver', 'bin', 'chromedriver')
 const ChromedriverPort = 9515
 const ChromedriverURLBase = '/wd/hub'
