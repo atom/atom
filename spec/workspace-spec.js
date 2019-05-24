@@ -2669,6 +2669,33 @@ describe('Workspace', () => {
           })
         })
 
+        it('returns results on files detected as binary', async () => {
+          const results = []
+
+          await scan(
+            /asciiProperty=Foo/,
+            {
+              trailingContextLineCount: 2
+            },
+            result => results.push(result)
+          )
+          expect(results.length).toBe(1)
+          const { filePath, matches } = results[0]
+          expect(filePath).toBe(atom.project.getDirectories()[0].resolve('file-detected-as-binary'))
+          expect(matches).toHaveLength(1)
+          expect(matches[0]).toEqual({
+            matchText: 'asciiProperty=Foo',
+            lineText: 'asciiProperty=Foo',
+            lineTextOffset: 0,
+            range: [[0, 0], [0, 17]],
+            leadingContextLines: [],
+            trailingContextLines: [
+              'utf8Property=Fòò',
+              'latin1Property=F��'
+            ]
+          })
+        })
+
         describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
           let projectPath
           let ignoredPath

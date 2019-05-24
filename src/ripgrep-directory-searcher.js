@@ -50,7 +50,7 @@ function updateLeadingContext (message, pendingLeadingContext, options) {
   }
 
   if (options.leadingContextLineCount) {
-    pendingLeadingContext.push(cleanResultLine(message.data.lines.text))
+    pendingLeadingContext.push(cleanResultLine(message.data.lines))
 
     if (pendingLeadingContext.length > options.leadingContextLineCount) {
       pendingLeadingContext.shift()
@@ -65,7 +65,7 @@ function updateTrailingContexts (message, pendingTrailingContexts, options) {
 
   if (options.trailingContextLineCount) {
     for (const trailingContextLines of pendingTrailingContexts) {
-      trailingContextLines.push(cleanResultLine(message.data.lines.text))
+      trailingContextLines.push(cleanResultLine(message.data.lines))
 
       if (trailingContextLines.length === options.trailingContextLineCount) {
         pendingTrailingContexts.delete(trailingContextLines)
@@ -75,6 +75,8 @@ function updateTrailingContexts (message, pendingTrailingContexts, options) {
 }
 
 function cleanResultLine (resultLine) {
+  resultLine = getText(resultLine)
+
   return resultLine[resultLine.length - 1] === '\n' ? resultLine.slice(0, -1) : resultLine
 }
 
@@ -93,12 +95,14 @@ function getPositionFromColumn (lines, column) {
 }
 
 function processUnicodeMatch (match) {
-  if (match.lines.text.length === Buffer.byteLength(match.lines.text)) {
+  const text = getText(match.lines)
+
+  if (text.length === Buffer.byteLength(text)) {
     // fast codepath for lines that only contain characters of 1 byte length.
     return
   }
 
-  let remainingBuffer = Buffer.from(match.lines.text)
+  let remainingBuffer = Buffer.from(text)
   let currentLength = 0
   let previousPosition = 0
 
@@ -146,8 +150,16 @@ function processSubmatch (submatch, lineText, offsetRow) {
 
   return {
     range: [start, end],
-    lineText: cleanResultLine(lineParts.join('\n'))
+    lineText: cleanResultLine({ text: lineParts.join('\n') })
   }
+}
+
+function getText (input) {
+  if (input.text) {
+    return input.text
+  }
+
+  return Buffer.from(input.bytes, 'base64').toString()
 }
 
 module.exports = class RipgrepDirectorySearcher {
@@ -280,7 +292,7 @@ module.exports = class RipgrepDirectorySearcher {
 
           if (message.type === 'begin') {
             pendingEvent = {
-              filePath: message.data.path.text,
+              filePath: getText(message.data.path),
               matches: []
             }
             pendingLeadingContext = []
@@ -294,12 +306,12 @@ module.exports = class RipgrepDirectorySearcher {
             for (const submatch of message.data.submatches) {
               const { lineText, range } = processSubmatch(
                 submatch,
-                message.data.lines.text,
+                getText(message.data.lines),
                 message.data.line_number - 1
               )
 
               pendingEvent.matches.push({
-                matchText: submatch.match.text,
+                matchText: getText(submatch.match),
                 lineText,
                 lineTextOffset: 0,
                 range,
