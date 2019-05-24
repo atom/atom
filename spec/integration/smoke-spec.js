@@ -32,15 +32,19 @@ fdescribe('Smoke Test', () => {
     fs.writeFileSync(filePath, '', {encoding: 'utf8'})
 
     runAtom([filePath], {ATOM_HOME: atomHome}, async client => {
+      console.log('>>> Waiting for root directories')
       const roots = await client.treeViewRootDirectories()
       expect(roots).toEqual([])
 
+      console.log('>>> Waiting for editor to exist')
       await client.$('atom-text-editor').waitForExist(5000)
 
+      console.log('>>> Waiting for there to be one pane item')
       await client.waitForPaneItemCount(1, 1000)
 
       client.$('atom-text-editor').click()
 
+      console.log('Waiting for active element to be atom-text-editor')
       await client.waitUntil(function () {
         return this.execute(() => document.activeElement.closest('atom-text-editor'))
       }, 5000)
@@ -48,7 +52,10 @@ fdescribe('Smoke Test', () => {
       const text = client.keys('Hello!').execute(() => atom.workspace.getActiveTextEditor().getText())
       expect(text).toBe('Hello!')
 
+      console.log('Waiting to delete line')
       await client.dispatchCommand('editor:delete-line')
+
+      console.log('Done!')
     })
   })
 })

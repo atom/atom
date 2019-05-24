@@ -117,6 +117,8 @@ module.exports = function(args, env, fn) {
 
     const finish = once(async () => {
       chromedriver.kill()
+
+      console.log('>>> Waiting for exit code')
       const errorCode = await chromedriverExit
       if (errorCode != null) {
         jasmine.getEnv().currentSpec.fail(`\
@@ -133,9 +135,13 @@ Logs:\n${chromedriverLogs.join('\n')}\
     //   finish()
     // })
 
+    console.log('>>> Waiting for window to exist')
     await client.waitUntil(() => this.getWindowHandles().length > 0, 10000)
+
+    console.log('>>> Waiting for workspace to exist')
     await client.$('atom-workspace').waitForExist(10000)
 
+    console.log('>>> Waiting for test to run')
     await fn(client)
     finish()
   }
