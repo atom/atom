@@ -39,7 +39,7 @@ const chromeDriverDown = done => {
 
 const buildAtomClient = async (args, env) => {
   userDataDir = temp.mkdirSync('atom-user-data-dir')
-  console.log('awaiting webdriverio')
+  console.log('>>> Waiting for webdriverio')
   let client
   try {
     client = await webdriverio.remote({
@@ -63,6 +63,8 @@ const buildAtomClient = async (args, env) => {
   } catch (error) {
     console.log(error)
   }
+
+  console.log('>>> Building client')
 
   return client.addCommand('waitForWindowCount', async function (count, timeout) {
     await this.waitUntil(() => this.getWindowHandles().length === count, timeout)
@@ -113,6 +115,7 @@ module.exports = function(args, env, fn) {
   waitsFor('webdriver to start', chromeDriverUp, 15000)
 
   waitsFor('tests to run', async done => {
+    console.log('>>> Waiting for Atom client')
     const client = await buildAtomClient(args, env)
 
     const finish = once(async () => {
