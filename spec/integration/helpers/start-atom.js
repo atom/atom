@@ -64,27 +64,40 @@ const buildAtomClient = async (args, env) => {
     console.log(error)
   }
 
-  console.log('>>> Building client')
+  console.log('>>> Adding waitForWindowCount')
 
-  return client.addCommand('waitForWindowCount', async function (count, timeout) {
+  client.addCommand('waitForWindowCount', async function (count, timeout) {
     await this.waitUntil(() => this.getWindowHandles().length === count, timeout)
     return this.getWindowHandles()
-  }).addCommand('waitForPaneItemCount', async function (count, timeout) {
+  })
+  console.log('>>> Adding waitForPaneItemCount')
+  client.addCommand('waitForPaneItemCount', async function (count, timeout) {
     await this.waitUntil(() => this.execute(() => {
       if (atom.workspace) {
         return atom.workspace.getActivePane().getItems().length
       }
       return 0
     }), timeout)
-  }).addCommand('treeViewRootDirectories', async function () {
+  })
+  console.log('>>> Adding treeViewRootDirectories')
+  client.addCommand('treeViewRootDirectories', async function () {
     await this.$('.tree-view').waitForExist(10000)
     return this.execute(() =>
       Array.from(document.querySelectorAll('.tree-view .project-root > .header .name'))
         .map(element => element.dataset.path)
     )
-  }).addCommand('dispatchCommand', async function (command) {
+  })
+  console.log('>>> Adding dispatchCommand')
+  const test = client.addCommand('dispatchCommand', async function (command) {
     return this.execute(async () => atom.commands.dispatch(document.activeElement, command))
   })
+
+  console.log('>>> addCommand returns: ')
+  console.log(test)
+
+  console.log('>>> Returning client')
+
+  return client
 }
 
 module.exports = function(args, env, fn) {
