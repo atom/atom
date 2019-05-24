@@ -32,15 +32,14 @@ describe('Smoke Test', () => {
     fs.writeFileSync(filePath, '', {encoding: 'utf8'})
 
     runAtom([filePath], {ATOM_HOME: atomHome}, async client => {
-      console.log('here!')
       const roots = await client.treeViewRootDirectories()
       expect(roots).toEqual([])
 
-      await $('atom-text-editor').waitForExist(5000)
+      await client.$('atom-text-editor').waitForExist(5000)
 
       await client.waitForPaneItemCount(1, 1000)
 
-      $('atom-text-editor').click()
+      client.$('atom-text-editor').click()
 
       await client.waitUntil(function () {
         return this.execute(() => document.activeElement.closest('atom-text-editor'))

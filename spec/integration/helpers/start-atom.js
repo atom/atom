@@ -1,11 +1,11 @@
 const path = require('path')
 const http = require('http')
 const temp = require('temp').track()
-const os = require('os')
+// const os = require('os')
 const remote = require('remote')
-const async = require('async')
-const {map, extend, once, difference} = require('underscore-plus')
-const {spawn, spawnSync} = require('child_process')
+// const async = require('async')
+const {map, once} = require('underscore-plus')
+const {spawn} = require('child_process')
 const webdriverio = require('../../../script/node_modules/webdriverio')
 
 const AtomPath = remote.process.argv[0]
@@ -64,8 +64,6 @@ const buildAtomClient = async (args, env) => {
     console.log(error)
   }
 
-  console.log('about to build client')
-
   return client.addCommand('waitForWindowCount', async function (count, timeout) {
     await this.waitUntil(() => this.getWindowHandles().length === count, timeout)
     return this.getWindowHandles()
@@ -77,7 +75,7 @@ const buildAtomClient = async (args, env) => {
       return 0
     }), timeout)
   }).addCommand('treeViewRootDirectories', async function () {
-    await $('.tree-view').waitForExist(10000)
+    await this.$('.tree-view').waitForExist(10000)
     return this.execute(() =>
       Array.from(document.querySelectorAll('.tree-view .project-root > .header .name'))
         .map(element => element.dataset.path)
@@ -90,34 +88,30 @@ const buildAtomClient = async (args, env) => {
 module.exports = function(args, env, fn) {
   let [chromedriver, chromedriverLogs, chromedriverExit] = []
 
-  // runs(() => {
-  //   chromedriver = spawn(ChromedriverPath, [
-  //     '--verbose',
-  //     `--port=${ChromedriverPort}`,
-  //     `--url-base=${ChromedriverURLBase}`
-  //   ])
-  //
-  //   chromedriverLogs = []
-  //   chromedriverExit = new Promise(resolve => {
-  //     let errorCode = null
-  //     chromedriver.on('exit', (code, signal) => {
-  //       if (signal == null) {
-  //         errorCode = code
-  //       }
-  //     })
-  //     chromedriver.stdout.on('data', log => console.log(log.toString()))
-  //     chromedriver.stderr.on('data', log => console.log(log.toString()))
-  //     // chromedriver.stderr.on('data', log => chromedriverLogs.push(log.toString()))
-  //     chromedriver.stderr.on('close', () => resolve(errorCode))
-  //   })
-  // })
-  //
-  // waitsFor('webdriver to start', chromeDriverUp, 15000)
+  runs(() => {
+    chromedriver = spawn(ChromedriverPath, [
+      '--verbose',
+      `--port=${ChromedriverPort}`,
+      `--url-base=${ChromedriverURLBase}`
+    ])
+
+    chromedriverLogs = []
+    chromedriverExit = new Promise(resolve => {
+      let errorCode = null
+      chromedriver.on('exit', (code, signal) => {
+        if (signal == null) {
+          errorCode = code
+        }
+      })
+      chromedriver.stderr.on('data', log => chromedriverLogs.push(log.toString()))
+      chromedriver.stderr.on('close', () => resolve(errorCode))
+    })
+  })
+
+  waitsFor('webdriver to start', chromeDriverUp, 15000)
 
   waitsFor('tests to run', async done => {
     const client = await buildAtomClient(args, env)
-
-    console.log('finished waiting for client')
 
     const finish = once(async () => {
       chromedriver.kill()
@@ -138,9 +132,7 @@ Logs:\n${chromedriverLogs.join('\n')}\
     // })
 
     await client.waitUntil(() => this.getWindowHandles().length > 0, 10000)
-    await $('atom-workspace').waitForExist(10000)
-
-    console.log('about to wait on fn')
+    await client.$('atom-workspace').waitForExist(10000)
 
     await fn(client)
     finish()
@@ -150,6 +142,6 @@ Logs:\n${chromedriverLogs.join('\n')}\
   waitsFor('webdriver to stop', chromeDriverDown, 15000)
 }
 
-function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
-}
+// function __guard__(value, transform) {
+//   return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined
+// }
