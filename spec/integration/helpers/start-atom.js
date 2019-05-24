@@ -103,7 +103,9 @@ module.exports = function(args, env, fn) {
           errorCode = code
         }
       })
-      chromedriver.stderr.on('data', log => chromedriverLogs.push(log.toString()))
+      chromedriver.stdout.on('data', log => console.log(log.toString()))
+      chromedriver.stderr.on('data', log => console.log(log.toString()))
+      // chromedriver.stderr.on('data', log => chromedriverLogs.push(log.toString()))
       chromedriver.stderr.on('close', () => resolve(errorCode))
     })
   })
