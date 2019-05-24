@@ -141,13 +141,20 @@ Logs:\n${chromedriverLogs.join('\n')}\
 
     console.log('>>> Waiting for window to exist')
     try {
-      await client.waitUntil(() => this.getWindowHandles().length > 0, 10000)
+      await client.waitUntil(function () {
+        return this.getWindowHandles().length > 0
+      }, 10000)
     } catch (error) {
       console.log(error)
     }
 
     console.log('>>> Waiting for workspace to exist')
-    await client.$('atom-workspace').waitForExist(10000)
+    try {
+      await client.$('atom-workspace').waitForExist(10000)
+    } catch (error) {
+      console.log(error)
+      jasmine.getEnv().currentSpec.fail(':(')
+    }
 
     console.log('>>> Waiting for test to run')
     await fn(client)
