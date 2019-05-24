@@ -82,7 +82,7 @@ const buildAtomClient = async (args, env) => {
         .map(element => element.dataset.path)
     )
   })
-  const test = client.addCommand('dispatchCommand', async function (command) {
+  client.addCommand('dispatchCommand', async function (command) {
     return this.execute(async () => atom.commands.dispatch(document.activeElement, command))
   })
 
