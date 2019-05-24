@@ -39,7 +39,6 @@ const chromeDriverDown = done => {
 
 const buildAtomClient = async (args, env) => {
   userDataDir = temp.mkdirSync('atom-user-data-dir')
-  console.log('>>> Waiting for webdriverio')
   let client
   try {
     client = await webdriverio.remote({
@@ -64,13 +63,10 @@ const buildAtomClient = async (args, env) => {
     console.log(error)
   }
 
-  console.log('>>> Adding waitForWindowCount')
-
   client.addCommand('waitForWindowCount', async function (count, timeout) {
     await this.waitUntil(() => this.getWindowHandles().length === count, timeout)
     return this.getWindowHandles()
   })
-  console.log('>>> Adding waitForPaneItemCount')
   client.addCommand('waitForPaneItemCount', async function (count, timeout) {
     await this.waitUntil(() => this.execute(() => {
       if (atom.workspace) {
@@ -79,7 +75,6 @@ const buildAtomClient = async (args, env) => {
       return 0
     }), timeout)
   })
-  console.log('>>> Adding treeViewRootDirectories')
   client.addCommand('treeViewRootDirectories', async function () {
     await this.$('.tree-view').waitForExist(10000)
     return this.execute(() =>
@@ -87,15 +82,9 @@ const buildAtomClient = async (args, env) => {
         .map(element => element.dataset.path)
     )
   })
-  console.log('>>> Adding dispatchCommand')
   const test = client.addCommand('dispatchCommand', async function (command) {
     return this.execute(async () => atom.commands.dispatch(document.activeElement, command))
   })
-
-  console.log('>>> addCommand returns: ')
-  console.log(test)
-
-  console.log('>>> Returning client')
 
   return client
 }
@@ -128,7 +117,6 @@ module.exports = function(args, env, fn) {
   waitsFor('webdriver to start', chromeDriverUp, 15000)
 
   waitsFor('tests to run', async done => {
-    console.log('>>> Waiting for Atom client')
     const client = await buildAtomClient(args, env)
 
     const finish = once(async () => {
@@ -152,7 +140,11 @@ Logs:\n${chromedriverLogs.join('\n')}\
     // })
 
     console.log('>>> Waiting for window to exist')
-    await client.waitUntil(() => this.getWindowHandles().length > 0, 10000)
+    try {
+      await client.waitUntil(() => this.getWindowHandles().length > 0, 10000)
+    } catch (error) {
+      console.log(error)
+    }
 
     console.log('>>> Waiting for workspace to exist')
     await client.$('atom-workspace').waitForExist(10000)
