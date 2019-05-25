@@ -72,7 +72,8 @@ const buildAtomClient = async (args, env) => {
     }), timeout)
   })
   client.addCommand('treeViewRootDirectories', async function () {
-    await this.$('.tree-view').waitForExist(10000)
+    const treeViewElement = await this.$('.tree-view')
+    await treeViewElement.waitForExist(10000)
     return this.execute(() =>
       Array.from(document.querySelectorAll('.tree-view .project-root > .header .name'))
         .map(element => element.dataset.path)
@@ -147,17 +148,10 @@ Logs:\n${chromedriverLogs.join('\n')}\
 
     console.log('>>> Waiting for workspace to exist')
     try {
-      console.log('>>> Return value of selector without await:')
-      console.log(client.$('atom-workspace'))
-      console.log(client.$('atom-workspace').waitForExist)
-      const test = await client.$('atom-workspace')
-      console.log('>>> Return value of selector with await:')
-      console.log(test)
-      console.log(test.waitForExist)
-      await client.$('atom-workspace').waitForExist(10000)
+      const workspaceElement = await client.$('atom-workspace')
+      await workspaceElement.waitForExist(10000)
     } catch (error) {
       console.log(error)
-      jasmine.getEnv().currentSpec.fail(':(')
     }
 
     console.log('>>> Waiting for test to run')

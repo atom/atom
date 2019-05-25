@@ -37,12 +37,13 @@ fdescribe('Smoke Test', () => {
       expect(roots).toEqual([])
 
       console.log('>>> Waiting for editor to exist')
-      await client.$('atom-text-editor').waitForExist(5000)
+      const textEditorElement = await client.$('atom-text-editor')
+      await textEditorElement.waitForExist(5000)
 
       console.log('>>> Waiting for there to be one pane item')
       await client.waitForPaneItemCount(1, 1000)
 
-      client.$('atom-text-editor').click()
+      textEditorElement.click()
 
       console.log('Waiting for active element to be atom-text-editor')
       await client.waitUntil(function () {
