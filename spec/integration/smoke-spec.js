@@ -46,12 +46,12 @@ fdescribe('Smoke Test', () => {
       console.log('>>> Waiting for there to be one pane item')
       await client.waitForPaneItemCount(1, 1000)
 
-      textEditorElement.click()
+      console.log('>>> Waiting to click text editor')
+      await textEditorElement.click()
 
-      console.log('>>> Waiting for active element to be atom-text-editor')
-      await client.waitUntil(function () {
-        return this.execute(() => document.activeElement.closest('atom-text-editor'))
-      }, 5000)
+      console.log('>>> Waiting for closest element')
+      const closestElement = await client.execute(() => document.activeElement.closest('atom-text-editor'))
+      expect(closestElement).not.toBeNull()
 
       console.log('>>> Waiting for text to be inserted')
       await client.keys('Hello!')

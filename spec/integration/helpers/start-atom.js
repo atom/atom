@@ -155,7 +155,12 @@ Logs:\n${chromedriverLogs.join('\n')}\
     }
 
     console.log('>>> Waiting for test to run')
-    await fn(client)
+    try {
+      await fn(client)
+    } catch (error) {
+      console.log('!!!!!!!!!')
+      console.log(error)
+    }
     finish()
   }
   , 30000)
