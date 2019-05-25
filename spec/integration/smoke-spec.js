@@ -48,18 +48,22 @@ fdescribe('Smoke Test', () => {
 
       textEditorElement.click()
 
-      console.log('Waiting for active element to be atom-text-editor')
+      console.log('>>> Waiting for active element to be atom-text-editor')
       await client.waitUntil(function () {
         return this.execute(() => document.activeElement.closest('atom-text-editor'))
       }, 5000)
 
-      const text = client.keys('Hello!').execute(() => atom.workspace.getActiveTextEditor().getText())
+      console.log('>>> Waiting for text to be inserted')
+      await client.keys('Hello!')
+
+      console.log('>>> Waiting for text')
+      const text = await client.execute(() => atom.workspace.getActiveTextEditor().getText())
       expect(text).toBe('Hello!')
 
-      console.log('Waiting to delete line')
+      console.log('>>> Waiting to delete line')
       await client.dispatchCommand('editor:delete-line')
 
-      console.log('Done!')
+      console.log('>>> Done!')
     })
   })
 })
