@@ -64,12 +64,7 @@ const buildAtomClient = async (args, env) => {
   }
 
   client.addCommand('waitForPaneItemCount', async function (count, timeout) {
-    await this.waitUntil(() => this.execute(() => {
-      if (atom.workspace) {
-        return atom.workspace.getActivePane().getItems().length
-      }
-      return 0
-    }), timeout)
+    await this.waitUntil(() => this.execute(() => atom.workspace.getActivePane().getItems().length), timeout)
   })
   client.addCommand('treeViewRootDirectories', async function () {
     const treeViewElement = await this.$('.tree-view')
