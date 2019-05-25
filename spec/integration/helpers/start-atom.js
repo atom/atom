@@ -142,6 +142,7 @@ Logs:\n${chromedriverLogs.join('\n')}\
     console.log('>>> Waiting for window to exist')
     try {
       await client.waitUntil(function () {
+        console.log('>>> Window handles: ' + this.getWindowHandles().length)
         return this.getWindowHandles().length > 0
       }, 10000)
     } catch (error) {
@@ -150,6 +151,8 @@ Logs:\n${chromedriverLogs.join('\n')}\
 
     console.log('>>> Waiting for workspace to exist')
     try {
+      console.log('>>> Return value of selector:')
+      console.log(await client.$('atom-workspace'))
       await client.$('atom-workspace').waitForExist(10000)
     } catch (error) {
       console.log(error)
