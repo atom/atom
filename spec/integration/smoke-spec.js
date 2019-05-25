@@ -31,10 +31,13 @@ fdescribe('Smoke Test', () => {
 
     fs.writeFileSync(filePath, '', {encoding: 'utf8'})
 
-    runAtom([filePath], {ATOM_HOME: atomHome}, async client => {
+    runAtom([tempDirPath], {ATOM_HOME: atomHome}, async client => {
       console.log('>>> Waiting for root directories')
       const roots = await client.treeViewRootDirectories()
-      expect(roots).toEqual([])
+      expect(roots).toEqual([tempDirPath])
+
+      console.log('>>> Waiting for editor to open')
+      await client.execute(async () => await atom.workspace.open(filePath))
 
       console.log('>>> Waiting for editor to exist')
       const textEditorElement = await client.$('atom-text-editor')
