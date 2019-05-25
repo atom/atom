@@ -201,7 +201,8 @@ function testSuitesForPlatform (platform) {
   let suites = []
   switch (platform) {
     case 'darwin':
-      suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      // suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      suites = [runCoreRenderProcessTests]
       break
     case 'win32':
       suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
