@@ -147,8 +147,13 @@ Logs:\n${chromedriverLogs.join('\n')}\
 
     console.log('>>> Waiting for workspace to exist')
     try {
-      console.log('>>> Return value of selector:')
-      console.log(await client.$('atom-workspace'))
+      console.log('>>> Return value of selector without await:')
+      console.log(client.$('atom-workspace'))
+      console.log(client.$('atom-workspace').waitForExist)
+      const test = await client.$('atom-workspace')
+      console.log('>>> Return value of selector with await:')
+      console.log(test)
+      console.log(test.waitForExist)
       await client.$('atom-workspace').waitForExist(10000)
     } catch (error) {
       console.log(error)
