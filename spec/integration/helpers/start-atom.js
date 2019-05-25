@@ -63,10 +63,6 @@ const buildAtomClient = async (args, env) => {
     console.log(error)
   }
 
-  client.addCommand('waitForWindowCount', async function (count, timeout) {
-    await this.waitUntil(() => this.getWindowHandles().length === count, timeout)
-    return this.getWindowHandles()
-  })
   client.addCommand('waitForPaneItemCount', async function (count, timeout) {
     await this.waitUntil(() => this.execute(() => {
       if (atom.workspace) {
@@ -141,9 +137,9 @@ Logs:\n${chromedriverLogs.join('\n')}\
 
     console.log('>>> Waiting for window to exist')
     try {
-      await client.waitUntil(function () {
-        console.log('>>> Window handles: ' + this.getWindowHandles().length)
-        return this.getWindowHandles().length > 0
+      await client.waitUntil(async function () {
+        const handles = await this.getWindowHandles()
+        return handles.length > 0
       }, 10000)
     } catch (error) {
       console.log(error)
