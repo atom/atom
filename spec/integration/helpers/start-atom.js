@@ -75,7 +75,7 @@ const buildAtomClient = async (args, env) => {
     )
   })
   client.addCommand('dispatchCommand', async function (command) {
-    return this.execute(async () => await atom.commands.dispatch(document.activeElement, command))
+    return this.execute(async (command) => await atom.commands.dispatch(document.activeElement, command), command)
   })
 
   return client
