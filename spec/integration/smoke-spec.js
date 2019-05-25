@@ -37,7 +37,7 @@ fdescribe('Smoke Test', () => {
       expect(roots).toEqual([tempDirPath])
 
       console.log('>>> Waiting for editor to open')
-      await client.execute(async () => await atom.workspace.open(filePath))
+      await client.execute(async filePath => await atom.workspace.open(filePath), filePath)
 
       console.log('>>> Waiting for editor to exist')
       const textEditorElement = await client.$('atom-text-editor')
