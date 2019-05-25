@@ -112,6 +112,7 @@ module.exports = function(args, env, fn) {
     const client = await buildAtomClient(args, env)
 
     const finish = once(async () => {
+      await client.deleteSession()
       chromedriver.kill()
 
       console.log('>>> Waiting for exit code')
