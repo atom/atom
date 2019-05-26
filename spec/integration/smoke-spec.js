@@ -4,7 +4,7 @@ const season = require('season')
 const temp = require('temp').track()
 const runAtom = require('./helpers/start-atom')
 
-fdescribe('Smoke Test', () => {
+describe('Smoke Test', () => {
   // Fails on win32
   if (process.platform !== 'darwin') {
     return
