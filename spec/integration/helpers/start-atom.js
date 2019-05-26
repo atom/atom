@@ -100,7 +100,7 @@ module.exports = function(args, env, fn) {
   waitsFor('tests to run', async done => {
     let client
     try {
-      await buildAtomClient(args, env)
+      client = await buildAtomClient(args, env)
     } catch (error) {
       jasmine.getEnv().currentSpec.fail(`Unable to build Atom client.\n${error}`)
       finish()
