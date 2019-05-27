@@ -66,7 +66,7 @@ describe('AtomEnvironment', () => {
 
     it('will open the dev tools when an error is triggered', async () => {
       try {
-        a + 1 // eslint-disable-line no-undef
+        a + 1 // eslint-disable-line no-undef, no-unused-expressions
       } catch (e) {
         window.onerror(e.toString(), 'abc', 2, 3, e)
       }
@@ -87,7 +87,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onWillThrowError(willThrowSpy)
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           error = e
           window.onerror(e.toString(), 'abc', 2, 3, e)
@@ -108,7 +108,7 @@ describe('AtomEnvironment', () => {
         atom.onWillThrowError(willThrowSpy)
 
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           window.onerror(e.toString(), 'abc', 2, 3, e)
         }
@@ -127,7 +127,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onDidThrowError(didThrowSpy)
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           error = e
           window.onerror(e.toString(), 'abc', 2, 3, e)
