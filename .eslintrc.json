@@ -24,8 +24,6 @@
   },
   "rules": {
     "standard/no-callback-literal": ["off"],
-    "no-mixed-operators": ["off"],
-    "no-useless-escape": ["off"],
     "no-return-await": ["off"],
     "node/no-deprecated-api": ["off"],
     "prefer-promise-reject-errors": ["off"],
