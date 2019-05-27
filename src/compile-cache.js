@@ -177,7 +177,7 @@ exports.install = function (resourcesPath, nodeRequire) {
       var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
 
       try {
-        var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+        var sourceMap = JSON.parse(Buffer.from(rawData, 'base64'))
       } catch (error) {
         console.warn('Error parsing source map', error.stack)
         return null
@@ -217,7 +217,8 @@ exports.install = function (resourcesPath, nodeRequire) {
     }
   })
 
-  Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  // eslint-disable-next-line no-extend-native
+  Error.prototype.getRawStack = function () {
     // Access this.stack to ensure prepareStackTrace has been run on this error
     // because it assigns this.rawStack as a side-effect
     this.stack

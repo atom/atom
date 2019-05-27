@@ -36,13 +36,13 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'application:new-file': -> ipcRenderer.send('command', 'application:new-file')
       'application:open': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open', defaultPath)
+        ipcRenderer.send('open-chosen-any', defaultPath)
       'application:open-file': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open-file', defaultPath)
+        ipcRenderer.send('open-chosen-file', defaultPath)
       'application:open-folder': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open-folder', defaultPath)
+        ipcRenderer.send('open-chosen-folder', defaultPath)
       'application:open-dev': -> ipcRenderer.send('command', 'application:open-dev')
       'application:open-safe': -> ipcRenderer.send('command', 'application:open-safe')
       'application:add-project-folder': -> atom.addProjectFolder()

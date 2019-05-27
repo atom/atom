@@ -26,7 +26,7 @@ if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) 
   ci = true
 }
 
-verifyMachineRequirements()
+verifyMachineRequirements(ci)
 
 if (dependenciesFingerprint.isOutdated()) {
   cleanDependencies()

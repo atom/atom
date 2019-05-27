@@ -36,7 +36,9 @@ describe('Incompatible packages', () => {
       )
       spyOn(incompatiblePackage, 'isCompatible').andReturn(false)
       incompatiblePackage.incompatibleModules = []
-      waitsForPromise(() => atom.packages.activatePackage("incompatible-packages"))
+      waitsForPromise(() =>
+        atom.packages.activatePackage('incompatible-packages')
+      )
 
       waits(1)
     })
@@ -63,13 +65,15 @@ describe('Incompatible packages', () => {
 
   describe('when there are no packages with incompatible native modules', () => {
     beforeEach(() => {
-      waitsForPromise(() => atom.packages.activatePackage("incompatible-packages"))
+      waitsForPromise(() =>
+        atom.packages.activatePackage('incompatible-packages')
+      )
     })
 
     it('does not add an icon to the status bar', () => {
       let statusBarItemClasses = statusBar
         .getRightTiles()
-        .map((tile) => tile.getItem().className)
+        .map(tile => tile.getItem().className)
 
       expect(statusBarItemClasses).not.toContain('incompatible-packages')
     })
