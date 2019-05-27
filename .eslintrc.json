@@ -25,7 +25,6 @@
   "rules": {
     "standard/no-callback-literal": ["off"],
     "node/no-deprecated-api": ["off"],
-    "no-use-before-define": ["off"],
     "prettier/prettier": ["off"] // disable prettier rules for now.
   },
   "overrides": [
