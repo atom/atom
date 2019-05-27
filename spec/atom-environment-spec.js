@@ -545,7 +545,7 @@ describe('AtomEnvironment', () => {
           spyOn(atom, 'confirm').andReturn(1)
           spyOn(atom.project, 'addPath')
           spyOn(atom.workspace, 'open')
-          const state = Symbol()
+          const state = Symbol('state')
           atom.attemptRestoreProjectStateForPaths(
             state,
             [__dirname],
@@ -560,7 +560,7 @@ describe('AtomEnvironment', () => {
         spyOn(atom, 'confirm').andCallFake((options, callback) => callback(1))
         spyOn(atom.project, 'addPath')
         spyOn(atom.workspace, 'open')
-        const state = Symbol()
+        const state = Symbol('state')
 
         atom.attemptRestoreProjectStateForPaths(
           state,
@@ -579,7 +579,7 @@ describe('AtomEnvironment', () => {
         jasmine.useRealClock()
         spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
-        const state = Symbol()
+        const state = Symbol('state')
 
         atom.attemptRestoreProjectStateForPaths(
           state,
