@@ -1230,7 +1230,7 @@ class AtomApplication extends EventEmitter {
     } else if (state.version === undefined) {
       // Atom <= 1.36.0
       // Schema: [{initialPaths: ['<root-dir>', ...]}, ...]
-      return await Promise.all(
+      return Promise.all(
         state.map(async windowState => {
           // Classify each window's initialPaths as directories or non-directories
           const classifiedPaths = await Promise.all(
