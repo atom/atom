@@ -76,6 +76,12 @@ module.exports = function (packagedAppPath) {
     path.join(rpmPackageBuildDirPath, 'atom.sh')
   )
 
+  console.log(`Copying atom.policy into "${rpmPackageBuildDirPath}"`)
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
+    path.join(rpmPackageBuildDirPath, 'atom.policy')
+  )
+
   console.log(`Generating .rpm package from "${rpmPackageDirPath}"`)
   spawnSync('rpmbuild', ['-ba', '--clean', rpmPackageSpecFilePath])
   for (let generatedArch of fs.readdirSync(rpmPackageRpmsDirPath)) {
