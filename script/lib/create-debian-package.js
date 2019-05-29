@@ -113,6 +113,12 @@ module.exports = function (packagedAppPath) {
     path.join(debianPackageLintianOverridesDirPath, atomExecutableName)
   )
 
+  console.log(`Copying polkit configuration into "${debianPackageShareDirPath}"`)
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
+    path.join(debianPackageShareDirPath, 'polkit-1', 'actions', 'atom.policy')
+  )
+
   console.log(`Generating .deb file from ${debianPackageDirPath}`)
   spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {stdio: 'inherit'})
 

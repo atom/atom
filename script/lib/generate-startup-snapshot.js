@@ -69,6 +69,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'yauzl', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'fuzzy-native', 'lib', 'main.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'vscode-ripgrep', 'lib', 'index.js') ||
         // The startup-time script is used by both the renderer and the main process and having it in the
         // snapshot causes issues.
         requiredModuleRelativePath === path.join('..', 'src', 'startup-time.js')
