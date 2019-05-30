@@ -88,8 +88,7 @@ if (!argv.existingBinaries) {
 if (!argv.generateApiDocs) {
   binariesPromise
     .then(packageApplication)
-    // FIXME: Re-enable snapshotting
-    // .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
+    .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
     .then(packagedAppPath => {
       switch (process.platform) {
         case 'darwin': {
