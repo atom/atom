@@ -71,7 +71,7 @@ module.exports = class DefaultDirectorySearcher {
   //       * `filePath` {String} absolute path to the matching file.
   //       * `matches` {Array} with object elements with the following keys:
   //         * `lineText` {String} The full text of the matching line (without a line terminator character).
-  //         * `lineTextOffset` {Number} (This always seems to be 0?)
+  //         * `lineTextOffset` {Number} If > 0, the provided line text is truncated and starts at this offset
   //         * `matchText` {String} The text that matched the `regex` used for the search.
   //         * `range` {Range} Identifies the matching region in the file. (Likely as an array of numeric arrays.)
   //   * `didError` {Function} call with an Error if there is a problem during the search.

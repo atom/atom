@@ -9,6 +9,7 @@ const CONFIG = require('../config')
 
 module.exports = (packagedAppPath) => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch
+  const updateUrlPrefix = process.env.ATOM_UPDATE_URL_PREFIX || 'https://atom.io'
   const options = {
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
@@ -17,7 +18,7 @@ module.exports = (packagedAppPath) => {
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
     noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
-    remoteReleases: `https://atom.io/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
+    remoteReleases: `${updateUrlPrefix}/api/updates${archSuffix}?version=${CONFIG.computedAppVersion}`,
     setupExe: `AtomSetup${process.arch === 'x64' ? '-x64' : ''}.exe`,
     setupIcon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
   }
