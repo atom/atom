@@ -6,7 +6,7 @@ module.exports = function (packagedAppPath) {
       'find-certificate', '-c', 'Mac Developer'
     ])
 
-  const certMatch = (result.stdout || '').toString().match(/\"(Mac Developer.*\))\"/)
+  const certMatch = (result.stdout || '').toString().match(/"(Mac Developer.*\))"/)
   if (!certMatch || !certMatch[1]) {
     console.error('A "Mac Developer" certificate must be configured to perform test signing')
   } else {
