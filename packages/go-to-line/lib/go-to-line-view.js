@@ -27,14 +27,21 @@ class GoToLineView {
       this.navigate();
     });
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
-      this.close()
-    })
-    this.miniEditor.onWillInsertText((arg) => {
-      const value = this.miniEditor.getText()
-      if (arg.text.match(/[^0-9:\+-]/) || (arg.text.match(/\+/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/-/) && this.miniEditor.getCursorBufferPosition().column > 0) || (arg.text.match(/:/) && value.includes(':'))) {
-        arg.cancel()
+      this.close();
+    });
+    this.miniEditor.onWillInsertText(arg => {
+      const value = this.miniEditor.getText();
+      if (
+        arg.text.match(/[^0-9:+-]/) ||
+        (arg.text.match(/\+/) &&
+          this.miniEditor.getCursorBufferPosition().column > 0) ||
+        (arg.text.match(/-/) &&
+          this.miniEditor.getCursorBufferPosition().column > 0) ||
+        (arg.text.match(/:/) && value.includes(':'))
+      ) {
+        arg.cancel();
       }
-    })
+    });
   }
 
   toggle() {
@@ -56,20 +63,24 @@ class GoToLineView {
     if (!options.keepOpen) {
       this.close();
     }
-    if (!editor || !lineNumber.length) return
-    const currentRow = editor.getCursorBufferPosition().row
-    const rowLineNumber = lineNumber.split(/:+/)[0] || ''
-    const columnLineNumber = lineNumber.split(/:+/)[1] || ''
-    const column = columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1
-    var row = currentRow
+    if (!editor || !lineNumber.length) return;
+    const currentRow = editor.getCursorBufferPosition().row;
+    const rowLineNumber = lineNumber.split(/:+/)[0] || '';
+    const columnLineNumber = lineNumber.split(/:+/)[1] || '';
+    const column =
+      columnLineNumber.length > 0 ? parseInt(columnLineNumber) - 1 : -1;
+    var row = currentRow;
     if (lineNumber.charAt(0) === '+' || lineNumber.charAt(0) === '-') {
-      row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) + currentRow : currentRow
+      row =
+        rowLineNumber.length > 0
+          ? parseInt(rowLineNumber) + currentRow
+          : currentRow;
     } else {
-      row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow
+      row = rowLineNumber.length > 0 ? parseInt(rowLineNumber) - 1 : currentRow;
     }
-    const position = new Point(row, column)
-    editor.setCursorBufferPosition(position)
-    editor.unfoldBufferRow(row)
+    const position = new Point(row, column);
+    editor.setCursorBufferPosition(position);
+    editor.unfoldBufferRow(row);
     if (column < 0) {
       editor.moveToFirstCharacterOfLine();
     }
@@ -93,12 +104,13 @@ class GoToLineView {
     atom.views.getView(atom.workspace).focus();
   }
 
-  open () {
-    if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return
-    this.storeFocusedElement()
-    this.panel.show()
-    this.message.textContent = 'Enter a <row>, <row>:<column>, or <+/-><row> to go there. Examples: "3" for row 3, "2:7" for row 2 and column 7, or "+2" to jump down two rows'
-    this.miniEditor.element.focus()
+  open() {
+    if (this.panel.isVisible() || !atom.workspace.getActiveTextEditor()) return;
+    this.storeFocusedElement();
+    this.panel.show();
+    this.message.textContent =
+      'Enter a <row>, <row>:<column>, or <+/-><row> to go there. Examples: "3" for row 3, "2:7" for row 2 and column 7, or "+2" to jump down two rows';
+    this.miniEditor.element.focus();
   }
 }
 

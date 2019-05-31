@@ -36,90 +36,90 @@ describe('GoToLine', () => {
 
   describe('when entering a line number', () => {
     it('only allows 0-9, +, -, or colon character to be entered in the mini editor', () => {
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('a')
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('A')
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('@')
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('path/file.txt:56')
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText(':')
-      expect(goToLine.miniEditor.getText()).toBe(':')
-      goToLine.miniEditor.insertText('+')
-      expect(goToLine.miniEditor.getText()).toBe('+')
-      goToLine.miniEditor.insertText('-')
-      expect(goToLine.miniEditor.getText()).toBe('-')
-      goToLine.miniEditor.setText('')
-      goToLine.miniEditor.insertText('4')
-      expect(goToLine.miniEditor.getText()).toBe('4')
-    })
-  })
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('a');
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('A');
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('@');
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('path/file.txt:56');
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText(':');
+      expect(goToLine.miniEditor.getText()).toBe(':');
+      goToLine.miniEditor.insertText('+');
+      expect(goToLine.miniEditor.getText()).toBe('+');
+      goToLine.miniEditor.insertText('-');
+      expect(goToLine.miniEditor.getText()).toBe('-');
+      goToLine.miniEditor.setText('');
+      goToLine.miniEditor.insertText('4');
+      expect(goToLine.miniEditor.getText()).toBe('4');
+    });
+  });
 
   describe('when typing relative line numbers and relative column numbers', () => {
     it('automatically scrolls to the right row and column', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+4:+5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+4:-5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-    })
-  })
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('+4:+5');
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4]);
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('+4:-5');
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4]);
+    });
+  });
 
   describe('when typing line numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('13')
-      expect(editor.getCursorBufferPosition()).toEqual([12, 0])
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('3+3')
-      expect(editor.getCursorBufferPosition()).toEqual([32, 0])
-      goToLine.miniEditor.insertText('3-5')
-      expect(editor.getCursorBufferPosition()).toEqual([34, 0])
-    })
-  })
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('13');
+      expect(editor.getCursorBufferPosition()).toEqual([12, 0]);
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('3+3');
+      expect(editor.getCursorBufferPosition()).toEqual([32, 0]);
+      goToLine.miniEditor.insertText('3-5');
+      expect(editor.getCursorBufferPosition()).toEqual([34, 0]);
+    });
+  });
 
   describe('when typing relative line numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+19')
-      expect(editor.getCursorBufferPosition()).toEqual([18, 0])
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('+19');
+      expect(editor.getCursorBufferPosition()).toEqual([18, 0]);
 
-      goToLine.miniEditor.insertText('-13')
-      expect(editor.getCursorBufferPosition()).toEqual([5, 0])
+      goToLine.miniEditor.insertText('-13');
+      expect(editor.getCursorBufferPosition()).toEqual([5, 0]);
 
-      editor.setCursorBufferPosition([6, 0])
-      goToLine.miniEditor.insertText('+-4')
-      expect(editor.getCursorBufferPosition()).toEqual([10, 0])
+      editor.setCursorBufferPosition([6, 0]);
+      goToLine.miniEditor.insertText('+-4');
+      expect(editor.getCursorBufferPosition()).toEqual([10, 0]);
 
-      goToLine.miniEditor.insertText('-+4')
-      expect(editor.getCursorBufferPosition()).toEqual([6, 0])
-    })
-  })
+      goToLine.miniEditor.insertText('-+4');
+      expect(editor.getCursorBufferPosition()).toEqual([6, 0]);
+    });
+  });
 
   describe('when typing relative line numbers and column number (auto-navigation)', () => {
     it('automatically scrolls to the desired line', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('+4:5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('+4:5');
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4]);
 
-      goToLine.miniEditor.insertText('-4:5')
-      expect(editor.getCursorBufferPosition()).toEqual([0, 4])
-    })
-  })
+      goToLine.miniEditor.insertText('-4:5');
+      expect(editor.getCursorBufferPosition()).toEqual([0, 4]);
+    });
+  });
 
   describe('when typing line and column numbers (auto-navigation)', () => {
     it('automatically scrolls to the desired line and column', () => {
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('3:8')
-      expect(editor.getCursorBufferPosition()).toEqual([2, 7])
-      editor.setCursorBufferPosition([0, 0])
-      goToLine.miniEditor.insertText('4::5')
-      expect(editor.getCursorBufferPosition()).toEqual([3, 4])
-    })
-  })
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('3:8');
+      expect(editor.getCursorBufferPosition()).toEqual([2, 7]);
+      editor.setCursorBufferPosition([0, 0]);
+      goToLine.miniEditor.insertText('4::5');
+      expect(editor.getCursorBufferPosition()).toEqual([3, 4]);
+    });
+  });
 
   describe('when entering a line number and column number', () => {
     it('moves the cursor to the column number of the line specified', () => {
@@ -130,60 +130,64 @@ describe('GoToLine', () => {
     });
 
     it('centers the selected line', () => {
-      goToLine.miniEditor.insertText('45:4')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      const rowsPerPage = editor.getRowsPerPage()
-      const currentRow = editor.getCursorBufferPosition().row - 1
-      expect(editor.getFirstVisibleScreenRow()).toBe(currentRow - Math.ceil(rowsPerPage / 2))
-      expect(editor.getLastVisibleScreenRow()).toBe(currentRow + Math.floor(rowsPerPage / 2))
-    })
-  })
+      goToLine.miniEditor.insertText('45:4');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      const rowsPerPage = editor.getRowsPerPage();
+      const currentRow = editor.getCursorBufferPosition().row - 1;
+      expect(editor.getFirstVisibleScreenRow()).toBe(
+        currentRow - Math.ceil(rowsPerPage / 2)
+      );
+      expect(editor.getLastVisibleScreenRow()).toBe(
+        currentRow + Math.floor(rowsPerPage / 2)
+      );
+    });
+  });
 
   describe('when entering a line number greater than the number of rows in the buffer', () => {
     it('moves the cursor position to the first character of the last line', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('71')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([70, 0])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('71');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([70, 0]);
+    });
+  });
 
   describe('when entering a relative line number greater than the number of rows in the buffer', () => {
     it('moves the cursor position to the first character of the last line', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('+100')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([99, 0])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('+100');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([99, 0]);
+    });
+  });
   describe('when entering a relative line number smaller than the number of rows in the buffer', () => {
     it('moves the cursor position to the first character of the last line', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('-100')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([0, 0])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('-100');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([0, 0]);
+    });
+  });
   describe('when entering a column number greater than the number in the specified line', () => {
     it('moves the cursor position to the last character of the specified line', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('3:43')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([2, 40])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('3:43');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([2, 40]);
+    });
+  });
 
   describe('when core:confirm is triggered', () => {
     describe('when a line number has been entered', () => {
@@ -196,15 +200,15 @@ describe('GoToLine', () => {
 
     describe('when the line number entered is nested within foldes', () => {
       it('unfolds all folds containing the given row', () => {
-        expect(editor.indentationForBufferRow(6)).toEqual(3)
-        editor.foldAll()
-        expect(editor.screenRowForBufferRow(6)).toEqual(0)
-        goToLine.miniEditor.insertText('7')
-        atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-        expect(editor.getCursorBufferPosition()).toEqual([6, 6])
-      })
-    })
-  })
+        expect(editor.indentationForBufferRow(6)).toEqual(3);
+        editor.foldAll();
+        expect(editor.screenRowForBufferRow(6)).toEqual(0);
+        goToLine.miniEditor.insertText('7');
+        atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+        expect(editor.getCursorBufferPosition()).toEqual([6, 6]);
+      });
+    });
+  });
 
   describe('when no line number has been entered', () => {
     it('closes the view and does not update the cursor position', () => {
