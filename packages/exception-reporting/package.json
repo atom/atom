@@ -12,7 +12,7 @@
     "fs-plus": "^3.0.0",
     "node-uuid": "~1.4.7",
     "stack-trace": "0.0.9",
-    "underscore-plus": "1.x"
+    "underscore-plus": "^1.7.0"
   },
   "devDependencies": {
     "semver": "^5.3.0"

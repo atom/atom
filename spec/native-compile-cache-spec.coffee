@@ -89,7 +89,7 @@ describe "NativeCompileCache", ->
 
   it "deletes previously cached code when the cache is an invalid file", ->
     fakeCacheStore.has.andReturn(true)
-    fakeCacheStore.get.andCallFake -> new Buffer("an invalid cache")
+    fakeCacheStore.get.andCallFake -> Buffer.from("an invalid cache")
 
     fn3 = require('./fixtures/native-cache/file-3')
 

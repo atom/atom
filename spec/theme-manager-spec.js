@@ -319,9 +319,9 @@ h2 {
     it('returns a disposable allowing styles applied by the given path to be removed', function () {
       const cssPath = require.resolve('./fixtures/css.css')
 
-      expect(getComputedStyle(document.body).fontWeight).not.toBe('bold')
+      expect(getComputedStyle(document.body).fontWeight).not.toBe('700')
       const disposable = atom.themes.requireStylesheet(cssPath)
-      expect(getComputedStyle(document.body).fontWeight).toBe('bold')
+      expect(getComputedStyle(document.body).fontWeight).toBe('700')
 
       let styleElementRemovedHandler
       atom.styles.onDidRemoveStyleElement(

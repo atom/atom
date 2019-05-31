@@ -198,11 +198,11 @@ describe('PanelContainerElement', () => {
     })
 
     describe('autoFocus', () => {
-      function createPanel () {
+      function createPanel (autoFocus = true) {
         const panel = new Panel(
           {
             item: new TestPanelContainerItem(),
-            autoFocus: true,
+            autoFocus: autoFocus,
             visible: false
           },
           atom.views
@@ -222,6 +222,20 @@ describe('PanelContainerElement', () => {
 
         panel.show()
         expect(document.activeElement).toBe(inputEl)
+      })
+
+      it('focuses the autoFocus element if available', () => {
+        const inputEl1 = document.createElement('input')
+        const inputEl2 = document.createElement('input')
+        const panel = createPanel(inputEl2)
+        const panelEl = panel.getElement()
+
+        panelEl.appendChild(inputEl1)
+        panelEl.appendChild(inputEl2)
+        expect(document.activeElement).not.toBe(inputEl2)
+
+        panel.show()
+        expect(document.activeElement).toBe(inputEl2)
       })
 
       it('focuses the entire panel item when no tabbable item is available and the panel is focusable', () => {

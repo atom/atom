@@ -49,13 +49,15 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       '"b"': 'w',
       'a > "b"': 'x',
-      'a > "b":nth-child(1)': 'y'
+      'a > "b":nth-child(1)': 'y',
+      '"\\""': 'z'
     })
 
     expect(map.get(['b'], [0], true)).toBe(undefined)
     expect(map.get(['b'], [0], false)).toBe('w')
     expect(map.get(['a', 'b'], [0, 0], false)).toBe('x')
     expect(map.get(['a', 'b'], [0, 1], false)).toBe('y')
+    expect(map.get(['a', '"'], [0, 1], false)).toBe('z')
   })
 
   it('supports the wildcard selector', () => {

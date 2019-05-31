@@ -8,8 +8,10 @@ const sinon = require('sinon')
 const { escapeRegExp } = require('underscore-plus')
 const temp = require('temp').track()
 
-describe('FileRecoveryService', () => {
+describe('FileRecoveryService', function () {
   let recoveryService, recoveryDirectory, spies
+
+  this.timeout(10 * 1000)
 
   beforeEach(() => {
     recoveryDirectory = temp.mkdirSync('atom-spec-file-recovery')

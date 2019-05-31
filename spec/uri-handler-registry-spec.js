@@ -11,31 +11,31 @@ describe('URIHandlerRegistry', () => {
     registry = new URIHandlerRegistry(5)
   })
 
-  it('handles URIs on a per-host basis', () => {
+  it('handles URIs on a per-host basis', async () => {
     const testPackageSpy = jasmine.createSpy()
     const otherPackageSpy = jasmine.createSpy()
     registry.registerHostHandler('test-package', testPackageSpy)
     registry.registerHostHandler('other-package', otherPackageSpy)
 
-    registry.handleURI('atom://yet-another-package/path')
+    await registry.handleURI('atom://yet-another-package/path')
     expect(testPackageSpy).not.toHaveBeenCalled()
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleURI('atom://test-package/path')
+    await registry.handleURI('atom://test-package/path')
     expect(testPackageSpy).toHaveBeenCalledWith(
       url.parse('atom://test-package/path', true),
       'atom://test-package/path'
     )
     expect(otherPackageSpy).not.toHaveBeenCalled()
 
-    registry.handleURI('atom://other-package/path')
+    await registry.handleURI('atom://other-package/path')
     expect(otherPackageSpy).toHaveBeenCalledWith(
       url.parse('atom://other-package/path', true),
       'atom://other-package/path'
     )
   })
 
-  it('keeps track of the most recent URIs', () => {
+  it('keeps track of the most recent URIs', async () => {
     const spy1 = jasmine.createSpy()
     const spy2 = jasmine.createSpy()
     const changeSpy = jasmine.createSpy()
@@ -51,7 +51,9 @@ describe('URIHandlerRegistry', () => {
       'atom://two/more/stuff'
     ]
 
-    uris.forEach(u => registry.handleURI(u))
+    for (const u of uris) {
+      await registry.handleURI(u)
+    }
 
     expect(changeSpy.callCount).toBe(5)
     expect(registry.getRecentlyHandledURIs()).toEqual(
@@ -67,7 +69,7 @@ describe('URIHandlerRegistry', () => {
         .reverse()
     )
 
-    registry.handleURI('atom://another/url')
+    await registry.handleURI('atom://another/url')
     expect(changeSpy.callCount).toBe(6)
     const history = registry.getRecentlyHandledURIs()
     expect(history.length).toBe(5)
@@ -75,14 +77,24 @@ describe('URIHandlerRegistry', () => {
     expect(history[4].uri).toBe(uris[1])
   })
 
-  it('refuses to handle bad URLs', () => {
-    ;[
+  it('refuses to handle bad URLs', async () => {
+    const invalidUris = [
       'atom:package/path',
       'atom:8080://package/path',
       'user:pass@atom://package/path',
       'smth://package/path'
-    ].forEach(uri => {
-      expect(() => registry.handleURI(uri)).toThrow()
-    })
+    ]
+
+    let numErrors = 0
+    for (const uri of invalidUris) {
+      try {
+        await registry.handleURI(uri)
+        expect(uri).toBe('throwing an error')
+      } catch (ex) {
+        numErrors++
+      }
+    }
+
+    expect(numErrors).toBe(invalidUris.length)
   })
 })
