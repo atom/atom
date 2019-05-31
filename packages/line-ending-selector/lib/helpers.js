@@ -1,7 +1,7 @@
-'use babel'
+'use babel';
 
 export default {
-  getProcessPlatform () {
-    return process.platform
+  getProcessPlatform() {
+    return process.platform;
   }
-}
+};

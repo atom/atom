@@ -1,67 +1,69 @@
-const {Emitter, Range} = require('atom')
-const Grim = require('grim')
-const TextEditorComponent = require('./text-editor-component')
-const dedent = require('dedent')
+const { Emitter, Range } = require('atom');
+const Grim = require('grim');
+const TextEditorComponent = require('./text-editor-component');
+const dedent = require('dedent');
 
 class TextEditorElement extends HTMLElement {
-  initialize (component) {
-    this.component = component
-    return this
+  initialize(component) {
+    this.component = component;
+    return this;
   }
 
-  get shadowRoot () {
+  get shadowRoot() {
     Grim.deprecate(dedent`
       The contents of \`atom-text-editor\` elements are no longer encapsulated
       within a shadow DOM boundary. Please, stop using \`shadowRoot\` and access
       the editor contents directly instead.
-    `)
+    `);
 
-    return this
+    return this;
   }
 
-  get rootElement () {
+  get rootElement() {
     Grim.deprecate(dedent`
       The contents of \`atom-text-editor\` elements are no longer encapsulated
       within a shadow DOM boundary. Please, stop using \`rootElement\` and access
       the editor contents directly instead.
-    `)
+    `);
 
-    return this
+    return this;
   }
 
-  createdCallback () {
-    this.emitter = new Emitter()
-    this.initialText = this.textContent
-    if (this.tabIndex == null) this.tabIndex = -1
-    this.addEventListener('focus', (event) => this.getComponent().didFocus(event))
-    this.addEventListener('blur', (event) => this.getComponent().didBlur(event))
+  createdCallback() {
+    this.emitter = new Emitter();
+    this.initialText = this.textContent;
+    if (this.tabIndex == null) this.tabIndex = -1;
+    this.addEventListener('focus', event =>
+      this.getComponent().didFocus(event)
+    );
+    this.addEventListener('blur', event => this.getComponent().didBlur(event));
   }
 
-  attachedCallback () {
-    this.getComponent().didAttach()
-    this.emitter.emit('did-attach')
+  attachedCallback() {
+    this.getComponent().didAttach();
+    this.emitter.emit('did-attach');
   }
 
-  detachedCallback () {
-    this.emitter.emit('did-detach')
-    this.getComponent().didDetach()
+  detachedCallback() {
+    this.emitter.emit('did-detach');
+    this.getComponent().didDetach();
   }
 
-  attributeChangedCallback (name, oldValue, newValue) {
+  attributeChangedCallback(name, oldValue, newValue) {
     if (this.component) {
       switch (name) {
         case 'mini':
-          this.getModel().update({mini: newValue != null})
-          break
+          this.getModel().update({ mini: newValue != null });
+          break;
         case 'placeholder-text':
-          this.getModel().update({placeholderText: newValue})
-          break
+          this.getModel().update({ placeholderText: newValue });
+          break;
         case 'gutter-hidden':
-          this.getModel().update({lineNumberGutterVisible: newValue == null})
-          break
+          this.getModel().update({ lineNumberGutterVisible: newValue == null });
+          break;
         case 'readonly':
-          this.getModel().update({readOnly: newValue != null})
-          break
+          this.getModel().update({ readOnly: newValue != null });
+          break;
       }
     }
   }
@@ -73,146 +75,149 @@ class TextEditorElement extends HTMLElement {
   // be sure this change has been flushed to the DOM.
   //
   // Returns a {Promise}.
-  getNextUpdatePromise () {
-    return this.getComponent().getNextUpdatePromise()
+  getNextUpdatePromise() {
+    return this.getComponent().getNextUpdatePromise();
   }
 
-  getModel () {
-    return this.getComponent().props.model
+  getModel() {
+    return this.getComponent().props.model;
   }
 
-  setModel (model) {
-    this.getComponent().update({model})
-    this.updateModelFromAttributes()
+  setModel(model) {
+    this.getComponent().update({ model });
+    this.updateModelFromAttributes();
   }
 
-  updateModelFromAttributes () {
-    const props = {mini: this.hasAttribute('mini')}
-    if (this.hasAttribute('placeholder-text')) props.placeholderText = this.getAttribute('placeholder-text')
-    if (this.hasAttribute('gutter-hidden')) props.lineNumberGutterVisible = false
+  updateModelFromAttributes() {
+    const props = { mini: this.hasAttribute('mini') };
+    if (this.hasAttribute('placeholder-text'))
+      props.placeholderText = this.getAttribute('placeholder-text');
+    if (this.hasAttribute('gutter-hidden'))
+      props.lineNumberGutterVisible = false;
 
-    this.getModel().update(props)
-    if (this.initialText) this.getModel().setText(this.initialText)
+    this.getModel().update(props);
+    if (this.initialText) this.getModel().setText(this.initialText);
   }
 
-  onDidAttach (callback) {
-    return this.emitter.on('did-attach', callback)
+  onDidAttach(callback) {
+    return this.emitter.on('did-attach', callback);
   }
 
-  onDidDetach (callback) {
-    return this.emitter.on('did-detach', callback)
+  onDidDetach(callback) {
+    return this.emitter.on('did-detach', callback);
   }
 
-  measureDimensions () {
-    this.getComponent().measureDimensions()
+  measureDimensions() {
+    this.getComponent().measureDimensions();
   }
 
-  setWidth (width) {
-    this.style.width = this.getComponent().getGutterContainerWidth() + width + 'px'
+  setWidth(width) {
+    this.style.width =
+      this.getComponent().getGutterContainerWidth() + width + 'px';
   }
 
-  getWidth () {
-    return this.getComponent().getScrollContainerWidth()
+  getWidth() {
+    return this.getComponent().getScrollContainerWidth();
   }
 
-  setHeight (height) {
-    this.style.height = height + 'px'
+  setHeight(height) {
+    this.style.height = height + 'px';
   }
 
-  getHeight () {
-    return this.getComponent().getScrollContainerHeight()
+  getHeight() {
+    return this.getComponent().getScrollContainerHeight();
   }
 
-  onDidChangeScrollLeft (callback) {
-    return this.emitter.on('did-change-scroll-left', callback)
+  onDidChangeScrollLeft(callback) {
+    return this.emitter.on('did-change-scroll-left', callback);
   }
 
-  onDidChangeScrollTop (callback) {
-    return this.emitter.on('did-change-scroll-top', callback)
+  onDidChangeScrollTop(callback) {
+    return this.emitter.on('did-change-scroll-top', callback);
   }
 
   // Deprecated: get the width of an `x` character displayed in this element.
   //
   // Returns a {Number} of pixels.
-  getDefaultCharacterWidth () {
-    return this.getComponent().getBaseCharacterWidth()
+  getDefaultCharacterWidth() {
+    return this.getComponent().getBaseCharacterWidth();
   }
 
   // Extended: get the width of an `x` character displayed in this element.
   //
   // Returns a {Number} of pixels.
-  getBaseCharacterWidth () {
-    return this.getComponent().getBaseCharacterWidth()
+  getBaseCharacterWidth() {
+    return this.getComponent().getBaseCharacterWidth();
   }
 
-  getMaxScrollTop () {
-    return this.getComponent().getMaxScrollTop()
+  getMaxScrollTop() {
+    return this.getComponent().getMaxScrollTop();
   }
 
-  getScrollHeight () {
-    return this.getComponent().getScrollHeight()
+  getScrollHeight() {
+    return this.getComponent().getScrollHeight();
   }
 
-  getScrollWidth () {
-    return this.getComponent().getScrollWidth()
+  getScrollWidth() {
+    return this.getComponent().getScrollWidth();
   }
 
-  getVerticalScrollbarWidth () {
-    return this.getComponent().getVerticalScrollbarWidth()
+  getVerticalScrollbarWidth() {
+    return this.getComponent().getVerticalScrollbarWidth();
   }
 
-  getHorizontalScrollbarHeight () {
-    return this.getComponent().getHorizontalScrollbarHeight()
+  getHorizontalScrollbarHeight() {
+    return this.getComponent().getHorizontalScrollbarHeight();
   }
 
-  getScrollTop () {
-    return this.getComponent().getScrollTop()
+  getScrollTop() {
+    return this.getComponent().getScrollTop();
   }
 
-  setScrollTop (scrollTop) {
-    const component = this.getComponent()
-    component.setScrollTop(scrollTop)
-    component.scheduleUpdate()
+  setScrollTop(scrollTop) {
+    const component = this.getComponent();
+    component.setScrollTop(scrollTop);
+    component.scheduleUpdate();
   }
 
-  getScrollBottom () {
-    return this.getComponent().getScrollBottom()
+  getScrollBottom() {
+    return this.getComponent().getScrollBottom();
   }
 
-  setScrollBottom (scrollBottom) {
-    return this.getComponent().setScrollBottom(scrollBottom)
+  setScrollBottom(scrollBottom) {
+    return this.getComponent().setScrollBottom(scrollBottom);
   }
 
-  getScrollLeft () {
-    return this.getComponent().getScrollLeft()
+  getScrollLeft() {
+    return this.getComponent().getScrollLeft();
   }
 
-  setScrollLeft (scrollLeft) {
-    const component = this.getComponent()
-    component.setScrollLeft(scrollLeft)
-    component.scheduleUpdate()
+  setScrollLeft(scrollLeft) {
+    const component = this.getComponent();
+    component.setScrollLeft(scrollLeft);
+    component.scheduleUpdate();
   }
 
-  getScrollRight () {
-    return this.getComponent().getScrollRight()
+  getScrollRight() {
+    return this.getComponent().getScrollRight();
   }
 
-  setScrollRight (scrollRight) {
-    return this.getComponent().setScrollRight(scrollRight)
+  setScrollRight(scrollRight) {
+    return this.getComponent().setScrollRight(scrollRight);
   }
 
   // Essential: Scrolls the editor to the top.
-  scrollToTop () {
-    this.setScrollTop(0)
+  scrollToTop() {
+    this.setScrollTop(0);
   }
 
   // Essential: Scrolls the editor to the bottom.
-  scrollToBottom () {
-    this.setScrollTop(Infinity)
+  scrollToBottom() {
+    this.setScrollTop(Infinity);
   }
 
-  hasFocus () {
-    return this.getComponent().focused
+  hasFocus() {
+    return this.getComponent().focused;
   }
 
   // Extended: Converts a buffer position to a pixel position.
@@ -226,9 +231,11 @@ class TextEditorElement extends HTMLElement {
   //
   // Returns an {Object} with two values: `top` and `left`, representing the
   // pixel position.
-  pixelPositionForBufferPosition (bufferPosition) {
-    const screenPosition = this.getModel().screenPositionForBufferPosition(bufferPosition)
-    return this.getComponent().pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForBufferPosition(bufferPosition) {
+    const screenPosition = this.getModel().screenPositionForBufferPosition(
+      bufferPosition
+    );
+    return this.getComponent().pixelPositionForScreenPosition(screenPosition);
   }
 
   // Extended: Converts a screen position to a pixel position.
@@ -241,60 +248,63 @@ class TextEditorElement extends HTMLElement {
   //
   // Returns an {Object} with two values: `top` and `left`, representing the
   // pixel position.
-  pixelPositionForScreenPosition (screenPosition) {
-    screenPosition = this.getModel().clipScreenPosition(screenPosition)
-    return this.getComponent().pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForScreenPosition(screenPosition) {
+    screenPosition = this.getModel().clipScreenPosition(screenPosition);
+    return this.getComponent().pixelPositionForScreenPosition(screenPosition);
   }
 
-  screenPositionForPixelPosition (pixelPosition) {
-    return this.getComponent().screenPositionForPixelPosition(pixelPosition)
+  screenPositionForPixelPosition(pixelPosition) {
+    return this.getComponent().screenPositionForPixelPosition(pixelPosition);
   }
 
-  pixelRectForScreenRange (range) {
-    range = Range.fromObject(range)
+  pixelRectForScreenRange(range) {
+    range = Range.fromObject(range);
 
-    const start = this.pixelPositionForScreenPosition(range.start)
-    const end = this.pixelPositionForScreenPosition(range.end)
-    const lineHeight = this.getComponent().getLineHeight()
+    const start = this.pixelPositionForScreenPosition(range.start);
+    const end = this.pixelPositionForScreenPosition(range.end);
+    const lineHeight = this.getComponent().getLineHeight();
 
     return {
       top: start.top,
       left: start.left,
       height: end.top + lineHeight - start.top,
       width: end.left - start.left
-    }
+    };
   }
 
-  pixelRangeForScreenRange (range) {
-    range = Range.fromObject(range)
+  pixelRangeForScreenRange(range) {
+    range = Range.fromObject(range);
     return {
       start: this.pixelPositionForScreenPosition(range.start),
       end: this.pixelPositionForScreenPosition(range.end)
-    }
+    };
   }
 
-  getComponent () {
+  getComponent() {
     if (!this.component) {
       this.component = new TextEditorComponent({
         element: this,
         mini: this.hasAttribute('mini'),
         updatedSynchronously: this.updatedSynchronously,
         readOnly: this.hasAttribute('readonly')
-      })
-      this.updateModelFromAttributes()
+      });
+      this.updateModelFromAttributes();
     }
 
+    return this.component;
+  }
+
+  setUpdatedSynchronously(updatedSynchronously) {
+    this.updatedSynchronously = updatedSynchronously;
+    if (this.component)
+      this.component.updatedSynchronously = updatedSynchronously;
+    return updatedSynchronously;
+  }
+
+  isUpdatedSynchronously() {
     return this.component
-  }
-
-  setUpdatedSynchronously (updatedSynchronously) {
-    this.updatedSynchronously = updatedSynchronously
-    if (this.component) this.component.updatedSynchronously = updatedSynchronously
-    return updatedSynchronously
-  }
-
-  isUpdatedSynchronously () {
-    return this.component ? this.component.updatedSynchronously : this.updatedSynchronously
+      ? this.component.updatedSynchronously
+      : this.updatedSynchronously;
   }
 
   // Experimental: Invalidate the passed block {Decoration}'s dimensions,
@@ -303,48 +313,47 @@ class TextEditorElement extends HTMLElement {
   //
   // * {blockDecoration} A {Decoration} representing the block decoration you
   // want to update the dimensions of.
-  invalidateBlockDecorationDimensions () {
-    this.getComponent().invalidateBlockDecorationDimensions(...arguments)
+  invalidateBlockDecorationDimensions() {
+    this.getComponent().invalidateBlockDecorationDimensions(...arguments);
   }
 
-  setFirstVisibleScreenRow (row) {
-    this.getModel().setFirstVisibleScreenRow(row)
+  setFirstVisibleScreenRow(row) {
+    this.getModel().setFirstVisibleScreenRow(row);
   }
 
-  getFirstVisibleScreenRow () {
-    return this.getModel().getFirstVisibleScreenRow()
+  getFirstVisibleScreenRow() {
+    return this.getModel().getFirstVisibleScreenRow();
   }
 
-  getLastVisibleScreenRow () {
-    return this.getModel().getLastVisibleScreenRow()
+  getLastVisibleScreenRow() {
+    return this.getModel().getLastVisibleScreenRow();
   }
 
-  getVisibleRowRange () {
-    return this.getModel().getVisibleRowRange()
+  getVisibleRowRange() {
+    return this.getModel().getVisibleRowRange();
   }
 
-  intersectsVisibleRowRange (startRow, endRow) {
+  intersectsVisibleRowRange(startRow, endRow) {
     return !(
       endRow <= this.getFirstVisibleScreenRow() ||
       this.getLastVisibleScreenRow() <= startRow
-    )
+    );
   }
 
-  selectionIntersectsVisibleRowRange (selection) {
-    const {start, end} = selection.getScreenRange()
-    return this.intersectsVisibleRowRange(start.row, end.row + 1)
+  selectionIntersectsVisibleRowRange(selection) {
+    const { start, end } = selection.getScreenRange();
+    return this.intersectsVisibleRowRange(start.row, end.row + 1);
   }
 
-  setFirstVisibleScreenColumn (column) {
-    return this.getModel().setFirstVisibleScreenColumn(column)
+  setFirstVisibleScreenColumn(column) {
+    return this.getModel().setFirstVisibleScreenColumn(column);
   }
 
-  getFirstVisibleScreenColumn () {
-    return this.getModel().getFirstVisibleScreenColumn()
+  getFirstVisibleScreenColumn() {
+    return this.getModel().getFirstVisibleScreenColumn();
   }
 }
 
-module.exports =
-document.registerElement('atom-text-editor', {
+module.exports = document.registerElement('atom-text-editor', {
   prototype: TextEditorElement.prototype
-})
+});

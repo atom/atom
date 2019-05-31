@@ -1,20 +1,20 @@
-const SelectListView = require('atom-select-list')
+const SelectListView = require('atom-select-list');
 
 module.exports = class GrammarListView {
-  constructor () {
-    this.autoDetect = { name: 'Auto Detect' }
+  constructor() {
+    this.autoDetect = { name: 'Auto Detect' };
     this.selectListView = new SelectListView({
       itemsClassList: ['mark-active'],
       items: [],
       filterKeyForItem: grammar => grammar.name,
       elementForItem: grammar => {
-        const grammarName = grammar.name || grammar.scopeName
-        const element = document.createElement('li')
+        const grammarName = grammar.name || grammar.scopeName;
+        const element = document.createElement('li');
         if (grammar === this.currentGrammar) {
-          element.classList.add('active')
+          element.classList.add('active');
         }
-        element.textContent = grammarName
-        element.dataset.grammar = grammarName
+        element.textContent = grammarName;
+        element.dataset.grammar = grammarName;
 
         const div = document.createElement('div')
         div.classList.add('pull-right')
@@ -35,50 +35,50 @@ module.exports = class GrammarListView {
           element.appendChild(div)
         }
 
-        return element
+        return element;
       },
       didConfirmSelection: grammar => {
-        this.cancel()
+        this.cancel();
         if (grammar === this.autoDetect) {
-          atom.textEditors.clearGrammarOverride(this.editor)
+          atom.textEditors.clearGrammarOverride(this.editor);
         } else {
           atom.grammars.assignGrammar(this.editor, grammar)
         }
       },
       didCancelSelection: () => {
-        this.cancel()
+        this.cancel();
       }
-    })
-    this.selectListView.element.classList.add('grammar-selector')
+    });
+    this.selectListView.element.classList.add('grammar-selector');
   }
 
-  destroy () {
-    this.cancel()
-    return this.selectListView.destroy()
+  destroy() {
+    this.cancel();
+    return this.selectListView.destroy();
   }
 
-  cancel () {
+  cancel() {
     if (this.panel != null) {
-      this.panel.destroy()
+      this.panel.destroy();
     }
-    this.panel = null
-    this.currentGrammar = null
+    this.panel = null;
+    this.currentGrammar = null;
     if (this.previouslyFocusedElement) {
-      this.previouslyFocusedElement.focus()
-      this.previouslyFocusedElement = null
+      this.previouslyFocusedElement.focus();
+      this.previouslyFocusedElement = null;
     }
   }
 
-  attach () {
-    this.previouslyFocusedElement = document.activeElement
+  attach() {
+    this.previouslyFocusedElement = document.activeElement;
     if (this.panel == null) {
-      this.panel = atom.workspace.addModalPanel({ item: this.selectListView })
+      this.panel = atom.workspace.addModalPanel({ item: this.selectListView });
     }
-    this.selectListView.focus()
-    this.selectListView.reset()
+    this.selectListView.focus();
+    this.selectListView.reset();
   }
 
-  async toggle () {
+  async toggle() {
     if (this.panel != null) {
       this.cancel()
       return
@@ -89,7 +89,7 @@ module.exports = class GrammarListView {
       this.editor = editor
       this.currentGrammar = this.editor.getGrammar()
       if (this.currentGrammar === atom.grammars.nullGrammar) {
-        this.currentGrammar = this.autoDetect
+        this.currentGrammar = this.autoDetect;
       }
 
       let grammars = atom.grammars.getGrammars({includeTreeSitter: true}).filter(grammar => {
@@ -115,7 +115,7 @@ module.exports = class GrammarListView {
 
       grammars.sort((a, b) => {
         if (a.scopeName === 'text.plain') {
-          return -1
+          return -1;
         } else if (b.scopeName === 'text.plain') {
           return 1
         } else if (a.name === b.name) {

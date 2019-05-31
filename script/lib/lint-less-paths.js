@@ -1,25 +1,25 @@
-'use strict'
+'use strict';
 
-const stylelint = require('stylelint')
-const path = require('path')
+const stylelint = require('stylelint');
+const path = require('path');
 
-const CONFIG = require('../config')
+const CONFIG = require('../config');
 
-module.exports = function () {
+module.exports = function() {
   return stylelint
     .lint({
       files: path.join(CONFIG.repositoryRootPath, 'static/**/*.less'),
       configBasedir: __dirname,
       configFile: path.resolve(__dirname, '..', '..', 'stylelint.config.js')
     })
-    .then(({results}) => {
-      const errors = []
+    .then(({ results }) => {
+      const errors = [];
 
       for (const result of results) {
         for (const deprecation of result.deprecations) {
-          console.log('stylelint encountered deprecation:', deprecation.text)
+          console.log('stylelint encountered deprecation:', deprecation.text);
           if (deprecation.reference != null) {
-            console.log('more information at', deprecation.reference)
+            console.log('more information at', deprecation.reference);
           }
         }
 
@@ -27,7 +27,7 @@ module.exports = function () {
           console.warn(
             'stylelint encountered invalid option:',
             invalidOptionWarning.text
-          )
+          );
         }
 
         if (result.errored) {
@@ -38,7 +38,7 @@ module.exports = function () {
                 lineNumber: warning.line,
                 message: warning.text,
                 rule: warning.rule
-              })
+              });
             } else {
               console.warn(
                 'stylelint encountered non-critical warning in file',
@@ -48,16 +48,16 @@ module.exports = function () {
                 'for rule',
                 warning.rule + ':',
                 warning.text
-              )
+              );
             }
           }
         }
       }
 
-      return errors
+      return errors;
     })
     .catch(err => {
-      console.error('There was a problem linting LESS:')
-      throw err
-    })
-}
+      console.error('There was a problem linting LESS:');
+      throw err;
+    });
+};
