@@ -1,46 +1,46 @@
-const etch = require('etch')
-const EtchComponent = require('../etch-component')
-const UpdateManager = require('../update-manager')
+const etch = require('etch');
+const EtchComponent = require('../etch-component');
+const UpdateManager = require('../update-manager');
 
-const $ = etch.dom
+const $ = etch.dom;
 
 module.exports = class UpdateView extends EtchComponent {
-  constructor (props) {
-    super(props)
+  constructor(props) {
+    super(props);
 
     if (
       this.props.updateManager.getAutoUpdatesEnabled() &&
       this.props.updateManager.getState() === UpdateManager.State.Idle
     ) {
-      this.props.updateManager.checkForUpdate()
+      this.props.updateManager.checkForUpdate();
     }
   }
 
-  handleAutoUpdateCheckbox (e) {
-    atom.config.set('core.automaticallyUpdate', e.target.checked)
+  handleAutoUpdateCheckbox(e) {
+    atom.config.set('core.automaticallyUpdate', e.target.checked);
   }
 
-  shouldUpdateActionButtonBeDisabled () {
-    let { state } = this.props.updateManager
+  shouldUpdateActionButtonBeDisabled() {
+    let { state } = this.props.updateManager;
     return (
       state === UpdateManager.State.CheckingForUpdate ||
       state === UpdateManager.State.DownloadingUpdate
-    )
+    );
   }
 
-  executeUpdateAction () {
+  executeUpdateAction() {
     if (
       this.props.updateManager.state ===
       UpdateManager.State.UpdateAvailableToInstall
     ) {
-      this.props.updateManager.restartAndInstallUpdate()
+      this.props.updateManager.restartAndInstallUpdate();
     } else {
-      this.props.updateManager.checkForUpdate()
+      this.props.updateManager.checkForUpdate();
     }
   }
 
-  renderUpdateStatus () {
-    let updateStatus = ''
+  renderUpdateStatus() {
+    let updateStatus = '';
 
     switch (this.props.updateManager.state) {
       case UpdateManager.State.Idle:
@@ -52,8 +52,8 @@ module.exports = class UpdateView extends EtchComponent {
           this.props.updateManager.getAutoUpdatesEnabled()
             ? 'Atom will check for updates automatically'
             : 'Automatic updates are disabled please check manually'
-        )
-        break
+        );
+        break;
       case UpdateManager.State.CheckingForUpdate:
         updateStatus = $.div(
           { className: 'about-updates-item app-checking-for-updates' },
@@ -61,15 +61,15 @@ module.exports = class UpdateView extends EtchComponent {
             { className: 'about-updates-label icon icon-search' },
             'Checking for updates...'
           )
-        )
-        break
+        );
+        break;
       case UpdateManager.State.DownloadingUpdate:
         updateStatus = $.div(
           { className: 'about-updates-item app-downloading-update' },
           $.span({ className: 'loading loading-spinner-tiny inline-block' }),
           $.span({ className: 'about-updates-label' }, 'Downloading update')
-        )
-        break
+        );
+        break;
       case UpdateManager.State.UpdateAvailableToInstall:
         updateStatus = $.div(
           { className: 'about-updates-item app-update-available-to-install' },
@@ -88,8 +88,8 @@ module.exports = class UpdateView extends EtchComponent {
             },
             'Release Notes'
           )
-        )
-        break
+        );
+        break;
       case UpdateManager.State.UpToDate:
         updateStatus = $.div(
           { className: 'about-updates-item app-up-to-date' },
@@ -98,8 +98,8 @@ module.exports = class UpdateView extends EtchComponent {
             { className: 'about-updates-label is-strong' },
             'Atom is up to date!'
           )
-        )
-        break
+        );
+        break;
       case UpdateManager.State.Unsupported:
         updateStatus = $.div(
           { className: 'about-updates-item app-unsupported' },
@@ -114,8 +114,8 @@ module.exports = class UpdateView extends EtchComponent {
             },
             'How to update'
           )
-        )
-        break
+        );
+        break;
       case UpdateManager.State.Error:
         updateStatus = $.div(
           { className: 'about-updates-item app-update-error' },
@@ -124,14 +124,14 @@ module.exports = class UpdateView extends EtchComponent {
             { className: 'about-updates-label app-error-message is-strong' },
             this.props.updateManager.getErrorMessage()
           )
-        )
-        break
+        );
+        break;
     }
 
-    return updateStatus
+    return updateStatus;
   }
 
-  render () {
+  render() {
     return $.div(
       { className: 'about-updates group-start' },
       $.div(
@@ -176,6 +176,6 @@ module.exports = class UpdateView extends EtchComponent {
           $.span({}, 'Automatically download updates')
         )
       )
-    )
+    );
   }
-}
+};

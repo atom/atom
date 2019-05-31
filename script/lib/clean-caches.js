@@ -1,12 +1,12 @@
-'use strict'
+'use strict';
 
-const fs = require('fs-extra')
-const os = require('os')
-const path = require('path')
+const fs = require('fs-extra');
+const os = require('os');
+const path = require('path');
 
-const CONFIG = require('../config')
+const CONFIG = require('../config');
 
-module.exports = function () {
+module.exports = function() {
   const cachePaths = [
     path.join(CONFIG.repositoryRootPath, 'electron'),
     path.join(CONFIG.atomHomeDirPath, '.node-gyp'),
@@ -19,10 +19,10 @@ module.exports = function () {
     path.join(CONFIG.atomHomeDirPath, 'electron'),
     path.join(os.tmpdir(), 'atom-build'),
     path.join(os.tmpdir(), 'atom-cached-atom-shells')
-  ]
+  ];
 
   for (let path of cachePaths) {
-    console.log(`Cleaning ${path}`)
-    fs.removeSync(path)
+    console.log(`Cleaning ${path}`);
+    fs.removeSync(path);
   }
-}
+};
