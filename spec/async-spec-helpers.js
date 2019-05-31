@@ -1,40 +1,40 @@
-async function conditionPromise (
+async function conditionPromise(
   condition,
   description = 'anonymous condition'
 ) {
-  const startTime = Date.now()
+  const startTime = Date.now();
 
   while (true) {
-    await timeoutPromise(100)
+    await timeoutPromise(100);
 
     if (await condition()) {
-      return
+      return;
     }
 
     if (Date.now() - startTime > 5000) {
-      throw new Error('Timed out waiting on ' + description)
+      throw new Error('Timed out waiting on ' + description);
     }
   }
 }
 
-function timeoutPromise (timeout) {
+function timeoutPromise(timeout) {
   return new Promise(resolve => {
-    global.setTimeout(resolve, timeout)
-  })
+    global.setTimeout(resolve, timeout);
+  });
 }
 
-function emitterEventPromise (emitter, event, timeout = 15000) {
+function emitterEventPromise(emitter, event, timeout = 15000) {
   return new Promise((resolve, reject) => {
     const timeoutHandle = setTimeout(() => {
-      reject(new Error(`Timed out waiting for '${event}' event`))
-    }, timeout)
+      reject(new Error(`Timed out waiting for '${event}' event`));
+    }, timeout);
     emitter.once(event, () => {
-      clearTimeout(timeoutHandle)
-      resolve()
-    })
-  })
+      clearTimeout(timeoutHandle);
+      resolve();
+    });
+  });
 }
 
-exports.conditionPromise = conditionPromise
-exports.emitterEventPromise = emitterEventPromise
-exports.timeoutPromise = timeoutPromise
+exports.conditionPromise = conditionPromise;
+exports.emitterEventPromise = emitterEventPromise;
+exports.timeoutPromise = timeoutPromise;

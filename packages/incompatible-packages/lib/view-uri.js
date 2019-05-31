@@ -1,3 +1,3 @@
 /** @babel */
 
-export default 'atom://incompatible-packages'
+export default 'atom://incompatible-packages';
