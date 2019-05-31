@@ -1,77 +1,77 @@
-const { Disposable } = require('atom')
-const etch = require('etch')
-const shell = require('shell')
-const AtomLogo = require('./atom-logo')
-const EtchComponent = require('../etch-component')
-const UpdateView = require('./update-view')
+const { Disposable } = require('atom');
+const etch = require('etch');
+const shell = require('shell');
+const AtomLogo = require('./atom-logo');
+const EtchComponent = require('../etch-component');
+const UpdateView = require('./update-view');
 
-const $ = etch.dom
+const $ = etch.dom;
 
 module.exports = class AboutView extends EtchComponent {
-  handleAtomVersionClick (e) {
-    e.preventDefault()
-    atom.clipboard.write(this.props.currentAtomVersion)
+  handleAtomVersionClick(e) {
+    e.preventDefault();
+    atom.clipboard.write(this.props.currentAtomVersion);
   }
 
-  handleElectronVersionClick (e) {
-    e.preventDefault()
-    atom.clipboard.write(this.props.currentElectronVersion)
+  handleElectronVersionClick(e) {
+    e.preventDefault();
+    atom.clipboard.write(this.props.currentElectronVersion);
   }
 
-  handleChromeVersionClick (e) {
-    e.preventDefault()
-    atom.clipboard.write(this.props.currentChromeVersion)
+  handleChromeVersionClick(e) {
+    e.preventDefault();
+    atom.clipboard.write(this.props.currentChromeVersion);
   }
 
-  handleNodeVersionClick (e) {
-    e.preventDefault()
-    atom.clipboard.write(this.props.currentNodeVersion)
+  handleNodeVersionClick(e) {
+    e.preventDefault();
+    atom.clipboard.write(this.props.currentNodeVersion);
   }
 
-  handleReleaseNotesClick (e) {
-    e.preventDefault()
+  handleReleaseNotesClick(e) {
+    e.preventDefault();
     shell.openExternal(
       this.props.updateManager.getReleaseNotesURLForAvailableVersion()
-    )
+    );
   }
 
-  handleLicenseClick (e) {
-    e.preventDefault()
+  handleLicenseClick(e) {
+    e.preventDefault();
     atom.commands.dispatch(
       atom.views.getView(atom.workspace),
       'application:open-license'
-    )
+    );
   }
 
-  handleTermsOfUseClick (e) {
-    e.preventDefault()
-    shell.openExternal('https://atom.io/terms')
+  handleTermsOfUseClick(e) {
+    e.preventDefault();
+    shell.openExternal('https://atom.io/terms');
   }
 
-  handleHowToUpdateClick (e) {
-    e.preventDefault()
+  handleHowToUpdateClick(e) {
+    e.preventDefault();
     shell.openExternal(
       'https://flight-manual.atom.io/getting-started/sections/installing-atom/'
-    )
+    );
   }
 
-  handleShowMoreClick (e) {
-    e.preventDefault()
-    var showMoreDiv = document.querySelector('.show-more')
-    var showMoreText = document.querySelector('.about-more-expand')
+  handleShowMoreClick(e) {
+    e.preventDefault();
+    var showMoreDiv = document.querySelector('.show-more');
+    var showMoreText = document.querySelector('.about-more-expand');
     switch (showMoreText.textContent) {
       case 'Show more':
-        showMoreDiv.classList.toggle('hidden')
-        showMoreText.textContent = 'Hide'
-        break
+        showMoreDiv.classList.toggle('hidden');
+        showMoreText.textContent = 'Hide';
+        break;
       case 'Hide':
-        showMoreDiv.classList.toggle('hidden')
-        showMoreText.textContent = 'Show more'
-        break
+        showMoreDiv.classList.toggle('hidden');
+        showMoreText.textContent = 'Show more';
+        break;
     }
   }
 
-  render () {
+  render() {
     return $.div(
       { className: 'pane-item native-key-bindings about' },
       $.div(
@@ -204,29 +204,29 @@ module.exports = class AboutView extends EtchComponent {
           'Atom Community'
         )
       )
-    )
+    );
   }
 
-  serialize () {
+  serialize() {
     return {
       deserializer: this.constructor.name,
       uri: this.props.uri
-    }
+    };
   }
 
-  onDidChangeTitle () {
-    return new Disposable()
+  onDidChangeTitle() {
+    return new Disposable();
   }
 
-  onDidChangeModified () {
-    return new Disposable()
+  onDidChangeModified() {
+    return new Disposable();
   }
 
-  getTitle () {
-    return 'About'
+  getTitle() {
+    return 'About';
   }
 
-  getIconName () {
-    return 'info'
+  getIconName() {
+    return 'info';
   }
-}
+};
