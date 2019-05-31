@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const { Emitter, Disposable, CompositeDisposable } = require('event-kit')
-const nsfw = require('@atom/nsfw')
-const watcher = require('@atom/watcher')
-const { NativeWatcherRegistry } = require('./native-watcher-registry')
+const { Emitter, Disposable, CompositeDisposable } = require('event-kit');
+const nsfw = require('@atom/nsfw');
+const watcher = require('@atom/watcher');
+const { NativeWatcherRegistry } = require('./native-watcher-registry');
 
 // Private: Associate native watcher action flags with descriptive String equivalents.
 const ACTION_MAP = new Map([
@@ -119,8 +119,8 @@ class NativeWatcher {
   //
   // * `replacement` the new {NativeWatcher} instance that a live {Watcher} instance should reattach to instead.
   // * `watchedPath` absolute path watched by the new {NativeWatcher}.
-  reattachTo (replacement, watchedPath, options) {
-    this.emitter.emit('should-detach', { replacement, watchedPath, options })
+  reattachTo(replacement, watchedPath, options) {
+    this.emitter.emit('should-detach', { replacement, watchedPath, options });
   }
 
   // Private: Stop the native watcher and release any operating system resources associated with it.
@@ -176,34 +176,16 @@ class AtomNativeWatcher extends NativeWatcher {
 
       return new Promise(resolve => {
         fs.realpath(givenPath, (err, resolvedPath) => {
-          err ? resolve(null) : resolve(resolvedPath)
-        })
-      })
-    }
+          err ? resolve(null) : resolve(resolvedPath);
+        });
+      });
+    };
 
-    this.subs.add(atom.workspace.observeTextEditors(async editor => {
-      let realPath = await getRealPath(editor.getPath())
-      if (!realPath || !realPath.startsWith(this.normalizedPath)) {
-        return
-      }
-
-      const announce = (action, oldPath) => {
-        const payload = { action, path: realPath }
-        if (oldPath) payload.oldPath = oldPath
-        this.onEvents([payload])
-      }
-
-      const buffer = editor.getBuffer()
-
-      this.subs.add(buffer.onDidConflict(() => announce('modified')))
-      this.subs.add(buffer.onDidReload(() => announce('modified')))
-      this.subs.add(buffer.onDidSave(event => {
-        if (event.path === realPath) {
-          announce('modified')
-        } else {
-          const oldPath = realPath
-          realPath = event.path
-          announce('renamed', oldPath)
+    this.subs.add(
+      atom.workspace.observeTextEditors(async editor => {
+        let realPath = await getRealPath(editor.getPath());
+        if (!realPath || !realPath.startsWith(this.normalizedPath)) {
+          return;
         }
 
         const announce = (action, oldPath) => {
@@ -225,59 +207,92 @@ class AtomNativeWatcher extends NativeWatcher {
               realPath = event.path;
               announce('renamed', oldPath);
             }
+
+            const announce = (action, oldPath) => {
+              const payload = { action, path: realPath };
+              if (oldPath) payload.oldPath = oldPath;
+              this.onEvents([payload]);
+            };
+
+            const buffer = editor.getBuffer();
+
+            this.subs.add(buffer.onDidConflict(() => announce('modified')));
+            this.subs.add(buffer.onDidReload(() => announce('modified')));
+            this.subs.add(
+              buffer.onDidSave(event => {
+                if (event.path === realPath) {
+                  announce('modified');
+                } else {
+                  const oldPath = realPath;
+                  realPath = event.path;
+                  announce('renamed', oldPath);
+                }
+              })
+            );
+
+            this.subs.add(buffer.onDidDelete(() => announce('deleted')));
+
+            this.subs.add(
+              buffer.onDidChangePath(newPath => {
+                if (newPath !== this.normalizedPath) {
+                  const oldPath = this.normalizedPath;
+                  this.normalizedPath = newPath;
+                  announce('renamed', oldPath);
+                }
+              })
+            );
           })
         );
 
-        this.subs.add(buffer.onDidDelete(() => announce('deleted')));
+        // Giant-ass brittle hack to hook files (and eventually directories) created from the TreeView.
+        const treeViewPackage = await atom.packages.getLoadedPackage(
+          'tree-view'
+        );
+        if (!treeViewPackage) return;
+        await treeViewPackage.activationPromise;
+        const treeViewModule = treeViewPackage.mainModule;
+        if (!treeViewModule) return;
+        const treeView = treeViewModule.getTreeViewInstance();
+
+        const isOpenInEditor = async eventPath => {
+          const openPaths = await Promise.all(
+            atom.workspace
+              .getTextEditors()
+              .map(editor => getRealPath(editor.getPath()))
+          );
+          return openPaths.includes(eventPath);
+        };
 
         this.subs.add(
-          buffer.onDidChangePath(newPath => {
-            if (newPath !== this.normalizedPath) {
-              const oldPath = this.normalizedPath;
-              this.normalizedPath = newPath;
-              announce('renamed', oldPath);
-            }
+          treeView.onFileCreated(async event => {
+            const realPath = await getRealPath(event.path);
+            if (!realPath) return;
+
+            this.onEvents([{ action: 'added', path: realPath }]);
+          })
+        );
+
+        this.subs.add(
+          treeView.onEntryDeleted(async event => {
+            const realPath = await getRealPath(event.path);
+            if (!realPath || (await isOpenInEditor(realPath))) return;
+
+            this.onEvents([{ action: 'deleted', path: realPath }]);
+          })
+        );
+
+        this.subs.add(
+          treeView.onEntryDeleted(async event => {
+            const realPath = await getRealPath(event.path);
+            if (!realPath || (await isOpenInEditor(realPath))) return;
+
+            this.onEvents([
+              { action: 'renamed', path: realNewPath, oldPath: realOldPath }
+            ]);
           })
         );
       })
     );
-
-    // Giant-ass brittle hack to hook files (and eventually directories) created from the TreeView.
-    const treeViewPackage = await atom.packages.getLoadedPackage('tree-view');
-    if (!treeViewPackage) return;
-    await treeViewPackage.activationPromise;
-    const treeViewModule = treeViewPackage.mainModule;
-    if (!treeViewModule) return;
-    const treeView = treeViewModule.getTreeViewInstance();
-
-    const isOpenInEditor = async eventPath => {
-      const openPaths = await Promise.all(
-        atom.workspace.getTextEditors().map(editor => getRealPath(editor.getPath()))
-      )
-      return openPaths.includes(eventPath)
-    }
-
-    this.subs.add(treeView.onFileCreated(async event => {
-      const realPath = await getRealPath(event.path)
-      if (!realPath) return
-
-      this.onEvents([{ action: 'added', path: realPath }])
-    }))
-
-    this.subs.add(treeView.onEntryDeleted(async event => {
-      const realPath = await getRealPath(event.path)
-      if (!realPath || await isOpenInEditor(realPath)) return
-
-      this.onEvents([{ action: 'deleted', path: realPath }])
-    }))
-
-    this.subs.add(
-      treeView.onEntryDeleted(async event => {
-        const realPath = await getRealPath(event.path);
-        if (!realPath || (await isOpenInEditor(realPath))) return;
-
-      this.onEvents([{ action: 'renamed', path: realNewPath, oldPath: realOldPath }])
-    }))
   }
 }
 
@@ -285,26 +300,28 @@ class AtomNativeWatcher extends NativeWatcher {
 class NSFWNativeWatcher extends NativeWatcher {
   async doStart(rootPath, eventCallback, errorCallback) {
     const handler = events => {
-      this.onEvents(events.map(event => {
-        const action = ACTION_MAP.get(event.action) || `unexpected (${event.action})`
-        const payload = { action }
+      this.onEvents(
+        events.map(event => {
+          const action =
+            ACTION_MAP.get(event.action) || `unexpected (${event.action})`;
+          const payload = { action };
 
-        if (event.file) {
-          payload.path = path.join(event.directory, event.file)
-        } else {
-          payload.oldPath = path.join(event.directory, event.oldFile)
-          payload.path = path.join(event.directory, event.newFile)
-        }
+          if (event.file) {
+            payload.path = path.join(event.directory, event.file);
+          } else {
+            payload.oldPath = path.join(event.directory, event.oldFile);
+            payload.path = path.join(event.directory, event.newFile);
+          }
 
-        return payload
-      }))
-    }
+          return payload;
+        })
+      );
+    };
 
-    this.watcher = await nsfw(
-      this.normalizedPath,
-      handler,
-      { debounceMS: 100, errorCallback: this.onError }
-    )
+    this.watcher = await nsfw(this.normalizedPath, handler, {
+      debounceMS: 100,
+      errorCallback: this.onError
+    });
 
     await this.watcher.start();
   }
@@ -498,18 +515,29 @@ class PathWatcher {
       formerSub.dispose();
     }
 
-    this.subs.add(native.onDidError(err => {
-      if (this.emitter.listenerCountForEventName('did-error') === 0) {
-        console.error(`Unhandled error from PathWatcher on [${this.watchedPath}]`, err.stack || err)
-      }
-      this.emitter.emit('did-error', err)
-    }))
+    this.subs.add(
+      native.onDidError(err => {
+        if (this.emitter.listenerCountForEventName('did-error') === 0) {
+          console.error(
+            `Unhandled error from PathWatcher on [${this.watchedPath}]`,
+            err.stack || err
+          );
+        }
+        this.emitter.emit('did-error', err);
+      })
+    );
 
-    this.subs.add(native.onShouldDetach(({ replacement, watchedPath }) => {
-      if (this.native === native && replacement !== native && this.normalizedPath.startsWith(watchedPath)) {
-        this.attachToNative(replacement)
-      }
-    }))
+    this.subs.add(
+      native.onShouldDetach(({ replacement, watchedPath }) => {
+        if (
+          this.native === native &&
+          replacement !== native &&
+          this.normalizedPath.startsWith(watchedPath)
+        ) {
+          this.attachToNative(replacement);
+        }
+      })
+    );
 
     this.subs.add(
       native.onWillStop(() => {
@@ -541,9 +569,17 @@ class PathWatcher {
         if (srcWatched && destWatched) {
           filtered.push(event);
         } else if (srcWatched && !destWatched) {
-          filtered.push({ action: 'deleted', kind: event.kind, path: event.oldPath })
+          filtered.push({
+            action: 'deleted',
+            kind: event.kind,
+            path: event.oldPath
+          });
         } else if (!srcWatched && destWatched) {
-          filtered.push({ action: 'created', kind: event.kind, path: event.path })
+          filtered.push({
+            action: 'created',
+            kind: event.kind,
+            path: event.path
+          });
         }
       } else {
         if (isWatchedPath(event.path)) {
@@ -575,8 +611,15 @@ class PathWatcherManager {
   // Private: Access the currently active manager instance, creating one if necessary.
   static active() {
     if (!this.activeManager) {
-      this.activeManager = new PathWatcherManager(atom.config.get('core.fileSystemWatcher'))
-      this.sub = atom.config.onDidChange('core.fileSystemWatcher', ({ newValue }) => { this.transitionTo(newValue) })
+      this.activeManager = new PathWatcherManager(
+        atom.config.get('core.fileSystemWatcher')
+      );
+      this.sub = atom.config.onDidChange(
+        'core.fileSystemWatcher',
+        ({ newValue }) => {
+          this.transitionTo(newValue);
+        }
+      );
     }
     return this.activeManager;
   }
@@ -595,7 +638,7 @@ class PathWatcherManager {
     }
     current.isShuttingDown = true;
 
-    let resolveTransitionPromise = () => { }
+    let resolveTransitionPromise = () => {};
     this.transitionPromise = new Promise(resolve => {
       resolveTransitionPromise = resolve;
     });
@@ -605,8 +648,8 @@ class PathWatcherManager {
 
     await Promise.all(
       Array.from(current.live, async ([root, native]) => {
-        const w = await replacement.createWatcher(root, {}, () => { })
-        native.reattachTo(w.native, root, w.native.options || {})
+        const w = await replacement.createWatcher(root, {}, () => {});
+        native.reattachTo(w.native, root, w.native.options || {});
       })
     );
 
@@ -791,4 +834,4 @@ watchPath.configure = function(...args) {
   return watcher.configure(...args);
 };
 
-module.exports = { watchPath, stopAllWatchers }
+module.exports = { watchPath, stopAllWatchers };
