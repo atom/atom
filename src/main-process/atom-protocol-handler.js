@@ -1,6 +1,6 @@
-const {protocol} = require('electron')
-const fs = require('fs-plus')
-const path = require('path')
+const { protocol } = require('electron');
+const fs = require('fs-plus');
+const path = require('path');
 
 // Handles requests with 'atom' protocol.
 //
@@ -13,43 +13,42 @@ const path = require('path')
 //   * ~/.atom/packages
 //   * RESOURCE_PATH/node_modules
 //
-module.exports =
-class AtomProtocolHandler {
-  constructor (resourcePath, safeMode) {
-    this.loadPaths = []
+module.exports = class AtomProtocolHandler {
+  constructor(resourcePath, safeMode) {
+    this.loadPaths = [];
 
     if (!safeMode) {
-      this.loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'))
-      this.loadPaths.push(path.join(resourcePath, 'packages'))
+      this.loadPaths.push(path.join(process.env.ATOM_HOME, 'dev', 'packages'));
+      this.loadPaths.push(path.join(resourcePath, 'packages'));
     }
 
-    this.loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'))
-    this.loadPaths.push(path.join(resourcePath, 'node_modules'))
+    this.loadPaths.push(path.join(process.env.ATOM_HOME, 'packages'));
+    this.loadPaths.push(path.join(resourcePath, 'node_modules'));
 
-    this.registerAtomProtocol()
+    this.registerAtomProtocol();
   }
 
   // Creates the 'atom' custom protocol handler.
-  registerAtomProtocol () {
+  registerAtomProtocol() {
     protocol.registerFileProtocol('atom', (request, callback) => {
-      const relativePath = path.normalize(request.url.substr(7))
+      const relativePath = path.normalize(request.url.substr(7));
 
-      let filePath
+      let filePath;
       if (relativePath.indexOf('assets/') === 0) {
-        const assetsPath = path.join(process.env.ATOM_HOME, relativePath)
-        const stat = fs.statSyncNoException(assetsPath)
-        if (stat && stat.isFile()) filePath = assetsPath
+        const assetsPath = path.join(process.env.ATOM_HOME, relativePath);
+        const stat = fs.statSyncNoException(assetsPath);
+        if (stat && stat.isFile()) filePath = assetsPath;
       }
 
       if (!filePath) {
         for (let loadPath of this.loadPaths) {
-          filePath = path.join(loadPath, relativePath)
-          const stat = fs.statSyncNoException(filePath)
-          if (stat && stat.isFile()) break
+          filePath = path.join(loadPath, relativePath);
+          const stat = fs.statSyncNoException(filePath);
+          if (stat && stat.isFile()) break;
         }
       }
 
-      callback(filePath)
-    })
+      callback(filePath);
+    });
   }
-}
+};

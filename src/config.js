@@ -1,14 +1,17 @@
-const _ = require('underscore-plus')
-const {Emitter} = require('event-kit')
+const _ = require('underscore-plus');
+const { Emitter } = require('event-kit');
 const {
-  getValueAtKeyPath, setValueAtKeyPath, deleteValueAtKeyPath,
-  pushKeyPath, splitKeyPath
-} = require('key-path-helpers')
-const Color = require('./color')
-const ScopedPropertyStore = require('scoped-property-store')
-const ScopeDescriptor = require('./scope-descriptor')
+  getValueAtKeyPath,
+  setValueAtKeyPath,
+  deleteValueAtKeyPath,
+  pushKeyPath,
+  splitKeyPath
+} = require('key-path-helpers');
+const Color = require('./color');
+const ScopedPropertyStore = require('scoped-property-store');
+const ScopeDescriptor = require('./scope-descriptor');
 
-const schemaEnforcers = {}
+const schemaEnforcers = {};
 
 // Essential: Used to access all of Atom's configuration details.
 //
@@ -378,79 +381,87 @@ const schemaEnforcers = {}
 // * Don't depend on (or write to) configuration keys outside of your keypath.
 //
 class Config {
-  static addSchemaEnforcer (typeName, enforcerFunction) {
-    if (schemaEnforcers[typeName] == null) { schemaEnforcers[typeName] = [] }
-    return schemaEnforcers[typeName].push(enforcerFunction)
+  static addSchemaEnforcer(typeName, enforcerFunction) {
+    if (schemaEnforcers[typeName] == null) {
+      schemaEnforcers[typeName] = [];
+    }
+    return schemaEnforcers[typeName].push(enforcerFunction);
   }
 
-  static addSchemaEnforcers (filters) {
+  static addSchemaEnforcers(filters) {
     for (let typeName in filters) {
-      const functions = filters[typeName]
+      const functions = filters[typeName];
       for (let name in functions) {
-        const enforcerFunction = functions[name]
-        this.addSchemaEnforcer(typeName, enforcerFunction)
+        const enforcerFunction = functions[name];
+        this.addSchemaEnforcer(typeName, enforcerFunction);
       }
     }
   }
 
-  static executeSchemaEnforcers (keyPath, value, schema) {
-    let error = null
-    let types = schema.type
-    if (!Array.isArray(types)) { types = [types] }
+  static executeSchemaEnforcers(keyPath, value, schema) {
+    let error = null;
+    let types = schema.type;
+    if (!Array.isArray(types)) {
+      types = [types];
+    }
     for (let type of types) {
       try {
-        const enforcerFunctions = schemaEnforcers[type].concat(schemaEnforcers['*'])
+        const enforcerFunctions = schemaEnforcers[type].concat(
+          schemaEnforcers['*']
+        );
         for (let enforcer of enforcerFunctions) {
           // At some point in one's life, one must call upon an enforcer.
-          value = enforcer.call(this, keyPath, value, schema)
+          value = enforcer.call(this, keyPath, value, schema);
         }
-        error = null
-        break
+        error = null;
+        break;
       } catch (e) {
-        error = e
+        error = e;
       }
     }
 
-    if (error != null) { throw error }
-    return value
+    if (error != null) {
+      throw error;
+    }
+    return value;
   }
 
   // Created during initialization, available as `atom.config`
-  constructor (params = {}) {
-    this.clear()
-    this.initialize(params)
+  constructor(params = {}) {
+    this.clear();
+    this.initialize(params);
   }
 
-  initialize ({saveCallback, mainSource, projectHomeSchema}) {
+  initialize({ saveCallback, mainSource, projectHomeSchema }) {
     if (saveCallback) {
-      this.saveCallback = saveCallback
+      this.saveCallback = saveCallback;
     }
-    if (mainSource) this.mainSource = mainSource
+    if (mainSource) this.mainSource = mainSource;
     if (projectHomeSchema) {
-      this.schema.properties.core.properties.projectHome = projectHomeSchema
-      this.defaultSettings.core.projectHome = projectHomeSchema.default
+      this.schema.properties.core.properties.projectHome = projectHomeSchema;
+      this.defaultSettings.core.projectHome = projectHomeSchema.default;
     }
   }
 
-  clear () {
-    this.emitter = new Emitter()
+  clear() {
+    this.emitter = new Emitter();
     this.schema = {
       type: 'object',
       properties: {}
-    }
+    };
 
-    this.defaultSettings = {}
-    this.settings = {}
-    this.projectSettings = {}
-    this.projectFile = null
+    this.defaultSettings = {};
+    this.settings = {};
+    this.projectSettings = {};
+    this.projectFile = null;
 
-    this.scopedSettingsStore = new ScopedPropertyStore()
+    this.scopedSettingsStore = new ScopedPropertyStore();
 
-    this.settingsLoaded = false
-    this.transactDepth = 0
-    this.pendingOperations = []
-    this.legacyScopeAliases = new Map()
-    this.requestSave = _.debounce(() => this.save(), 1)
+    this.settingsLoaded = false;
+    this.transactDepth = 0;
+    this.pendingOperations = [];
+    this.legacyScopeAliases = new Map();
+    this.requestSave = _.debounce(() => this.save(), 1);
   }
 
   /*
@@ -483,22 +494,31 @@ class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  observe (...args) {
-    let callback, keyPath, options, scopeDescriptor
+  observe(...args) {
+    let callback, keyPath, options, scopeDescriptor;
     if (args.length === 2) {
-      [keyPath, callback] = args
-    } else if ((args.length === 3) && (_.isString(args[0]) && _.isObject(args[1]))) {
-      [keyPath, options, callback] = args
-      scopeDescriptor = options.scope
+      [keyPath, callback] = args;
+    } else if (
+      args.length === 3 &&
+      (_.isString(args[0]) && _.isObject(args[1]))
+    ) {
+      [keyPath, options, callback] = args;
+      scopeDescriptor = options.scope;
     } else {
-      console.error('An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details')
-      return
+      console.error(
+        'An unsupported form of Config::observe is being used. See https://atom.io/docs/api/latest/Config for details'
+      );
+      return;
     }
 
     if (scopeDescriptor != null) {
-      return this.observeScopedKeyPath(scopeDescriptor, keyPath, callback)
+      return this.observeScopedKeyPath(scopeDescriptor, keyPath, callback);
     } else {
-      return this.observeKeyPath(keyPath, options != null ? options : {}, callback)
+      return this.observeKeyPath(
+        keyPath,
+        options != null ? options : {},
+        callback
+      );
     }
   }
 
@@ -520,22 +540,22 @@ class Config {
   //
   // Returns a {Disposable} with the following keys on which you can call
   // `.dispose()` to unsubscribe.
-  onDidChange (...args) {
-    let callback, keyPath, scopeDescriptor
+  onDidChange(...args) {
+    let callback, keyPath, scopeDescriptor;
     if (args.length === 1) {
-      [callback] = args
+      [callback] = args;
     } else if (args.length === 2) {
-      [keyPath, callback] = args
+      [keyPath, callback] = args;
     } else {
       let options;
-      [keyPath, options, callback] = args
-      scopeDescriptor = options.scope
+      [keyPath, options, callback] = args;
+      scopeDescriptor = options.scope;
     }
 
     if (scopeDescriptor != null) {
-      return this.onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback)
+      return this.onDidChangeScopedKeyPath(scopeDescriptor, keyPath, callback);
     } else {
-      return this.onDidChangeKeyPath(keyPath, callback)
+      return this.onDidChangeKeyPath(keyPath, callback);
     }
   }
 
@@ -598,22 +618,22 @@ class Config {
   //
   // Returns the value from Atom's default settings, the user's configuration
   // file in the type specified by the configuration schema.
-  get (...args) {
-    let keyPath, options, scope
+  get(...args) {
+    let keyPath, options, scope;
     if (args.length > 1) {
-      if ((typeof args[0] === 'string') || (args[0] == null)) {
+      if (typeof args[0] === 'string' || args[0] == null) {
         [keyPath, options] = args;
-        ({scope} = options)
+        ({ scope } = options);
       }
     } else {
-      [keyPath] = args
+      [keyPath] = args;
     }
 
     if (scope != null) {
-      const value = this.getRawScopedValue(scope, keyPath, options)
-      return value != null ? value : this.getRawValue(keyPath, options)
+      const value = this.getRawScopedValue(scope, keyPath, options);
+      return value != null ? value : this.getRawValue(keyPath, options);
     } else {
-      return this.getRawValue(keyPath, options)
+      return this.getRawValue(keyPath, options);
     }
   }
 
@@ -626,36 +646,44 @@ class Config {
   // Returns an {Array} of {Object}s with the following keys:
   //  * `scopeDescriptor` The {ScopeDescriptor} with which the value is associated
   //  * `value` The value for the key-path
-  getAll (keyPath, options) {
-    let globalValue, result, scope
-    if (options != null) { ({scope} = options) }
+  getAll(keyPath, options) {
+    let globalValue, result, scope;
+    if (options != null) {
+      ({ scope } = options);
+    }
 
     if (scope != null) {
-      let legacyScopeDescriptor
-      const scopeDescriptor = ScopeDescriptor.fromObject(scope)
+      let legacyScopeDescriptor;
+      const scopeDescriptor = ScopeDescriptor.fromObject(scope);
       result = this.scopedSettingsStore.getAll(
-          scopeDescriptor.getScopeChain(),
-          keyPath,
-          options
-        )
-      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
+        scopeDescriptor.getScopeChain(),
+        keyPath,
+        options
+      );
+      legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(
+        scopeDescriptor
+      );
       if (legacyScopeDescriptor) {
-        result.push(...Array.from(this.scopedSettingsStore.getAll(
-           legacyScopeDescriptor.getScopeChain(),
-           keyPath,
-           options
-         ) || []))
+        result.push(
+          ...Array.from(
+            this.scopedSettingsStore.getAll(
+              legacyScopeDescriptor.getScopeChain(),
+              keyPath,
+              options
+            ) || []
+          )
+        );
       }
     } else {
-      result = []
+      result = [];
     }
 
-    globalValue = this.getRawValue(keyPath, options)
+    globalValue = this.getRawValue(keyPath, options);
     if (globalValue) {
-      result.push({scopeSelector: '*', value: globalValue})
+      result.push({ scopeSelector: '*', value: globalValue });
     }
 
-    return result
+    return result;
   }
 
   // Essential: Sets the value for a configuration setting.
@@ -700,43 +728,46 @@ class Config {
   // Returns a {Boolean}
   // * `true` if the value was set.
   // * `false` if the value was not able to be coerced to the type specified in the setting's schema.
-  set (...args) {
-    let [keyPath, value, options = {}] = args
+  set(...args) {
+    let [keyPath, value, options = {}] = args;
 
     if (!this.settingsLoaded) {
-      this.pendingOperations.push(() => this.set(keyPath, value, options))
+      this.pendingOperations.push(() => this.set(keyPath, value, options));
     }
 
     // We should never use the scoped store to set global settings, since they are kept directly
     // in the config object.
-    const scopeSelector = options.scopeSelector !== '*' ? options.scopeSelector : undefined
-    let source = options.source
-    const shouldSave = options.save != null ? options.save : true
+    const scopeSelector =
+      options.scopeSelector !== '*' ? options.scopeSelector : undefined;
+    let source = options.source;
+    const shouldSave = options.save != null ? options.save : true;
 
     if (source && !scopeSelector && source !== this.projectFile) {
-      throw new Error("::set with a 'source' and no 'sourceSelector' is not yet implemented!")
+      throw new Error(
+        "::set with a 'source' and no 'sourceSelector' is not yet implemented!"
+      );
     }
 
-    if (!source) source = this.mainSource
+    if (!source) source = this.mainSource;
 
     if (value !== undefined) {
       try {
-        value = this.makeValueConformToSchema(keyPath, value)
+        value = this.makeValueConformToSchema(keyPath, value);
       } catch (e) {
-        return false
+        return false;
       }
     }
 
     if (scopeSelector != null) {
-      this.setRawScopedValue(keyPath, value, source, scopeSelector)
+      this.setRawScopedValue(keyPath, value, source, scopeSelector);
     } else {
-      this.setRawValue(keyPath, value, {source})
+      this.setRawValue(keyPath, value, { source });
     }
 
     if (source === this.mainSource && shouldSave && this.settingsLoaded) {
-      this.requestSave()
+      this.requestSave();
     }
-    return true
+    return true;
   }
 
   // Essential: Restore the setting at `keyPath` to its default value.
@@ -745,48 +776,71 @@ class Config {
   // * `options` (optional) {Object}
   //   * `scopeSelector` (optional) {String}. See {::set}
   //   * `source` (optional) {String}. See {::set}
-  unset (keyPath, options) {
+  unset(keyPath, options) {
     if (!this.settingsLoaded) {
-      this.pendingOperations.push(() => this.unset(keyPath, options))
+      this.pendingOperations.push(() => this.unset(keyPath, options));
     }
 
-    let {scopeSelector, source} = options != null ? options : {}
-    if (source == null) { source = this.mainSource }
+    let { scopeSelector, source } = options != null ? options : {};
+    if (source == null) {
+      source = this.mainSource;
+    }
 
     if (scopeSelector != null) {
       if (keyPath != null) {
-        let settings = this.scopedSettingsStore.propertiesForSourceAndSelector(source, scopeSelector)
+        let settings = this.scopedSettingsStore.propertiesForSourceAndSelector(
+          source,
+          scopeSelector
+        );
         if (getValueAtKeyPath(settings, keyPath) != null) {
-          this.scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
-          setValueAtKeyPath(settings, keyPath, undefined)
-          settings = withoutEmptyObjects(settings)
+          this.scopedSettingsStore.removePropertiesForSourceAndSelector(
+            source,
+            scopeSelector
+          );
+          setValueAtKeyPath(settings, keyPath, undefined);
+          settings = withoutEmptyObjects(settings);
           if (settings != null) {
-            this.set(null, settings, {scopeSelector, source, priority: this.priorityForSource(source)})
+            this.set(null, settings, {
+              scopeSelector,
+              source,
+              priority: this.priorityForSource(source)
+            });
           }
 
-          const configIsReady = (source === this.mainSource) && this.settingsLoaded
+          const configIsReady =
+            source === this.mainSource && this.settingsLoaded;
           if (configIsReady) {
-            return this.requestSave()
+            return this.requestSave();
           }
         }
       } else {
-        this.scopedSettingsStore.removePropertiesForSourceAndSelector(source, scopeSelector)
-        return this.emitChangeEvent()
+        this.scopedSettingsStore.removePropertiesForSourceAndSelector(
+          source,
+          scopeSelector
+        );
+        return this.emitChangeEvent();
       }
     } else {
-      for (scopeSelector in this.scopedSettingsStore.propertiesForSource(source)) {
-        this.unset(keyPath, {scopeSelector, source})
+      for (scopeSelector in this.scopedSettingsStore.propertiesForSource(
+        source
+      )) {
+        this.unset(keyPath, { scopeSelector, source });
       }
-      if ((keyPath != null) && (source === this.mainSource)) {
-        return this.set(keyPath, getValueAtKeyPath(this.defaultSettings, keyPath))
+      if (keyPath != null && source === this.mainSource) {
+        return this.set(
+          keyPath,
+          getValueAtKeyPath(this.defaultSettings, keyPath)
+        );
       }
     }
   }
 
   // Extended: Get an {Array} of all of the `source` {String}s with which
   // settings have been added via {::set}.
-  getSources () {
-    return _.uniq(_.pluck(this.scopedSettingsStore.propertySets, 'source')).sort()
+  getSources() {
+    return _.uniq(
+      _.pluck(this.scopedSettingsStore.propertySets, 'source')
+    ).sort();
   }
 
   // Extended: Retrieve the schema for a specific key path. The schema will tell
@@ -798,32 +852,33 @@ class Config {
   // Returns an {Object} eg. `{type: 'integer', default: 23, minimum: 1}`.
   // Returns `null` when the keyPath has no schema specified, but is accessible
   // from the root schema.
-  getSchema (keyPath) {
-    const keys = splitKeyPath(keyPath)
-    let { schema } = this
+  getSchema(keyPath) {
+    const keys = splitKeyPath(keyPath);
+    let { schema } = this;
     for (let key of keys) {
-      let childSchema
+      let childSchema;
       if (schema.type === 'object') {
-        childSchema = schema.properties != null ? schema.properties[key] : undefined
+        childSchema =
+          schema.properties != null ? schema.properties[key] : undefined;
         if (childSchema == null) {
           if (isPlainObject(schema.additionalProperties)) {
-            childSchema = schema.additionalProperties
+            childSchema = schema.additionalProperties;
           } else if (schema.additionalProperties === false) {
-            return null
+            return null;
           } else {
-            return {type: 'any'}
+            return { type: 'any' };
           }
         }
       } else {
-        return null
+        return null;
       }
-      schema = childSchema
+      schema = childSchema;
     }
-    return schema
+    return schema;
   }
 
-  getUserConfigPath () {
-    return this.mainSource
+  getUserConfigPath() {
+    return this.mainSource;
   }
 
   // Extended: Suppress calls to handler functions registered with {::onDidChange}
@@ -831,17 +886,17 @@ class Config {
   // handlers will be called once if the value for their key-path has changed.
   //
   // * `callback` {Function} to execute while suppressing calls to handlers.
-  transact (callback) {
-    this.beginTransaction()
+  transact(callback) {
+    this.beginTransaction();
     try {
-      return callback()
+      return callback();
     } finally {
-      this.endTransaction()
+      this.endTransaction();
     }
   }
 
-  getLegacyScopeDescriptorForNewScopeDescriptor (scopeDescriptor) {
-    return null
+  getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor) {
+    return null;
   }
 
   /*
@@ -859,91 +914,104 @@ class Config {
   // Returns a {Promise} that is either resolved or rejected according to the
   // `{Promise}` returned by `callback`. If `callback` throws an error, a
   // rejected {Promise} will be returned instead.
-  transactAsync (callback) {
-    let endTransaction
-    this.beginTransaction()
+  transactAsync(callback) {
+    let endTransaction;
+    this.beginTransaction();
     try {
       endTransaction = fn => (...args) => {
-        this.endTransaction()
-        return fn(...args)
-      }
-      const result = callback()
+        this.endTransaction();
+        return fn(...args);
+      };
+      const result = callback();
       return new Promise((resolve, reject) => {
-        return result.then(endTransaction(resolve)).catch(endTransaction(reject))
-      })
+        return result
+          .then(endTransaction(resolve))
+          .catch(endTransaction(reject));
+      });
     } catch (error) {
-      this.endTransaction()
-      return Promise.reject(error)
+      this.endTransaction();
+      return Promise.reject(error);
     }
   }
 
-  beginTransaction () {
-    this.transactDepth++
+  beginTransaction() {
+    this.transactDepth++;
   }
 
-  endTransaction () {
-    this.transactDepth--
-    this.emitChangeEvent()
+  endTransaction() {
+    this.transactDepth--;
+    this.emitChangeEvent();
   }
 
-  pushAtKeyPath (keyPath, value) {
-    const left = this.get(keyPath)
-    const arrayValue = (left == null ? [] : left)
-    const result = arrayValue.push(value)
-    this.set(keyPath, arrayValue)
-    return result
+  pushAtKeyPath(keyPath, value) {
+    const left = this.get(keyPath);
+    const arrayValue = left == null ? [] : left;
+    const result = arrayValue.push(value);
+    this.set(keyPath, arrayValue);
+    return result;
   }
 
-  unshiftAtKeyPath (keyPath, value) {
-    const left = this.get(keyPath)
-    const arrayValue = (left == null ? [] : left)
-    const result = arrayValue.unshift(value)
-    this.set(keyPath, arrayValue)
-    return result
+  unshiftAtKeyPath(keyPath, value) {
+    const left = this.get(keyPath);
+    const arrayValue = left == null ? [] : left;
+    const result = arrayValue.unshift(value);
+    this.set(keyPath, arrayValue);
+    return result;
   }
 
-  removeAtKeyPath (keyPath, value) {
-    const left = this.get(keyPath)
-    const arrayValue = (left == null ? [] : left)
-    const result = _.remove(arrayValue, value)
-    this.set(keyPath, arrayValue)
-    return result
+  removeAtKeyPath(keyPath, value) {
+    const left = this.get(keyPath);
+    const arrayValue = left == null ? [] : left;
+    const result = _.remove(arrayValue, value);
+    this.set(keyPath, arrayValue);
+    return result;
   }
 
-  setSchema (keyPath, schema) {
+  setSchema(keyPath, schema) {
     if (!isPlainObject(schema)) {
-      throw new Error(`Error loading schema for ${keyPath}: schemas can only be objects!`)
+      throw new Error(
+        `Error loading schema for ${keyPath}: schemas can only be objects!`
+      );
     }
 
     if (schema.type == null) {
-      throw new Error(`Error loading schema for ${keyPath}: schema objects must have a type attribute`)
+      throw new Error(
+        `Error loading schema for ${keyPath}: schema objects must have a type attribute`
+      );
     }
 
-    let rootSchema = this.schema
+    let rootSchema = this.schema;
     if (keyPath) {
       for (let key of splitKeyPath(keyPath)) {
-        rootSchema.type = 'object'
-        if (rootSchema.properties == null) { rootSchema.properties = {} }
-        const { properties } = rootSchema
-        if (properties[key] == null) { properties[key] = {} }
-        rootSchema = properties[key]
+        rootSchema.type = 'object';
+        if (rootSchema.properties == null) {
+          rootSchema.properties = {};
+        }
+        const { properties } = rootSchema;
+        if (properties[key] == null) {
+          properties[key] = {};
+        }
+        rootSchema = properties[key];
       }
     }
 
-    Object.assign(rootSchema, schema)
+    Object.assign(rootSchema, schema);
     this.transact(() => {
-      this.setDefaults(keyPath, this.extractDefaultsFromSchema(schema))
-      this.setScopedDefaultsFromSchema(keyPath, schema)
-      this.resetSettingsForSchemaChange()
-    })
+      this.setDefaults(keyPath, this.extractDefaultsFromSchema(schema));
+      this.setScopedDefaultsFromSchema(keyPath, schema);
+      this.resetSettingsForSchemaChange();
+    });
   }
 
-  save () {
+  save() {
     if (this.saveCallback) {
-      let allSettings = {'*': this.settings}
-      allSettings = Object.assign(allSettings, this.scopedSettingsStore.propertiesForSource(this.mainSource))
-      allSettings = sortObject(allSettings)
-      this.saveCallback(allSettings)
+      let allSettings = { '*': this.settings };
+      allSettings = Object.assign(
+        allSettings,
+        this.scopedSettingsStore.propertiesForSource(this.mainSource)
+      );
+      allSettings = sortObject(allSettings);
+      this.saveCallback(allSettings);
     }
   }
 
@@ -951,190 +1019,206 @@ class Config {
   Section: Private methods managing global settings
   */
 
-  resetUserSettings (newSettings, options = {}) {
-    this._resetSettings(newSettings, options)
+  resetUserSettings(newSettings, options = {}) {
+    this._resetSettings(newSettings, options);
   }
 
-  _resetSettings (newSettings, options = {}) {
-    const source = options.source
-    newSettings = Object.assign({}, newSettings)
+  _resetSettings(newSettings, options = {}) {
+    const source = options.source;
+    newSettings = Object.assign({}, newSettings);
     if (newSettings.global != null) {
-      newSettings['*'] = newSettings.global
-      delete newSettings.global
+      newSettings['*'] = newSettings.global;
+      delete newSettings.global;
     }
 
     if (newSettings['*'] != null) {
-      const scopedSettings = newSettings
-      newSettings = newSettings['*']
-      delete scopedSettings['*']
-      this.resetScopedSettings(scopedSettings, {source})
+      const scopedSettings = newSettings;
+      newSettings = newSettings['*'];
+      delete scopedSettings['*'];
+      this.resetScopedSettings(scopedSettings, { source });
     }
 
     return this.transact(() => {
-      this._clearUnscopedSettingsForSource(source)
-      this.settingsLoaded = true
+      this._clearUnscopedSettingsForSource(source);
+      this.settingsLoaded = true;
       for (let key in newSettings) {
-        const value = newSettings[key]
-        this.set(key, value, {save: false, source})
+        const value = newSettings[key];
+        this.set(key, value, { save: false, source });
       }
       if (this.pendingOperations.length) {
-        for (let op of this.pendingOperations) { op() }
-        this.pendingOperations = []
+        for (let op of this.pendingOperations) {
+          op();
+        }
+        this.pendingOperations = [];
       }
-    })
+    });
   }
 
-  _clearUnscopedSettingsForSource (source) {
+  _clearUnscopedSettingsForSource(source) {
     if (source === this.projectFile) {
-      this.projectSettings = {}
+      this.projectSettings = {};
     } else {
-      this.settings = {}
+      this.settings = {};
     }
   }
 
-  resetProjectSettings (newSettings, projectFile) {
+  resetProjectSettings(newSettings, projectFile) {
     // Sets the scope and source of all project settings to `path`.
-    newSettings = Object.assign({}, newSettings)
-    const oldProjectFile = this.projectFile
-    this.projectFile = projectFile
+    newSettings = Object.assign({}, newSettings);
+    const oldProjectFile = this.projectFile;
+    this.projectFile = projectFile;
     if (this.projectFile != null) {
-      this._resetSettings(newSettings, {source: this.projectFile})
+      this._resetSettings(newSettings, { source: this.projectFile });
     } else {
-      this.scopedSettingsStore.removePropertiesForSource(oldProjectFile)
-      this.projectSettings = {}
+      this.scopedSettingsStore.removePropertiesForSource(oldProjectFile);
+      this.projectSettings = {};
     }
   }
 
-  clearProjectSettings () {
-    this.resetProjectSettings({}, null)
+  clearProjectSettings() {
+    this.resetProjectSettings({}, null);
   }
 
-  getRawValue (keyPath, options = {}) {
-    let value
-    if (!options.excludeSources || !options.excludeSources.includes(this.mainSource)) {
-      value = getValueAtKeyPath(this.settings, keyPath)
+  getRawValue(keyPath, options = {}) {
+    let value;
+    if (
+      !options.excludeSources ||
+      !options.excludeSources.includes(this.mainSource)
+    ) {
+      value = getValueAtKeyPath(this.settings, keyPath);
       if (this.projectFile != null) {
-        const projectValue = getValueAtKeyPath(this.projectSettings, keyPath)
-        value = (projectValue === undefined) ? value : projectValue
+        const projectValue = getValueAtKeyPath(this.projectSettings, keyPath);
+        value = projectValue === undefined ? value : projectValue;
       }
     }
 
-    let defaultValue
+    let defaultValue;
     if (!options.sources || options.sources.length === 0) {
-      defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
+      defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath);
     }
 
     if (value != null) {
-      value = this.deepClone(value)
+      value = this.deepClone(value);
       if (isPlainObject(value) && isPlainObject(defaultValue)) {
-        this.deepDefaults(value, defaultValue)
+        this.deepDefaults(value, defaultValue);
       }
-      return value
+      return value;
     } else {
-      return this.deepClone(defaultValue)
+      return this.deepClone(defaultValue);
     }
   }
 
-  setRawValue (keyPath, value, options = {}) {
-    const source = options.source ? options.source : undefined
-    const settingsToChange = source === this.projectFile ? 'projectSettings' : 'settings'
-    const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath)
+  setRawValue(keyPath, value, options = {}) {
+    const source = options.source ? options.source : undefined;
+    const settingsToChange =
+      source === this.projectFile ? 'projectSettings' : 'settings';
+    const defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath);
 
     if (_.isEqual(defaultValue, value)) {
       if (keyPath != null) {
-        deleteValueAtKeyPath(this[settingsToChange], keyPath)
+        deleteValueAtKeyPath(this[settingsToChange], keyPath);
       } else {
-        this[settingsToChange] = null
+        this[settingsToChange] = null;
       }
     } else {
       if (keyPath != null) {
-        setValueAtKeyPath(this[settingsToChange], keyPath, value)
+        setValueAtKeyPath(this[settingsToChange], keyPath, value);
       } else {
-        this[settingsToChange] = value
+        this[settingsToChange] = value;
       }
     }
-    return this.emitChangeEvent()
+    return this.emitChangeEvent();
   }
 
-  observeKeyPath (keyPath, options, callback) {
-    callback(this.get(keyPath))
-    return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue))
+  observeKeyPath(keyPath, options, callback) {
+    callback(this.get(keyPath));
+    return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue));
   }
 
-  onDidChangeKeyPath (keyPath, callback) {
-    let oldValue = this.get(keyPath)
+  onDidChangeKeyPath(keyPath, callback) {
+    let oldValue = this.get(keyPath);
     return this.emitter.on('did-change', () => {
-      const newValue = this.get(keyPath)
+      const newValue = this.get(keyPath);
       if (!_.isEqual(oldValue, newValue)) {
-        const event = {oldValue, newValue}
-        oldValue = newValue
-        return callback(event)
+        const event = { oldValue, newValue };
+        oldValue = newValue;
+        return callback(event);
       }
-    })
+    });
   }
 
-  isSubKeyPath (keyPath, subKeyPath) {
-    if ((keyPath == null) || (subKeyPath == null)) { return false }
-    const pathSubTokens = splitKeyPath(subKeyPath)
-    const pathTokens = splitKeyPath(keyPath).slice(0, pathSubTokens.length)
-    return _.isEqual(pathTokens, pathSubTokens)
+  isSubKeyPath(keyPath, subKeyPath) {
+    if (keyPath == null || subKeyPath == null) {
+      return false;
+    }
+    const pathSubTokens = splitKeyPath(subKeyPath);
+    const pathTokens = splitKeyPath(keyPath).slice(0, pathSubTokens.length);
+    return _.isEqual(pathTokens, pathSubTokens);
   }
 
-  setRawDefault (keyPath, value) {
-    setValueAtKeyPath(this.defaultSettings, keyPath, value)
-    return this.emitChangeEvent()
+  setRawDefault(keyPath, value) {
+    setValueAtKeyPath(this.defaultSettings, keyPath, value);
+    return this.emitChangeEvent();
   }
 
-  setDefaults (keyPath, defaults) {
-    if ((defaults != null) && isPlainObject(defaults)) {
-      const keys = splitKeyPath(keyPath)
+  setDefaults(keyPath, defaults) {
+    if (defaults != null && isPlainObject(defaults)) {
+      const keys = splitKeyPath(keyPath);
       this.transact(() => {
-        const result = []
+        const result = [];
         for (let key in defaults) {
-          const childValue = defaults[key]
-          if (!defaults.hasOwnProperty(key)) { continue }
-          result.push(this.setDefaults(keys.concat([key]).join('.'), childValue))
+          const childValue = defaults[key];
+          if (!defaults.hasOwnProperty(key)) {
+            continue;
+          }
+          result.push(
+            this.setDefaults(keys.concat([key]).join('.'), childValue)
+          );
         }
-        return result
-      })
+        return result;
+      });
     } else {
       try {
-        defaults = this.makeValueConformToSchema(keyPath, defaults)
-        this.setRawDefault(keyPath, defaults)
+        defaults = this.makeValueConformToSchema(keyPath, defaults);
+        this.setRawDefault(keyPath, defaults);
       } catch (e) {
-        console.warn(`'${keyPath}' could not set the default. Attempted default: ${JSON.stringify(defaults)}; Schema: ${JSON.stringify(this.getSchema(keyPath))}`)
+        console.warn(
+          `'${keyPath}' could not set the default. Attempted default: ${JSON.stringify(
+            defaults
+          )}; Schema: ${JSON.stringify(this.getSchema(keyPath))}`
+        );
       }
     }
   }
 
-  deepClone (object) {
+  deepClone(object) {
     if (object instanceof Color) {
-      return object.clone()
+      return object.clone();
     } else if (Array.isArray(object)) {
-      return object.map(value => this.deepClone(value))
+      return object.map(value => this.deepClone(value));
     } else if (isPlainObject(object)) {
-      return _.mapObject(object, (key, value) => [key, this.deepClone(value)])
+      return _.mapObject(object, (key, value) => [key, this.deepClone(value)]);
     } else {
-      return object
+      return object;
     }
   }
 
-  deepDefaults (target) {
-    let result = target
-    let i = 0
+  deepDefaults(target) {
+    let result = target;
+    let i = 0;
     while (++i < arguments.length) {
-      const object = arguments[i]
+      const object = arguments[i];
       if (isPlainObject(result) && isPlainObject(object)) {
         for (let key of Object.keys(object)) {
-          result[key] = this.deepDefaults(result[key], object[key])
+          result[key] = this.deepDefaults(result[key], object[key]);
         }
       } else {
-        if ((result == null)) {
-          result = this.deepClone(object)
+        if (result == null) {
+          result = this.deepClone(object);
         }
       }
     }
-    return result
+    return result;
   }
 
   // `schema` will look something like this
@@ -1146,156 +1230,198 @@ class Config {
   //   '.source.js':
   //     default: 'omg'
   // ```
-  setScopedDefaultsFromSchema (keyPath, schema) {
-    if ((schema.scopes != null) && isPlainObject(schema.scopes)) {
-      const scopedDefaults = {}
+  setScopedDefaultsFromSchema(keyPath, schema) {
+    if (schema.scopes != null && isPlainObject(schema.scopes)) {
+      const scopedDefaults = {};
       for (let scope in schema.scopes) {
-        const scopeSchema = schema.scopes[scope]
-        if (!scopeSchema.hasOwnProperty('default')) { continue }
-        scopedDefaults[scope] = {}
-        setValueAtKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default)
+        const scopeSchema = schema.scopes[scope];
+        if (!scopeSchema.hasOwnProperty('default')) {
+          continue;
+        }
+        scopedDefaults[scope] = {};
+        setValueAtKeyPath(scopedDefaults[scope], keyPath, scopeSchema.default);
       }
-      this.scopedSettingsStore.addProperties('schema-default', scopedDefaults)
+      this.scopedSettingsStore.addProperties('schema-default', scopedDefaults);
     }
 
-    if ((schema.type === 'object') && (schema.properties != null) && isPlainObject(schema.properties)) {
-      const keys = splitKeyPath(keyPath)
+    if (
+      schema.type === 'object' &&
+      schema.properties != null &&
+      isPlainObject(schema.properties)
+    ) {
+      const keys = splitKeyPath(keyPath);
       for (let key in schema.properties) {
-        const childValue = schema.properties[key]
-        if (!schema.properties.hasOwnProperty(key)) { continue }
-        this.setScopedDefaultsFromSchema(keys.concat([key]).join('.'), childValue)
+        const childValue = schema.properties[key];
+        if (!schema.properties.hasOwnProperty(key)) {
+          continue;
+        }
+        this.setScopedDefaultsFromSchema(
+          keys.concat([key]).join('.'),
+          childValue
+        );
       }
     }
   }
 
-  extractDefaultsFromSchema (schema) {
+  extractDefaultsFromSchema(schema) {
     if (schema.default != null) {
-      return schema.default
-    } else if ((schema.type === 'object') && (schema.properties != null) && isPlainObject(schema.properties)) {
-      const defaults = {}
-      const properties = schema.properties || {}
-      for (let key in properties) { const value = properties[key]; defaults[key] = this.extractDefaultsFromSchema(value) }
-      return defaults
+      return schema.default;
+    } else if (
+      schema.type === 'object' &&
+      schema.properties != null &&
+      isPlainObject(schema.properties)
+    ) {
+      const defaults = {};
+      const properties = schema.properties || {};
+      for (let key in properties) {
+        const value = properties[key];
+        defaults[key] = this.extractDefaultsFromSchema(value);
+      }
+      return defaults;
     }
   }
 
-  makeValueConformToSchema (keyPath, value, options) {
+  makeValueConformToSchema(keyPath, value, options) {
     if (options != null ? options.suppressException : undefined) {
       try {
-        return this.makeValueConformToSchema(keyPath, value)
+        return this.makeValueConformToSchema(keyPath, value);
       } catch (e) {
-        return undefined
+        return undefined;
       }
     } else {
-      let schema
+      let schema;
       if ((schema = this.getSchema(keyPath)) == null) {
-        if (schema === false) { throw new Error(`Illegal key path ${keyPath}`) }
+        if (schema === false) {
+          throw new Error(`Illegal key path ${keyPath}`);
+        }
       }
-      return this.constructor.executeSchemaEnforcers(keyPath, value, schema)
+      return this.constructor.executeSchemaEnforcers(keyPath, value, schema);
     }
   }
 
   // When the schema is changed / added, there may be values set in the config
   // that do not conform to the schema. This will reset make them conform.
-  resetSettingsForSchemaChange (source) {
-    if (source == null) { source = this.mainSource }
+  resetSettingsForSchemaChange(source) {
+    if (source == null) {
+      source = this.mainSource;
+    }
     return this.transact(() => {
-      this.settings = this.makeValueConformToSchema(null, this.settings, {suppressException: true})
-      const selectorsAndSettings = this.scopedSettingsStore.propertiesForSource(source)
-      this.scopedSettingsStore.removePropertiesForSource(source)
+      this.settings = this.makeValueConformToSchema(null, this.settings, {
+        suppressException: true
+      });
+      const selectorsAndSettings = this.scopedSettingsStore.propertiesForSource(
+        source
+      );
+      this.scopedSettingsStore.removePropertiesForSource(source);
       for (let scopeSelector in selectorsAndSettings) {
-        let settings = selectorsAndSettings[scopeSelector]
-        settings = this.makeValueConformToSchema(null, settings, {suppressException: true})
-        this.setRawScopedValue(null, settings, source, scopeSelector)
+        let settings = selectorsAndSettings[scopeSelector];
+        settings = this.makeValueConformToSchema(null, settings, {
+          suppressException: true
+        });
+        this.setRawScopedValue(null, settings, source, scopeSelector);
       }
-    })
+    });
   }
 
   /*
   Section: Private Scoped Settings
   */
 
-  priorityForSource (source) {
+  priorityForSource(source) {
     switch (source) {
       case this.mainSource:
-        return 1000
+        return 1000;
       case this.projectFile:
-        return 2000
+        return 2000;
       default:
-        return 0
+        return 0;
     }
   }
 
-  emitChangeEvent () {
-    if (this.transactDepth <= 0) { return this.emitter.emit('did-change') }
+  emitChangeEvent() {
+    if (this.transactDepth <= 0) {
+      return this.emitter.emit('did-change');
+    }
   }
 
-  resetScopedSettings (newScopedSettings, options = {}) {
-    const source = options.source == null ? this.mainSource : options.source
-    const priority = this.priorityForSource(source)
-    this.scopedSettingsStore.removePropertiesForSource(source)
+  resetScopedSettings(newScopedSettings, options = {}) {
+    const source = options.source == null ? this.mainSource : options.source;
+    const priority = this.priorityForSource(source);
+    this.scopedSettingsStore.removePropertiesForSource(source);
 
     for (let scopeSelector in newScopedSettings) {
-      let settings = newScopedSettings[scopeSelector]
-      settings = this.makeValueConformToSchema(null, settings, {suppressException: true})
-      const validatedSettings = {}
-      validatedSettings[scopeSelector] = withoutEmptyObjects(settings)
-      if (validatedSettings[scopeSelector] != null) { this.scopedSettingsStore.addProperties(source, validatedSettings, {priority}) }
+      let settings = newScopedSettings[scopeSelector];
+      settings = this.makeValueConformToSchema(null, settings, {
+        suppressException: true
+      });
+      const validatedSettings = {};
+      validatedSettings[scopeSelector] = withoutEmptyObjects(settings);
+      if (validatedSettings[scopeSelector] != null) {
+        this.scopedSettingsStore.addProperties(source, validatedSettings, {
+          priority
+        });
+      }
     }
 
-    return this.emitChangeEvent()
+    return this.emitChangeEvent();
   }
 
-  setRawScopedValue (keyPath, value, source, selector, options) {
+  setRawScopedValue(keyPath, value, source, selector, options) {
     if (keyPath != null) {
-      const newValue = {}
-      setValueAtKeyPath(newValue, keyPath, value)
-      value = newValue
+      const newValue = {};
+      setValueAtKeyPath(newValue, keyPath, value);
+      value = newValue;
     }
 
-    const settingsBySelector = {}
-    settingsBySelector[selector] = value
-    this.scopedSettingsStore.addProperties(source, settingsBySelector, {priority: this.priorityForSource(source)})
-    return this.emitChangeEvent()
+    const settingsBySelector = {};
+    settingsBySelector[selector] = value;
+    this.scopedSettingsStore.addProperties(source, settingsBySelector, {
+      priority: this.priorityForSource(source)
+    });
+    return this.emitChangeEvent();
   }
 
-  getRawScopedValue (scopeDescriptor, keyPath, options) {
-    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor)
+  getRawScopedValue(scopeDescriptor, keyPath, options) {
+    scopeDescriptor = ScopeDescriptor.fromObject(scopeDescriptor);
     const result = this.scopedSettingsStore.getPropertyValue(
       scopeDescriptor.getScopeChain(),
       keyPath,
       options
-    )
+    );
 
-    const legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(scopeDescriptor)
+    const legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(
+      scopeDescriptor
+    );
     if (result != null) {
-      return result
+      return result;
     } else if (legacyScopeDescriptor) {
       return this.scopedSettingsStore.getPropertyValue(
         legacyScopeDescriptor.getScopeChain(),
         keyPath,
         options
-      )
+      );
     }
   }
 
-  observeScopedKeyPath (scope, keyPath, callback) {
-    callback(this.get(keyPath, {scope}))
-    return this.onDidChangeScopedKeyPath(scope, keyPath, event => callback(event.newValue))
+  observeScopedKeyPath(scope, keyPath, callback) {
+    callback(this.get(keyPath, { scope }));
+    return this.onDidChangeScopedKeyPath(scope, keyPath, event =>
+      callback(event.newValue)
+    );
   }
 
-  onDidChangeScopedKeyPath (scope, keyPath, callback) {
-    let oldValue = this.get(keyPath, {scope})
+  onDidChangeScopedKeyPath(scope, keyPath, callback) {
+    let oldValue = this.get(keyPath, { scope });
     return this.emitter.on('did-change', () => {
-      const newValue = this.get(keyPath, {scope})
+      const newValue = this.get(keyPath, { scope });
       if (!_.isEqual(oldValue, newValue)) {
-        const event = {oldValue, newValue}
-        oldValue = newValue
-        callback(event)
+        const event = { oldValue, newValue };
+        oldValue = newValue;
+        callback(event);
       }
-    })
+    });
   }
-};
+}
 
 // Base schema enforcers. These will coerce raw input into the specified type,
 // and will throw an error when the value cannot be coerced. Throwing the error
@@ -1306,197 +1432,284 @@ class Config {
 // order of specification. Then the `*` enforcers will be run, in order of
 // specification.
 Config.addSchemaEnforcers({
-  'any': {
-    coerce (keyPath, value, schema) {
-      return value
+  any: {
+    coerce(keyPath, value, schema) {
+      return value;
     }
   },
 
-  'integer': {
-    coerce (keyPath, value, schema) {
-      value = parseInt(value)
-      if (isNaN(value) || !isFinite(value)) { throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} cannot be coerced into an int`) }
-      return value
+  integer: {
+    coerce(keyPath, value, schema) {
+      value = parseInt(value);
+      if (isNaN(value) || !isFinite(value)) {
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} cannot be coerced into an int`
+        );
+      }
+      return value;
     }
   },
 
-  'number': {
-    coerce (keyPath, value, schema) {
-      value = parseFloat(value)
-      if (isNaN(value) || !isFinite(value)) { throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} cannot be coerced into a number`) }
-      return value
+  number: {
+    coerce(keyPath, value, schema) {
+      value = parseFloat(value);
+      if (isNaN(value) || !isFinite(value)) {
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} cannot be coerced into a number`
+        );
+      }
+      return value;
     }
   },
 
-  'boolean': {
-    coerce (keyPath, value, schema) {
+  boolean: {
+    coerce(keyPath, value, schema) {
       switch (typeof value) {
         case 'string':
           if (value.toLowerCase() === 'true') {
-            return true
+            return true;
           } else if (value.toLowerCase() === 'false') {
-            return false
+            return false;
           } else {
-            throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be a boolean or the string 'true' or 'false'`)
+            throw new Error(
+              `Validation failed at ${keyPath}, ${JSON.stringify(
+                value
+              )} must be a boolean or the string 'true' or 'false'`
+            );
           }
         case 'boolean':
-          return value
+          return value;
         default:
-          throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be a boolean or the string 'true' or 'false'`)
+          throw new Error(
+            `Validation failed at ${keyPath}, ${JSON.stringify(
+              value
+            )} must be a boolean or the string 'true' or 'false'`
+          );
       }
     }
   },
 
-  'string': {
-    validate (keyPath, value, schema) {
+  string: {
+    validate(keyPath, value, schema) {
       if (typeof value !== 'string') {
-        throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be a string`)
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} must be a string`
+        );
       }
-      return value
+      return value;
     },
 
-    validateMaximumLength (keyPath, value, schema) {
-      if ((typeof schema.maximumLength === 'number') && (value.length > schema.maximumLength)) {
-        return value.slice(0, schema.maximumLength)
+    validateMaximumLength(keyPath, value, schema) {
+      if (
+        typeof schema.maximumLength === 'number' &&
+        value.length > schema.maximumLength
+      ) {
+        return value.slice(0, schema.maximumLength);
       } else {
-        return value
+        return value;
       }
     }
   },
 
-  'null': {
+  null: {
     // null sort of isnt supported. It will just unset in this case
-    coerce (keyPath, value, schema) {
-      if (![undefined, null].includes(value)) { throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be null`) }
-      return value
+    coerce(keyPath, value, schema) {
+      if (![undefined, null].includes(value)) {
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} must be null`
+        );
+      }
+      return value;
     }
   },
 
-  'object': {
-    coerce (keyPath, value, schema) {
-      if (!isPlainObject(value)) { throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be an object`) }
-      if (schema.properties == null) { return value }
+  object: {
+    coerce(keyPath, value, schema) {
+      if (!isPlainObject(value)) {
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} must be an object`
+        );
+      }
+      if (schema.properties == null) {
+        return value;
+      }
 
-      let defaultChildSchema = null
-      let allowsAdditionalProperties = true
+      let defaultChildSchema = null;
+      let allowsAdditionalProperties = true;
       if (isPlainObject(schema.additionalProperties)) {
-        defaultChildSchema = schema.additionalProperties
+        defaultChildSchema = schema.additionalProperties;
       }
       if (schema.additionalProperties === false) {
-        allowsAdditionalProperties = false
+        allowsAdditionalProperties = false;
       }
 
-      const newValue = {}
+      const newValue = {};
       for (let prop in value) {
-        const propValue = value[prop]
-        const childSchema = schema.properties[prop] != null ? schema.properties[prop] : defaultChildSchema
+        const propValue = value[prop];
+        const childSchema =
+          schema.properties[prop] != null
+            ? schema.properties[prop]
+            : defaultChildSchema;
         if (childSchema != null) {
           try {
-            newValue[prop] = this.executeSchemaEnforcers(pushKeyPath(keyPath, prop), propValue, childSchema)
+            newValue[prop] = this.executeSchemaEnforcers(
+              pushKeyPath(keyPath, prop),
+              propValue,
+              childSchema
+            );
           } catch (error) {
-            console.warn(`Error setting item in object: ${error.message}`)
+            console.warn(`Error setting item in object: ${error.message}`);
           }
         } else if (allowsAdditionalProperties) {
           // Just pass through un-schema'd values
-          newValue[prop] = propValue
+          newValue[prop] = propValue;
         } else {
-          console.warn(`Illegal object key: ${keyPath}.${prop}`)
+          console.warn(`Illegal object key: ${keyPath}.${prop}`);
         }
       }
 
-      return newValue
+      return newValue;
     }
   },
 
-  'array': {
-    coerce (keyPath, value, schema) {
-      if (!Array.isArray(value)) { throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} must be an array`) }
-      const itemSchema = schema.items
+  array: {
+    coerce(keyPath, value, schema) {
+      if (!Array.isArray(value)) {
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} must be an array`
+        );
+      }
+      const itemSchema = schema.items;
       if (itemSchema != null) {
-        const newValue = []
+        const newValue = [];
         for (let item of value) {
           try {
-            newValue.push(this.executeSchemaEnforcers(keyPath, item, itemSchema))
+            newValue.push(
+              this.executeSchemaEnforcers(keyPath, item, itemSchema)
+            );
           } catch (error) {
-            console.warn(`Error setting item in array: ${error.message}`)
+            console.warn(`Error setting item in array: ${error.message}`);
           }
         }
-        return newValue
+        return newValue;
       } else {
-        return value
+        return value;
       }
     }
   },
 
-  'color': {
-    coerce (keyPath, value, schema) {
-      const color = Color.parse(value)
+  color: {
+    coerce(keyPath, value, schema) {
+      const color = Color.parse(value);
       if (color == null) {
-        throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} cannot be coerced into a color`)
+        throw new Error(
+          `Validation failed at ${keyPath}, ${JSON.stringify(
+            value
+          )} cannot be coerced into a color`
+        );
       }
-      return color
+      return color;
     }
   },
 
   '*': {
-    coerceMinimumAndMaximum (keyPath, value, schema) {
-      if (typeof value !== 'number') { return value }
-      if ((schema.minimum != null) && (typeof schema.minimum === 'number')) {
-        value = Math.max(value, schema.minimum)
+    coerceMinimumAndMaximum(keyPath, value, schema) {
+      if (typeof value !== 'number') {
+        return value;
       }
-      if ((schema.maximum != null) && (typeof schema.maximum === 'number')) {
-        value = Math.min(value, schema.maximum)
+      if (schema.minimum != null && typeof schema.minimum === 'number') {
+        value = Math.max(value, schema.minimum);
       }
-      return value
+      if (schema.maximum != null && typeof schema.maximum === 'number') {
+        value = Math.min(value, schema.maximum);
+      }
+      return value;
     },
 
-    validateEnum (keyPath, value, schema) {
-      let possibleValues = schema.enum
+    validateEnum(keyPath, value, schema) {
+      let possibleValues = schema.enum;
 
       if (Array.isArray(possibleValues)) {
         possibleValues = possibleValues.map(value => {
-          if (value.hasOwnProperty('value')) { return value.value } else { return value }
-        })
+          if (value.hasOwnProperty('value')) {
+            return value.value;
+          } else {
+            return value;
+          }
+        });
       }
 
-      if ((possibleValues == null) || !Array.isArray(possibleValues) || !possibleValues.length) { return value }
+      if (
+        possibleValues == null ||
+        !Array.isArray(possibleValues) ||
+        !possibleValues.length
+      ) {
+        return value;
+      }
 
       for (let possibleValue of possibleValues) {
         // Using `isEqual` for possibility of placing enums on array and object schemas
-        if (_.isEqual(possibleValue, value)) { return value }
+        if (_.isEqual(possibleValue, value)) {
+          return value;
+        }
       }
 
-      throw new Error(`Validation failed at ${keyPath}, ${JSON.stringify(value)} is not one of ${JSON.stringify(possibleValues)}`)
+      throw new Error(
+        `Validation failed at ${keyPath}, ${JSON.stringify(
+          value
+        )} is not one of ${JSON.stringify(possibleValues)}`
+      );
     }
   }
-})
+});
 
-let isPlainObject = value => _.isObject(value) && !Array.isArray(value) && !_.isFunction(value) && !_.isString(value) && !(value instanceof Color)
+let isPlainObject = value =>
+  _.isObject(value) &&
+  !Array.isArray(value) &&
+  !_.isFunction(value) &&
+  !_.isString(value) &&
+  !(value instanceof Color);
 
 let sortObject = value => {
-  if (!isPlainObject(value)) { return value }
-  const result = {}
-  for (let key of Object.keys(value).sort()) {
-    result[key] = sortObject(value[key])
+  if (!isPlainObject(value)) {
+    return value;
   }
-  return result
-}
+  const result = {};
+  for (let key of Object.keys(value).sort()) {
+    result[key] = sortObject(value[key]);
+  }
+  return result;
+};
 
-const withoutEmptyObjects = (object) => {
-  let resultObject
+const withoutEmptyObjects = object => {
+  let resultObject;
   if (isPlainObject(object)) {
     for (let key in object) {
-      const value = object[key]
-      const newValue = withoutEmptyObjects(value)
+      const value = object[key];
+      const newValue = withoutEmptyObjects(value);
       if (newValue != null) {
-        if (resultObject == null) { resultObject = {} }
-        resultObject[key] = newValue
+        if (resultObject == null) {
+          resultObject = {};
+        }
+        resultObject[key] = newValue;
       }
     }
   } else {
-    resultObject = object
+    resultObject = object;
   }
-  return resultObject
-}
+  return resultObject;
+};
 
-module.exports = Config
+module.exports = Config;
