@@ -40,7 +40,11 @@ class TreeSitterGrammar {
 
     this.scopeMap = new SyntaxScopeMap(scopeSelectors)
     this.fileTypes = params.fileTypes || []
-    this.injectionPoints = params.injectionPoints || []
+    this.injectionPointsByType = {}
+
+    for (const injectionPoint of params.injectionPoints || []) {
+      this.addInjectionPoint(injectionPoint)
+    }
 
     // TODO - When we upgrade to a new enough version of node, use `require.resolve`
     // with the new `paths` option instead of this private API.
@@ -88,6 +92,25 @@ class TreeSitterGrammar {
 
   deactivate () {
     if (this.registration) this.registration.dispose()
+  }
+
+  addInjectionPoint (injectionPoint) {
+    let injectionPoints = this.injectionPointsByType[injectionPoint.type]
+    if (!injectionPoints) {
+      injectionPoints = this.injectionPointsByType[injectionPoint.type] = []
+    }
+    injectionPoints.push(injectionPoint)
+  }
+
+  removeInjectionPoint (injectionPoint) {
+    const injectionPoints = this.injectionPointsByType[injectionPoint.type]
+    if (injectionPoints) {
+      const index = injectionPoints.indexOf(injectionPoint)
+      if (index !== -1) injectionPoints.splice(index, 1)
+      if (injectionPoints.length === 0) {
+        delete this.injectionPointsByType[injectionPoint.type]
+      }
+    }
   }
 }
 

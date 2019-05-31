@@ -6,6 +6,7 @@ const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
 const Grim = require('grim')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
+const RipgrepDirectorySearcher = require('./ripgrep-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
 const StateStore = require('./state-store')
@@ -203,7 +204,8 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
     this.stoppedChangingActivePaneItemTimeout = null
 
-    this.defaultDirectorySearcher = new DefaultDirectorySearcher()
+    this.scandalDirectorySearcher = new DefaultDirectorySearcher()
+    this.ripgrepDirectorySearcher = new RipgrepDirectorySearcher()
     this.consumeServices(this.packageManager)
 
     this.paneContainers = {
@@ -1065,6 +1067,12 @@ module.exports = class Workspace extends Model {
         if (typeof item.setCursorBufferPosition === 'function') {
           item.setCursorBufferPosition([initialLine, initialColumn])
         }
+        if (typeof item.unfoldBufferRow === 'function') {
+          item.unfoldBufferRow(initialLine)
+        }
+        if (typeof item.scrollToBufferPosition === 'function') {
+          item.scrollToBufferPosition([initialLine, initialColumn], { center: true })
+        }
       }
 
       const index = pane.getActiveItemIndex()
@@ -1543,9 +1551,9 @@ module.exports = class Workspace extends Model {
   }
 
   subscribeToFontSize () {
-    return this.config.onDidChange('editor.fontSize', ({oldValue}) => {
+    return this.config.onDidChange('editor.fontSize', () => {
       if (this.originalFontSize == null) {
-        this.originalFontSize = oldValue
+        this.originalFontSize = this.config.get('editor.fontSize')
       }
     })
   }
@@ -1785,8 +1793,8 @@ module.exports = class Workspace extends Model {
   //     (default: true)
   //   * `priority` (optional) {Number} Determines stacking order. Lower priority items are
   //     forced closer to the edges of the window. (default: 100)
-  //   * `autoFocus` (optional) {Boolean} true if you want modal focus managed for you by Atom.
-  //     Atom will automatically focus your modal panel's first tabbable element when the modal
+  //   * `autoFocus` (optional) {Boolean|Element} true if you want modal focus managed for you by Atom.
+  //     Atom will automatically focus on this element or your modal panel's first tabbable element when the modal
   //     opens and will restore the previously selected element when the modal closes. Atom will
   //     also automatically restrict user tab focus within your modal while it is open.
   //     (default: false)
@@ -1847,7 +1855,7 @@ module.exports = class Workspace extends Model {
     // will be associated with an Array of Directory objects in the Map.
     const directoriesForSearcher = new Map()
     for (const directory of this.project.getDirectories()) {
-      let searcher = this.defaultDirectorySearcher
+      let searcher = options.ripgrep ? this.ripgrepDirectorySearcher : this.scandalDirectorySearcher
       for (const directorySearcher of this.directorySearchers) {
         if (directorySearcher.canSearchDirectory(directory)) {
           searcher = directorySearcher
@@ -1920,7 +1928,7 @@ module.exports = class Workspace extends Model {
         var matches = []
         buffer.scan(regex, match => matches.push(match))
         if (matches.length > 0) {
-          iterator({filePath, matches})
+          iterator({ filePath, matches })
         }
       }
     }
@@ -1939,9 +1947,9 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      const onFailure = function () {
+      const onFailure = function (error) {
         for (let promise of allSearches) { promise.cancel() }
-        reject()
+        reject(error)
       }
 
       searchPromise.then(onSuccess, onFailure)
@@ -1954,12 +1962,6 @@ module.exports = class Workspace extends Model {
       allSearches.map((promise) => promise.cancel())
     }
 
-    // Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
-    // method in the find-and-replace package expects the object returned by this method to have a
-    // `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = onSuccessOrFailure => {
-      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
-    }
     return cancellablePromise
   }
 

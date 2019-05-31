@@ -38,19 +38,10 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
 module.exports =
 class TextEditorRegistry {
   constructor ({config, assert, packageManager}) {
-    this.assert = assert
     this.config = config
+    this.assert = assert
+    this.packageManager = packageManager
     this.clear()
-
-    this.initialPackageActivationPromise = new Promise((resolve) => {
-      // TODO: Remove this usage of a private property of PackageManager.
-      // Should PackageManager just expose a promise-based API like this?
-      if (packageManager.deferredActivationHooks) {
-        packageManager.onDidActivateInitialPackages(resolve)
-      } else {
-        resolve()
-      }
-    })
   }
 
   deserialize (state) {
@@ -185,7 +176,7 @@ class TextEditorRegistry {
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    atom.grammars.maintainGrammar(editor.getBuffer())
+    atom.grammars.maintainLanguageMode(editor.getBuffer())
   }
 
   // Deprecated: Force a {TextEditor} to use a different grammar than the
@@ -216,7 +207,7 @@ class TextEditorRegistry {
   }
 
   async updateAndMonitorEditorSettings (editor, oldLanguageMode) {
-    await this.initialPackageActivationPromise
+    await this.packageManager.getActivatePromise()
     this.updateEditorSettingsForLanguageMode(editor, oldLanguageMode)
     this.subscribeToSettingsForEditorScope(editor)
   }

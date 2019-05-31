@@ -1,0 +1,11 @@
+{
+  "name": "atom-dark-syntax",
+  "theme": "syntax",
+  "version": "0.29.1",
+  "description": "A dark theme for syntax",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  }
+}

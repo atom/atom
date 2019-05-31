@@ -1,0 +1,100 @@
+.syntax--source.syntax--python {
+  .syntax--entity {
+    color: @syntax-text-color;
+
+    &.syntax--name {
+      color: @blue;
+    }
+    &.syntax--other {
+      color: @blue;
+    }
+  }
+
+  .syntax--function {
+    color: @blue;
+
+    &.syntax--magic {
+      color: @blue;
+    }
+  }
+
+  .syntax--punctuation.syntax--string {
+    color: @cyan;
+  }
+  .syntax--keyword {
+    &.syntax--operator {
+      color: @syntax-text-color;
+      &.syntax--quantifier {
+        color: @cyan;
+      }
+      &.syntax--logical {
+        color: @green;
+      }
+    }
+    &.syntax--control.syntax--import {
+      color: @orange;
+    }
+    &.syntax--other {
+      color: @green;
+    }
+  }
+  .syntax--constant {
+    &.syntax--language {
+      color: @blue;
+    }
+    &.syntax--character {
+      color: @cyan;
+    }
+    &.syntax--other {
+      color: @red;
+    }
+  }
+
+  .syntax--entity.syntax--name.syntax--type.syntax--class {
+    color: @blue;
+  }
+  .syntax--variable {
+    color: @syntax-text-color;
+  }
+  .syntax--support {
+    &.syntax--function.syntax--builtin {
+      color: @blue;
+    }
+    &.syntax--type {
+      &.syntax--exception.syntax--python {
+        color: @yellow;
+      }
+      &.syntax--python {
+        color: @blue;
+      }
+    }
+  }
+  .syntax--storage.syntax--type.syntax--string {
+    color: @cyan;
+  }
+
+  .syntax--storage.syntax--type.syntax--class {
+    color: @green;
+    &.syntax--todo {
+      color: @magenta;
+    }
+  }
+
+  .syntax--storage.syntax--type.syntax--function {
+    color: @green;
+  }
+
+  .syntax--punctuation.syntax--definition.syntax--parameters {
+    color: @syntax-text-color;
+  }
+
+  .syntax--punctuation.syntax--section.syntax--function.syntax--begin {
+    color: @syntax-text-color;
+  }
+
+  .syntax--punctuation.syntax--separator.syntax--parameters {
+    color: @syntax-text-color;
+  }
+
+
+}

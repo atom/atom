@@ -16,6 +16,12 @@ async function downloadX86Node () {
 }
 
 async function runScriptForBuildArch () {
+  if (process.argv.length <= 2) {
+    console.error('A target script must be specified')
+    process.exit(1)
+  }
+
+  let exitCode = 0
   if (process.env.BUILD_ARCH === 'x86') {
     await downloadX86Node()
 
@@ -24,20 +30,22 @@ async function runScriptForBuildArch () {
     const runScript = `@echo off\r\nCALL ${extractedNodePath}\\nodevars.bat\r\nCALL ${path.resolve(process.argv[2])} ${process.argv.splice(3).join(' ')}`
     const runScriptPath = 'c:\\tmp\\run.cmd'
     fs.writeFileSync(runScriptPath, runScript)
-    childProcess.execSync(
-      `C:\\Windows\\SysWOW64\\cmd.exe /c "${runScriptPath}"`,
-      { env: process.env, stdio: 'inherit' }
-    )
-  } else {
-    if (process.argv.length > 2) {
-      childProcess.execSync(
-        process.argv.splice(2).join(' '),
+    exitCode =
+      childProcess.spawnSync(
+        'C:\\Windows\\SysWOW64\\cmd.exe',
+        ['/C', runScriptPath],
         { env: process.env, stdio: 'inherit' }
-      )
-    }
+      ).status
+  } else {
+    exitCode =
+      childProcess.spawnSync(
+        process.argv[2],
+        process.argv.splice(3),
+        { env: process.env, stdio: 'inherit' }
+      ).status
   }
+
+  process.exit(exitCode)
 }
 
-runScriptForBuildArch().catch(
-  err => console.error(`\nScript failed due to error: ${err.message}`)
-)
+runScriptForBuildArch()

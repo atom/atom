@@ -2,8 +2,8 @@ const Registry = require('winreg')
 const Path = require('path')
 
 let exeName = Path.basename(process.execPath)
-let appPath = `\"${process.execPath}\"`
-let fileIconPath = `\"${Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}\"`
+let appPath = `"${process.execPath}"`
+let fileIconPath = `"${Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}"`
 
 class ShellOption {
   constructor (key, parts) {
@@ -52,7 +52,7 @@ class ShellOption {
 
 function getShellOptions (appName) {
   const contextParts = [
-      {key: 'command', name: '', value: `${appPath} \"%1\"`},
+      {key: 'command', name: '', value: `${appPath} "%1"`},
       {name: '', value: `Open with ${appName}`},
       {name: 'Icon', value: `${appPath}`}
   ]
@@ -60,7 +60,7 @@ function getShellOptions (appName) {
   return {
     fileHandler: new ShellOption(`\\Software\\Classes\\Applications\\${exeName}`,
       [
-        {key: 'shell\\open\\command', name: '', value: `${appPath} \"%1\"`},
+        {key: 'shell\\open\\command', name: '', value: `${appPath} "%1"`},
         {key: 'shell\\open', name: 'FriendlyAppName', value: `${appName}`},
         {key: 'DefaultIcon', name: '', value: `${fileIconPath}`}
       ]

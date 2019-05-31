@@ -6,6 +6,7 @@ const {Disposable, CompositeDisposable} = require('event-kit')
 const TextMateLanguageMode = require('./text-mate-language-mode')
 const TreeSitterLanguageMode = require('./tree-sitter-language-mode')
 const TreeSitterGrammar = require('./tree-sitter-grammar')
+const ScopeDescriptor = require('./scope-descriptor')
 const Token = require('./token')
 const fs = require('fs-plus')
 const {Point, Range} = require('text-buffer')
@@ -214,9 +215,11 @@ class GrammarRegistry {
 
     // If multiple grammars match by one of the above criteria, break ties.
     if (score > 0) {
+      const isTreeSitter = grammar instanceof TreeSitterGrammar
+
       // Prefer either TextMate or Tree-sitter grammars based on the user's settings.
-      if (grammar instanceof TreeSitterGrammar) {
-        if (this.config.get('core.useTreeSitterParsers')) {
+      if (isTreeSitter) {
+        if (this.shouldUseTreeSitterParser(grammar.scopeName)) {
           score += 0.1
         } else {
           return -Infinity
@@ -226,7 +229,8 @@ class GrammarRegistry {
       // Prefer grammars with matching content regexes. Prefer a grammar with no content regex
       // over one with a non-matching content regex.
       if (grammar.contentRegex) {
-        if (grammar.contentRegex.test(contents)) {
+        const contentMatch = isTreeSitter ? grammar.contentRegex.test(contents) : grammar.contentRegex.testSync(contents)
+        if (contentMatch) {
           score += 0.05
         } else {
           score -= 0.05
@@ -311,7 +315,7 @@ class GrammarRegistry {
 
   grammarForId (languageId) {
     if (!languageId) return null
-    if (this.config.get('core.useTreeSitterParsers')) {
+    if (this.shouldUseTreeSitterParser(languageId)) {
       return (
         this.treeSitterGrammarsById[languageId] ||
         this.textmateRegistry.grammarForScopeName(languageId)
@@ -420,7 +424,11 @@ class GrammarRegistry {
   addInjectionPoint (grammarId, injectionPoint) {
     const grammar = this.treeSitterGrammarsById[grammarId]
     if (grammar) {
-      grammar.injectionPoints.push(injectionPoint)
+      if (grammar.addInjectionPoint) {
+        grammar.addInjectionPoint(injectionPoint)
+      } else {
+        grammar.injectionPoints.push(injectionPoint)
+      }
     } else {
       this.treeSitterGrammarsById[grammarId] = {
         injectionPoints: [injectionPoint]
@@ -428,8 +436,7 @@ class GrammarRegistry {
     }
     return new Disposable(() => {
       const grammar = this.treeSitterGrammarsById[grammarId]
-      const index = grammar.injectionPoints.indexOf(injectionPoint)
-      if (index !== -1) grammar.injectionPoints.splice(index, 1)
+      grammar.removeInjectionPoint(injectionPoint)
     })
   }
 
@@ -453,7 +460,11 @@ class GrammarRegistry {
     if (grammar instanceof TreeSitterGrammar) {
       const existingParams = this.treeSitterGrammarsById[grammar.scopeName] || {}
       if (grammar.scopeName) this.treeSitterGrammarsById[grammar.scopeName] = grammar
-      if (existingParams.injectionPoints) grammar.injectionPoints.push(...existingParams.injectionPoints)
+      if (existingParams.injectionPoints) {
+        for (const injectionPoint of existingParams.injectionPoints) {
+          grammar.addInjectionPoint(injectionPoint)
+        }
+      }
       this.grammarAddedOrUpdated(grammar)
       return new Disposable(() => this.removeGrammar(grammar))
     } else {
@@ -568,12 +579,11 @@ class GrammarRegistry {
     return grammarWithLongestMatch
   }
 
-  normalizeLanguageId (languageId) {
-    if (this.config.get('core.useTreeSitterParsers')) {
-      return this.treeSitterLanguageIdsByTextMateScopeName.get(languageId) || languageId
-    } else {
-      return this.textMateScopeNamesByTreeSitterLanguageId.get(languageId) || languageId
-    }
+  shouldUseTreeSitterParser (languageId) {
+    return this.config.get(
+      'core.useTreeSitterParsers',
+      {scope: new ScopeDescriptor({scopes: [languageId]})}
+    )
   }
 }
 

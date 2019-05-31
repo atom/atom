@@ -959,9 +959,6 @@ class TextEditor {
     return this.decorationManager.onDidUpdateDecorations(callback)
   }
 
-  // Essential: Retrieves the current {TextBuffer}.
-  getBuffer () { return this.buffer }
-
   // Retrieves the current buffer's URI.
   getURI () { return this.buffer.getUri() }
 
@@ -1074,6 +1071,15 @@ class TextEditor {
     } else {
       return this.editorWidthInChars
     }
+  }
+
+  /*
+  Section: Buffer
+  */
+
+  // Essential: Retrieves the current {TextBuffer}.
+  getBuffer () {
+    return this.buffer
   }
 
   /*
@@ -2215,14 +2221,17 @@ class TextEditor {
   //
   // The following are the supported decorations types:
   //
-  // * __line__: Adds your CSS `class` to the line nodes within the range
-  //     marked by the marker
-  // * __line-number__: Adds your CSS `class` to the line number nodes within the
-  //     range marked by the marker
-  // * __highlight__: Adds a new highlight div to the editor surrounding the
-  //     range marked by the marker. When the user selects text, the selection is
-  //     visualized with a highlight decoration internally. The structure of this
-  //     highlight will be
+  // * __line__: Adds the given CSS `class` to the lines overlapping the rows
+  //     spanned by the marker.
+  // * __line-number__: Adds the given CSS `class` to the line numbers overlapping
+  //     the rows spanned by the marker
+  // * __text__: Injects spans into all text overlapping the marked range, then adds
+  //     the given `class` or `style` to these spans. Use this to manipulate the foreground
+  //     color or styling of text in a range.
+  // * __highlight__: Creates an absolutely-positioned `.highlight` div to the editor
+  //     containing nested divs that cover the marked region. For example, when the user
+  //     selects text, the selection is implemented with a highlight decoration. The structure
+  //     of this highlight will be:
   //     ```html
   //     <div class="highlight <your-class>">
   //       <!-- Will be one region for each row in the range. Spans 2 lines? There will be 2 regions. -->
@@ -2230,45 +2239,25 @@ class TextEditor {
   //     </div>
   //     ```
   // * __overlay__: Positions the view associated with the given item at the head
-  //     or tail of the given `DisplayMarker`.
-  // * __gutter__: A decoration that tracks a {DisplayMarker} in a {Gutter}. Gutter
-  //     decorations are created by calling {Gutter::decorateMarker} on the
-  //     desired `Gutter` instance.
+  //     or tail of the given `DisplayMarker`, depending on the `position` property.
+  // * __gutter__: Tracks a {DisplayMarker} in a {Gutter}. Gutter decorations are created
+  //     by calling {Gutter::decorateMarker} on the desired `Gutter` instance.
   // * __block__: Positions the view associated with the given item before or
-  //     after the row of the given `TextEditorMarker`.
+  //     after the row of the given {DisplayMarker}, depending on the `position` property.
+  //     Block decorations at the same screen row are ordered by their `order` property.
+  // * __cursor__: Render a cursor at the head of the {DisplayMarker}. If multiple cursor decorations
+  //     are created for the same marker, their class strings and style objects are combined
+  //     into a single cursor. This decoration type may be used to style existing cursors
+  //     by passing in their markers or to render artificial cursors that don't actaully
+  //     exist in the model by passing a marker that isn't associated with a real cursor.
   //
   // ## Arguments
   //
   // * `marker` A {DisplayMarker} you want this decoration to follow.
   // * `decorationParams` An {Object} representing the decoration e.g.
   //   `{type: 'line-number', class: 'linter-error'}`
-  //   * `type` There are several supported decoration types. The behavior of the
-  //     types are as follows:
-  //     * `line` Adds the given `class` to the lines overlapping the rows
-  //        spanned by the `DisplayMarker`.
-  //     * `line-number` Adds the given `class` to the line numbers overlapping
-  //       the rows spanned by the `DisplayMarker`.
-  //     * `text` Injects spans into all text overlapping the marked range,
-  //       then adds the given `class` or `style` properties to these spans.
-  //       Use this to manipulate the foreground color or styling of text in
-  //       a given range.
-  //     * `highlight` Creates an absolutely-positioned `.highlight` div
-  //       containing nested divs to cover the marked region. For example, this
-  //       is used to implement selections.
-  //     * `overlay` Positions the view associated with the given item at the
-  //       head or tail of the given `DisplayMarker`, depending on the `position`
-  //       property.
-  //     * `gutter` Tracks a {DisplayMarker} in a {Gutter}. Created by calling
-  //       {Gutter::decorateMarker} on the desired `Gutter` instance.
-  //     * `block` Positions the view associated with the given item before or
-  //       after the row of the given `TextEditorMarker`, depending on the `position`
-  //       property.
-  //     * `cursor` Renders a cursor at the head of the given marker. If multiple
-  //       decorations are created for the same marker, their class strings and
-  //       style objects are combined into a single cursor. You can use this
-  //       decoration type to style existing cursors by passing in their markers
-  //       or render artificial cursors that don't actually exist in the model
-  //       by passing a marker that isn't actually associated with a cursor.
+  //   * `type` Determines the behavior and appearance of this {Decoration}. Supported decoration types
+  //     and their uses are listed above.
   //   * `class` This CSS class will be applied to the decorated line number,
   //     line, text spans, highlight regions, cursors, or overlay.
   //   * `style` An {Object} containing CSS style properties to apply to the
@@ -2294,12 +2283,15 @@ class TextEditor {
   //     Controls where the view is positioned relative to the `TextEditorMarker`.
   //     Values can be `'head'` (the default) or `'tail'` for overlay decorations, and
   //     `'before'` (the default) or `'after'` for block decorations.
+  //   * `order` (optional) Only applicable to decorations of type `block`. Controls
+  //      where the view is positioned relative to other block decorations at the
+  //      same screen row. If unspecified, block decorations render oldest to newest.
   //   * `avoidOverflow` (optional) Only applicable to decorations of type
   //      `overlay`. Determines whether the decoration adjusts its horizontal or
   //      vertical position to remain fully visible when it would otherwise
   //      overflow the editor. Defaults to `true`.
   //
-  // Returns a {Decoration} object
+  // Returns the created {Decoration} object.
   decorateMarker (marker, decorationParams) {
     return this.decorationManager.decorateMarker(marker, decorationParams)
   }
@@ -3850,6 +3842,28 @@ class TextEditor {
       : new ScopeDescriptor({scopes: ['text']})
   }
 
+  // Essential: Get the syntactic tree {ScopeDescriptor} for the given position in buffer
+  // coordinates or the syntactic {ScopeDescriptor} for TextMate language mode
+  //
+  // For example, if called with a position inside the parameter list of a
+  // JavaScript class function, this method returns a {ScopeDescriptor} with
+  // the following syntax nodes array:
+  // `["source.js", "program", "expression_statement", "assignment_expression", "class", "class_body", "method_definition", "formal_parameters", "identifier"]`
+  // if tree-sitter is used
+  // and the following scopes array:
+  // `["source.js"]`
+  // if textmate is used
+  //
+  // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
+  //
+  // Returns a {ScopeDescriptor}.
+  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition) {
+    const languageMode = this.buffer.getLanguageMode()
+    return languageMode.syntaxTreeScopeDescriptorForPosition
+      ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition)
+      : this.scopeDescriptorForBufferPosition(bufferPosition)
+  }
+
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
   // cursor that match the given scope selector.
   //
@@ -3879,6 +3893,11 @@ class TextEditor {
   // Get the scope descriptor at the cursor.
   getCursorScope () {
     return this.getLastCursor().getScopeDescriptor()
+  }
+
+  // Get the syntax nodes at the cursor.
+  getCursorSyntaxTreeScope () {
+    return this.getLastCursor().getSyntaxTreeScopeDescriptor()
   }
 
   tokenForBufferPosition (bufferPosition) {
@@ -4737,11 +4756,11 @@ class TextEditor {
 
   toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
 
-  toggleLineCommentsForBufferRows (start, end) {
+  toggleLineCommentsForBufferRows (start, end, options = {}) {
     const languageMode = this.buffer.getLanguageMode()
     let {commentStartString, commentEndString} =
       languageMode.commentStringsForPosition &&
-      languageMode.commentStringsForPosition(Point(start, 0)) || {}
+      languageMode.commentStringsForPosition(new Point(start, 0)) || {}
     if (!commentStartString) return
     commentStartString = commentStartString.trim()
 
@@ -4767,6 +4786,23 @@ class TextEditor {
           const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
           this.buffer.insert([start, indentLength], commentStartString + ' ')
           this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
+
+          // Prevent the cursor from selecting / passing the delimiters
+          // See https://github.com/atom/atom/pull/17519
+          if (options.correctSelection && options.selection) {
+            const endLineLength = this.buffer.lineLengthForRow(end)
+            const oldRange = options.selection.getBufferRange()
+            if (oldRange.isEmpty()) {
+              if (oldRange.start.column === endLineLength) {
+                const endCol = endLineLength - commentEndString.length - 1
+                options.selection.setBufferRange([[end, endCol], [end, endCol]], {autoscroll: false})
+              }
+            } else {
+              const startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
+              const endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
+              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), {autoscroll: false})
+            }
+          }
         })
       }
     } else {

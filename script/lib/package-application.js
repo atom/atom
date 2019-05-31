@@ -4,6 +4,7 @@ const assert = require('assert')
 const childProcess = require('child_process')
 const electronPackager = require('electron-packager')
 const fs = require('fs-extra')
+const hostArch = require('electron-packager/targets').hostArch
 const includePathInPackagedApp = require('./include-path-in-packaged-app')
 const getLicenseText = require('./get-license-text')
 const path = require('path')
@@ -11,31 +12,35 @@ const spawnSync = require('./spawn-sync')
 const template = require('lodash.template')
 
 const CONFIG = require('../config')
+const HOST_ARCH = hostArch()
 
 module.exports = function () {
   const appName = getAppName()
   console.log(`Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`)
   return runPackager({
-    'app-bundle-id': 'com.github.atom',
-    'app-copyright': `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
-    'app-version': CONFIG.appMetadata.version,
-    'arch': process.platform === 'darwin' ? 'x64' : process.arch, // OS X is 64-bit only
-    'asar': {unpack: buildAsarUnpackGlobExpression()},
-    'build-version': CONFIG.appMetadata.version,
-    'download': {cache: CONFIG.electronDownloadPath},
-    'dir': CONFIG.intermediateAppPath,
-    'extend-info': path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
-    'helper-bundle-id': 'com.github.atom.helper',
-    'icon': getIcon(),
-    'name': appName,
-    'out': CONFIG.buildOutputPath,
-    'overwrite': true,
-    'platform': process.platform,
-    'version': CONFIG.appMetadata.electronVersion,
-    'version-string': {
-      'CompanyName': 'GitHub, Inc.',
-      'FileDescription': 'Atom',
-      'ProductName': CONFIG.appName
+    appBundleId: 'com.github.atom',
+    appCopyright: `Copyright © 2014-${(new Date()).getFullYear()} GitHub, Inc. All rights reserved.`,
+    appVersion: CONFIG.appMetadata.version,
+    arch: process.platform === 'darwin' ? 'x64' : HOST_ARCH, // OS X is 64-bit only
+    asar: {unpack: buildAsarUnpackGlobExpression()},
+    buildVersion: CONFIG.appMetadata.version,
+    derefSymlinks: false,
+    download: {cache: CONFIG.electronDownloadPath},
+    dir: CONFIG.intermediateAppPath,
+    electronVersion: CONFIG.appMetadata.electronVersion,
+    extendInfo: path.join(CONFIG.repositoryRootPath, 'resources', 'mac', 'atom-Info.plist'),
+    helperBundleId: 'com.github.atom.helper',
+    icon: path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom'),
+    name: appName,
+    out: CONFIG.buildOutputPath,
+    overwrite: true,
+    platform: process.platform,
+    // Atom doesn't have devDependencies, but if prune is true, it will delete the non-standard packageDependencies.
+    prune: false,
+    win32metadata: {
+      CompanyName: 'GitHub, Inc.',
+      FileDescription: 'Atom',
+      ProductName: CONFIG.appName
     }
   }).then((packagedAppPath) => {
     let bundledResourcesPath
@@ -110,6 +115,7 @@ function buildAsarUnpackGlobExpression () {
     path.join('**', 'node_modules', 'spellchecker', '**'),
     path.join('**', 'node_modules', 'dugite', 'git', '**'),
     path.join('**', 'node_modules', 'github', 'bin', '**'),
+    path.join('**', 'node_modules', 'vscode-ripgrep', 'bin', '**'),
     path.join('**', 'resources', 'atom.png')
   ]
 
@@ -126,32 +132,12 @@ function getAppName () {
   }
 }
 
-function getIcon () {
-  switch (process.platform) {
-    case 'darwin':
-      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.icns')
-    case 'linux':
-      // Don't pass an icon, as the dock/window list icon is set via the icon
-      // option in the BrowserWindow constructor in atom-window.coffee.
-      return null
-    default:
-      return path.join(CONFIG.repositoryRootPath, 'resources', 'app-icons', CONFIG.channel, 'atom.ico')
-  }
-}
+async function runPackager (options) {
+  const packageOutputDirPaths = await electronPackager(options)
 
-function runPackager (options) {
-  return new Promise((resolve, reject) => {
-    electronPackager(options, (err, packageOutputDirPaths) => {
-      if (err) {
-        reject(err)
-        throw new Error(err)
-      } else {
-        assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
-        const packagedAppPath = renamePackagedAppDir(packageOutputDirPaths[0])
-        resolve(packagedAppPath)
-      }
-    })
-  })
+  assert(packageOutputDirPaths.length === 1, 'Generated more than one electron application!')
+
+  return renamePackagedAppDir(packageOutputDirPaths[0])
 }
 
 function renamePackagedAppDir (packageOutputDirPath) {
@@ -164,19 +150,19 @@ function renamePackagedAppDir (packageOutputDirPath) {
   } else if (process.platform === 'linux') {
     const appName = CONFIG.channel !== 'stable' ? `atom-${CONFIG.channel}` : 'atom'
     let architecture
-    if (process.arch === 'ia32') {
+    if (HOST_ARCH === 'ia32') {
       architecture = 'i386'
-    } else if (process.arch === 'x64') {
+    } else if (HOST_ARCH === 'x64') {
       architecture = 'amd64'
     } else {
-      architecture = process.arch
+      architecture = HOST_ARCH
     }
     packagedAppPath = path.join(CONFIG.buildOutputPath, `${appName}-${CONFIG.appMetadata.version}-${architecture}`)
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)
     fs.renameSync(packageOutputDirPath, packagedAppPath)
   } else {
     packagedAppPath = path.join(CONFIG.buildOutputPath, CONFIG.appName)
-    if (process.platform === 'win32' && process.arch !== 'ia32') {
+    if (process.platform === 'win32' && HOST_ARCH !== 'ia32') {
       packagedAppPath += ` ${process.arch}`
     }
     if (fs.existsSync(packagedAppPath)) fs.removeSync(packagedAppPath)

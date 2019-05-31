@@ -5,7 +5,7 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       'a > b > c': 'x',
       'b > c': 'y',
-      'c': 'z'
+      c: 'z'
     })
 
     expect(map.get(['a', 'b', 'c'], [0, 0, 0])).toBe('x')
@@ -20,7 +20,7 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       'a > b': 'w',
       'a > b:nth-child(1)': 'x',
-      'b': 'y',
+      b: 'y',
       'b:nth-child(2)': 'z'
     })
 
@@ -49,13 +49,15 @@ describe('SyntaxScopeMap', () => {
     const map = new SyntaxScopeMap({
       '"b"': 'w',
       'a > "b"': 'x',
-      'a > "b":nth-child(1)': 'y'
+      'a > "b":nth-child(1)': 'y',
+      '"\\""': 'z'
     })
 
     expect(map.get(['b'], [0], true)).toBe(undefined)
     expect(map.get(['b'], [0], false)).toBe('w')
     expect(map.get(['a', 'b'], [0, 0], false)).toBe('x')
     expect(map.get(['a', 'b'], [0, 1], false)).toBe('y')
+    expect(map.get(['a', '"'], [0, 1], false)).toBe('z')
   })
 
   it('supports the wildcard selector', () => {
@@ -73,5 +75,15 @@ describe('SyntaxScopeMap', () => {
     expect(map.get(['a', 'c'], [0, 1])).toBe('y')
     expect(map.get(['a', 'c', 'b'], [0, 1, 1])).toBe('z')
     expect(map.get(['a', 'c', 'b'], [0, 2, 1])).toBe('w')
+  })
+
+  it('distinguishes between an anonymous * token and the wildcard selector', () => {
+    const map = new SyntaxScopeMap({
+      '"*"': 'x',
+      'a > "b"': 'y'
+    })
+
+    expect(map.get(['b'], [0], false)).toBe(undefined)
+    expect(map.get(['*'], [0], false)).toBe('x')
   })
 })

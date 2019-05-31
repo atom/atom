@@ -11,6 +11,7 @@ module.exports = function parseCommandLine (processArgs) {
     dedent`Atom Editor v${version}
 
     Usage:
+      atom
       atom [options] [path ...]
       atom file[:line[:column]]
 
@@ -57,7 +58,6 @@ module.exports = function parseCommandLine (processArgs) {
   options.alias('v', 'version').boolean('v').describe('v', 'Print the version information.')
   options.alias('w', 'wait').boolean('w').describe('w', 'Wait for window to be closed before returning.')
   options.alias('a', 'add').boolean('a').describe('add', 'Open path as a new project in last used window.')
-  options.string('socket-path')
   options.string('user-data-dir')
   options.boolean('clear-window-state').describe('clear-window-state', 'Delete all Atom environment state.')
   options.boolean('enable-electron-logging').describe('enable-electron-logging', 'Enable low-level logging messages from Electron.')
@@ -104,13 +104,22 @@ module.exports = function parseCommandLine (processArgs) {
     executedFrom = process.cwd()
   }
 
+  if (newWindow && addToLastWindow) {
+    process.stderr.write(
+      `Only one of the --add and --new-window options may be specified at the same time.\n\n${options.help()}`,
+    )
+
+    // Exiting the main process with a nonzero exit code on MacOS causes the app open to fail with the mysterious
+    // message "LSOpenURLsWithRole() failed for the application /Applications/Atom Dev.app with error -10810."
+    process.exit(0)
+  }
+
   let pidToKillWhenClosed = null
   if (args['wait']) {
     pidToKillWhenClosed = args['pid']
   }
 
   const logFile = args['log-file']
-  const socketPath = args['socket-path']
   const userDataDir = args['user-data-dir']
   const profileStartup = args['profile-startup']
   const clearWindowState = args['clear-window-state']
@@ -147,7 +156,6 @@ module.exports = function parseCommandLine (processArgs) {
     safeMode,
     newWindow,
     logFile,
-    socketPath,
     userDataDir,
     profileStartup,
     timeout,

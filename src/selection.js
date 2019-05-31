@@ -84,6 +84,8 @@ class Selection {
   //
   // * `bufferRange` The new {Range} to select.
   // * `options` (optional) {Object} with the keys:
+  //   * `reversed` {Boolean} indicating whether to set the selection in a
+  //     reversed orientation.
   //   * `preserveFolds` if `true`, the fold settings are preserved after the
   //     selection moves.
   //   * `autoscroll` {Boolean} indicating whether to autoscroll to the new
@@ -770,7 +772,8 @@ class Selection {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   toggleLineComments (options = {}) {
     if (!this.ensureWritable('toggleLineComments', options)) return
-    this.editor.toggleLineCommentsForBufferRows(...(this.getBufferRowRange() || []))
+    let bufferRowRange = this.getBufferRowRange() || [null, null]
+    this.editor.toggleLineCommentsForBufferRows(...bufferRowRange, {correctSelection: true, selection: this})
   }
 
   // Public: Cuts the selection until the end of the screen line.

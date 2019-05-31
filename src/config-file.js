@@ -1,12 +1,11 @@
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
 const dedent = require('dedent')
-const {Emitter} = require('event-kit')
+const {Disposable, Emitter} = require('event-kit')
 const {watchPath} = require('./path-watcher')
 const CSON = require('season')
 const Path = require('path')
 const async = require('async')
-const temp = require('temp')
 
 const EVENT_TYPES = new Set([
   'created',
@@ -38,11 +37,9 @@ class ConfigFile {
     this.reloadCallbacks = []
 
     // Use a queue to prevent multiple concurrent write to the same file.
-    const writeQueue = async.queue((data, callback) => {
-      (async () => {
-        try {
-          await writeCSONFileAtomically(this.path, data)
-        } catch (error) {
+    const writeQueue = async.queue((data, callback) =>
+      CSON.writeFile(this.path, data, error => {
+        if (error) {
           this.emitter.emit('did-error', dedent `
             Failed to write \`${Path.basename(this.path)}\`.
 
@@ -50,8 +47,8 @@ class ConfigFile {
           `)
         }
         callback()
-      })()
-    })
+      })
+    )
 
     this.requestLoad = _.debounce(() => this.reload(), 200)
     this.requestSave = _.debounce((data) => writeQueue.push(data), 200)
@@ -77,10 +74,9 @@ class ConfigFile {
     await this.reload()
 
     try {
-      const watcher = await watchPath(this.path, {}, events => {
+      return await watchPath(this.path, {}, events => {
         if (events.some(event => EVENT_TYPES.has(event.action))) this.requestLoad()
       })
-      return watcher
     } catch (error) {
       this.emitter.emit('did-error', dedent `
         Unable to watch path: \`${Path.basename(this.path)}\`.
@@ -91,6 +87,7 @@ class ConfigFile {
 
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path\
       `)
+      return new Disposable()
     }
   }
 
@@ -118,28 +115,4 @@ class ConfigFile {
       })
     })
   }
-}
-
-function writeCSONFile (path, data) {
-  return new Promise((resolve, reject) => {
-    CSON.writeFile(path, data, error => {
-      if (error) reject(error)
-      else resolve()
-    })
-  })
-}
-
-async function writeCSONFileAtomically (path, data) {
-  const tempPath = temp.path()
-  await writeCSONFile(tempPath, data)
-  await rename(tempPath, path)
-}
-
-function rename (oldPath, newPath) {
-  return new Promise((resolve, reject) => {
-    fs.rename(oldPath, newPath, error => {
-      if (error) reject(error)
-      else resolve()
-    })
-  })
 }

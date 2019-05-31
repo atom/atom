@@ -1,13 +1,12 @@
-const {it, fit, ffit, fffit, beforeEach, afterEach, conditionPromise, timeoutPromise} = require('./async-spec-helpers')
-
 const fs = require('fs')
 const path = require('path')
 const temp = require('temp').track()
 const dedent = require('dedent')
-const {clipboard} = require('electron')
+const { clipboard } = require('electron')
 const TextEditor = require('../src/text-editor')
 const TextBuffer = require('text-buffer')
 const TextMateLanguageMode = require('../src/text-mate-language-mode')
+const TreeSitterLanguageMode = require('../src/tree-sitter-language-mode')
 
 describe('TextEditor', () => {
   let buffer, editor, lineLengths
@@ -15,7 +14,7 @@ describe('TextEditor', () => {
   beforeEach(async () => {
     editor = await atom.workspace.open('sample.js')
     buffer = editor.buffer
-    editor.update({autoIndent: false})
+    editor.update({ autoIndent: false })
     lineLengths = buffer.getLines().map(line => line.length)
     await atom.packages.activatePackage('language-javascript')
   })
@@ -23,8 +22,8 @@ describe('TextEditor', () => {
   it('generates unique ids for each editor', async () => {
     // Deserialized editors are initialized with the serialized id. We can
     // initialize an editor with what we expect to be the next id:
-    const deserialized = new TextEditor({id: editor.id+1})
-    expect(deserialized.id).toEqual(editor.id+1)
+    const deserialized = new TextEditor({ id: editor.id + 1 })
+    expect(deserialized.id).toEqual(editor.id + 1)
 
     // The id generator should skip the id used up by the deserialized one:
     const fresh = new TextEditor()
@@ -34,7 +33,7 @@ describe('TextEditor', () => {
   describe('when the editor is deserialized', () => {
     it('restores selections and folds based on markers in the buffer', async () => {
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
-      editor.addSelectionForBufferRange([[5, 6], [7, 5]], {reversed: true})
+      editor.addSelectionForBufferRange([[5, 6], [7, 5]], { reversed: true })
       editor.foldBufferRow(4)
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
 
@@ -42,12 +41,19 @@ describe('TextEditor', () => {
       const editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
         textEditors: atom.textEditors,
-        project: {bufferForIdSync () { return buffer2 }}
+        project: {
+          bufferForIdSync () {
+            return buffer2
+          }
+        }
       })
 
       expect(editor2.id).toBe(editor.id)
       expect(editor2.getBuffer().getPath()).toBe(editor.getBuffer().getPath())
-      expect(editor2.getSelectedBufferRanges()).toEqual([[[1, 2], [3, 4]], [[5, 6], [7, 5]]])
+      expect(editor2.getSelectedBufferRanges()).toEqual([
+        [[1, 2], [3, 4]],
+        [[5, 6], [7, 5]]
+      ])
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy()
       editor2.destroy()
@@ -61,7 +67,7 @@ describe('TextEditor', () => {
         softWrapped: true,
         softWrapAtPreferredLineLength: true,
         softWrapHangingIndentLength: 8,
-        invisibles: {space: 'S'},
+        invisibles: { space: 'S' },
         showInvisibles: true,
         editorWidthInChars: 120
       })
@@ -72,25 +78,39 @@ describe('TextEditor', () => {
       const editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
         textEditors: atom.textEditors,
-        project: {bufferForIdSync () { return buffer2 }}
+        project: {
+          bufferForIdSync () {
+            return buffer2
+          }
+        }
       })
 
       expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs())
       expect(editor2.hasAtomicSoftTabs()).toBe(editor.hasAtomicSoftTabs())
       expect(editor2.getTabLength()).toBe(editor.getTabLength())
       expect(editor2.getSoftWrapColumn()).toBe(editor.getSoftWrapColumn())
-      expect(editor2.getSoftWrapHangingIndentLength()).toBe(editor.getSoftWrapHangingIndentLength())
+      expect(editor2.getSoftWrapHangingIndentLength()).toBe(
+        editor.getSoftWrapHangingIndentLength()
+      )
       expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
-      expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
+      expect(editor2.getEditorWidthInChars()).toBe(
+        editor.getEditorWidthInChars()
+      )
       expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
-      expect(editor2.displayLayer.softWrapColumn).toBe(editor2.getSoftWrapColumn())
+      expect(editor2.displayLayer.softWrapColumn).toBe(
+        editor2.getSoftWrapColumn()
+      )
     })
 
     it('ignores buffers with retired IDs', () => {
       const editor2 = TextEditor.deserialize(editor.serialize(), {
         assert: atom.assert,
         textEditors: atom.textEditors,
-        project: {bufferForIdSync () { return null }}
+        project: {
+          bufferForIdSync () {
+            return null
+          }
+        }
       })
 
       expect(editor2).toBeNull()
@@ -108,9 +128,9 @@ describe('TextEditor', () => {
       element.setWidth(100)
       jasmine.attachToDOM(element)
 
-      editor.update({showCursorOnSelection: false})
+      editor.update({ showCursorOnSelection: false })
       editor.setSelectedBufferRange([[1, 2], [3, 4]])
-      editor.addSelectionForBufferRange([[5, 6], [7, 8]], {reversed: true})
+      editor.addSelectionForBufferRange([[5, 6], [7, 8]], { reversed: true })
       editor.setScrollTopRow(3)
       expect(editor.getScrollTopRow()).toBe(3)
       editor.setScrollLeftColumn(4)
@@ -124,7 +144,9 @@ describe('TextEditor', () => {
       element2.setWidth(100)
       jasmine.attachToDOM(element2)
       expect(editor2.id).not.toBe(editor.id)
-      expect(editor2.getSelectedBufferRanges()).toEqual(editor.getSelectedBufferRanges())
+      expect(editor2.getSelectedBufferRanges()).toEqual(
+        editor.getSelectedBufferRanges()
+      )
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy()
       expect(editor2.getScrollTopRow()).toBe(3)
       expect(editor2.getScrollLeftColumn()).toBe(4)
@@ -135,9 +157,13 @@ describe('TextEditor', () => {
 
       // editor2 can now diverge from its origin edit session
       editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]])
-      expect(editor2.getSelectedBufferRanges()).not.toEqual(editor.getSelectedBufferRanges())
+      expect(editor2.getSelectedBufferRanges()).not.toEqual(
+        editor.getSelectedBufferRanges()
+      )
       editor2.unfoldBufferRow(4)
-      expect(editor2.isFoldedAtBufferRow(4)).not.toBe(editor.isFoldedAtBufferRow(4))
+      expect(editor2.isFoldedAtBufferRow(4)).not.toBe(
+        editor.isFoldedAtBufferRow(4)
+      )
     })
   })
 
@@ -146,8 +172,8 @@ describe('TextEditor', () => {
       let changeSpy
       const { element } = editor // force element initialization
       element.setUpdatedSynchronously(false)
-      editor.update({showInvisibles: true})
-      editor.onDidChange(changeSpy = jasmine.createSpy('onDidChange'))
+      editor.update({ showInvisibles: true })
+      editor.onDidChange((changeSpy = jasmine.createSpy('onDidChange')))
 
       const returnedPromise = editor.update({
         tabLength: 6,
@@ -193,8 +219,12 @@ describe('TextEditor', () => {
       })
 
       it("returns '<filename> — <parent-directory>' when opened files have identical file names", async () => {
-        const editor1 = await atom.workspace.open(path.join('sample-theme-1', 'readme'))
-        const editor2 = await atom.workspace.open(path.join('sample-theme-2', 'readme'))
+        const editor1 = await atom.workspace.open(
+          path.join('sample-theme-1', 'readme')
+        )
+        const editor2 = await atom.workspace.open(
+          path.join('sample-theme-2', 'readme')
+        )
         expect(editor1.getLongTitle()).toBe('readme \u2014 sample-theme-1')
         expect(editor2.getLongTitle()).toBe('readme \u2014 sample-theme-2')
       })
@@ -209,10 +239,16 @@ describe('TextEditor', () => {
       })
 
       it("returns '<filename> — <parent-directories>' when opened files have identical file and same parent dir name", async () => {
-        const editor1 = await atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'main.js'))
-        const editor2 = await atom.workspace.open(path.join('sample-theme-2', 'src', 'js', 'plugin', 'main.js'))
+        const editor1 = await atom.workspace.open(
+          path.join('sample-theme-2', 'src', 'js', 'main.js')
+        )
+        const editor2 = await atom.workspace.open(
+          path.join('sample-theme-2', 'src', 'js', 'plugin', 'main.js')
+        )
         expect(editor1.getLongTitle()).toBe('main.js \u2014 js')
-        expect(editor2.getLongTitle()).toBe(`main.js \u2014 ${path.join('js', 'plugin')}`)
+        expect(editor2.getLongTitle()).toBe(
+          `main.js \u2014 ${path.join('js', 'plugin')}`
+        )
       })
 
       it('returns the filename when the editor is not in the workspace', async () => {
@@ -297,7 +333,9 @@ describe('TextEditor', () => {
 
       it('emits an event with the old position, new position, and the cursor that moved', () => {
         const cursorCallback = jasmine.createSpy('cursor-changed-position')
-        const editorCallback = jasmine.createSpy('editor-changed-cursor-position')
+        const editorCallback = jasmine.createSpy(
+          'editor-changed-cursor-position'
+        )
 
         editor.getLastCursor().onDidChangePosition(cursorCallback)
         editor.onDidChangeCursorPosition(editorCallback)
@@ -320,7 +358,7 @@ describe('TextEditor', () => {
     describe('.setCursorScreenPosition(screenPosition)', () => {
       it('clears a goal column established by vertical movement', () => {
         // set a goal column by moving down
-        editor.setCursorScreenPosition({row: 3, column: lineLengths[3]})
+        editor.setCursorScreenPosition({ row: 3, column: lineLengths[3] })
         editor.moveDown()
         expect(editor.getCursorScreenPosition().column).not.toBe(6)
 
@@ -335,7 +373,7 @@ describe('TextEditor', () => {
       it('merges multiple cursors', () => {
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
         editor.setCursorScreenPosition([4, 7])
         expect(editor.getCursors().length).toBe(1)
         expect(editor.getCursors()).toEqual([cursor1])
@@ -366,7 +404,7 @@ describe('TextEditor', () => {
 
       it('retains the goal column across lines of differing length', () => {
         expect(lineLengths[6]).toBeGreaterThan(32)
-        editor.setCursorScreenPosition({row: 6, column: 32})
+        editor.setCursorScreenPosition({ row: 6, column: 32 })
 
         editor.moveUp()
         expect(editor.getCursorScreenPosition().column).toBe(lineLengths[5])
@@ -401,7 +439,7 @@ describe('TextEditor', () => {
 
       it('merges cursors when they overlap', () => {
         editor.addCursorAtScreenPosition([1, 0])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveUp()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -431,7 +469,7 @@ describe('TextEditor', () => {
       })
 
       it('retains the goal column across lines of differing length', () => {
-        editor.setCursorScreenPosition({row: 3, column: lineLengths[3]})
+        editor.setCursorScreenPosition({ row: 3, column: lineLengths[3] })
 
         editor.moveDown()
         expect(editor.getCursorScreenPosition().column).toBe(lineLengths[4])
@@ -449,12 +487,20 @@ describe('TextEditor', () => {
           const lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editor.setCursorScreenPosition({row: lastLineIndex, column: editor.getTabLength()})
+          editor.setCursorScreenPosition({
+            row: lastLineIndex,
+            column: editor.getTabLength()
+          })
           editor.moveDown()
-          expect(editor.getCursorScreenPosition()).toEqual({row: lastLineIndex, column: lastLine.length})
+          expect(editor.getCursorScreenPosition()).toEqual({
+            row: lastLineIndex,
+            column: lastLine.length
+          })
 
           editor.moveUp()
-          expect(editor.getCursorScreenPosition().column).toBe(editor.getTabLength())
+          expect(editor.getCursorScreenPosition().column).toBe(
+            editor.getTabLength()
+          )
         })
 
         it('retains a goal column of 0 when moving back up', () => {
@@ -462,7 +508,7 @@ describe('TextEditor', () => {
           const lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editor.setCursorScreenPosition({row: lastLineIndex, column: 0})
+          editor.setCursorScreenPosition({ row: lastLineIndex, column: 0 })
           editor.moveDown()
           editor.moveUp()
           expect(editor.getCursorScreenPosition().column).toBe(0)
@@ -494,7 +540,7 @@ describe('TextEditor', () => {
       it('merges cursors when they overlap', () => {
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([11, 2])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveDown()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -530,9 +576,12 @@ describe('TextEditor', () => {
       describe('when the cursor is in the first column', () => {
         describe('when there is a previous line', () => {
           it('wraps to the end of the previous line', () => {
-            editor.setCursorScreenPosition({row: 1, column: 0})
+            editor.setCursorScreenPosition({ row: 1, column: 0 })
             editor.moveLeft()
-            expect(editor.getCursorScreenPosition()).toEqual({row: 0, column: buffer.lineForRow(0).length})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 0,
+              column: buffer.lineForRow(0).length
+            })
           })
 
           it('moves the cursor by one row up and n columns to the left', () => {
@@ -566,9 +615,12 @@ describe('TextEditor', () => {
 
         describe('when the cursor is on the first line', () => {
           it('remains in the same position (0,0)', () => {
-            editor.setCursorScreenPosition({row: 0, column: 0})
+            editor.setCursorScreenPosition({ row: 0, column: 0 })
             editor.moveLeft()
-            expect(editor.getCursorScreenPosition()).toEqual({row: 0, column: 0})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 0,
+              column: 0
+            })
           })
 
           it('remains in the same position (0,0) when columnCount is specified', () => {
@@ -605,7 +657,7 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
 
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
         editor.moveLeft()
         expect(editor.getCursors()).toEqual([cursor1])
         expect(cursor1.getBufferPosition()).toEqual([0, 0])
@@ -666,7 +718,7 @@ describe('TextEditor', () => {
             const lastLine = buffer.lineForRow(lastLineIndex)
             expect(lastLine.length).toBeGreaterThan(0)
 
-            const lastPosition = {row: lastLineIndex, column: lastLine.length}
+            const lastPosition = { row: lastLineIndex, column: lastLine.length }
             editor.setCursorScreenPosition(lastPosition)
             editor.moveRight()
 
@@ -691,7 +743,7 @@ describe('TextEditor', () => {
       it('merges cursors when they overlap', () => {
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([12, 1])
-        const [cursor1, cursor2] = editor.getCursors()
+        const [cursor1] = editor.getCursors()
 
         editor.moveRight()
         expect(editor.getCursors()).toEqual([cursor1])
@@ -839,7 +891,7 @@ describe('TextEditor', () => {
 
         describe('when invisible characters are enabled with soft tabs', () => {
           it('moves to the first character of the current line without being confused by the invisible characters', () => {
-            editor.update({showInvisibles: true})
+            editor.update({ showInvisibles: true })
             editor.setCursorScreenPosition([1, 7])
             editor.moveToFirstCharacterOfLine()
             expect(editor.getCursorBufferPosition()).toEqual([1, 2])
@@ -850,8 +902,10 @@ describe('TextEditor', () => {
 
         describe('when invisible characters are enabled with hard tabs', () => {
           it('moves to the first character of the current line without being confused by the invisible characters', () => {
-            editor.update({showInvisibles: true})
-            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', {normalizeLineEndings: false})
+            editor.update({ showInvisibles: true })
+            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', {
+              normalizeLineEndings: false
+            })
 
             editor.setCursorScreenPosition([1, 7])
             editor.moveToFirstCharacterOfLine()
@@ -862,7 +916,7 @@ describe('TextEditor', () => {
         })
       })
 
-      it("clears the goal column", () => {
+      it('clears the goal column', () => {
         editor.setText('first\n\nthird')
         editor.setCursorScreenPosition([0, 3])
         editor.moveDown()
@@ -1331,7 +1385,9 @@ describe('TextEditor', () => {
 
     describe('.getCurrentParagraphBufferRange()', () => {
       it('returns the buffer range of the current paragraph, delimited by blank lines or the beginning / end of the file', () => {
-        buffer.setText('  ' + dedent`
+        buffer.setText(
+          '  ' +
+            dedent`
           I am the first paragraph,
           bordered by the beginning of
           the file
@@ -1343,17 +1399,27 @@ describe('TextEditor', () => {
 
           I am the last paragraph,
           bordered by the end of the file.\
-        `)
+        `
+        )
 
         // in a paragraph
         editor.setCursorBufferPosition([1, 7])
-        expect(editor.getCurrentParagraphBufferRange()).toEqual([[0, 0], [2, 8]])
+        expect(editor.getCurrentParagraphBufferRange()).toEqual([
+          [0, 0],
+          [2, 8]
+        ])
 
         editor.setCursorBufferPosition([7, 1])
-        expect(editor.getCurrentParagraphBufferRange()).toEqual([[5, 0], [7, 3]])
+        expect(editor.getCurrentParagraphBufferRange()).toEqual([
+          [5, 0],
+          [7, 3]
+        ])
 
         editor.setCursorBufferPosition([9, 10])
-        expect(editor.getCurrentParagraphBufferRange()).toEqual([[9, 0], [10, 32]])
+        expect(editor.getCurrentParagraphBufferRange()).toEqual([
+          [9, 0],
+          [10, 32]
+        ])
 
         // between paragraphs
         editor.setCursorBufferPosition([3, 1])
@@ -1414,7 +1480,9 @@ describe('TextEditor', () => {
     describe('getCursorAtScreenPosition(screenPosition)', () => {
       it('returns the cursor at the given screenPosition', () => {
         const cursor1 = editor.addCursorAtScreenPosition([0, 2])
-        const cursor2 = editor.getCursorAtScreenPosition(cursor1.getScreenPosition())
+        const cursor2 = editor.getCursorAtScreenPosition(
+          cursor1.getScreenPosition()
+        )
         expect(cursor2).toBe(cursor1)
       })
     })
@@ -1422,9 +1490,14 @@ describe('TextEditor', () => {
     describe('::getCursorScreenPositions()', () => {
       it('returns the cursor positions in the order they were added', () => {
         editor.foldBufferRow(4)
-        const cursor1 = editor.addCursorAtBufferPosition([8, 5])
-        const cursor2 = editor.addCursorAtBufferPosition([3, 5])
-        expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [5, 5], [3, 5]])
+        editor.addCursorAtBufferPosition([8, 5])
+        editor.addCursorAtBufferPosition([3, 5])
+
+        expect(editor.getCursorScreenPositions()).toEqual([
+          [0, 0],
+          [5, 5],
+          [3, 5]
+        ])
       })
     })
 
@@ -1433,7 +1506,11 @@ describe('TextEditor', () => {
         const originalCursor = editor.getLastCursor()
         const cursor1 = editor.addCursorAtBufferPosition([8, 5])
         const cursor2 = editor.addCursorAtBufferPosition([4, 5])
-        expect(editor.getCursorsOrderedByBufferPosition()).toEqual([originalCursor, cursor2, cursor1])
+        expect(editor.getCursorsOrderedByBufferPosition()).toEqual([
+          originalCursor,
+          cursor2,
+          cursor1
+        ])
       })
     })
 
@@ -1475,7 +1552,10 @@ describe('TextEditor', () => {
     describe('.getLastSelection()', () => {
       it('creates a new selection at (0, 0) if the last selection has been destroyed', () => {
         editor.getLastSelection().destroy()
-        expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [0, 0]])
+        expect(editor.getLastSelection().getBufferRange()).toEqual([
+          [0, 0],
+          [0, 0]
+        ])
       })
 
       it("doesn't get stuck in a infinite loop when called from ::onDidAddCursor after the last selection has been destroyed (regression)", () => {
@@ -1485,7 +1565,10 @@ describe('TextEditor', () => {
           callCount++
           editor.getLastSelection()
         })
-        expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [0, 0]])
+        expect(editor.getLastSelection().getBufferRange()).toEqual([
+          [0, 0],
+          [0, 0]
+        ])
         expect(callCount).toBe(1)
       })
     })
@@ -1493,7 +1576,10 @@ describe('TextEditor', () => {
     describe('.getSelections()', () => {
       it('creates a new selection at (0, 0) if the last selection has been destroyed', () => {
         editor.getLastSelection().destroy()
-        expect(editor.getSelections()[0].getBufferRange()).toEqual([[0, 0], [0, 0]])
+        expect(editor.getSelections()[0].getBufferRange()).toEqual([
+          [0, 0],
+          [0, 0]
+        ])
       })
     })
 
@@ -1502,7 +1588,9 @@ describe('TextEditor', () => {
         let rangeChangedHandler
         editor.setSelectedBufferRange([[3, 0], [4, 5]])
 
-        editor.onDidChangeSelectionRange(rangeChangedHandler = jasmine.createSpy())
+        editor.onDidChangeSelectionRange(
+          (rangeChangedHandler = jasmine.createSpy())
+        )
         editor.selectToBufferPosition([6, 2])
 
         expect(rangeChangedHandler).toHaveBeenCalled()
@@ -1540,8 +1628,12 @@ describe('TextEditor', () => {
       })
 
       it('merges selections when they intersect when moving down', () => {
-        editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[1, 10], [1, 20]], [[2, 15], [3, 25]]])
-        const [selection1, selection2, selection3] = editor.getSelections()
+        editor.setSelectedBufferRanges([
+          [[0, 9], [0, 13]],
+          [[1, 10], [1, 20]],
+          [[2, 15], [3, 25]]
+        ])
+        const [selection1] = editor.getSelections()
 
         editor.selectDown()
         expect(editor.getSelections()).toEqual([selection1])
@@ -1550,8 +1642,11 @@ describe('TextEditor', () => {
       })
 
       it('merges selections when they intersect when moving up', () => {
-        editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[1, 10], [1, 20]]], {reversed: true})
-        const [selection1, selection2] = editor.getSelections()
+        editor.setSelectedBufferRanges(
+          [[[0, 9], [0, 13]], [[1, 10], [1, 20]]],
+          { reversed: true }
+        )
+        const [selection1] = editor.getSelections()
 
         editor.selectUp()
         expect(editor.getSelections().length).toBe(1)
@@ -1561,8 +1656,11 @@ describe('TextEditor', () => {
       })
 
       it('merges selections when they intersect when moving left', () => {
-        editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[0, 13], [1, 20]]], {reversed: true})
-        const [selection1, selection2] = editor.getSelections()
+        editor.setSelectedBufferRanges(
+          [[[0, 9], [0, 13]], [[0, 13], [1, 20]]],
+          { reversed: true }
+        )
+        const [selection1] = editor.getSelections()
 
         editor.selectLeft()
         expect(editor.getSelections()).toEqual([selection1])
@@ -1572,7 +1670,7 @@ describe('TextEditor', () => {
 
       it('merges selections when they intersect when moving right', () => {
         editor.setSelectedBufferRanges([[[0, 9], [0, 14]], [[0, 14], [1, 20]]])
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
 
         editor.selectRight()
         expect(editor.getSelections()).toEqual([selection1])
@@ -1582,7 +1680,10 @@ describe('TextEditor', () => {
 
       describe('when counts are passed into the selection functions', () => {
         it("expands each selection to its cursor's new location", () => {
-          editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[3, 16], [3, 21]]])
+          editor.setSelectedBufferRanges([
+            [[0, 9], [0, 13]],
+            [[3, 16], [3, 21]]
+          ])
           const [selection1, selection2] = editor.getSelections()
 
           editor.selectRight(2)
@@ -1686,8 +1787,8 @@ describe('TextEditor', () => {
         editor.selectToScreenPosition([4, 11])
 
         selections = editor.getSelections()
-        expect(selections.length).toBe(1);
-        [selection1] = selections
+        expect(selections.length).toBe(1)
+        ;[selection1] = selections
         expect(selection1.getScreenRange()).toEqual([[3, 10], [7, 4]])
         expect(selection1.isReversed()).toBeTruthy()
       })
@@ -1700,7 +1801,10 @@ describe('TextEditor', () => {
         editor.selectToTop()
         expect(editor.getCursors().length).toBe(1)
         expect(editor.getCursorBufferPosition()).toEqual([0, 0])
-        expect(editor.getLastSelection().getBufferRange()).toEqual([[0, 0], [11, 2]])
+        expect(editor.getLastSelection().getBufferRange()).toEqual([
+          [0, 0],
+          [11, 2]
+        ])
         expect(editor.getLastSelection().isReversed()).toBeTruthy()
       })
     })
@@ -1712,7 +1816,10 @@ describe('TextEditor', () => {
         editor.selectToBottom()
         expect(editor.getCursors().length).toBe(1)
         expect(editor.getCursorBufferPosition()).toEqual([12, 2])
-        expect(editor.getLastSelection().getBufferRange()).toEqual([[9, 3], [12, 2]])
+        expect(editor.getLastSelection().getBufferRange()).toEqual([
+          [9, 3],
+          [12, 2]
+        ])
         expect(editor.getLastSelection().isReversed()).toBeFalsy()
       })
     })
@@ -1720,7 +1827,9 @@ describe('TextEditor', () => {
     describe('.selectAll()', () => {
       it('selects the entire buffer', () => {
         editor.selectAll()
-        expect(editor.getLastSelection().getBufferRange()).toEqual(buffer.getRange())
+        expect(editor.getLastSelection().getBufferRange()).toEqual(
+          buffer.getRange()
+        )
       })
     })
 
@@ -1771,7 +1880,9 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([1, 2])
         editor.selectLinesContainingCursors()
         expect(editor.getSelectedBufferRange()).toEqual([[1, 0], [2, 0]])
-        expect(editor.getSelectedText()).toBe('  var sort = function(items) {\n')
+        expect(editor.getSelectedText()).toBe(
+          '  var sort = function(items) {\n'
+        )
 
         editor.setCursorScreenPosition([12, 2])
         editor.selectLinesContainingCursors()
@@ -1866,7 +1977,12 @@ describe('TextEditor', () => {
         editor.selectToPreviousWordBoundary()
 
         expect(editor.getSelections().length).toBe(4)
-        const [selection1, selection2, selection3, selection4] = editor.getSelections()
+        const [
+          selection1,
+          selection2,
+          selection3,
+          selection4
+        ] = editor.getSelections()
         expect(selection1.getBufferRange()).toEqual([[0, 8], [0, 4]])
         expect(selection1.isReversed()).toBeTruthy()
         expect(selection2.getBufferRange()).toEqual([[2, 0], [1, 30]])
@@ -1888,7 +2004,12 @@ describe('TextEditor', () => {
         editor.selectToNextWordBoundary()
 
         expect(editor.getSelections().length).toBe(4)
-        const [selection1, selection2, selection3, selection4] = editor.getSelections()
+        const [
+          selection1,
+          selection2,
+          selection3,
+          selection4
+        ] = editor.getSelections()
         expect(selection1.getBufferRange()).toEqual([[0, 8], [0, 13]])
         expect(selection1.isReversed()).toBeFalsy()
         expect(selection2.getBufferRange()).toEqual([[2, 40], [3, 0]])
@@ -1911,7 +2032,12 @@ describe('TextEditor', () => {
         editor.addCursorAtBufferPosition([1, 7])
         editor.addCursorAtBufferPosition([2, 5])
         editor.addCursorAtBufferPosition([3, 3])
-        const [selection1, selection2, selection3, selection4] = editor.getSelections()
+        const [
+          selection1,
+          selection2,
+          selection3,
+          selection4
+        ] = editor.getSelections()
 
         editor.selectToPreviousSubwordBoundary()
         expect(selection1.getBufferRange()).toEqual([[0, 1], [0, 5]])
@@ -1936,7 +2062,12 @@ describe('TextEditor', () => {
         editor.addCursorAtBufferPosition([1, 7])
         editor.addCursorAtBufferPosition([2, 2])
         editor.addCursorAtBufferPosition([3, 1])
-        const [selection1, selection2, selection3, selection4] = editor.getSelections()
+        const [
+          selection1,
+          selection2,
+          selection3,
+          selection4
+        ] = editor.getSelections()
 
         editor.selectToNextSubwordBoundary()
         expect(selection1.getBufferRange()).toEqual([[0, 1], [0, 4]])
@@ -2082,13 +2213,23 @@ describe('TextEditor', () => {
         editor.setCursorBufferPosition([0, 1])
         editor.addCursorAtBufferPosition([0, 12])
 
-        const scopeDescriptors = editor.getCursors().map(c => c.getScopeDescriptor())
+        const scopeDescriptors = editor
+          .getCursors()
+          .map(c => c.getScopeDescriptor())
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js'])
-        expect(scopeDescriptors[1].getScopesArray()).toEqual(['source.js', 'string.quoted'])
+        expect(scopeDescriptors[1].getScopesArray()).toEqual([
+          'source.js',
+          'string.quoted'
+        ])
 
-        spyOn(editor.getBuffer().getLanguageMode(), 'getNonWordCharacters').andCallFake(function (position) {
-          const result = '/\()"\':,.;<>~!@#$%^&*|+=[]{}`?'
-          const scopes = this.scopeDescriptorForPosition(position).getScopesArray()
+        spyOn(
+          editor.getBuffer().getLanguageMode(),
+          'getNonWordCharacters'
+        ).andCallFake(function (position) {
+          const result = '/()"\':,.;<>~!@#$%^&*|+=[]{}`?'
+          const scopes = this.scopeDescriptorForPosition(
+            position
+          ).getScopesArray()
           if (scopes.some(scope => scope.startsWith('string'))) {
             return result
           } else {
@@ -2121,8 +2262,8 @@ describe('TextEditor', () => {
         expect(selection2.getBufferRange()).toEqual([[1, 2], [1, 7]])
         expect(selection2.isReversed()).toBeTruthy()
 
-        editor.selectToFirstCharacterOfLine();
-        [selection1, selection2] = editor.getSelections()
+        editor.selectToFirstCharacterOfLine()
+        ;[selection1, selection2] = editor.getSelections()
         expect(selection1.getBufferRange()).toEqual([[0, 0], [0, 5]])
         expect(selection1.isReversed()).toBeTruthy()
         expect(selection2.getBufferRange()).toEqual([[1, 0], [1, 7]])
@@ -2133,7 +2274,10 @@ describe('TextEditor', () => {
     describe('.setSelectedBufferRanges(ranges)', () => {
       it('clears existing selections and creates selections for each of the given ranges', () => {
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
-        expect(editor.getSelectedBufferRanges()).toEqual([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[2, 2], [3, 3]],
+          [[4, 4], [5, 5]]
+        ])
 
         editor.setSelectedBufferRanges([[[5, 5], [6, 6]]])
         expect(editor.getSelectedBufferRanges()).toEqual([[[5, 5], [6, 6]]])
@@ -2146,14 +2290,17 @@ describe('TextEditor', () => {
 
       it('does not merge non-empty adjacent selections', () => {
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])
-        expect(editor.getSelectedBufferRanges()).toEqual([[[2, 2], [3, 3]], [[3, 3], [5, 5]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[2, 2], [3, 3]],
+          [[3, 3], [5, 5]]
+        ])
       })
 
       it('recycles existing selection instances', () => {
         selection = editor.getLastSelection()
         editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
 
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
         expect(selection1).toBe(selection)
         expect(selection1.getBufferRange()).toEqual([[2, 2], [3, 3]])
       })
@@ -2182,7 +2329,9 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRange([[0, 0], [0, 0]])
           editor.foldBufferRowRange(1, 4)
           editor.foldBufferRowRange(6, 8)
-          editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], {preserveFolds: true})
+          editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], {
+            preserveFolds: true
+          })
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
         })
@@ -2194,7 +2343,10 @@ describe('TextEditor', () => {
 
       it('clears existing selections and creates selections for each of the given ranges', () => {
         editor.setSelectedScreenRanges([[[3, 4], [3, 7]], [[5, 4], [5, 7]]])
-        expect(editor.getSelectedBufferRanges()).toEqual([[[3, 4], [3, 7]], [[8, 4], [8, 7]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[3, 4], [3, 7]],
+          [[8, 4], [8, 7]]
+        ])
 
         editor.setSelectedScreenRanges([[[6, 2], [6, 4]]])
         expect(editor.getSelectedScreenRanges()).toEqual([[[6, 2], [6, 4]]])
@@ -2212,7 +2364,7 @@ describe('TextEditor', () => {
         selection = editor.getLastSelection()
         editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]])
 
-        const [selection1, selection2] = editor.getSelections()
+        const [selection1] = editor.getSelections()
         expect(selection1).toBe(selection)
         expect(selection1.getScreenRange()).toEqual([[2, 2], [3, 4]])
       })
@@ -2240,7 +2392,10 @@ describe('TextEditor', () => {
     describe('.addSelectionForBufferRange(bufferRange)', () => {
       it('adds a selection for the specified buffer range', () => {
         editor.addSelectionForBufferRange([[3, 4], [5, 6]])
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [0, 0]], [[3, 4], [5, 6]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 0], [0, 0]],
+          [[3, 4], [5, 6]]
+        ])
       })
     })
 
@@ -2315,7 +2470,10 @@ describe('TextEditor', () => {
         })
 
         it('takes atomic tokens into account', async () => {
-          editor = await atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', {autoIndent: false})
+          editor = await atom.workspace.open(
+            'sample-with-tabs-and-leading-comment.coffee',
+            { autoIndent: false }
+          )
           editor.setSelectedBufferRange([[2, 1], [2, 3]])
           editor.addSelectionBelow()
           expect(editor.getSelectedBufferRanges()).toEqual([
@@ -2391,7 +2549,9 @@ describe('TextEditor', () => {
         editor.setCursorBufferPosition([0, 1])
 
         let addedSelectionCount = 0
-        editor.onDidAddSelection(() => { addedSelectionCount++ })
+        editor.onDidAddSelection(() => {
+          addedSelectionCount++
+        })
 
         editor.addSelectionBelow()
         editor.addSelectionBelow()
@@ -2450,7 +2610,10 @@ describe('TextEditor', () => {
         })
 
         it('takes atomic tokens into account', async () => {
-          editor = await atom.workspace.open('sample-with-tabs-and-leading-comment.coffee', {autoIndent: false})
+          editor = await atom.workspace.open(
+            'sample-with-tabs-and-leading-comment.coffee',
+            { autoIndent: false }
+          )
           editor.setSelectedBufferRange([[3, 1], [3, 2]])
           editor.addSelectionAbove()
           expect(editor.getSelectedBufferRanges()).toEqual([
@@ -2526,7 +2689,9 @@ describe('TextEditor', () => {
         editor.setCursorBufferPosition([4, 1])
 
         let addedSelectionCount = 0
-        editor.onDidAddSelection(() => { addedSelectionCount++ })
+        editor.onDidAddSelection(() => {
+          addedSelectionCount++
+        })
 
         editor.addSelectionAbove()
         editor.addSelectionAbove()
@@ -2564,7 +2729,12 @@ describe('TextEditor', () => {
         const selection2 = editor.addSelectionForBufferRange([[3, 25], [3, 34]])
         const selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]])
         const selection4 = editor.addSelectionForBufferRange([[1, 6], [1, 10]])
-        expect(editor.getSelections()).toEqual([selection, selection2, selection3, selection4])
+        expect(editor.getSelections()).toEqual([
+          selection,
+          selection2,
+          selection3,
+          selection4
+        ])
         return [selection, selection2, selection3, selection4]
       }
 
@@ -2581,7 +2751,10 @@ describe('TextEditor', () => {
         expect(editor.getSelections()).toEqual([selection1])
 
         expect(autoscrollEvents).toEqual([
-          {screenRange: selection1.getScreenRange(), options: {center: true, reversed: false}}
+          {
+            screenRange: selection1.getScreenRange(),
+            options: { center: true, reversed: false }
+          }
         ])
       })
     })
@@ -2619,7 +2792,9 @@ describe('TextEditor', () => {
       expect(editor2.getText()).toBe(editor.getText())
       editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
       editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]])
-      expect(editor2.getSelectedBufferRanges()).not.toEqual(editor.getSelectedBufferRanges())
+      expect(editor2.getSelectedBufferRanges()).not.toEqual(
+        editor.getSelectedBufferRanges()
+      )
     })
   })
 
@@ -2628,13 +2803,15 @@ describe('TextEditor', () => {
       it('moves the line under the cursor up', () => {
         editor.setCursorBufferPosition([1, 0])
         editor.moveLineUp()
-        expect(editor.getTextInBufferRange([[0, 0], [0, 30]])).toBe('  var sort = function(items) {')
+        expect(editor.getTextInBufferRange([[0, 0], [0, 30]])).toBe(
+          '  var sort = function(items) {'
+        )
         expect(editor.indentationForBufferRow(0)).toBe(1)
         expect(editor.indentationForBufferRow(1)).toBe(0)
       })
 
       it("updates the line's indentation when the the autoIndent setting is true", () => {
-        editor.update({autoIndent: true})
+        editor.update({ autoIndent: true })
         editor.setCursorBufferPosition([1, 0])
         editor.moveLineUp()
         expect(editor.indentationForBufferRow(0)).toBe(0)
@@ -2645,24 +2822,35 @@ describe('TextEditor', () => {
         describe('when the selection spans a single line', () => {
           describe('when there is no fold in the preceeding row', () =>
             it('moves the line to the preceding row', () => {
-              expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
 
               editor.setSelectedBufferRange([[3, 2], [3, 9]])
               editor.moveLineUp()
 
               expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [2, 9]])
-              expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            })
-          )
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+            }))
 
           describe('when the cursor is at the beginning of a fold', () =>
             it('moves the line to the previous row without breaking the fold', () => {
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
-              editor.setSelectedBufferRange([[4, 2], [4, 9]], {preserveFolds: true})
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], {
+                preserveFolds: true
+              })
               expect(editor.getSelectedBufferRange()).toEqual([[4, 2], [4, 9]])
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2674,20 +2862,25 @@ describe('TextEditor', () => {
               editor.moveLineUp()
 
               expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [3, 9]])
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(7)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
 
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
-            })
-          )
+            }))
 
           describe('when the preceding row consists of folded code', () =>
             it('moves the line above the folded row and perseveres the correct folds', () => {
-              expect(editor.lineTextForBufferRow(8)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+              expect(editor.lineTextForBufferRow(8)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
               expect(editor.lineTextForBufferRow(9)).toBe('  };')
 
               editor.foldBufferRowRange(4, 7)
@@ -2702,38 +2895,57 @@ describe('TextEditor', () => {
               editor.moveLineUp()
 
               expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [4, 4]])
-              expect(editor.lineTextForBufferRow(4)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-              expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                '    while(items.length > 0) {'
+              )
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
-            })
-          )
+            }))
         })
 
         describe('when the selection spans multiple lines', () => {
           it('moves the lines spanned by the selection to the preceding row', () => {
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.setSelectedBufferRange([[3, 2], [4, 9]])
             editor.moveLineUp()
 
             expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 9]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-            expect(editor.lineTextForBufferRow(4)).toBe('    if (items.length <= 1) return items;')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    while(items.length > 0) {'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
           })
 
           describe("when the selection's end intersects a fold", () =>
             it('moves the lines to the previous row without breaking the fold', () => {
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
-              editor.setSelectedBufferRange([[3, 2], [4, 9]], {preserveFolds: true})
+              editor.setSelectedBufferRange([[3, 2], [4, 9]], {
+                preserveFolds: true
+              })
 
               expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2745,9 +2957,15 @@ describe('TextEditor', () => {
               editor.moveLineUp()
 
               expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 9]])
-              expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(7)).toBe('    if (items.length <= 1) return items;')
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
 
               expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
@@ -2755,15 +2973,18 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
-            })
-          )
+            }))
 
           describe("when the selection's start intersects a fold", () =>
             it('moves the lines to the previous row without breaking the fold', () => {
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
-              editor.setSelectedBufferRange([[4, 2], [8, 9]], {preserveFolds: true})
+              editor.setSelectedBufferRange([[4, 2], [8, 9]], {
+                preserveFolds: true
+              })
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -2775,9 +2996,15 @@ describe('TextEditor', () => {
               editor.moveLineUp()
 
               expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [7, 9]])
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(7)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-              expect(editor.lineTextForBufferRow(8)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
+              expect(editor.lineTextForBufferRow(8)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
 
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -2785,29 +3012,42 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
-            })
-          )
+            }))
         })
 
         describe('when the selection spans multiple lines, but ends at column 0', () => {
           it('does not move the last line of the selection', () => {
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.setSelectedBufferRange([[3, 2], [4, 0]])
             editor.moveLineUp()
 
             expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 0]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
           })
         })
 
         describe('when the preceeding row is a folded row', () => {
           it('moves the lines spanned by the selection to the preceeding row, but preserves the folded code', () => {
-            expect(editor.lineTextForBufferRow(8)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+            expect(editor.lineTextForBufferRow(8)).toBe(
+              '    return sort(left).concat(pivot).concat(sort(right));'
+            )
             expect(editor.lineTextForBufferRow(9)).toBe('  };')
 
             editor.foldBufferRowRange(4, 7)
@@ -2821,9 +3061,13 @@ describe('TextEditor', () => {
             editor.moveLineUp()
 
             expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [5, 2]])
-            expect(editor.lineTextForBufferRow(4)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    return sort(left).concat(pivot).concat(sort(right));'
+            )
             expect(editor.lineTextForBufferRow(5)).toBe('  };')
-            expect(editor.lineTextForBufferRow(6)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(6)).toBe(
+              '    while(items.length > 0) {'
+            )
             expect(editor.isFoldedAtBufferRow(5)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
@@ -2838,28 +3082,49 @@ describe('TextEditor', () => {
         describe('when all the selections span different lines', () => {
           describe('when there is no folds', () =>
             it('moves all lines that are spanned by a selection to the preceding row', () => {
-              editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
+              editor.setSelectedBufferRanges([
+                [[1, 2], [1, 9]],
+                [[3, 2], [3, 9]],
+                [[5, 2], [5, 9]]
+              ])
               editor.moveLineUp()
 
-              expect(editor.getSelectedBufferRanges()).toEqual([[[0, 2], [0, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]])
-              expect(editor.lineTextForBufferRow(0)).toBe('  var sort = function(items) {')
-              expect(editor.lineTextForBufferRow(1)).toBe('var quicksort = function () {')
-              expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(4)).toBe('      current = items.shift();')
-              expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
-            })
-          )
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[0, 2], [0, 9]],
+                [[2, 2], [2, 9]],
+                [[4, 2], [4, 9]]
+              ])
+              expect(editor.lineTextForBufferRow(0)).toBe(
+                '  var sort = function(items) {'
+              )
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                'var quicksort = function () {'
+              )
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '      current = items.shift();'
+              )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                '    while(items.length > 0) {'
+              )
+            }))
 
           describe('when one selection intersects a fold', () =>
             it('moves the lines to the previous row without breaking the fold', () => {
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
-              editor.setSelectedBufferRanges([
-                [[2, 2], [2, 9]],
-                [[4, 2], [4, 9]]
-              ], {preserveFolds: true})
+              editor.setSelectedBufferRanges(
+                [[[2, 2], [2, 9]], [[4, 2], [4, 9]]],
+                { preserveFolds: true }
+              )
 
               expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
@@ -2877,10 +3142,18 @@ describe('TextEditor', () => {
                 [[3, 2], [3, 9]]
               ])
 
-              expect(editor.lineTextForBufferRow(1)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(2)).toBe('  var sort = function(items) {')
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(7)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '  var sort = function(items) {'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
 
               expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
@@ -2890,8 +3163,7 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
-            })
-          )
+            }))
 
           describe('when there is a fold', () =>
             it('moves all lines that spanned by a selection to preceding row, preserving all folds', () => {
@@ -2903,24 +3175,35 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
 
-              editor.setSelectedBufferRanges([[[8, 0], [8, 3]], [[11, 0], [11, 5]]])
+              editor.setSelectedBufferRanges([
+                [[8, 0], [8, 3]],
+                [[11, 0], [11, 5]]
+              ])
               editor.moveLineUp()
 
-              expect(editor.getSelectedBufferRanges()).toEqual([[[4, 0], [4, 3]], [[10, 0], [10, 5]]])
-              expect(editor.lineTextForBufferRow(4)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-              expect(editor.lineTextForBufferRow(10)).toBe('  return sort(Array.apply(this, arguments));')
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[4, 0], [4, 3]],
+                [[10, 0], [10, 5]]
+              ])
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
+              expect(editor.lineTextForBufferRow(10)).toBe(
+                '  return sort(Array.apply(this, arguments));'
+              )
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
-            })
-          )
+            }))
         })
 
         describe('when there are many folds', () => {
           beforeEach(async () => {
-            editor = await atom.workspace.open('sample-with-many-folds.js', {autoIndent: false})
+            editor = await atom.workspace.open('sample-with-many-folds.js', {
+              autoIndent: false
+            })
           })
 
           describe('and many selections intersects folded rows', () =>
@@ -2928,10 +3211,10 @@ describe('TextEditor', () => {
               editor.foldBufferRowRange(2, 4)
               editor.foldBufferRowRange(7, 9)
 
-              editor.setSelectedBufferRanges([
-                [[1, 0], [5, 4]],
-                [[7, 0], [7, 4]]
-              ], {preserveFolds: true})
+              editor.setSelectedBufferRanges(
+                [[[1, 0], [5, 4]], [[7, 0], [7, 4]]],
+                { preserveFolds: true }
+              )
 
               editor.moveLineUp()
 
@@ -2950,27 +3233,42 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
-            })
-          )
+            }))
         })
 
         describe('when some of the selections span the same lines', () => {
           it('moves lines that contain multiple selections correctly', () => {
-            editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
+            editor.setSelectedBufferRanges([
+              [[3, 2], [3, 9]],
+              [[3, 12], [3, 13]]
+            ])
             editor.moveLineUp()
 
-            expect(editor.getSelectedBufferRanges()).toEqual([[[2, 2], [2, 9]], [[2, 12], [2, 13]]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[2, 2], [2, 9]],
+              [[2, 12], [2, 13]]
+            ])
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
           })
         })
 
         describe('when one of the selections spans line 0', () => {
           it("doesn't move any lines, since line 0 can't move", () => {
-            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]])
+            editor.setSelectedBufferRanges([
+              [[0, 2], [1, 9]],
+              [[2, 2], [2, 9]],
+              [[4, 2], [4, 9]]
+            ])
 
             editor.moveLineUp()
 
-            expect(editor.getSelectedBufferRanges()).toEqual([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[4, 2], [4, 9]]])
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[0, 2], [1, 9]],
+              [[2, 2], [2, 9]],
+              [[4, 2], [4, 9]]
+            ])
             expect(buffer.isModified()).toBe(false)
           })
         })
@@ -2978,11 +3276,19 @@ describe('TextEditor', () => {
         describe('when one of the selections spans the last line, and it is empty', () => {
           it("doesn't move any lines, since the last line can't move", () => {
             buffer.append('\n')
-            editor.setSelectedBufferRanges([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]])
+            editor.setSelectedBufferRanges([
+              [[0, 2], [1, 9]],
+              [[2, 2], [2, 9]],
+              [[13, 0], [13, 0]]
+            ])
 
             editor.moveLineUp()
 
-            expect(editor.getSelectedBufferRanges()).toEqual([[[0, 2], [1, 9]], [[2, 2], [2, 9]], [[13, 0], [13, 0]]])
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[0, 2], [1, 9]],
+              [[2, 2], [2, 9]],
+              [[13, 0], [13, 0]]
+            ])
           })
         })
       })
@@ -2992,13 +3298,15 @@ describe('TextEditor', () => {
       it('moves the line under the cursor down', () => {
         editor.setCursorBufferPosition([0, 0])
         editor.moveLineDown()
-        expect(editor.getTextInBufferRange([[1, 0], [1, 31]])).toBe('var quicksort = function () {')
+        expect(editor.getTextInBufferRange([[1, 0], [1, 31]])).toBe(
+          'var quicksort = function () {'
+        )
         expect(editor.indentationForBufferRow(0)).toBe(1)
         expect(editor.indentationForBufferRow(1)).toBe(0)
       })
 
       it("updates the line's indentation when the editor.autoIndent setting is true", () => {
-        editor.update({autoIndent: true})
+        editor.update({ autoIndent: true })
         editor.setCursorBufferPosition([0, 0])
         editor.moveLineDown()
         expect(editor.indentationForBufferRow(0)).toBe(1)
@@ -3009,24 +3317,35 @@ describe('TextEditor', () => {
         describe('when the selection spans a single line', () => {
           describe('when there is no fold in the following row', () =>
             it('moves the line to the following row', () => {
-              expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
 
               editor.setSelectedBufferRange([[2, 2], [2, 9]])
               editor.moveLineDown()
 
               expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [3, 9]])
-              expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            })
-          )
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+            }))
 
           describe('when the cursor is at the beginning of a fold', () =>
             it('moves the line to the following row without breaking the fold', () => {
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
-              editor.setSelectedBufferRange([[4, 2], [4, 9]], {preserveFolds: true})
+              editor.setSelectedBufferRange([[4, 2], [4, 9]], {
+                preserveFolds: true
+              })
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -3037,21 +3356,28 @@ describe('TextEditor', () => {
               editor.moveLineDown()
 
               expect(editor.getSelectedBufferRange()).toEqual([[5, 2], [5, 9]])
-              expect(editor.lineTextForBufferRow(4)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-              expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(9)).toBeFalsy()
-            })
-          )
+            }))
 
           describe('when the following row is a folded row', () =>
             it('moves the line below the folded row and preserves the fold', () => {
-              expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(items.length > 0) {'
+              )
 
               editor.foldBufferRowRange(4, 7)
 
@@ -3065,56 +3391,87 @@ describe('TextEditor', () => {
               editor.moveLineDown()
 
               expect(editor.getSelectedBufferRange()).toEqual([[7, 0], [7, 4]])
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
 
-              expect(editor.lineTextForBufferRow(7)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            })
-          )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+            }))
         })
 
         describe('when the selection spans multiple lines', () => {
           it('moves the lines spanned by the selection to the following row', () => {
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.setSelectedBufferRange([[2, 2], [3, 9]])
             editor.moveLineDown()
 
             expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [4, 9]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    while(items.length > 0) {')
-            expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    while(items.length > 0) {'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
           })
         })
 
         describe('when the selection spans multiple lines, but ends at column 0', () => {
           it('does not move the last line of the selection', () => {
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.setSelectedBufferRange([[2, 2], [3, 0]])
             editor.moveLineDown()
 
             expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [4, 0]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
           })
         })
 
         describe("when the selection's end intersects a fold", () => {
           it('moves the lines to the following row without breaking the fold', () => {
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.foldBufferRowRange(4, 7)
-            editor.setSelectedBufferRange([[3, 2], [4, 9]], {preserveFolds: true})
+            editor.setSelectedBufferRange([[3, 2], [4, 9]], {
+              preserveFolds: true
+            })
 
             expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -3126,9 +3483,15 @@ describe('TextEditor', () => {
             editor.moveLineDown()
 
             expect(editor.getSelectedBufferRange()).toEqual([[4, 2], [5, 9]])
-            expect(editor.lineTextForBufferRow(3)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-            expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    return sort(left).concat(pivot).concat(sort(right));'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(5)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -3141,10 +3504,14 @@ describe('TextEditor', () => {
 
         describe("when the selection's start intersects a fold", () => {
           it('moves the lines to the following row without breaking the fold', () => {
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.foldBufferRowRange(4, 7)
-            editor.setSelectedBufferRange([[4, 2], [8, 9]], {preserveFolds: true})
+            editor.setSelectedBufferRange([[4, 2], [8, 9]], {
+              preserveFolds: true
+            })
 
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -3157,8 +3524,12 @@ describe('TextEditor', () => {
 
             expect(editor.getSelectedBufferRange()).toEqual([[5, 2], [9, 9]])
             expect(editor.lineTextForBufferRow(4)).toBe('  };')
-            expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
-            expect(editor.lineTextForBufferRow(9)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+            expect(editor.lineTextForBufferRow(5)).toBe(
+              '    while(items.length > 0) {'
+            )
+            expect(editor.lineTextForBufferRow(9)).toBe(
+              '    return sort(left).concat(pivot).concat(sort(right));'
+            )
 
             expect(editor.isFoldedAtBufferRow(4)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
@@ -3172,8 +3543,12 @@ describe('TextEditor', () => {
 
         describe('when the following row is a folded row', () => {
           it('moves the lines spanned by the selection to the following row, but preserves the folded code', () => {
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
 
             editor.foldBufferRowRange(4, 7)
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
@@ -3186,14 +3561,18 @@ describe('TextEditor', () => {
             editor.moveLineDown()
 
             expect(editor.getSelectedBufferRange()).toEqual([[6, 0], [7, 2]])
-            expect(editor.lineTextForBufferRow(2)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    while(items.length > 0) {'
+            )
             expect(editor.isFoldedAtBufferRow(1)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
             expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
-            expect(editor.lineTextForBufferRow(6)).toBe('    if (items.length <= 1) return items;')
+            expect(editor.lineTextForBufferRow(6)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
           })
         })
 
@@ -3201,7 +3580,9 @@ describe('TextEditor', () => {
           it('appends line ending to last line and moves the lines spanned by the selection to the preceeding row', () => {
             expect(editor.lineTextForBufferRow(9)).toBe('  };')
             expect(editor.lineTextForBufferRow(10)).toBe('')
-            expect(editor.lineTextForBufferRow(11)).toBe('  return sort(Array.apply(this, arguments));')
+            expect(editor.lineTextForBufferRow(11)).toBe(
+              '  return sort(Array.apply(this, arguments));'
+            )
             expect(editor.lineTextForBufferRow(12)).toBe('};')
 
             editor.setSelectedBufferRange([[10, 0], [12, 2]])
@@ -3209,7 +3590,9 @@ describe('TextEditor', () => {
 
             expect(editor.getSelectedBufferRange()).toEqual([[9, 0], [11, 2]])
             expect(editor.lineTextForBufferRow(9)).toBe('')
-            expect(editor.lineTextForBufferRow(10)).toBe('  return sort(Array.apply(this, arguments));')
+            expect(editor.lineTextForBufferRow(10)).toBe(
+              '  return sort(Array.apply(this, arguments));'
+            )
             expect(editor.lineTextForBufferRow(11)).toBe('};')
             expect(editor.lineTextForBufferRow(12)).toBe('  };')
           })
@@ -3220,22 +3603,43 @@ describe('TextEditor', () => {
         describe('when all the selections span different lines', () => {
           describe('when there is no folds', () =>
             it('moves all lines that are spanned by a selection to the following row', () => {
-              editor.setSelectedBufferRanges([[[1, 2], [1, 9]], [[3, 2], [3, 9]], [[5, 2], [5, 9]]])
+              editor.setSelectedBufferRanges([
+                [[1, 2], [1, 9]],
+                [[3, 2], [3, 9]],
+                [[5, 2], [5, 9]]
+              ])
               editor.moveLineDown()
 
-              expect(editor.getSelectedBufferRanges()).toEqual([[[6, 2], [6, 9]], [[4, 2], [4, 9]], [[2, 2], [2, 9]]])
-              expect(editor.lineTextForBufferRow(1)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(2)).toBe('  var sort = function(items) {')
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(5)).toBe('      current < pivot ? left.push(current) : right.push(current);')
-              expect(editor.lineTextForBufferRow(6)).toBe('      current = items.shift();')
-            })
-          )
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[6, 2], [6, 9]],
+                [[4, 2], [4, 9]],
+                [[2, 2], [2, 9]]
+              ])
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '  var sort = function(items) {'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                '      current < pivot ? left.push(current) : right.push(current);'
+              )
+              expect(editor.lineTextForBufferRow(6)).toBe(
+                '      current = items.shift();'
+              )
+            }))
 
           describe('when there are many folds', () => {
             beforeEach(async () => {
-              editor = await atom.workspace.open('sample-with-many-folds.js', {autoIndent: false})
+              editor = await atom.workspace.open('sample-with-many-folds.js', {
+                autoIndent: false
+              })
             })
 
             describe('and many selections intersects folded rows', () =>
@@ -3243,18 +3647,22 @@ describe('TextEditor', () => {
                 editor.foldBufferRowRange(2, 4)
                 editor.foldBufferRowRange(7, 9)
 
-                editor.setSelectedBufferRanges([
-                  [[2, 0], [2, 4]],
-                  [[6, 0], [10, 4]]
-                ], {preserveFolds: true})
+                editor.setSelectedBufferRanges(
+                  [[[2, 0], [2, 4]], [[6, 0], [10, 4]]],
+                  { preserveFolds: true }
+                )
 
                 editor.moveLineDown()
 
                 expect(editor.lineTextForBufferRow(2)).toEqual('6;')
-                expect(editor.lineTextForBufferRow(3)).toEqual('function f3() {')
+                expect(editor.lineTextForBufferRow(3)).toEqual(
+                  'function f3() {'
+                )
                 expect(editor.lineTextForBufferRow(6)).toEqual('12;')
                 expect(editor.lineTextForBufferRow(7)).toEqual('7;')
-                expect(editor.lineTextForBufferRow(8)).toEqual('function f8() {')
+                expect(editor.lineTextForBufferRow(8)).toEqual(
+                  'function f8() {'
+                )
                 expect(editor.lineTextForBufferRow(11)).toEqual('11;')
 
                 expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
@@ -3267,8 +3675,7 @@ describe('TextEditor', () => {
                 expect(editor.isFoldedAtBufferRow(9)).toBeTruthy()
                 expect(editor.isFoldedAtBufferRow(10)).toBeTruthy()
                 expect(editor.isFoldedAtBufferRow(11)).toBeFalsy()
-              })
-            )
+              }))
           })
 
           describe('when there is a fold below one of the selected row', () =>
@@ -3281,20 +3688,33 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
 
-              editor.setSelectedBufferRanges([[[1, 2], [1, 6]], [[3, 0], [3, 4]], [[8, 0], [8, 3]]])
+              editor.setSelectedBufferRanges([
+                [[1, 2], [1, 6]],
+                [[3, 0], [3, 4]],
+                [[8, 0], [8, 3]]
+              ])
               editor.moveLineDown()
 
-              expect(editor.getSelectedBufferRanges()).toEqual([[[9, 0], [9, 3]], [[7, 0], [7, 4]], [[2, 2], [2, 6]]])
-              expect(editor.lineTextForBufferRow(2)).toBe('  var sort = function(items) {')
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[9, 0], [9, 3]],
+                [[7, 0], [7, 4]],
+                [[2, 2], [2, 6]]
+              ])
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '  var sort = function(items) {'
+              )
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(7)).toBeFalsy()
-              expect(editor.lineTextForBufferRow(7)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(9)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
-            })
-          )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(9)).toBe(
+                '    return sort(left).concat(pivot).concat(sort(right));'
+              )
+            }))
 
           describe('when there is a fold below a group of multiple selections without any lines with no selection in-between', () =>
             it('moves all the lines below the fold, preserving the fold', () => {
@@ -3306,31 +3726,44 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy()
 
-              editor.setSelectedBufferRanges([[[2, 2], [2, 6]], [[3, 0], [3, 4]]])
+              editor.setSelectedBufferRanges([
+                [[2, 2], [2, 6]],
+                [[3, 0], [3, 4]]
+              ])
               editor.moveLineDown()
 
-              expect(editor.getSelectedBufferRanges()).toEqual([[[7, 0], [7, 4]], [[6, 2], [6, 6]]])
-              expect(editor.lineTextForBufferRow(2)).toBe('    while(items.length > 0) {')
+              expect(editor.getSelectedBufferRanges()).toEqual([
+                [[7, 0], [7, 4]],
+                [[6, 2], [6, 6]]
+              ])
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    while(items.length > 0) {'
+              )
               expect(editor.isFoldedAtBufferRow(2)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(3)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy()
               expect(editor.isFoldedAtBufferRow(6)).toBeFalsy()
-              expect(editor.lineTextForBufferRow(6)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(7)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            })
-          )
+              expect(editor.lineTextForBufferRow(6)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(7)).toBe(
+                '    var pivot = items.shift(), current, left = [], right = [];'
+              )
+            }))
         })
 
         describe('when one selection intersects a fold', () => {
           it('moves the lines to the previous row without breaking the fold', () => {
-            expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             editor.foldBufferRowRange(4, 7)
-            editor.setSelectedBufferRanges([
-              [[2, 2], [2, 9]],
-              [[4, 2], [4, 9]]
-            ], {preserveFolds: true})
+            editor.setSelectedBufferRanges(
+              [[[2, 2], [2, 9]], [[4, 2], [4, 9]]],
+              { preserveFolds: true }
+            )
 
             expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
             expect(editor.isFoldedAtBufferRow(3)).toBeFalsy()
@@ -3348,11 +3781,19 @@ describe('TextEditor', () => {
               [[3, 2], [3, 9]]
             ])
 
-            expect(editor.lineTextForBufferRow(2)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(4)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    return sort(left).concat(pivot).concat(sort(right));'
+            )
 
-            expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(5)).toBe(
+              '    while(items.length > 0) {'
+            )
             expect(editor.lineTextForBufferRow(9)).toBe('  };')
 
             expect(editor.isFoldedAtBufferRow(2)).toBeFalsy()
@@ -3368,11 +3809,19 @@ describe('TextEditor', () => {
 
         describe('when some of the selections span the same lines', () => {
           it('moves lines that contain multiple selections correctly', () => {
-            editor.setSelectedBufferRanges([[[3, 2], [3, 9]], [[3, 12], [3, 13]]])
+            editor.setSelectedBufferRanges([
+              [[3, 2], [3, 9]],
+              [[3, 12], [3, 13]]
+            ])
             editor.moveLineDown()
 
-            expect(editor.getSelectedBufferRanges()).toEqual([[[4, 12], [4, 13]], [[4, 2], [4, 9]]])
-            expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[4, 12], [4, 13]],
+              [[4, 2], [4, 9]]
+            ])
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    while(items.length > 0) {'
+            )
           })
         })
 
@@ -3380,7 +3829,7 @@ describe('TextEditor', () => {
           beforeEach(() => {
             editor.setSoftWrapped(true)
             editor.setEditorWidthInChars(80)
-            editor.setText(dedent `
+            editor.setText(dedent`
               1
               2
               Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
@@ -3417,7 +3866,7 @@ describe('TextEditor', () => {
 
         it('replaces the selection with the given text', () => {
           const range = editor.insertText('xxx')
-          expect(range).toEqual([ [[1, 0], [1, 3]] ])
+          expect(range).toEqual([[[1, 0], [1, 3]]])
           expect(buffer.lineForRow(1)).toBe('xxxvar sort = function(items) {')
         })
       })
@@ -3430,7 +3879,9 @@ describe('TextEditor', () => {
 
             editor.insertText('xxx')
 
-            expect(buffer.lineForRow(1)).toBe('  xxxvarxxx sort = function(items) {')
+            expect(buffer.lineForRow(1)).toBe(
+              '  xxxvarxxx sort = function(items) {'
+            )
             const [cursor1, cursor2] = editor.getCursors()
 
             expect(cursor1.getBufferPosition()).toEqual([1, 5])
@@ -3445,8 +3896,12 @@ describe('TextEditor', () => {
 
             editor.insertText('xxx')
 
-            expect(buffer.lineForRow(1)).toBe('  xxxvar sort = function(items) {')
-            expect(buffer.lineForRow(2)).toBe('    xxxif (items.length <= 1) return items;')
+            expect(buffer.lineForRow(1)).toBe(
+              '  xxxvar sort = function(items) {'
+            )
+            expect(buffer.lineForRow(2)).toBe(
+              '    xxxif (items.length <= 1) return items;'
+            )
             const [cursor1, cursor2] = editor.getCursors()
 
             expect(cursor1.getBufferPosition()).toEqual([1, 5])
@@ -3458,7 +3913,10 @@ describe('TextEditor', () => {
       describe('when there are multiple non-empty selections', () => {
         describe('when the selections are on the same line', () => {
           it('replaces each selection range with the inserted characters', () => {
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 22], [0, 24]]])
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[0, 22], [0, 24]]
+            ])
             editor.insertText('x')
 
             const [cursor1, cursor2] = editor.getCursors()
@@ -3480,7 +3938,9 @@ describe('TextEditor', () => {
             editor.insertText('xxx')
 
             expect(buffer.lineForRow(1)).toBe('xxxvar sort = function(items) {')
-            expect(buffer.lineForRow(2)).toBe('xxxif (items.length <= 1) return items;')
+            expect(buffer.lineForRow(2)).toBe(
+              'xxxif (items.length <= 1) return items;'
+            )
             const [selection1, selection2] = editor.getSelections()
 
             expect(selection1.isEmpty()).toBeTruthy()
@@ -3504,9 +3964,21 @@ describe('TextEditor', () => {
         beforeEach(() => editor.setSelectedBufferRange([[1, 0], [1, 2]]))
 
         it('notifies the observers when inserting text', () => {
-          const willInsertSpy = jasmine.createSpy().andCallFake(() => expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {'))
+          const willInsertSpy = jasmine
+            .createSpy()
+            .andCallFake(() =>
+              expect(buffer.lineForRow(1)).toBe(
+                '  var sort = function(items) {'
+              )
+            )
 
-          const didInsertSpy = jasmine.createSpy().andCallFake(() => expect(buffer.lineForRow(1)).toBe('xxxvar sort = function(items) {'))
+          const didInsertSpy = jasmine
+            .createSpy()
+            .andCallFake(() =>
+              expect(buffer.lineForRow(1)).toBe(
+                'xxxvar sort = function(items) {'
+              )
+            )
 
           editor.onWillInsertText(willInsertSpy)
           editor.onDidInsertText(didInsertSpy)
@@ -3526,7 +3998,9 @@ describe('TextEditor', () => {
         })
 
         it('cancels text insertion when an ::onWillInsertText observer calls cancel on an event', () => {
-          const willInsertSpy = jasmine.createSpy().andCallFake(({cancel}) => cancel())
+          const willInsertSpy = jasmine
+            .createSpy()
+            .andCallFake(({ cancel }) => cancel())
 
           const didInsertSpy = jasmine.createSpy()
 
@@ -3543,12 +4017,9 @@ describe('TextEditor', () => {
 
       describe("when the undo option is set to 'skip'", () => {
         it('groups the change with the previous change for purposes of undo and redo', () => {
-          editor.setSelectedBufferRanges([
-            [[0, 0], [0, 0]],
-            [[1, 0], [1, 0]]
-          ])
+          editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 0]]])
           editor.insertText('x')
-          editor.insertText('y', {undo: 'skip'})
+          editor.insertText('y', { undo: 'skip' })
           editor.undo()
           expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
           expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
@@ -3560,18 +4031,21 @@ describe('TextEditor', () => {
       describe('when there is a single cursor', () => {
         describe('when the cursor is at the beginning of a line', () => {
           it('inserts an empty line before it', () => {
-            editor.setCursorScreenPosition({row: 1, column: 0})
+            editor.setCursorScreenPosition({ row: 1, column: 0 })
 
             editor.insertNewline()
 
             expect(buffer.lineForRow(1)).toBe('')
-            expect(editor.getCursorScreenPosition()).toEqual({row: 2, column: 0})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 2,
+              column: 0
+            })
           })
         })
 
         describe('when the cursor is in the middle of a line', () => {
           it('splits the current line to form a new line', () => {
-            editor.setCursorScreenPosition({row: 1, column: 6})
+            editor.setCursorScreenPosition({ row: 1, column: 6 })
             const originalLine = buffer.lineForRow(1)
             const lineBelowOriginalLine = buffer.lineForRow(2)
 
@@ -3580,18 +4054,27 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(1)).toBe(originalLine.slice(0, 6))
             expect(buffer.lineForRow(2)).toBe(originalLine.slice(6))
             expect(buffer.lineForRow(3)).toBe(lineBelowOriginalLine)
-            expect(editor.getCursorScreenPosition()).toEqual({row: 2, column: 0})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 2,
+              column: 0
+            })
           })
         })
 
         describe('when the cursor is on the end of a line', () => {
           it('inserts an empty line after it', () => {
-            editor.setCursorScreenPosition({row: 1, column: buffer.lineForRow(1).length})
+            editor.setCursorScreenPosition({
+              row: 1,
+              column: buffer.lineForRow(1).length
+            })
 
             editor.insertNewline()
 
             expect(buffer.lineForRow(2)).toBe('')
-            expect(editor.getCursorScreenPosition()).toEqual({row: 2, column: 0})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 2,
+              column: 0
+            })
           })
         })
       })
@@ -3605,9 +4088,15 @@ describe('TextEditor', () => {
             editor.insertNewline()
 
             expect(editor.lineTextForBufferRow(3)).toBe('    var pivot')
-            expect(editor.lineTextForBufferRow(4)).toBe(' = items.shift(), current')
-            expect(editor.lineTextForBufferRow(5)).toBe(', left = [], right = [];')
-            expect(editor.lineTextForBufferRow(6)).toBe('    while(items.length > 0) {')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              ' = items.shift(), current'
+            )
+            expect(editor.lineTextForBufferRow(5)).toBe(
+              ', left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(6)).toBe(
+              '    while(items.length > 0) {'
+            )
 
             const [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual([4, 0])
@@ -3622,11 +4111,19 @@ describe('TextEditor', () => {
 
             editor.insertText('\n')
             expect(editor.lineTextForBufferRow(3)).toBe('')
-            expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(editor.lineTextForBufferRow(5)).toBe('    while(items.length > 0) {')
-            expect(editor.lineTextForBufferRow(6)).toBe('      current = items.shift();')
+            expect(editor.lineTextForBufferRow(4)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(editor.lineTextForBufferRow(5)).toBe(
+              '    while(items.length > 0) {'
+            )
+            expect(editor.lineTextForBufferRow(6)).toBe(
+              '      current = items.shift();'
+            )
             expect(editor.lineTextForBufferRow(7)).toBe('')
-            expect(editor.lineTextForBufferRow(8)).toBe('      current < pivot ? left.push(current) : right.push(current);')
+            expect(editor.lineTextForBufferRow(8)).toBe(
+              '      current < pivot ? left.push(current) : right.push(current);'
+            )
             expect(editor.lineTextForBufferRow(9)).toBe('    }')
 
             const [cursor1, cursor2] = editor.getCursors()
@@ -3649,7 +4146,7 @@ describe('TextEditor', () => {
       })
 
       it("inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", () => {
-        editor.update({autoIndent: true})
+        editor.update({ autoIndent: true })
         editor.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
         expect(buffer.lineForRow(1)).toBe('  ')
@@ -3664,7 +4161,9 @@ describe('TextEditor', () => {
           editor.insertNewlineAbove()
           expect(editor.getCursorBufferPosition()).toEqual([0, 0])
           expect(editor.lineTextForBufferRow(0)).toBe('')
-          expect(editor.lineTextForBufferRow(1)).toBe('var quicksort = function () {')
+          expect(editor.lineTextForBufferRow(1)).toBe(
+            'var quicksort = function () {'
+          )
           expect(editor.buffer.getLineCount()).toBe(14)
         })
       })
@@ -3675,7 +4174,9 @@ describe('TextEditor', () => {
           editor.insertNewlineAbove()
           expect(editor.getCursorBufferPosition()).toEqual([3, 0])
           expect(editor.lineTextForBufferRow(3)).toBe('')
-          expect(editor.lineTextForBufferRow(4)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+          expect(editor.lineTextForBufferRow(4)).toBe(
+            '    var pivot = items.shift(), current, left = [], right = [];'
+          )
           expect(editor.buffer.getLineCount()).toBe(14)
 
           editor.undo()
@@ -3684,7 +4185,7 @@ describe('TextEditor', () => {
       })
 
       it('indents the new line to the correct level when editor.autoIndent is true', () => {
-        editor.update({autoIndent: true})
+        editor.update({ autoIndent: true })
 
         editor.setText('  var test')
         editor.setCursorBufferPosition([0, 2])
@@ -3717,7 +4218,7 @@ describe('TextEditor', () => {
     describe('.insertNewLine()', () => {
       describe('when a new line is appended before a closing tag (e.g. by pressing enter before a selection)', () => {
         it('moves the line down and keeps the indentation level the same when editor.autoIndent is true', () => {
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           editor.setCursorBufferPosition([9, 2])
           editor.insertNewline()
           expect(editor.lineTextForBufferRow(10)).toBe('  };')
@@ -3726,7 +4227,7 @@ describe('TextEditor', () => {
 
       describe('when a newline is appended with a trailing closing tag behind the cursor (e.g. by pressing enter in the middel of a line)', () => {
         it('indents the new line to the correct level when editor.autoIndent is true and using a curly-bracket language', () => {
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           atom.grammars.assignLanguageMode(editor, 'source.js')
           editor.setText('var test = () => {\n  return true;};')
           editor.setCursorBufferPosition([1, 14])
@@ -3737,7 +4238,7 @@ describe('TextEditor', () => {
 
         it('indents the new line to the current level when editor.autoIndent is true and no increaseIndentPattern is specified', () => {
           atom.grammars.assignLanguageMode(editor, null)
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           editor.setText('  if true')
           editor.setCursorBufferPosition([0, 8])
           editor.insertNewline()
@@ -3748,7 +4249,7 @@ describe('TextEditor', () => {
 
         it('indents the new line to the correct level when editor.autoIndent is true and using an off-side rule language', async () => {
           await atom.packages.activatePackage('language-coffee-script')
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           atom.grammars.assignLanguageMode(editor, 'source.coffee')
           editor.setText('if true\n  return trueelse\n  return false')
           editor.setCursorBufferPosition([1, 13])
@@ -3762,9 +4263,9 @@ describe('TextEditor', () => {
       describe('when a newline is appended on a line that matches the decreaseNextIndentPattern', () => {
         it('indents the new line to the correct level when editor.autoIndent is true', async () => {
           await atom.packages.activatePackage('language-go')
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           atom.grammars.assignLanguageMode(editor, 'source.go')
-          editor.setText('fmt.Printf("some%s",\n	"thing")')
+          editor.setText('fmt.Printf("some%s",\n	"thing")') // eslint-disable-line no-tabs
           editor.setCursorBufferPosition([1, 10])
           editor.insertNewline()
           expect(editor.indentationForBufferRow(1)).toBe(1)
@@ -3779,20 +4280,25 @@ describe('TextEditor', () => {
 
         beforeEach(() => {
           const selection = editor.getLastSelection()
-          changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
+          changeScreenRangeHandler = jasmine.createSpy(
+            'changeScreenRangeHandler'
+          )
           selection.onDidChangeRange(changeScreenRangeHandler)
         })
 
         describe('when the cursor is on the middle of the line', () => {
           it('removes the character before the cursor', () => {
-            editor.setCursorScreenPosition({row: 1, column: 7})
+            editor.setCursorScreenPosition({ row: 1, column: 7 })
             expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
 
             editor.backspace()
 
             const line = buffer.lineForRow(1)
             expect(line).toBe('  var ort = function(items) {')
-            expect(editor.getCursorScreenPosition()).toEqual({row: 1, column: 6})
+            expect(editor.getCursorScreenPosition()).toEqual({
+              row: 1,
+              column: 6
+            })
             expect(changeScreenRangeHandler).toHaveBeenCalled()
           })
         })
@@ -3803,14 +4309,19 @@ describe('TextEditor', () => {
             expect(originalLine0).toBe('var quicksort = function () {')
             expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
 
-            editor.setCursorScreenPosition({row: 1, column: 0})
+            editor.setCursorScreenPosition({ row: 1, column: 0 })
             editor.backspace()
 
             const line0 = buffer.lineForRow(0)
             const line1 = buffer.lineForRow(1)
-            expect(line0).toBe('var quicksort = function () {  var sort = function(items) {')
+            expect(line0).toBe(
+              'var quicksort = function () {  var sort = function(items) {'
+            )
             expect(line1).toBe('    if (items.length <= 1) return items;')
-            expect(editor.getCursorScreenPosition()).toEqual([0, originalLine0.length])
+            expect(editor.getCursorScreenPosition()).toEqual([
+              0,
+              originalLine0.length
+            ])
 
             expect(changeScreenRangeHandler).toHaveBeenCalled()
           })
@@ -3818,7 +4329,7 @@ describe('TextEditor', () => {
 
         describe('when the cursor is at the first column of the first line', () => {
           it("does nothing, but doesn't raise an error", () => {
-            editor.setCursorScreenPosition({row: 0, column: 0})
+            editor.setCursorScreenPosition({ row: 0, column: 0 })
             editor.backspace()
           })
         })
@@ -3842,7 +4353,9 @@ describe('TextEditor', () => {
             editor.backspace()
 
             expect(buffer.lineForRow(7)).toBe('    }')
-            expect(buffer.lineForRow(8)).toBe('    eturn sort(left).concat(pivot).concat(sort(right));')
+            expect(buffer.lineForRow(8)).toBe(
+              '    eturn sort(left).concat(pivot).concat(sort(right));'
+            )
           })
         })
 
@@ -3852,7 +4365,9 @@ describe('TextEditor', () => {
             editor.foldCurrentRow()
             editor.backspace()
 
-            expect(buffer.lineForRow(1)).toBe('  var sort = function(items)     var pivot = items.shift(), current, left = [], right = [];')
+            expect(buffer.lineForRow(1)).toBe(
+              '  var sort = function(items)     var pivot = items.shift(), current, left = [], right = [];'
+            )
             expect(editor.getCursorScreenPosition()).toEqual([1, 29])
           })
         })
@@ -3866,7 +4381,9 @@ describe('TextEditor', () => {
 
             editor.backspace()
 
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivo = items.shift(), curren, left = [], right = [];')
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivo = items.shift(), curren, left = [], right = [];'
+            )
 
             const [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual([3, 12])
@@ -3886,8 +4403,12 @@ describe('TextEditor', () => {
 
               editor.backspace()
 
-              expect(editor.lineTextForBufferRow(3)).toBe('    var pivo = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(4)).toBe('    whileitems.length > 0) {')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    var pivo = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    whileitems.length > 0) {'
+              )
 
               const [cursor1, cursor2] = editor.getCursors()
               expect(cursor1.getBufferPosition()).toEqual([3, 12])
@@ -3896,8 +4417,7 @@ describe('TextEditor', () => {
               const [selection1, selection2] = editor.getSelections()
               expect(selection1.isEmpty()).toBeTruthy()
               expect(selection2.isEmpty()).toBeTruthy()
-            })
-          )
+            }))
 
           describe('when the cursors are on the first column of their lines', () =>
             it('removes the newlines preceding each cursor', () => {
@@ -3905,16 +4425,21 @@ describe('TextEditor', () => {
               editor.addCursorAtScreenPosition([6, 0])
 
               editor.backspace()
-              expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(3)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(4)).toBe('      current = items.shift();      current < pivot ? left.push(current) : right.push(current);')
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '      current = items.shift();      current < pivot ? left.push(current) : right.push(current);'
+              )
               expect(editor.lineTextForBufferRow(5)).toBe('    }')
 
               const [cursor1, cursor2] = editor.getCursors()
               expect(cursor1.getBufferPosition()).toEqual([2, 40])
               expect(cursor2.getBufferPosition()).toEqual([4, 30])
-            })
-        )
+            }))
         })
       })
 
@@ -3939,7 +4464,10 @@ describe('TextEditor', () => {
 
       describe('when there are multiple selections', () => {
         it('removes all selected text', () => {
-          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 16], [0, 24]]])
+          editor.setSelectedBufferRanges([
+            [[0, 4], [0, 13]],
+            [[0, 16], [0, 24]]
+          ])
           editor.backspace()
           expect(editor.lineTextForBufferRow(0)).toBe('var  =  () {')
         })
@@ -4021,19 +4549,25 @@ describe('TextEditor', () => {
 
           editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(ems) {')
-          expect(buffer.lineForRow(3)).toBe('    ar pivot = items.shift(), current, left = [], right = [];')
+          expect(buffer.lineForRow(3)).toBe(
+            '    ar pivot = items.shift(), current, left = [], right = [];'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 22])
           expect(cursor2.getBufferPosition()).toEqual([3, 4])
 
           editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = functionems) {')
-          expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return itemsar pivot = items.shift(), current, left = [], right = [];')
+          expect(buffer.lineForRow(2)).toBe(
+            '    if (items.length <= 1) return itemsar pivot = items.shift(), current, left = [], right = [];'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 21])
           expect(cursor2.getBufferPosition()).toEqual([2, 39])
 
           editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = ems) {')
-          expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return ar pivot = items.shift(), current, left = [], right = [];')
+          expect(buffer.lineForRow(2)).toBe(
+            '    if (items.length <= 1) return ar pivot = items.shift(), current, left = [], right = [];'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 13])
           expect(cursor2.getBufferPosition()).toEqual([2, 34])
 
@@ -4049,7 +4583,9 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToBeginningOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {')
-          expect(buffer.lineForRow(2)).toBe('if (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            'if (items.length <= 1) return items;'
+          )
         })
       })
     })
@@ -4072,7 +4608,9 @@ describe('TextEditor', () => {
           it('deletes the next newline', () => {
             editor.setCursorBufferPosition([1, 30])
             editor.deleteToEndOfLine()
-            expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {    if (items.length <= 1) return items;')
+            expect(buffer.lineForRow(1)).toBe(
+              '  var sort = function(items) {    if (items.length <= 1) return items;'
+            )
           })
         })
       })
@@ -4082,7 +4620,9 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToEndOfLine()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {')
-          expect(buffer.lineForRow(2)).toBe('if (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            'if (items.length <= 1) return items;'
+          )
         })
       })
     })
@@ -4096,7 +4636,9 @@ describe('TextEditor', () => {
 
           editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe('ems) {')
-          expect(buffer.lineForRow(2)).toBe('f (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            'f (items.length <= 1) return items;'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 0])
           expect(cursor2.getBufferPosition()).toEqual([2, 0])
         })
@@ -4105,7 +4647,9 @@ describe('TextEditor', () => {
           it('deletes the newline', () => {
             editor.setCursorBufferPosition([2])
             editor.deleteToBeginningOfLine()
-            expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {    if (items.length <= 1) return items;')
+            expect(buffer.lineForRow(1)).toBe(
+              '  var sort = function(items) {    if (items.length <= 1) return items;'
+            )
           })
         })
       })
@@ -4115,7 +4659,9 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.deleteToBeginningOfLine()
           expect(buffer.lineForRow(1)).toBe('ems) {')
-          expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            '    if (items.length <= 1) return items;'
+          )
         })
       })
     })
@@ -4134,7 +4680,9 @@ describe('TextEditor', () => {
           it('joins the line with the following line', () => {
             editor.setCursorScreenPosition([1, buffer.lineForRow(1).length])
             editor.delete()
-            expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {    if (items.length <= 1) return items;')
+            expect(buffer.lineForRow(1)).toBe(
+              '  var sort = function(items) {    if (items.length <= 1) return items;'
+            )
           })
         })
 
@@ -4156,7 +4704,9 @@ describe('TextEditor', () => {
 
             expect(buffer.lineForRow(3)).toBe('    vae(items.length > 0) {')
             expect(buffer.lineForRow(4)).toBe('      current = items.shift();')
-            expect(editor.getCursorScreenPosition()).toEqual(cursorPositionBefore)
+            expect(editor.getCursorScreenPosition()).toEqual(
+              cursorPositionBefore
+            )
           })
         })
 
@@ -4164,11 +4714,11 @@ describe('TextEditor', () => {
           it('deletes as normal', () => {
             editor.foldBufferRow(4)
             editor.setCursorScreenPosition([3, 4])
-            const cursorPositionBefore = editor.getCursorScreenPosition()
-
             editor.delete()
 
-            expect(buffer.lineForRow(3)).toBe('    ar pivot = items.shift(), current, left = [], right = [];')
+            expect(buffer.lineForRow(3)).toBe(
+              '    ar pivot = items.shift(), current, left = [], right = [];'
+            )
             expect(editor.isFoldedAtScreenRow(4)).toBe(true)
             expect(editor.getCursorScreenPosition()).toEqual([3, 4])
           })
@@ -4181,9 +4731,15 @@ describe('TextEditor', () => {
 
             editor.delete()
 
-            expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(buffer.lineForRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
-            expect(buffer.lineForRow(4)).toBe('    while ? left.push(current) : right.push(current);')
+            expect(buffer.lineForRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(buffer.lineForRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
+            expect(buffer.lineForRow(4)).toBe(
+              '    while ? left.push(current) : right.push(current);'
+            )
             expect(buffer.lineForRow(5)).toBe('    }')
             expect(editor.getCursorBufferPosition()).toEqual([4, 9])
           })
@@ -4198,7 +4754,9 @@ describe('TextEditor', () => {
 
             editor.delete()
 
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot= items.shift(), current left = [], right = [];')
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot= items.shift(), current left = [], right = [];'
+            )
 
             const [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual([3, 13])
@@ -4218,8 +4776,12 @@ describe('TextEditor', () => {
 
               editor.delete()
 
-              expect(editor.lineTextForBufferRow(3)).toBe('    var pivot= items.shift(), current, left = [], right = [];')
-              expect(editor.lineTextForBufferRow(4)).toBe('    while(tems.length > 0) {')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    var pivot= items.shift(), current, left = [], right = [];'
+              )
+              expect(editor.lineTextForBufferRow(4)).toBe(
+                '    while(tems.length > 0) {'
+              )
 
               const [cursor1, cursor2] = editor.getCursors()
               expect(cursor1.getBufferPosition()).toEqual([3, 13])
@@ -4228,8 +4790,7 @@ describe('TextEditor', () => {
               const [selection1, selection2] = editor.getSelections()
               expect(selection1.isEmpty()).toBeTruthy()
               expect(selection2.isEmpty()).toBeTruthy()
-            })
-          )
+            }))
 
           describe('when the cursors are at the end of their lines', () =>
             it('removes the newlines following each cursor', () => {
@@ -4238,13 +4799,14 @@ describe('TextEditor', () => {
 
               editor.delete()
 
-              expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () {  var sort = function(items) {    if (items.length <= 1) return items;')
+              expect(editor.lineTextForBufferRow(0)).toBe(
+                'var quicksort = function () {  var sort = function(items) {    if (items.length <= 1) return items;'
+              )
 
               const [cursor1, cursor2] = editor.getCursors()
               expect(cursor1.getBufferPosition()).toEqual([0, 29])
               expect(cursor2.getBufferPosition()).toEqual([0, 59])
-            })
-        )
+            }))
         })
       })
 
@@ -4253,7 +4815,9 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editor.delete()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {')
-          expect(buffer.lineForRow(2)).toBe('if (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            'if (items.length <= 1) return items;'
+          )
           expect(editor.getLastSelection().isEmpty()).toBeTruthy()
         })
       })
@@ -4261,12 +4825,14 @@ describe('TextEditor', () => {
       describe('when there are multiple selections', () =>
         describe('when selections are on the same line', () => {
           it('removes all selected text', () => {
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 16], [0, 24]]])
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[0, 16], [0, 24]]
+            ])
             editor.delete()
             expect(editor.lineTextForBufferRow(0)).toBe('var  =  () {')
           })
-        })
-      )
+        }))
     })
 
     describe('.deleteToEndOfWord()', () => {
@@ -4278,13 +4844,17 @@ describe('TextEditor', () => {
 
           editor.deleteToEndOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {')
-          expect(buffer.lineForRow(2)).toBe('    i (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            '    i (items.length <= 1) return items;'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 24])
           expect(cursor2.getBufferPosition()).toEqual([2, 5])
 
           editor.deleteToEndOfWord()
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it {')
-          expect(buffer.lineForRow(2)).toBe('    iitems.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            '    iitems.length <= 1) return items;'
+          )
           expect(cursor1.getBufferPosition()).toEqual([1, 24])
           expect(cursor2.getBufferPosition()).toEqual([2, 5])
         })
@@ -4332,8 +4902,7 @@ describe('TextEditor', () => {
               expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
               editor.indent()
               expect(buffer.lineForRow(0)).toMatch(/^\t/)
-            })
-          )
+            }))
         })
 
         describe('when autoIndent is enabled', () => {
@@ -4342,7 +4911,7 @@ describe('TextEditor', () => {
               it('moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentation', () => {
                 buffer.insert([5, 0], '  \n')
                 editor.setCursorBufferPosition([5, 0])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(5)).toMatch(/^\s+$/)
                 expect(buffer.lineForRow(5).length).toBe(6)
                 expect(editor.getCursorBufferPosition()).toEqual([5, 6])
@@ -4352,14 +4921,14 @@ describe('TextEditor', () => {
                 editor.setTabLength(4)
                 buffer.insert([12, 2], '\n ')
                 editor.setCursorBufferPosition([13, 1])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(13)).toMatch(/^\s+$/)
                 expect(buffer.lineForRow(13).length).toBe(4)
                 expect(editor.getCursorBufferPosition()).toEqual([13, 4])
 
                 buffer.insert([13, 0], '  ')
                 editor.setCursorBufferPosition([13, 6])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(13).length).toBe(8)
               })
             })
@@ -4370,7 +4939,7 @@ describe('TextEditor', () => {
                 editor.setSoftTabs(false)
                 buffer.insert([5, 0], '\t\n')
                 editor.setCursorBufferPosition([5, 0])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(5)).toMatch(/^\t\t\t$/)
                 expect(editor.getCursorBufferPosition()).toEqual([5, 3])
               })
@@ -4381,11 +4950,10 @@ describe('TextEditor', () => {
                   buffer.setText(' \ntest')
                   editor.setCursorBufferPosition([1, 0])
 
-                  editor.indent({autoIndent: true})
+                  editor.indent({ autoIndent: true })
                   expect(buffer.lineForRow(1)).toBe('\ttest')
                   expect(editor.getCursorBufferPosition()).toEqual([1, 1])
-                })
-            )
+                }))
             })
           })
 
@@ -4394,12 +4962,11 @@ describe('TextEditor', () => {
               it("moves the cursor to the end of the leading whitespace and inserts 'tabLength' spaces into the buffer", () => {
                 buffer.insert([7, 0], '      \n')
                 editor.setCursorBufferPosition([7, 2])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(7)).toMatch(/^\s+$/)
                 expect(buffer.lineForRow(7).length).toBe(8)
                 expect(editor.getCursorBufferPosition()).toEqual([7, 8])
-              })
-          )
+              }))
 
             describe("when 'softTabs' is false", () =>
               it('moves the cursor to the end of the leading whitespace and inserts \t into the buffer', () => {
@@ -4407,11 +4974,10 @@ describe('TextEditor', () => {
                 editor.setSoftTabs(false)
                 buffer.insert([7, 0], '\t\t\t\n')
                 editor.setCursorBufferPosition([7, 1])
-                editor.indent({autoIndent: true})
+                editor.indent({ autoIndent: true })
                 expect(buffer.lineForRow(7)).toMatch(/^\t\t\t\t$/)
                 expect(editor.getCursorBufferPosition()).toEqual([7, 4])
-              })
-          )
+              }))
           })
         })
       })
@@ -4433,12 +4999,18 @@ describe('TextEditor', () => {
           editor.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t/)
           expect(editor.getCursorBufferPosition()).toEqual([0, 1])
-          expect(editor.getCursorScreenPosition()).toEqual([0, editor.getTabLength()])
+          expect(editor.getCursorScreenPosition()).toEqual([
+            0,
+            editor.getTabLength()
+          ])
 
           editor.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
           expect(editor.getCursorBufferPosition()).toEqual([0, 2])
-          expect(editor.getCursorScreenPosition()).toEqual([0, editor.getTabLength() * 2])
+          expect(editor.getCursorScreenPosition()).toEqual([
+            0,
+            editor.getTabLength() * 2
+          ])
         })
       })
     })
@@ -4455,23 +5027,26 @@ describe('TextEditor', () => {
 
         describe('when no text is selected', () => {
           beforeEach(() =>
-            editor.setSelectedBufferRanges([
-              [[0, 0], [0, 0]],
-              [[5, 0], [5, 0]]
-            ])
+            editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[5, 0], [5, 0]]])
           )
 
           it('cuts the lines on which there are cursors', () => {
             editor.cutSelectedText()
             expect(buffer.getLineCount()).toBe(11)
-            expect(buffer.lineForRow(1)).toBe('    if (items.length <= 1) return items;')
-            expect(buffer.lineForRow(4)).toBe('      current < pivot ? left.push(current) : right.push(current);')
-            expect(atom.clipboard.read()).toEqual([
-              'var quicksort = function () {',
-              '',
-              '      current = items.shift();',
-              ''
-            ].join('\n'))
+            expect(buffer.lineForRow(1)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(buffer.lineForRow(4)).toBe(
+              '      current < pivot ? left.push(current) : right.push(current);'
+            )
+            expect(atom.clipboard.read()).toEqual(
+              [
+                'var quicksort = function () {',
+                '',
+                '      current = items.shift();',
+                ''
+              ].join('\n')
+            )
           })
         })
 
@@ -4496,7 +5071,9 @@ describe('TextEditor', () => {
             editor.setEditorWidthInChars(25)
             editor.setCursorScreenPosition([2, 6])
             editor.cutToEndOfLine()
-            expect(editor.lineTextForScreenRow(2)).toBe('  var  function(items) {')
+            expect(editor.lineTextForScreenRow(2)).toBe(
+              '  var  function(items) {'
+            )
           })
         })
 
@@ -4508,19 +5085,26 @@ describe('TextEditor', () => {
               editor.cutToEndOfLine()
               expect(buffer.lineForRow(2)).toBe('    if (items.length')
               expect(buffer.lineForRow(3)).toBe('    var pivot = item')
-              expect(atom.clipboard.read()).toBe(' <= 1) return items;\ns.shift(), current, left = [], right = [];')
-            })
-          )
+              expect(atom.clipboard.read()).toBe(
+                ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+              )
+            }))
 
           describe('when text is selected', () =>
             it('only cuts the selected text, not to the end of the line', () => {
-              editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
+              editor.setSelectedBufferRanges([
+                [[2, 20], [2, 30]],
+                [[3, 20], [3, 20]]
+              ])
               editor.cutToEndOfLine()
-              expect(buffer.lineForRow(2)).toBe('    if (items.lengthurn items;')
+              expect(buffer.lineForRow(2)).toBe(
+                '    if (items.lengthurn items;'
+              )
               expect(buffer.lineForRow(3)).toBe('    var pivot = item')
-              expect(atom.clipboard.read()).toBe(' <= 1) ret\ns.shift(), current, left = [], right = [];')
-            })
-          )
+              expect(atom.clipboard.read()).toBe(
+                ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+              )
+            }))
         })
       })
 
@@ -4537,47 +5121,59 @@ describe('TextEditor', () => {
             editor.cutToEndOfBufferLine()
             expect(buffer.lineForRow(2)).toBe('    if (items.length')
             expect(buffer.lineForRow(3)).toBe('    var pivot = item')
-            expect(atom.clipboard.read()).toBe(' <= 1) return items;\ns.shift(), current, left = [], right = [];')
+            expect(atom.clipboard.read()).toBe(
+              ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            )
           })
         })
 
         describe('when text is selected', () => {
           it('only cuts the selected text, not to the end of the buffer line', () => {
-            editor.setSelectedBufferRanges([[[2, 20], [2, 30]], [[3, 20], [3, 20]]])
+            editor.setSelectedBufferRanges([
+              [[2, 20], [2, 30]],
+              [[3, 20], [3, 20]]
+            ])
             editor.cutToEndOfBufferLine()
             expect(buffer.lineForRow(2)).toBe('    if (items.lengthurn items;')
             expect(buffer.lineForRow(3)).toBe('    var pivot = item')
-            expect(atom.clipboard.read()).toBe(' <= 1) ret\ns.shift(), current, left = [], right = [];')
+            expect(atom.clipboard.read()).toBe(
+              ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+            )
           })
         })
       })
 
       describe('.copySelectedText()', () => {
         it('copies selected text onto the clipboard', () => {
-          editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]], [[2, 8], [2, 13]]])
+          editor.setSelectedBufferRanges([
+            [[0, 4], [0, 13]],
+            [[1, 6], [1, 10]],
+            [[2, 8], [2, 13]]
+          ])
           editor.copySelectedText()
 
-                    expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
+          expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
           expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
-          expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return items;')
+          expect(buffer.lineForRow(2)).toBe(
+            '    if (items.length <= 1) return items;'
+          )
           expect(clipboard.readText()).toBe('quicksort\nsort\nitems')
           expect(atom.clipboard.read()).toEqual('quicksort\nsort\nitems')
         })
 
         describe('when no text is selected', () => {
           beforeEach(() => {
-            editor.setSelectedBufferRanges([
-              [[1, 5], [1, 5]],
-              [[5, 8], [5, 8]]
-            ])
+            editor.setSelectedBufferRanges([[[1, 5], [1, 5]], [[5, 8], [5, 8]]])
           })
 
           it('copies the lines on which there are cursors', () => {
             editor.copySelectedText()
-            expect(atom.clipboard.read()).toEqual([
-              '  var sort = function(items) {\n',
-              '      current = items.shift();\n'
-            ].join('\n'))
+            expect(atom.clipboard.read()).toEqual(
+              [
+                '  var sort = function(items) {\n',
+                '      current = items.shift();\n'
+              ].join('\n')
+            )
             expect(editor.getSelectedBufferRanges()).toEqual([
               [[1, 5], [1, 5]],
               [[5, 8], [5, 8]]
@@ -4601,12 +5197,18 @@ describe('TextEditor', () => {
       describe('.copyOnlySelectedText()', () => {
         describe('when thee are multiple selections', () => {
           it('copies selected text onto the clipboard', () => {
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]], [[2, 8], [2, 13]]])
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[1, 6], [1, 10]],
+              [[2, 8], [2, 13]]
+            ])
 
             editor.copyOnlySelectedText()
             expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
             expect(buffer.lineForRow(1)).toBe('  var sort = function(items) {')
-            expect(buffer.lineForRow(2)).toBe('    if (items.length <= 1) return items;')
+            expect(buffer.lineForRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
             expect(clipboard.readText()).toBe('quicksort\nsort\nitems')
             expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`)
           })
@@ -4622,28 +5224,21 @@ describe('TextEditor', () => {
       })
 
       describe('.pasteText()', () => {
-        const copyText = function (text, {startColumn, textEditor} = {}) {
-          if (startColumn == null) startColumn = 0
-          if (textEditor == null) textEditor = editor
-          textEditor.setCursorBufferPosition([0, 0])
-          textEditor.insertText(text)
-          const numberOfNewlines = text.match(/\n/g).length
-          const endColumn = text.match(/[^\n]*$/)[0].length
-          textEditor.getLastSelection().setBufferRange([[0, startColumn], [numberOfNewlines, endColumn]])
-          return textEditor.cutSelectedText()
-        }
-
         it('pastes text into the buffer', () => {
           editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
           atom.clipboard.write('first')
           editor.pasteText()
-          expect(editor.lineTextForBufferRow(0)).toBe('var first = function () {')
-          expect(editor.lineTextForBufferRow(1)).toBe('  var first = function(items) {')
+          expect(editor.lineTextForBufferRow(0)).toBe(
+            'var first = function () {'
+          )
+          expect(editor.lineTextForBufferRow(1)).toBe(
+            '  var first = function(items) {'
+          )
         })
 
         it('notifies ::onWillInsertText observers', () => {
           const insertedStrings = []
-          editor.onWillInsertText(function ({text, cancel}) {
+          editor.onWillInsertText(function ({ text, cancel }) {
             insertedStrings.push(text)
             cancel()
           })
@@ -4656,7 +5251,9 @@ describe('TextEditor', () => {
 
         it('notifies ::onDidInsertText observers', () => {
           const insertedStrings = []
-          editor.onDidInsertText(({text, range}) => insertedStrings.push(text))
+          editor.onDidInsertText(({ text, range }) =>
+            insertedStrings.push(text)
+          )
 
           atom.clipboard.write('hello')
           editor.pasteText()
@@ -4665,11 +5262,13 @@ describe('TextEditor', () => {
         })
 
         describe('when `autoIndentOnPaste` is true', () => {
-          beforeEach(() => editor.update({autoIndentOnPaste: true}))
+          beforeEach(() => editor.update({ autoIndentOnPaste: true }))
 
           describe('when pasting multiple lines before any non-whitespace characters', () => {
             it('auto-indents the lines spanned by the pasted text, based on the first pasted line', () => {
-              atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {indentBasis: 0})
+              atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {
+                indentBasis: 0
+              })
               editor.setCursorBufferPosition([5, 0])
               editor.pasteText()
 
@@ -4679,14 +5278,18 @@ describe('TextEditor', () => {
               expect(editor.lineTextForBufferRow(5)).toBe('      a(x);')
               expect(editor.lineTextForBufferRow(6)).toBe('        b(x);')
               expect(editor.lineTextForBufferRow(7)).toBe('          c(x);')
-              expect(editor.lineTextForBufferRow(8)).toBe('      current = items.shift();')
+              expect(editor.lineTextForBufferRow(8)).toBe(
+                '      current = items.shift();'
+              )
             })
 
             it('auto-indents lines with a mix of hard tabs and spaces without removing spaces', () => {
               editor.setSoftTabs(false)
               expect(editor.indentationForBufferRow(5)).toBe(3)
 
-              atom.clipboard.write('/**\n\t * testing\n\t * indent\n\t **/\n', {indentBasis: 1})
+              atom.clipboard.write('/**\n\t * testing\n\t * indent\n\t **/\n', {
+                indentBasis: 1
+              })
               editor.setCursorBufferPosition([5, 0])
               editor.pasteText()
 
@@ -4700,7 +5303,9 @@ describe('TextEditor', () => {
 
           describe('when pasting line(s) above a line that matches the decreaseIndentPattern', () =>
             it('auto-indents based on the pasted line(s) only', () => {
-              atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {indentBasis: 0})
+              atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {
+                indentBasis: 0
+              })
               editor.setCursorBufferPosition([7, 0])
               editor.pasteText()
 
@@ -4708,19 +5313,21 @@ describe('TextEditor', () => {
               expect(editor.lineTextForBufferRow(8)).toBe('        b(x);')
               expect(editor.lineTextForBufferRow(9)).toBe('          c(x);')
               expect(editor.lineTextForBufferRow(10)).toBe('    }')
-            })
-          )
+            }))
 
           describe('when pasting a line of text without line ending', () =>
             it('does not auto-indent the text', () => {
-              atom.clipboard.write('a(x);', {indentBasis: 0})
+              atom.clipboard.write('a(x);', { indentBasis: 0 })
               editor.setCursorBufferPosition([5, 0])
               editor.pasteText()
 
-              expect(editor.lineTextForBufferRow(5)).toBe('a(x);      current = items.shift();')
-              expect(editor.lineTextForBufferRow(6)).toBe('      current < pivot ? left.push(current) : right.push(current);')
-            })
-          )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                'a(x);      current = items.shift();'
+              )
+              expect(editor.lineTextForBufferRow(6)).toBe(
+                '      current < pivot ? left.push(current) : right.push(current);'
+              )
+            }))
 
           describe('when pasting on a line after non-whitespace characters', () =>
             it('does not auto-indent the affected line', () => {
@@ -4738,12 +5345,11 @@ describe('TextEditor', () => {
               editor.pasteText()
               expect(editor.lineTextForBufferRow(1)).toBe('    y(); z();')
               expect(editor.lineTextForBufferRow(2)).toBe(' h();')
-            })
-          )
+            }))
         })
 
         describe('when `autoIndentOnPaste` is false', () => {
-          beforeEach(() => editor.update({autoIndentOnPaste: false}))
+          beforeEach(() => editor.update({ autoIndentOnPaste: false }))
 
           describe('when the cursor is indented further than the original copied text', () =>
             it('increases the indentation of the copied lines to match', () => {
@@ -4753,10 +5359,13 @@ describe('TextEditor', () => {
               editor.setCursorBufferPosition([5, 6])
               editor.pasteText()
 
-              expect(editor.lineTextForBufferRow(5)).toBe('      var sort = function(items) {')
-              expect(editor.lineTextForBufferRow(6)).toBe('        if (items.length <= 1) return items;')
-            })
-          )
+              expect(editor.lineTextForBufferRow(5)).toBe(
+                '      var sort = function(items) {'
+              )
+              expect(editor.lineTextForBufferRow(6)).toBe(
+                '        if (items.length <= 1) return items;'
+              )
+            }))
 
           describe('when the cursor is indented less far than the original copied text', () =>
             it('decreases the indentation of the copied lines to match', () => {
@@ -4766,10 +5375,11 @@ describe('TextEditor', () => {
               editor.setCursorBufferPosition([1, 2])
               editor.pasteText()
 
-              expect(editor.lineTextForBufferRow(1)).toBe('  current < pivot ? left.push(current) : right.push(current);')
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                '  current < pivot ? left.push(current) : right.push(current);'
+              )
               expect(editor.lineTextForBufferRow(2)).toBe('}')
-            })
-          )
+            }))
 
           describe('when the first copied line has leading whitespace', () =>
             it("preserves the line's leading whitespace", () => {
@@ -4779,16 +5389,22 @@ describe('TextEditor', () => {
               editor.setCursorBufferPosition([0, 0])
               editor.pasteText()
 
-              expect(editor.lineTextForBufferRow(0)).toBe('    while(items.length > 0) {')
-              expect(editor.lineTextForBufferRow(1)).toBe('      current = items.shift();')
-            })
-          )
+              expect(editor.lineTextForBufferRow(0)).toBe(
+                '    while(items.length > 0) {'
+              )
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                '      current = items.shift();'
+              )
+            }))
         })
 
         describe('when the clipboard has many selections', () => {
           beforeEach(() => {
-            editor.update({autoIndentOnPaste: false})
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.update({ autoIndentOnPaste: false })
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[1, 6], [1, 10]]
+            ])
             editor.copySelectedText()
           })
 
@@ -4801,17 +5417,25 @@ describe('TextEditor', () => {
             editor.moveRight()
             editor.insertText('_')
             editor.pasteText()
-            expect(editor.lineTextForBufferRow(0)).toBe('var quicksort_quicksort = function () {')
-            expect(editor.lineTextForBufferRow(1)).toBe('  var sort_sort = function(items) {')
+            expect(editor.lineTextForBufferRow(0)).toBe(
+              'var quicksort_quicksort = function () {'
+            )
+            expect(editor.lineTextForBufferRow(1)).toBe(
+              '  var sort_sort = function(items) {'
+            )
           })
 
           describe('and the selections count does not match', () => {
-            beforeEach(() => editor.setSelectedBufferRanges([[[0, 4], [0, 13]]]))
+            beforeEach(() =>
+              editor.setSelectedBufferRanges([[[0, 4], [0, 13]]])
+            )
 
             it('pastes the whole text into the buffer', () => {
               editor.pasteText()
               expect(editor.lineTextForBufferRow(0)).toBe('var quicksort')
-              expect(editor.lineTextForBufferRow(1)).toBe('sort = function () {')
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                'sort = function () {'
+              )
             })
           })
         })
@@ -4825,8 +5449,12 @@ describe('TextEditor', () => {
 
           it("pastes the line above the cursor and retains the cursor's column", () => {
             editor.pasteText()
-            expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-            expect(editor.lineTextForBufferRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+            expect(editor.lineTextForBufferRow(2)).toBe(
+              '    if (items.length <= 1) return items;'
+            )
+            expect(editor.lineTextForBufferRow(3)).toBe(
+              '    var pivot = items.shift(), current, left = [], right = [];'
+            )
             expect(editor.getCursorBufferPosition()).toEqual([3, 13])
           })
         })
@@ -4841,35 +5469,47 @@ describe('TextEditor', () => {
             it('overwrites the selection as with any copied text', () => {
               editor.setSelectedBufferRange([[1, 2], [1, Infinity]])
               editor.pasteText()
-              expect(editor.lineTextForBufferRow(1)).toBe('  if (items.length <= 1) return items;')
+              expect(editor.lineTextForBufferRow(1)).toBe(
+                '  if (items.length <= 1) return items;'
+              )
               expect(editor.lineTextForBufferRow(2)).toBe('')
-              expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
               expect(editor.getCursorBufferPosition()).toEqual([2, 0])
-            })
-          )
+            }))
 
           describe('when there is no selection', () =>
             it("pastes the line above the cursor and retains the cursor's column", () => {
               editor.pasteText()
-              expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
-              expect(editor.lineTextForBufferRow(3)).toBe('    if (items.length <= 1) return items;')
+              expect(editor.lineTextForBufferRow(2)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
+              expect(editor.lineTextForBufferRow(3)).toBe(
+                '    if (items.length <= 1) return items;'
+              )
               expect(editor.getCursorBufferPosition()).toEqual([3, 13])
-            })
-          )
+            }))
         })
 
         it('respects options that preserve the formatting of the pasted text', () => {
-          editor.update({autoIndentOnPaste: true})
-          atom.clipboard.write('a(x);\n  b(x);\r\nc(x);\n', {indentBasis: 0})
+          editor.update({ autoIndentOnPaste: true })
+          atom.clipboard.write('a(x);\n  b(x);\r\nc(x);\n', { indentBasis: 0 })
           editor.setCursorBufferPosition([5, 0])
           editor.insertText('  ')
-          editor.pasteText({autoIndent: false, preserveTrailingLineIndentation: true, normalizeLineEndings: false})
+          editor.pasteText({
+            autoIndent: false,
+            preserveTrailingLineIndentation: true,
+            normalizeLineEndings: false
+          })
 
           expect(editor.lineTextForBufferRow(5)).toBe('  a(x);')
           expect(editor.lineTextForBufferRow(6)).toBe('  b(x);')
           expect(editor.buffer.lineEndingForRow(6)).toBe('\r\n')
           expect(editor.lineTextForBufferRow(7)).toBe('c(x);')
-          expect(editor.lineTextForBufferRow(8)).toBe('      current = items.shift();')
+          expect(editor.lineTextForBufferRow(8)).toBe(
+            '      current = items.shift();'
+          )
         })
       })
     })
@@ -4881,7 +5521,10 @@ describe('TextEditor', () => {
             editor.setSelectedBufferRange([[0, 3], [0, 3]])
             editor.indentSelectedRows()
             expect(buffer.lineForRow(0)).toBe('  var quicksort = function () {')
-            expect(editor.getSelectedBufferRange()).toEqual([[0, 3 + editor.getTabLength()], [0, 3 + editor.getTabLength()]])
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [0, 3 + editor.getTabLength()],
+              [0, 3 + editor.getTabLength()]
+            ])
           })
         })
 
@@ -4892,7 +5535,10 @@ describe('TextEditor', () => {
             editor.setSelectedBufferRange([[0, 3], [0, 3]])
             editor.indentSelectedRows()
             expect(buffer.lineForRow(0)).toBe('\tvar quicksort = function () {')
-            expect(editor.getSelectedBufferRange()).toEqual([[0, 3 + 1], [0, 3 + 1]])
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [0, 3 + 1],
+              [0, 3 + 1]
+            ])
           })
         })
       })
@@ -4902,8 +5548,13 @@ describe('TextEditor', () => {
           it('indents line and retains selection', () => {
             editor.setSelectedBufferRange([[0, 4], [0, 14]])
             editor.indentSelectedRows()
-            expect(buffer.lineForRow(0)).toBe(`${editor.getTabText()}var quicksort = function () {`)
-            expect(editor.getSelectedBufferRange()).toEqual([[0, 4 + editor.getTabLength()], [0, 14 + editor.getTabLength()]])
+            expect(buffer.lineForRow(0)).toBe(
+              `${editor.getTabText()}var quicksort = function () {`
+            )
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [0, 4 + editor.getTabLength()],
+              [0, 14 + editor.getTabLength()]
+            ])
           })
         })
 
@@ -4914,7 +5565,10 @@ describe('TextEditor', () => {
             editor.setSelectedBufferRange([[0, 4], [0, 14]])
             editor.indentSelectedRows()
             expect(buffer.lineForRow(0)).toBe('\tvar quicksort = function () {')
-            expect(editor.getSelectedBufferRange()).toEqual([[0, 4 + 1], [0, 14 + 1]])
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [0, 4 + 1],
+              [0, 14 + 1]
+            ])
           })
         })
       })
@@ -4926,8 +5580,13 @@ describe('TextEditor', () => {
             editor.indentSelectedRows()
             expect(buffer.lineForRow(9)).toBe('    };')
             expect(buffer.lineForRow(10)).toBe('')
-            expect(buffer.lineForRow(11)).toBe('    return sort(Array.apply(this, arguments));')
-            expect(editor.getSelectedBufferRange()).toEqual([[9, 1 + editor.getTabLength()], [11, 15 + editor.getTabLength()]])
+            expect(buffer.lineForRow(11)).toBe(
+              '    return sort(Array.apply(this, arguments));'
+            )
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [9, 1 + editor.getTabLength()],
+              [11, 15 + editor.getTabLength()]
+            ])
           })
 
           it('does not indent the last row if the selection ends at column 0', () => {
@@ -4935,8 +5594,13 @@ describe('TextEditor', () => {
             editor.indentSelectedRows()
             expect(buffer.lineForRow(9)).toBe('    };')
             expect(buffer.lineForRow(10)).toBe('')
-            expect(buffer.lineForRow(11)).toBe('  return sort(Array.apply(this, arguments));')
-            expect(editor.getSelectedBufferRange()).toEqual([[9, 1 + editor.getTabLength()], [11, 0]])
+            expect(buffer.lineForRow(11)).toBe(
+              '  return sort(Array.apply(this, arguments));'
+            )
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [9, 1 + editor.getTabLength()],
+              [11, 0]
+            ])
           })
         })
 
@@ -4948,8 +5612,13 @@ describe('TextEditor', () => {
             editor.indentSelectedRows()
             expect(buffer.lineForRow(9)).toBe('\t\t};')
             expect(buffer.lineForRow(10)).toBe('')
-            expect(buffer.lineForRow(11)).toBe('\t\treturn sort(Array.apply(this, arguments));')
-            expect(editor.getSelectedBufferRange()).toEqual([[9, 1 + 1], [11, 15 + 1]])
+            expect(buffer.lineForRow(11)).toBe(
+              '\t\treturn sort(Array.apply(this, arguments));'
+            )
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [9, 1 + 1],
+              [11, 15 + 1]
+            ])
           })
         })
       })
@@ -4961,7 +5630,10 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRange([[1, 3], [1, 3]])
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {')
-          expect(editor.getSelectedBufferRange()).toEqual([[1, 3 - editor.getTabLength()], [1, 3 - editor.getTabLength()]])
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [1, 3 - editor.getTabLength()],
+            [1, 3 - editor.getTabLength()]
+          ])
         })
 
         it('outdents when indent is less than a tab length', () => {
@@ -4991,11 +5663,17 @@ describe('TextEditor', () => {
         it('outdents only up to the first non-space non-tab character', () => {
           editor.insertText(' \tfoo\t ')
           editor.outdentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe('\tfoo\t var quicksort = function () {')
+          expect(buffer.lineForRow(0)).toBe(
+            '\tfoo\t var quicksort = function () {'
+          )
           editor.outdentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe('foo\t var quicksort = function () {')
+          expect(buffer.lineForRow(0)).toBe(
+            'foo\t var quicksort = function () {'
+          )
           editor.outdentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe('foo\t var quicksort = function () {')
+          expect(buffer.lineForRow(0)).toBe(
+            'foo\t var quicksort = function () {'
+          )
         })
       })
 
@@ -5004,7 +5682,10 @@ describe('TextEditor', () => {
           editor.setSelectedBufferRange([[1, 4], [1, 14]])
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {')
-          expect(editor.getSelectedBufferRange()).toEqual([[1, 4 - editor.getTabLength()], [1, 14 - editor.getTabLength()]])
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [1, 4 - editor.getTabLength()],
+            [1, 14 - editor.getTabLength()]
+          ])
         })
       })
 
@@ -5014,9 +5695,16 @@ describe('TextEditor', () => {
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {')
-          expect(buffer.lineForRow(2)).toBe('  if (items.length <= 1) return items;')
-          expect(buffer.lineForRow(3)).toBe('  var pivot = items.shift(), current, left = [], right = [];')
-          expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [3, 15 - editor.getTabLength()]])
+          expect(buffer.lineForRow(2)).toBe(
+            '  if (items.length <= 1) return items;'
+          )
+          expect(buffer.lineForRow(3)).toBe(
+            '  var pivot = items.shift(), current, left = [], right = [];'
+          )
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [0, 1],
+            [3, 15 - editor.getTabLength()]
+          ])
         })
 
         it('does not outdent the last line of the selection if it ends at column 0', () => {
@@ -5024,8 +5712,12 @@ describe('TextEditor', () => {
           editor.outdentSelectedRows()
           expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {')
-          expect(buffer.lineForRow(2)).toBe('  if (items.length <= 1) return items;')
-          expect(buffer.lineForRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+          expect(buffer.lineForRow(2)).toBe(
+            '  if (items.length <= 1) return items;'
+          )
+          expect(buffer.lineForRow(3)).toBe(
+            '    var pivot = items.shift(), current, left = [], right = [];'
+          )
 
           expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [3, 0]])
         })
@@ -5078,10 +5770,7 @@ describe('TextEditor', () => {
       })
 
       it('restores cursors and selections to their states before and after undone and redone changes', () => {
-        editor.setSelectedBufferRanges([
-          [[0, 0], [0, 0]],
-          [[1, 0], [1, 3]]
-        ])
+        editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 3]]])
         editor.insertText('abc')
 
         expect(editor.getSelectedBufferRanges()).toEqual([
@@ -5140,24 +5829,37 @@ describe('TextEditor', () => {
         editor.delete()
         editor.delete()
 
-        const selections = editor.getSelections()
         expect(buffer.lineForRow(1)).toBe('  var = function( {')
 
-        expect(editor.getSelectedBufferRanges()).toEqual([[[1, 6], [1, 6]], [[1, 17], [1, 17]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[1, 6], [1, 6]],
+          [[1, 17], [1, 17]]
+        ])
 
         editor.undo()
-        expect(editor.getSelectedBufferRanges()).toEqual([[[1, 6], [1, 6]], [[1, 18], [1, 18]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[1, 6], [1, 6]],
+          [[1, 18], [1, 18]]
+        ])
 
         editor.undo()
-        expect(editor.getSelectedBufferRanges()).toEqual([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[1, 6], [1, 10]],
+          [[1, 22], [1, 27]]
+        ])
 
         editor.redo()
-        expect(editor.getSelectedBufferRanges()).toEqual([[[1, 6], [1, 6]], [[1, 18], [1, 18]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[1, 6], [1, 6]],
+          [[1, 18], [1, 18]]
+        ])
       })
 
       xit('restores folds after undo and redo', () => {
         editor.foldBufferRow(1)
-        editor.setSelectedBufferRange([[1, 0], [10, Infinity]], {preserveFolds: true})
+        editor.setSelectedBufferRange([[1, 0], [10, Infinity]], {
+          preserveFolds: true
+        })
         expect(editor.isFoldedAtBufferRow(1)).toBeTruthy()
 
         editor.insertText(dedent`\
@@ -5207,9 +5909,9 @@ describe('TextEditor', () => {
 
       beforeEach(async () => {
         editor1 = editor
-        editor2 = new TextEditor({buffer: editor1.buffer})
+        editor2 = new TextEditor({ buffer: editor1.buffer })
 
-        editor1.setText(dedent `
+        editor1.setText(dedent`
           aaaaaa
           bbbbbb
           cccccc
@@ -5219,12 +5921,16 @@ describe('TextEditor', () => {
       })
 
       it('[editor.transact] restore selection of change-initiated-editor', () => {
-        editor1.setCursorBufferPosition([0, 0]); editor1.transact(() => editor1.insertText('1'))
-        editor2.setCursorBufferPosition([1, 0]); editor2.transact(() => editor2.insertText('2'))
-        editor1.setCursorBufferPosition([2, 0]); editor1.transact(() => editor1.insertText('3'))
-        editor2.setCursorBufferPosition([3, 0]); editor2.transact(() => editor2.insertText('4'))
+        editor1.setCursorBufferPosition([0, 0])
+        editor1.transact(() => editor1.insertText('1'))
+        editor2.setCursorBufferPosition([1, 0])
+        editor2.transact(() => editor2.insertText('2'))
+        editor1.setCursorBufferPosition([2, 0])
+        editor1.transact(() => editor1.insertText('3'))
+        editor2.setCursorBufferPosition([3, 0])
+        editor2.transact(() => editor2.insertText('4'))
 
-        expect(editor1.getText()).toBe(dedent `
+        expect(editor1.getText()).toBe(dedent`
           1aaaaaa
           2bbbbbb
           3cccccc
@@ -5233,29 +5939,45 @@ describe('TextEditor', () => {
         `)
 
         editor2.setCursorBufferPosition([4, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
         expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
         expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
         editor1.setCursorBufferPosition([4, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
         expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
         expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
       })
 
@@ -5266,12 +5988,16 @@ describe('TextEditor', () => {
           editor.groupChangesSinceCheckpoint(checkpoint)
         }
 
-        editor1.setCursorBufferPosition([0, 0]); transact(editor1, () => editor1.insertText('1'))
-        editor2.setCursorBufferPosition([1, 0]); transact(editor2, () => editor2.insertText('2'))
-        editor1.setCursorBufferPosition([2, 0]); transact(editor1, () => editor1.insertText('3'))
-        editor2.setCursorBufferPosition([3, 0]); transact(editor2, () => editor2.insertText('4'))
+        editor1.setCursorBufferPosition([0, 0])
+        transact(editor1, () => editor1.insertText('1'))
+        editor2.setCursorBufferPosition([1, 0])
+        transact(editor2, () => editor2.insertText('2'))
+        editor1.setCursorBufferPosition([2, 0])
+        transact(editor1, () => editor1.insertText('3'))
+        editor2.setCursorBufferPosition([3, 0])
+        transact(editor2, () => editor2.insertText('4'))
 
-        expect(editor1.getText()).toBe(dedent `
+        expect(editor1.getText()).toBe(dedent`
           1aaaaaa
           2bbbbbb
           3cccccc
@@ -5280,29 +6006,45 @@ describe('TextEditor', () => {
         `)
 
         editor2.setCursorBufferPosition([4, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
-        editor1.undo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([3, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([2, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([1, 0])
+        editor1.undo()
+        expect(editor1.getCursorBufferPosition()).toEqual([0, 0])
         expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
-        editor1.redo(); expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([0, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([1, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([2, 1])
+        editor1.redo()
+        expect(editor1.getCursorBufferPosition()).toEqual([3, 1])
         expect(editor2.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
         editor1.setCursorBufferPosition([4, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
-        editor2.undo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([3, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([2, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([1, 0])
+        editor2.undo()
+        expect(editor2.getCursorBufferPosition()).toEqual([0, 0])
         expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
 
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
-        editor2.redo(); expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([0, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([1, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([2, 1])
+        editor2.redo()
+        expect(editor2.getCursorBufferPosition()).toEqual([3, 1])
         expect(editor1.getCursorBufferPosition()).toEqual([4, 0]) // remain unchanged
       })
     })
@@ -5340,7 +6082,7 @@ describe('TextEditor', () => {
         editor.addCursorAtScreenPosition([0, 2])
         editor.addCursorAtScreenPosition([1, 2])
 
-        const [cursor1, cursor2, cursor3] = editor.getCursors()
+        const [cursor1, , cursor3] = editor.getCursors()
         expect(editor.getCursors().length).toBe(3)
 
         buffer.delete([[0, 0], [0, 2]])
@@ -5374,7 +6116,10 @@ describe('TextEditor', () => {
 
         expect(selections[0].getText()).toBe('quicksort')
         expect(selections[1].getText()).toBe('function')
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 3], [0, 12]], [[0, 15], [0, 23]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 3], [0, 12]],
+          [[0, 15], [0, 23]]
+        ])
       })
 
       it('moves multiple active selections on multiple lines one column to the left', () => {
@@ -5388,7 +6133,10 @@ describe('TextEditor', () => {
 
         expect(selections[0].getText()).toBe('quicksort')
         expect(selections[1].getText()).toBe('sort')
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 3], [0, 12]], [[1, 5], [1, 9]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 3], [0, 12]],
+          [[1, 5], [1, 9]]
+        ])
       })
 
       describe('when a selection is at the first column of a line', () => {
@@ -5404,12 +6152,18 @@ describe('TextEditor', () => {
 
           expect(selections[0].getText()).toBe('var')
           expect(selections[1].getText()).toBe('  v')
-          expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [0, 3]], [[1, 0], [1, 3]]])
+          expect(editor.getSelectedBufferRanges()).toEqual([
+            [[0, 0], [0, 3]],
+            [[1, 0], [1, 3]]
+          ])
         })
 
         describe('when multiple selections are active on one line', () => {
           it('does not change the selection', () => {
-            editor.setSelectedBufferRanges([[[0, 0], [0, 3]], [[0, 4], [0, 13]]])
+            editor.setSelectedBufferRanges([
+              [[0, 0], [0, 3]],
+              [[0, 4], [0, 13]]
+            ])
             const selections = editor.getSelections()
 
             expect(selections[0].getText()).toBe('var')
@@ -5419,7 +6173,10 @@ describe('TextEditor', () => {
 
             expect(selections[0].getText()).toBe('var')
             expect(selections[1].getText()).toBe('quicksort')
-            expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [0, 3]], [[0, 4], [0, 13]]])
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[0, 0], [0, 3]],
+              [[0, 4], [0, 13]]
+            ])
           })
         })
       })
@@ -5447,7 +6204,10 @@ describe('TextEditor', () => {
 
         expect(selections[0].getText()).toBe('quicksort')
         expect(selections[1].getText()).toBe('function')
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 5], [0, 14]], [[0, 17], [0, 25]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 5], [0, 14]],
+          [[0, 17], [0, 25]]
+        ])
       })
 
       it('moves multiple active selections on multiple lines one column to the right', () => {
@@ -5461,12 +6221,18 @@ describe('TextEditor', () => {
 
         expect(selections[0].getText()).toBe('quicksort')
         expect(selections[1].getText()).toBe('sort')
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 5], [0, 14]], [[1, 7], [1, 11]]])
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [[0, 5], [0, 14]],
+          [[1, 7], [1, 11]]
+        ])
       })
 
       describe('when a selection is at the last column of a line', () => {
         it('does not change the selection', () => {
-          editor.setSelectedBufferRanges([[[2, 34], [2, 40]], [[5, 22], [5, 30]]])
+          editor.setSelectedBufferRanges([
+            [[2, 34], [2, 40]],
+            [[5, 22], [5, 30]]
+          ])
           const selections = editor.getSelections()
 
           expect(selections[0].getText()).toBe('items;')
@@ -5477,12 +6243,18 @@ describe('TextEditor', () => {
 
           expect(selections[0].getText()).toBe('items;')
           expect(selections[1].getText()).toBe('shift();')
-          expect(editor.getSelectedBufferRanges()).toEqual([[[2, 34], [2, 40]], [[5, 22], [5, 30]]])
+          expect(editor.getSelectedBufferRanges()).toEqual([
+            [[2, 34], [2, 40]],
+            [[5, 22], [5, 30]]
+          ])
         })
 
         describe('when multiple selections are active on one line', () => {
           it('does not change the selection', () => {
-            editor.setSelectedBufferRanges([[[2, 27], [2, 33]], [[2, 34], [2, 40]]])
+            editor.setSelectedBufferRanges([
+              [[2, 27], [2, 33]],
+              [[2, 34], [2, 40]]
+            ])
             const selections = editor.getSelections()
 
             expect(selections[0].getText()).toBe('return')
@@ -5492,7 +6264,10 @@ describe('TextEditor', () => {
 
             expect(selections[0].getText()).toBe('return')
             expect(selections[1].getText()).toBe('items;')
-            expect(editor.getSelectedBufferRanges()).toEqual([[[2, 27], [2, 33]], [[2, 34], [2, 40]]])
+            expect(editor.getSelectedBufferRanges()).toEqual([
+              [[2, 27], [2, 33]],
+              [[2, 34], [2, 40]]
+            ])
           })
         })
       })
@@ -5528,7 +6303,7 @@ describe('TextEditor', () => {
         {
           name: 'insertNewline',
           op: (opts = {}) => {
-            editor.setCursorScreenPosition({row: 1, column: 0})
+            editor.setCursorScreenPosition({ row: 1, column: 0 })
             editor.insertNewline(opts)
           }
         },
@@ -5549,7 +6324,7 @@ describe('TextEditor', () => {
         {
           name: 'backspace',
           op: (opts = {}) => {
-            editor.setCursorScreenPosition({row: 1, column: 7})
+            editor.setCursorScreenPosition({ row: 1, column: 7 })
             editor.backspace(opts)
           }
         },
@@ -5611,7 +6386,10 @@ describe('TextEditor', () => {
         {
           name: 'cutSelectedText',
           op: (opts = {}) => {
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[1, 6], [1, 10]]
+            ])
             editor.cutSelectedText(opts)
           }
         },
@@ -5632,7 +6410,10 @@ describe('TextEditor', () => {
         {
           name: 'pasteText',
           op: (opts = {}) => {
-            editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+            editor.setSelectedBufferRanges([
+              [[0, 4], [0, 13]],
+              [[1, 6], [1, 10]]
+            ])
             atom.clipboard.write('first')
             editor.pasteText(opts)
           }
@@ -5671,7 +6452,7 @@ describe('TextEditor', () => {
       ]
 
       describe('without bypassReadOnly', () => {
-        for (const {name, op} of modifications) {
+        for (const { name, op } of modifications) {
           it(`throws an error on ${name}`, () => {
             expect(op).toThrow()
           })
@@ -5679,9 +6460,9 @@ describe('TextEditor', () => {
       })
 
       describe('with bypassReadOnly', () => {
-        for (const {name, op} of modifications) {
+        for (const { name, op } of modifications) {
           it(`permits ${name}`, () => {
-            op({bypassReadOnly: true})
+            op({ bypassReadOnly: true })
           })
         }
       })
@@ -5691,7 +6472,9 @@ describe('TextEditor', () => {
   describe('reading text', () => {
     it('.lineTextForScreenRow(row)', () => {
       editor.foldBufferRow(4)
-      expect(editor.lineTextForScreenRow(5)).toEqual('    return sort(left).concat(pivot).concat(sort(right));')
+      expect(editor.lineTextForScreenRow(5)).toEqual(
+        '    return sort(left).concat(pivot).concat(sort(right));'
+      )
       expect(editor.lineTextForScreenRow(9)).toEqual('};')
       expect(editor.lineTextForScreenRow(10)).toBeUndefined()
     })
@@ -5730,7 +6513,7 @@ describe('TextEditor', () => {
       expect(buffer.getLineCount()).toBe(count - 2)
     })
 
-    it("restores cursor position for multiple cursors", () => {
+    it('restores cursor position for multiple cursors', () => {
       const line = '0123456789'.repeat(8)
       editor.setText((line + '\n').repeat(5))
       editor.setCursorScreenPosition([0, 5])
@@ -5743,13 +6526,10 @@ describe('TextEditor', () => {
       expect(cursors[1].getScreenPosition()).toEqual([1, 8])
     })
 
-    it("restores cursor position for multiple selections", () => {
+    it('restores cursor position for multiple selections', () => {
       const line = '0123456789'.repeat(8)
       editor.setText((line + '\n').repeat(5))
-      editor.setSelectedBufferRanges([
-       [[0, 5], [0, 8]],
-       [[2, 4], [2, 15]]
-      ])
+      editor.setSelectedBufferRanges([[[0, 5], [0, 8]], [[2, 4], [2, 15]]])
       editor.deleteLine()
 
       const cursors = editor.getCursors()
@@ -5761,10 +6541,7 @@ describe('TextEditor', () => {
     it('deletes a line only once when multiple selections are on the same line', () => {
       const line1 = buffer.lineForRow(1)
       const count = buffer.getLineCount()
-      editor.setSelectedBufferRanges([
-        [[0, 1], [0, 2]],
-        [[0, 4], [0, 5]]
-      ])
+      editor.setSelectedBufferRanges([[[0, 1], [0, 2]], [[0, 4], [0, 5]]])
       expect(buffer.lineForRow(0)).not.toBe(line1)
 
       editor.deleteLine()
@@ -5840,7 +6617,9 @@ describe('TextEditor', () => {
         expect(buffer.lineForRow(3)).toBe('    while(items.length > 0) {')
         editor.undo()
         expect(editor.isFoldedAtScreenRow(4)).toBeTruthy()
-        expect(buffer.lineForRow(3)).toBe('    var pivot = items.shift(), current, left = [], right = [];')
+        expect(buffer.lineForRow(3)).toBe(
+          '    var pivot = items.shift(), current, left = [], right = [];'
+        )
       })
     })
   })
@@ -5852,7 +6631,7 @@ describe('TextEditor', () => {
         expect(buffer.lineForRow(0)).toBe('123var quicksort = function () {')
 
         editor.setCursorBufferPosition([0])
-        editor.replaceSelectedText({selectWordIfEmpty: true}, () => 'var')
+        editor.replaceSelectedText({ selectWordIfEmpty: true }, () => 'var')
         expect(buffer.lineForRow(0)).toBe('var quicksort = function () {')
 
         editor.setCursorBufferPosition([10])
@@ -5940,11 +6719,15 @@ describe('TextEditor', () => {
   describe('.setTabLength(tabLength)', () => {
     it('clips atomic soft tabs to the given tab length', () => {
       expect(editor.getTabLength()).toBe(2)
-      expect(editor.clipScreenPosition([5, 1], {clipDirection: 'forward'})).toEqual([5, 2])
+      expect(
+        editor.clipScreenPosition([5, 1], { clipDirection: 'forward' })
+      ).toEqual([5, 2])
 
       editor.setTabLength(6)
       expect(editor.getTabLength()).toBe(6)
-      expect(editor.clipScreenPosition([5, 1], {clipDirection: 'forward'})).toEqual([5, 6])
+      expect(
+        editor.clipScreenPosition([5, 1], { clipDirection: 'forward' })
+      ).toEqual([5, 6])
 
       const changeHandler = jasmine.createSpy('changeHandler')
       editor.onDidChange(changeHandler)
@@ -5965,7 +6748,8 @@ describe('TextEditor', () => {
       expect(editor.indentLevelForLine('   hello')).toBe(1.5)
     })
 
-    it('returns the indent level when the line has only leading tabs', () => expect(editor.indentLevelForLine('\t\thello')).toBe(2))
+    it('returns the indent level when the line has only leading tabs', () =>
+      expect(editor.indentLevelForLine('\t\thello')).toBe(2))
 
     it('returns the indent level based on the character starting the line when the leading whitespace contains both spaces and tabs', () => {
       expect(editor.indentLevelForLine('\t  hello')).toBe(2)
@@ -5977,7 +6761,7 @@ describe('TextEditor', () => {
     })
   })
 
-  describe('when the buffer\'s language mode changes', () => {
+  describe("when the buffer's language mode changes", () => {
     beforeEach(() => {
       atom.config.set('core.useTreeSitterParsers', false)
     })
@@ -5992,7 +6776,9 @@ describe('TextEditor', () => {
       editor.onDidTokenize(event => events.push(event))
 
       await atom.packages.activatePackage('language-c')
-      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      expect(
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')
+      ).toBe(true)
       advanceClock(1)
       expect(events.length).toBe(1)
     })
@@ -6002,7 +6788,9 @@ describe('TextEditor', () => {
       editor.onDidChangeGrammar(grammar => events.push(grammar))
 
       await atom.packages.activatePackage('language-c')
-      expect(atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')).toBe(true)
+      expect(
+        atom.grammars.assignLanguageMode(editor.getBuffer(), 'source.c')
+      ).toBe(true)
       expect(events.length).toBe(1)
       expect(events[0].name).toBe('C')
     })
@@ -6016,7 +6804,7 @@ describe('TextEditor', () => {
           editor.insertText('\n ')
           expect(editor.lineTextForBufferRow(2)).toBe(' ')
 
-          editor.update({autoIndent: false})
+          editor.update({ autoIndent: false })
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe('  ')
         })
@@ -6024,7 +6812,7 @@ describe('TextEditor', () => {
     })
 
     describe('when editor.autoIndent is true', () => {
-      beforeEach(() => editor.update({autoIndent: true}))
+      beforeEach(() => editor.update({ autoIndent: true }))
 
       describe('when `indent` is triggered', () => {
         it('auto-indents the line', () => {
@@ -6032,7 +6820,7 @@ describe('TextEditor', () => {
           editor.insertText('\n ')
           expect(editor.lineTextForBufferRow(2)).toBe(' ')
 
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           editor.indent()
           expect(editor.lineTextForBufferRow(2)).toBe('    ')
         })
@@ -6043,7 +6831,9 @@ describe('TextEditor', () => {
           it('indents the newline to one additional level of indentation beyond the preceding line', () => {
             editor.setCursorBufferPosition([1, Infinity])
             editor.insertText('\n')
-            expect(editor.indentationForBufferRow(2)).toBe(editor.indentationForBufferRow(1) + 1)
+            expect(editor.indentationForBufferRow(2)).toBe(
+              editor.indentationForBufferRow(1) + 1
+            )
           })
         })
 
@@ -6051,7 +6841,9 @@ describe('TextEditor', () => {
           it('indents the new line to the same level as the preceding line', () => {
             editor.setCursorBufferPosition([5, 14])
             editor.insertText('\n')
-            expect(editor.indentationForBufferRow(6)).toBe(editor.indentationForBufferRow(5))
+            expect(editor.indentationForBufferRow(6)).toBe(
+              editor.indentationForBufferRow(5)
+            )
           })
         })
 
@@ -6081,7 +6873,7 @@ describe('TextEditor', () => {
           editor.insertText('  var this-line-should-be-indented-more\n')
           expect(editor.indentationForBufferRow(1)).toBe(1)
 
-          editor.update({autoIndent: true})
+          editor.update({ autoIndent: true })
           editor.setCursorBufferPosition([2, Infinity])
           editor.insertText('\n')
           expect(editor.indentationForBufferRow(1)).toBe(1)
@@ -6106,9 +6898,13 @@ describe('TextEditor', () => {
           it('decreases the indentation to match that of the preceding line', () => {
             editor.setCursorBufferPosition([1, Infinity])
             editor.insertText('\n')
-            expect(editor.indentationForBufferRow(2)).toBe(editor.indentationForBufferRow(1) + 1)
+            expect(editor.indentationForBufferRow(2)).toBe(
+              editor.indentationForBufferRow(1) + 1
+            )
             editor.insertText('}')
-            expect(editor.indentationForBufferRow(2)).toBe(editor.indentationForBufferRow(1))
+            expect(editor.indentationForBufferRow(2)).toBe(
+              editor.indentationForBufferRow(1)
+            )
           })
         })
 
@@ -6116,15 +6912,21 @@ describe('TextEditor', () => {
           it('decreases the indentation to be one level below that of the preceding line', () => {
             editor.setCursorBufferPosition([3, Infinity])
             editor.insertText('\n    ')
-            expect(editor.indentationForBufferRow(4)).toBe(editor.indentationForBufferRow(3))
+            expect(editor.indentationForBufferRow(4)).toBe(
+              editor.indentationForBufferRow(3)
+            )
             editor.insertText('}')
-            expect(editor.indentationForBufferRow(4)).toBe(editor.indentationForBufferRow(3) - 1)
+            expect(editor.indentationForBufferRow(4)).toBe(
+              editor.indentationForBufferRow(3) - 1
+            )
           })
 
           it("doesn't break when decreasing the indentation on a row that has no indentation", () => {
             editor.setCursorBufferPosition([12, Infinity])
             editor.insertText('\n}; # too many closing brackets!')
-            expect(editor.lineTextForBufferRow(13)).toBe('}; # too many closing brackets!')
+            expect(editor.lineTextForBufferRow(13)).toBe(
+              '}; # too many closing brackets!'
+            )
           })
         })
       })
@@ -6142,9 +6944,13 @@ describe('TextEditor', () => {
       describe('when the current line does not match a decrease indent pattern', () => {
         it('leaves the line unchanged', () => {
           editor.setCursorBufferPosition([2, 4])
-          expect(editor.indentationForBufferRow(2)).toBe(editor.indentationForBufferRow(1) + 1)
+          expect(editor.indentationForBufferRow(2)).toBe(
+            editor.indentationForBufferRow(1) + 1
+          )
           editor.insertText('foo')
-          expect(editor.indentationForBufferRow(2)).toBe(editor.indentationForBufferRow(1) + 1)
+          expect(editor.indentationForBufferRow(2)).toBe(
+            editor.indentationForBufferRow(1) + 1
+          )
         })
       })
     })
@@ -6152,16 +6958,16 @@ describe('TextEditor', () => {
 
   describe('atomic soft tabs', () => {
     it('skips tab-length runs of leading whitespace when moving the cursor', () => {
-      editor.update({tabLength: 4, atomicSoftTabs: true})
+      editor.update({ tabLength: 4, atomicSoftTabs: true })
 
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual([2, 4])
 
-      editor.update({atomicSoftTabs: false})
+      editor.update({ atomicSoftTabs: false })
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual([2, 3])
 
-      editor.update({atomicSoftTabs: true})
+      editor.update({ atomicSoftTabs: true })
       editor.setCursorScreenPosition([2, 3])
       expect(editor.getCursorScreenPosition()).toEqual([2, 4])
     })
@@ -6180,7 +6986,7 @@ describe('TextEditor', () => {
 
     it('notifies ::onDidDestroy observers when the editor is destroyed', () => {
       let destroyObserverCalled = false
-      editor.onDidDestroy(() => destroyObserverCalled = true)
+      editor.onDidDestroy(() => (destroyObserverCalled = true))
 
       editor.destroy()
       expect(destroyObserverCalled).toBe(true)
@@ -6216,7 +7022,9 @@ describe('TextEditor', () => {
           editor.insertText('  ')
           editor.setCursorBufferPosition([0])
           editor.joinLines()
-          expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () { var sort = function(items) {')
+          expect(editor.lineTextForBufferRow(0)).toBe(
+            'var quicksort = function () { var sort = function(items) {'
+          )
           expect(editor.getCursorBufferPosition()).toEqual([0, 29])
         })
       })
@@ -6226,7 +7034,9 @@ describe('TextEditor', () => {
           editor.setCursorBufferPosition([9])
           editor.joinLines()
           expect(editor.lineTextForBufferRow(9)).toBe('  };')
-          expect(editor.lineTextForBufferRow(10)).toBe('  return sort(Array.apply(this, arguments));')
+          expect(editor.lineTextForBufferRow(10)).toBe(
+            '  return sort(Array.apply(this, arguments));'
+          )
           expect(editor.getCursorBufferPosition()).toEqual([9, 4])
         })
       })
@@ -6243,7 +7053,9 @@ describe('TextEditor', () => {
         it('joins the line below with the current line with no added space', () => {
           editor.setCursorBufferPosition([10])
           editor.joinLines()
-          expect(editor.lineTextForBufferRow(10)).toBe('return sort(Array.apply(this, arguments));')
+          expect(editor.lineTextForBufferRow(10)).toBe(
+            'return sort(Array.apply(this, arguments));'
+          )
           expect(editor.getCursorBufferPosition()).toEqual([10, 0])
         })
       })
@@ -6254,7 +7066,9 @@ describe('TextEditor', () => {
         it('joins the line below with the current line separated by a space and retains the selected text', () => {
           editor.setSelectedBufferRange([[0, 1], [0, 3]])
           editor.joinLines()
-          expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () { var sort = function(items) {')
+          expect(editor.lineTextForBufferRow(0)).toBe(
+            'var quicksort = function () { var sort = function(items) {'
+          )
           expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [0, 3]])
         })
       })
@@ -6263,7 +7077,9 @@ describe('TextEditor', () => {
         it('joins all selected lines separated by a space and retains the selected text', () => {
           editor.setSelectedBufferRange([[9, 3], [12, 1]])
           editor.joinLines()
-          expect(editor.lineTextForBufferRow(9)).toBe('  }; return sort(Array.apply(this, arguments)); };')
+          expect(editor.lineTextForBufferRow(9)).toBe(
+            '  }; return sort(Array.apply(this, arguments)); };'
+          )
           expect(editor.getSelectedBufferRange()).toEqual([[9, 3], [9, 49]])
         })
       })
@@ -6274,11 +7090,14 @@ describe('TextEditor', () => {
     it('for each selection, duplicates all buffer lines intersected by the selection', () => {
       editor.foldBufferRow(4)
       editor.setCursorBufferPosition([2, 5])
-      editor.addSelectionForBufferRange([[3, 0], [8, 0]], {preserveFolds: true})
+      editor.addSelectionForBufferRange([[3, 0], [8, 0]], {
+        preserveFolds: true
+      })
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(dedent `
+      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(
+        dedent`
         if (items.length <= 1) return items;
         if (items.length <= 1) return items;
         var pivot = items.shift(), current, left = [], right = [];
@@ -6291,14 +7110,25 @@ describe('TextEditor', () => {
           current = items.shift();
           current < pivot ? left.push(current) : right.push(current);
         }\
-      `.split('\n').map(l => `    ${l}`).join('\n'))
-      expect(editor.getSelectedBufferRanges()).toEqual([[[3, 5], [3, 5]], [[9, 0], [14, 0]]])
+      `
+          .split('\n')
+          .map(l => `    ${l}`)
+          .join('\n')
+      )
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [[3, 5], [3, 5]],
+        [[9, 0], [14, 0]]
+      ])
 
       // folds are also duplicated
       expect(editor.isFoldedAtScreenRow(5)).toBe(true)
       expect(editor.isFoldedAtScreenRow(7)).toBe(true)
-      expect(editor.lineTextForScreenRow(7)).toBe(`    while(items.length > 0) {${editor.displayLayer.foldCharacter}}`)
-      expect(editor.lineTextForScreenRow(8)).toBe('    return sort(left).concat(pivot).concat(sort(right));')
+      expect(editor.lineTextForScreenRow(7)).toBe(
+        `    while(items.length > 0) {${editor.displayLayer.foldCharacter}}`
+      )
+      expect(editor.lineTextForScreenRow(8)).toBe(
+        '    return sort(left).concat(pivot).concat(sort(right));'
+      )
     })
 
     it('duplicates all folded lines for empty selections on lines containing folds', () => {
@@ -6307,7 +7137,8 @@ describe('TextEditor', () => {
 
       editor.duplicateLines()
 
-      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(dedent`
+      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(
+        dedent`
         if (items.length <= 1) return items;
         var pivot = items.shift(), current, left = [], right = [];
         while(items.length > 0) {
@@ -6318,24 +7149,31 @@ describe('TextEditor', () => {
           current = items.shift();
           current < pivot ? left.push(current) : right.push(current);
         }
-      `.split('\n').map(l => `    ${l}`).join('\n'))
+      `
+          .split('\n')
+          .map(l => `    ${l}`)
+          .join('\n')
+      )
       expect(editor.getSelectedBufferRange()).toEqual([[8, 0], [8, 0]])
     })
 
     it('can duplicate the last line of the buffer', () => {
       editor.setSelectedBufferRange([[11, 0], [12, 2]])
       editor.duplicateLines()
-      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe('  ' + dedent `
+      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe(
+        '  ' +
+          dedent`
           return sort(Array.apply(this, arguments));
         };
           return sort(Array.apply(this, arguments));
         };
-      `.trim())
+      `.trim()
+      )
       expect(editor.getSelectedBufferRange()).toEqual([[13, 0], [14, 2]])
     })
 
     it('only duplicates lines containing multiple selections once', () => {
-      editor.setText(dedent `
+      editor.setText(dedent`
         aaaaaa
         bbbbbb
         cccccc
@@ -6349,7 +7187,7 @@ describe('TextEditor', () => {
         [[3, 3], [3, 4]]
       ])
       editor.duplicateLines()
-      expect(editor.getText()).toBe(dedent `
+      expect(editor.getText()).toBe(dedent`
         aaaaaa
         aaaaaa
         bbbbbb
@@ -6491,13 +7329,17 @@ describe('TextEditor', () => {
       await atom.packages.activatePackage('language-hyperlink')
 
       const grammar = atom.grammars.selectGrammar('text.js')
-      const {line, tags} = grammar.tokenizeLine('var i; // http://github.com')
+      const { line, tags } = grammar.tokenizeLine('var i; // http://github.com')
 
       const tokens = atom.grammars.decodeTokens(line, tags)
       expect(tokens[0].value).toBe('var')
       expect(tokens[0].scopes).toEqual(['source.js', 'storage.type.var.js'])
       expect(tokens[6].value).toBe('http://github.com')
-      expect(tokens[6].scopes).toEqual(['source.js', 'comment.line.double-slash.js', 'markup.underline.link.http.hyperlink'])
+      expect(tokens[6].scopes).toEqual([
+        'source.js',
+        'comment.line.double-slash.js',
+        'markup.underline.link.http.hyperlink'
+      ])
     })
 
     describe('when the grammar is added', () => {
@@ -6506,16 +7348,49 @@ describe('TextEditor', () => {
         editor.setText('// http://github.com')
         let tokens = editor.tokensForScreenRow(0)
         expect(tokens).toEqual([
-          {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
-          {text: ' http://github.com', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
+          {
+            text: '//',
+            scopes: [
+              'syntax--source syntax--js',
+              'syntax--comment syntax--line syntax--double-slash syntax--js',
+              'syntax--punctuation syntax--definition syntax--comment syntax--js'
+            ]
+          },
+          {
+            text: ' http://github.com',
+            scopes: [
+              'syntax--source syntax--js',
+              'syntax--comment syntax--line syntax--double-slash syntax--js'
+            ]
+          }
         ])
 
         await atom.packages.activatePackage('language-hyperlink')
         tokens = editor.tokensForScreenRow(0)
         expect(tokens).toEqual([
-          {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
-          {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
-          {text: 'http://github.com', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--markup syntax--underline syntax--link syntax--http syntax--hyperlink']}
+          {
+            text: '//',
+            scopes: [
+              'syntax--source syntax--js',
+              'syntax--comment syntax--line syntax--double-slash syntax--js',
+              'syntax--punctuation syntax--definition syntax--comment syntax--js'
+            ]
+          },
+          {
+            text: ' ',
+            scopes: [
+              'syntax--source syntax--js',
+              'syntax--comment syntax--line syntax--double-slash syntax--js'
+            ]
+          },
+          {
+            text: 'http://github.com',
+            scopes: [
+              'syntax--source syntax--js',
+              'syntax--comment syntax--line syntax--double-slash syntax--js',
+              'syntax--markup syntax--underline syntax--link syntax--http syntax--hyperlink'
+            ]
+          }
         ])
       })
 
@@ -6525,28 +7400,106 @@ describe('TextEditor', () => {
           editor.setText('// SELECT * FROM OCTOCATS')
           let tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual([
-            {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
-            {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
+            {
+              text: '//',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--punctuation syntax--definition syntax--comment syntax--js'
+              ]
+            },
+            {
+              text: ' SELECT * FROM OCTOCATS',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            }
           ])
 
           await atom.packages.activatePackage('package-with-injection-selector')
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual([
-            {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
-            {text: ' SELECT * FROM OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
+            {
+              text: '//',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--punctuation syntax--definition syntax--comment syntax--js'
+              ]
+            },
+            {
+              text: ' SELECT * FROM OCTOCATS',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            }
           ])
 
           await atom.packages.activatePackage('language-sql')
           tokens = editor.tokensForScreenRow(0)
           expect(tokens).toEqual([
-            {text: '//', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--punctuation syntax--definition syntax--comment syntax--js']},
-            {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
-            {text: 'SELECT', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--other syntax--DML syntax--sql']},
-            {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
-            {text: '*', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--operator syntax--star syntax--sql']},
-            {text: ' ', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']},
-            {text: 'FROM', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js', 'syntax--keyword syntax--other syntax--DML syntax--sql']},
-            {text: ' OCTOCATS', scopes: ['syntax--source syntax--js', 'syntax--comment syntax--line syntax--double-slash syntax--js']}
+            {
+              text: '//',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--punctuation syntax--definition syntax--comment syntax--js'
+              ]
+            },
+            {
+              text: ' ',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            },
+            {
+              text: 'SELECT',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--keyword syntax--other syntax--DML syntax--sql'
+              ]
+            },
+            {
+              text: ' ',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            },
+            {
+              text: '*',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--keyword syntax--operator syntax--star syntax--sql'
+              ]
+            },
+            {
+              text: ' ',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            },
+            {
+              text: 'FROM',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+                'syntax--keyword syntax--other syntax--DML syntax--sql'
+              ]
+            },
+            {
+              text: ' OCTOCATS',
+              scopes: [
+                'syntax--source syntax--js',
+                'syntax--comment syntax--line syntax--double-slash syntax--js'
+              ]
+            }
           ])
         })
       })
@@ -6573,10 +7526,10 @@ describe('TextEditor', () => {
 
   describe('.pageUp/Down()', () => {
     it('moves the cursor down one page length', () => {
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       const element = editor.getElement()
       jasmine.attachToDOM(element)
-      element.style.height = (element.component.getLineHeight() * 5) + 'px'
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
       element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe(0)
@@ -6597,10 +7550,10 @@ describe('TextEditor', () => {
 
   describe('.selectPageUp/Down()', () => {
     it('selects one screen height of text up or down', () => {
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       const element = editor.getElement()
       jasmine.attachToDOM(element)
-      element.style.height = (element.component.getLineHeight() * 5) + 'px'
+      element.style.height = element.component.getLineHeight() * 5 + 'px'
       element.measureDimensions()
 
       expect(editor.getCursorBufferPosition().row).toBe(0)
@@ -6632,28 +7585,37 @@ describe('TextEditor', () => {
       editor.onDidRequestAutoscroll(scrollSpy)
 
       editor.scrollToScreenPosition([8, 20])
-      editor.scrollToScreenPosition([8, 20], {center: true})
-      editor.scrollToScreenPosition([8, 20], {center: false, reversed: true})
+      editor.scrollToScreenPosition([8, 20], { center: true })
+      editor.scrollToScreenPosition([8, 20], { center: false, reversed: true })
 
-      expect(scrollSpy).toHaveBeenCalledWith({screenRange: [[8, 20], [8, 20]], options: {}})
-      expect(scrollSpy).toHaveBeenCalledWith({screenRange: [[8, 20], [8, 20]], options: {center: true}})
-      expect(scrollSpy).toHaveBeenCalledWith({screenRange: [[8, 20], [8, 20]], options: {center: false, reversed: true}})
+      expect(scrollSpy).toHaveBeenCalledWith({
+        screenRange: [[8, 20], [8, 20]],
+        options: {}
+      })
+      expect(scrollSpy).toHaveBeenCalledWith({
+        screenRange: [[8, 20], [8, 20]],
+        options: { center: true }
+      })
+      expect(scrollSpy).toHaveBeenCalledWith({
+        screenRange: [[8, 20], [8, 20]],
+        options: { center: false, reversed: true }
+      })
     })
   })
 
   describe('scroll past end', () => {
     it('returns false by default but can be customized', () => {
       expect(editor.getScrollPastEnd()).toBe(false)
-      editor.update({scrollPastEnd: true})
+      editor.update({ scrollPastEnd: true })
       expect(editor.getScrollPastEnd()).toBe(true)
-      editor.update({scrollPastEnd: false})
+      editor.update({ scrollPastEnd: false })
       expect(editor.getScrollPastEnd()).toBe(false)
     })
 
     it('always returns false when autoHeight is on', () => {
-      editor.update({autoHeight: true, scrollPastEnd: true})
+      editor.update({ autoHeight: true, scrollPastEnd: true })
       expect(editor.getScrollPastEnd()).toBe(false)
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       expect(editor.getScrollPastEnd()).toBe(true)
     })
   })
@@ -6662,9 +7624,9 @@ describe('TextEditor', () => {
     it('returns true by default but can be customized', () => {
       editor = new TextEditor()
       expect(editor.getAutoHeight()).toBe(true)
-      editor.update({autoHeight: false})
+      editor.update({ autoHeight: false })
       expect(editor.getAutoHeight()).toBe(false)
-      editor.update({autoHeight: true})
+      editor.update({ autoHeight: true })
       expect(editor.getAutoHeight()).toBe(true)
       editor.destroy()
     })
@@ -6673,9 +7635,9 @@ describe('TextEditor', () => {
   describe('auto width', () => {
     it('returns false by default but can be customized', () => {
       expect(editor.getAutoWidth()).toBe(false)
-      editor.update({autoWidth: true})
+      editor.update({ autoWidth: true })
       expect(editor.getAutoWidth()).toBe(true)
-      editor.update({autoWidth: false})
+      editor.update({ autoWidth: false })
       expect(editor.getAutoWidth()).toBe(false)
     })
   })
@@ -6691,7 +7653,7 @@ describe('TextEditor', () => {
 
     it('models placeholderText and emits an event when changed', () => {
       let handler
-      editor.onDidChangePlaceholderText(handler = jasmine.createSpy())
+      editor.onDidChangePlaceholderText((handler = jasmine.createSpy()))
 
       expect(editor.getPlaceholderText()).toBeUndefined()
 
@@ -6737,17 +7699,22 @@ describe('TextEditor', () => {
         expect(gutter.type).toBe('line-number')
       })
 
-      it("does not allow a custom gutter with the 'line-number' name.", () => expect(editor.addGutter.bind(editor, {name: 'line-number'})).toThrow())
+      it("does not allow a custom gutter with the 'line-number' name.", () =>
+        expect(
+          editor.addGutter.bind(editor, { name: 'line-number' })
+        ).toThrow())
     })
 
     describe('::decorateMarker', () => {
       let marker
 
-      beforeEach(() => marker = editor.markBufferRange([[1, 0], [1, 0]]))
+      beforeEach(() => (marker = editor.markBufferRange([[1, 0], [1, 0]])))
 
       it('reflects an added decoration when one of its custom gutters is decorated.', () => {
-        const gutter = editor.addGutter({'name': 'custom-gutter'})
-        const decoration = gutter.decorateMarker(marker, {class: 'custom-class'})
+        const gutter = editor.addGutter({ name: 'custom-gutter' })
+        const decoration = gutter.decorateMarker(marker, {
+          class: 'custom-class'
+        })
         const gutterDecorations = editor.getDecorations({
           type: 'gutter',
           gutterName: 'custom-gutter',
@@ -6758,7 +7725,9 @@ describe('TextEditor', () => {
       })
 
       it('reflects an added decoration when its line-number gutter is decorated.', () => {
-        const decoration = editor.gutterWithName('line-number').decorateMarker(marker, {class: 'test-class'})
+        const decoration = editor
+          .gutterWithName('line-number')
+          .decorateMarker(marker, { class: 'test-class' })
         const gutterDecorations = editor.getDecorations({
           type: 'line-number',
           gutterName: 'line-number',
@@ -6781,14 +7750,14 @@ describe('TextEditor', () => {
         const lineNumberGutter = editor.gutterWithName('line-number')
         editor.observeGutters(callback)
         expect(payloads).toEqual([lineNumberGutter])
-        const gutter1 = editor.addGutter({name: 'test-gutter-1'})
+        const gutter1 = editor.addGutter({ name: 'test-gutter-1' })
         expect(payloads).toEqual([lineNumberGutter, gutter1])
-        const gutter2 = editor.addGutter({name: 'test-gutter-2'})
+        const gutter2 = editor.addGutter({ name: 'test-gutter-2' })
         expect(payloads).toEqual([lineNumberGutter, gutter1, gutter2])
       })
 
       it('does not call the callback when a gutter is removed.', () => {
-        const gutter = editor.addGutter({name: 'test-gutter'})
+        const gutter = editor.addGutter({ name: 'test-gutter' })
         editor.observeGutters(callback)
         payloads = []
         gutter.destroy()
@@ -6799,7 +7768,7 @@ describe('TextEditor', () => {
         const subscription = editor.observeGutters(callback)
         payloads = []
         subscription.dispose()
-        editor.addGutter({name: 'test-gutter'})
+        editor.addGutter({ name: 'test-gutter' })
         expect(payloads).toEqual([])
       })
     })
@@ -6815,7 +7784,7 @@ describe('TextEditor', () => {
       it('calls the callback with each newly-added gutter, but not with existing gutters.', () => {
         editor.onDidAddGutter(callback)
         expect(payloads).toEqual([])
-        const gutter = editor.addGutter({name: 'test-gutter'})
+        const gutter = editor.addGutter({ name: 'test-gutter' })
         expect(payloads).toEqual([gutter])
       })
 
@@ -6823,7 +7792,7 @@ describe('TextEditor', () => {
         const subscription = editor.onDidAddGutter(callback)
         payloads = []
         subscription.dispose()
-        editor.addGutter({name: 'test-gutter'})
+        editor.addGutter({ name: 'test-gutter' })
         expect(payloads).toEqual([])
       })
     })
@@ -6837,7 +7806,7 @@ describe('TextEditor', () => {
       })
 
       it('calls the callback when a gutter is removed.', () => {
-        const gutter = editor.addGutter({name: 'test-gutter'})
+        const gutter = editor.addGutter({ name: 'test-gutter' })
         editor.onDidRemoveGutter(callback)
         expect(payloads).toEqual([])
         gutter.destroy()
@@ -6845,7 +7814,7 @@ describe('TextEditor', () => {
       })
 
       it('does not call the callback after the subscription has been disposed.', () => {
-        const gutter = editor.addGutter({name: 'test-gutter'})
+        const gutter = editor.addGutter({ name: 'test-gutter' })
         const subscription = editor.onDidRemoveGutter(callback)
         subscription.dispose()
         gutter.destroy()
@@ -6858,9 +7827,19 @@ describe('TextEditor', () => {
     describe('::decorateMarker', () => {
       it('includes the decoration in the object returned from ::decorationsStateForScreenRowRange', () => {
         const marker = editor.markBufferRange([[2, 4], [6, 8]])
-        const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'foo'})
-        expect(editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]).toEqual({
-          properties: {type: 'highlight', class: 'foo'},
+        const decoration = editor.decorateMarker(marker, {
+          type: 'highlight',
+          class: 'foo'
+        })
+        expect(
+          editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]
+        ).toEqual({
+          properties: {
+            id: decoration.id,
+            order: Infinity,
+            type: 'highlight',
+            class: 'foo'
+          },
           screenRange: marker.getScreenRange(),
           bufferRange: marker.getBufferRange(),
           rangeIsReversed: false
@@ -6869,8 +7848,8 @@ describe('TextEditor', () => {
 
       it("does not throw errors after the marker's containing layer is destroyed", () => {
         const layer = editor.addMarkerLayer()
-        const marker = layer.markBufferRange([[2, 4], [6, 8]])
-        const decoration = editor.decorateMarker(marker, {type: 'highlight', class: 'foo'})
+        layer.markBufferRange([[2, 4], [6, 8]])
+
         layer.destroy()
         editor.decorationsStateForScreenRowRange(0, 5)
       })
@@ -6884,71 +7863,105 @@ describe('TextEditor', () => {
         const layer2 = editor.getBuffer().addMarkerLayer()
         const marker3 = layer2.markRange([[8, 0], [9, 0]])
 
-        const layer1Decoration1 = editor.decorateMarkerLayer(layer1, {type: 'highlight', class: 'foo'})
-        const layer1Decoration2 = editor.decorateMarkerLayer(layer1, {type: 'highlight', class: 'bar'})
-        const layer2Decoration = editor.decorateMarkerLayer(layer2, {type: 'highlight', class: 'baz'})
+        const layer1Decoration1 = editor.decorateMarkerLayer(layer1, {
+          type: 'highlight',
+          class: 'foo'
+        })
+        const layer1Decoration2 = editor.decorateMarkerLayer(layer1, {
+          type: 'highlight',
+          class: 'bar'
+        })
+        const layer2Decoration = editor.decorateMarkerLayer(layer2, {
+          type: 'highlight',
+          class: 'baz'
+        })
 
         let decorationState = editor.decorationsStateForScreenRowRange(0, 13)
 
-        expect(decorationState[`${layer1Decoration1.id}-${marker1.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'foo'},
+        expect(
+          decorationState[`${layer1Decoration1.id}-${marker1.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'foo' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer1Decoration1.id}-${marker2.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'foo'},
+        expect(
+          decorationState[`${layer1Decoration1.id}-${marker2.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'foo' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer1Decoration2.id}-${marker1.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'bar'},
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker1.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer1Decoration2.id}-${marker2.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'bar'},
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker2.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'bar' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'baz'},
-          screenRange: marker3.getRange(),
-          bufferRange: marker3.getRange(),
-          rangeIsReversed: false
-        })
+        expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual(
+          {
+            properties: { type: 'highlight', class: 'baz' },
+            screenRange: marker3.getRange(),
+            bufferRange: marker3.getRange(),
+            rangeIsReversed: false
+          }
+        )
 
         layer1Decoration1.destroy()
 
         decorationState = editor.decorationsStateForScreenRowRange(0, 12)
-        expect(decorationState[`${layer1Decoration1.id}-${marker1.id}`]).toBeUndefined()
-        expect(decorationState[`${layer1Decoration1.id}-${marker2.id}`]).toBeUndefined()
-        expect(decorationState[`${layer1Decoration2.id}-${marker1.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'bar'},
+        expect(
+          decorationState[`${layer1Decoration1.id}-${marker1.id}`]
+        ).toBeUndefined()
+        expect(
+          decorationState[`${layer1Decoration1.id}-${marker2.id}`]
+        ).toBeUndefined()
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker1.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer1Decoration2.id}-${marker2.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'bar'},
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker2.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'bar' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
           rangeIsReversed: false
         })
-        expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'baz'},
-          screenRange: marker3.getRange(),
-          bufferRange: marker3.getRange(),
-          rangeIsReversed: false
-        })
+        expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual(
+          {
+            properties: { type: 'highlight', class: 'baz' },
+            screenRange: marker3.getRange(),
+            bufferRange: marker3.getRange(),
+            rangeIsReversed: false
+          }
+        )
 
-        layer1Decoration2.setPropertiesForMarker(marker1, {type: 'highlight', class: 'quux'})
+        layer1Decoration2.setPropertiesForMarker(marker1, {
+          type: 'highlight',
+          class: 'quux'
+        })
         decorationState = editor.decorationsStateForScreenRowRange(0, 12)
-        expect(decorationState[`${layer1Decoration2.id}-${marker1.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'quux'},
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker1.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'quux' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
@@ -6956,8 +7969,10 @@ describe('TextEditor', () => {
 
         layer1Decoration2.setPropertiesForMarker(marker1, null)
         decorationState = editor.decorationsStateForScreenRowRange(0, 12)
-        expect(decorationState[`${layer1Decoration2.id}-${marker1.id}`]).toEqual({
-          properties: {type: 'highlight', class: 'bar'},
+        expect(
+          decorationState[`${layer1Decoration2.id}-${marker1.id}`]
+        ).toEqual({
+          properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
           rangeIsReversed: false
@@ -6968,47 +7983,68 @@ describe('TextEditor', () => {
 
   describe('invisibles', () => {
     beforeEach(() => {
-      editor.update({showInvisibles: true})
+      editor.update({ showInvisibles: true })
     })
 
     it('substitutes invisible characters according to the given rules', () => {
       const previousLineText = editor.lineTextForScreenRow(0)
-      editor.update({invisibles: {eol: '?'}})
+      editor.update({ invisibles: { eol: '?' } })
       expect(editor.lineTextForScreenRow(0)).not.toBe(previousLineText)
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(true)
-      expect(editor.getInvisibles()).toEqual({eol: '?'})
+      expect(editor.getInvisibles()).toEqual({ eol: '?' })
     })
 
     it('does not use invisibles if showInvisibles is set to false', () => {
-      editor.update({invisibles: {eol: '?'}})
+      editor.update({ invisibles: { eol: '?' } })
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(true)
 
-      editor.update({showInvisibles: false})
+      editor.update({ showInvisibles: false })
       expect(editor.lineTextForScreenRow(0).endsWith('?')).toBe(false)
     })
   })
 
   describe('indent guides', () => {
     it('shows indent guides when `editor.showIndentGuide` is set to true and the editor is not mini', () => {
-      editor.update({showIndentGuide: false})
+      editor.update({ showIndentGuide: false })
       expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
-        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
-        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
-        {text: ' sort ', scopes: ['syntax--source syntax--js']}
+        {
+          text: '  ',
+          scopes: ['syntax--source syntax--js', 'leading-whitespace']
+        },
+        {
+          text: 'var',
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+        },
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
       ])
 
-      editor.update({showIndentGuide: true})
+      editor.update({ showIndentGuide: true })
       expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
-        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace indent-guide']},
-        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
-        {text: ' sort ', scopes: ['syntax--source syntax--js']}
+        {
+          text: '  ',
+          scopes: [
+            'syntax--source syntax--js',
+            'leading-whitespace indent-guide'
+          ]
+        },
+        {
+          text: 'var',
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+        },
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
       ])
 
       editor.setMini(true)
       expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
-        {text: '  ', scopes: ['syntax--source syntax--js', 'leading-whitespace']},
-        {text: 'var', scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']},
-        {text: ' sort ', scopes: ['syntax--source syntax--js']}
+        {
+          text: '  ',
+          scopes: ['syntax--source syntax--js', 'leading-whitespace']
+        },
+        {
+          text: 'var',
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+        },
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
       ])
     })
   })
@@ -7024,11 +8060,13 @@ describe('TextEditor', () => {
 
       expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ')
 
-      editor.update({editorWidthInChars: 10})
+      editor.update({ editorWidthInChars: 10 })
       expect(editor.lineTextForScreenRow(0)).toBe('var ')
 
-      editor.update({mini: true})
-      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
+      editor.update({ mini: true })
+      expect(editor.lineTextForScreenRow(0)).toBe(
+        'var quicksort = function () {'
+      )
     })
   })
 
@@ -7042,13 +8080,14 @@ describe('TextEditor', () => {
       })
       expect(editor.lineTextForScreenRow(1)).toEqual('  9')
 
-      editor.update({softWrapHangingIndentLength: 4})
+      editor.update({ softWrapHangingIndentLength: 4 })
       expect(editor.lineTextForScreenRow(1)).toEqual('    9')
     })
   })
 
   describe('::getElement', () => {
-    it('returns an element', () => expect(editor.getElement() instanceof HTMLElement).toBe(true))
+    it('returns an element', () =>
+      expect(editor.getElement() instanceof HTMLElement).toBe(true))
   })
 
   describe('setMaxScreenLineLength', () => {
@@ -7071,9 +8110,74 @@ describe('TextEditor', () => {
 
   describe('.scopeDescriptorForBufferPosition(position)', () => {
     it('returns a default scope descriptor when no language mode is assigned', () => {
-      editor = new TextEditor({buffer: new TextBuffer()})
+      editor = new TextEditor({ buffer: new TextBuffer() })
       const scopeDescriptor = editor.scopeDescriptorForBufferPosition([0, 0])
       expect(scopeDescriptor.getScopesArray()).toEqual(['text'])
+    })
+  })
+
+  describe('.syntaxTreeScopeDescriptorForBufferPosition(position)', () => {
+    it('returns the result of scopeDescriptorForBufferPosition() when textmate language mode is used', async () => {
+      atom.config.set('core.useTreeSitterParsers', false)
+      editor = await atom.workspace.open('sample.js', { autoIndent: false })
+      await atom.packages.activatePackage('language-javascript')
+
+      let buffer = editor.getBuffer()
+
+      let languageMode = new TextMateLanguageMode({
+        buffer,
+        grammar: atom.grammars.grammarForScopeName('source.js')
+      })
+
+      buffer.setLanguageMode(languageMode)
+
+      languageMode.startTokenizing()
+      while (languageMode.firstInvalidRow() != null) {
+        advanceClock()
+      }
+
+      const syntaxTreeeScopeDescriptor = editor.syntaxTreeScopeDescriptorForBufferPosition(
+        [4, 17]
+      )
+      expect(syntaxTreeeScopeDescriptor.getScopesArray()).toEqual([
+        'source.js',
+        'support.variable.property.js'
+      ])
+    })
+
+    it('returns the result of syntaxTreeScopeDescriptorForBufferPosition() when tree-sitter language mode is used', async () => {
+      editor = await atom.workspace.open('sample.js', { autoIndent: false })
+      await atom.packages.activatePackage('language-javascript')
+
+      let buffer = editor.getBuffer()
+
+      buffer.setLanguageMode(
+        new TreeSitterLanguageMode({
+          buffer,
+          grammar: atom.grammars.grammarForScopeName('source.js')
+        })
+      )
+
+      const syntaxTreeeScopeDescriptor = editor.syntaxTreeScopeDescriptorForBufferPosition(
+        [4, 17]
+      )
+      expect(syntaxTreeeScopeDescriptor.getScopesArray()).toEqual([
+        'source.js',
+        'program',
+        'variable_declaration',
+        'variable_declarator',
+        'function',
+        'statement_block',
+        'variable_declaration',
+        'variable_declarator',
+        'function',
+        'statement_block',
+        'while_statement',
+        'parenthesized_expression',
+        'binary_expression',
+        'member_expression',
+        'property_identifier'
+      ])
     })
   })
 
@@ -7094,7 +8198,9 @@ describe('TextEditor', () => {
       editor.setText('changed')
 
       atom.workspace.getActivePane().splitRight()
-      const editor2 = await atom.workspace.open('sample.js', {autoIndent: false})
+      const editor2 = await atom.workspace.open('sample.js', {
+        autoIndent: false
+      })
       expect(editor.shouldPromptToSave()).toBeFalsy()
 
       editor2.destroy()
@@ -7109,20 +8215,40 @@ describe('TextEditor', () => {
 
       editor.setText('other stuff')
       fs.writeFileSync(editor.getPath(), 'new stuff')
-      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeFalsy()
+      expect(
+        editor.shouldPromptToSave({
+          windowCloseRequested: true,
+          projectHasPaths: true
+        })
+      ).toBeFalsy()
 
       await new Promise(resolve => editor.onDidConflict(resolve))
-      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeTruthy()
+      expect(
+        editor.shouldPromptToSave({
+          windowCloseRequested: true,
+          projectHasPaths: true
+        })
+      ).toBeTruthy()
     })
 
     it('returns false when the window is closing and the project has one or more directory paths', () => {
       editor.setText('changed')
-      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: true})).toBeFalsy()
+      expect(
+        editor.shouldPromptToSave({
+          windowCloseRequested: true,
+          projectHasPaths: true
+        })
+      ).toBeFalsy()
     })
 
     it('returns false when the window is closing and the project has no directory paths', () => {
       editor.setText('changed')
-      expect(editor.shouldPromptToSave({windowCloseRequested: true, projectHasPaths: false})).toBeTruthy()
+      expect(
+        editor.shouldPromptToSave({
+          windowCloseRequested: true,
+          projectHasPaths: false
+        })
+      ).toBeTruthy()
     })
   })
 
@@ -7136,63 +8262,105 @@ describe('TextEditor', () => {
       editor.setSelectedBufferRange([[4, 5], [7, 5]])
       editor.toggleLineCommentsInSelection()
 
-      expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
-      expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
-      expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(4)).toBe(
+        '    // while(items.length > 0) {'
+      )
+      expect(editor.lineTextForBufferRow(5)).toBe(
+        '    //   current = items.shift();'
+      )
+      expect(editor.lineTextForBufferRow(6)).toBe(
+        '    //   current < pivot ? left.push(current) : right.push(current);'
+      )
       expect(editor.lineTextForBufferRow(7)).toBe('    // }')
       expect(editor.getSelectedBufferRange()).toEqual([[4, 8], [7, 8]])
 
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
-      expect(editor.lineTextForBufferRow(5)).toBe('      current = items.shift();')
-      expect(editor.lineTextForBufferRow(6)).toBe('      current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(4)).toBe(
+        '    while(items.length > 0) {'
+      )
+      expect(editor.lineTextForBufferRow(5)).toBe(
+        '      current = items.shift();'
+      )
+      expect(editor.lineTextForBufferRow(6)).toBe(
+        '      current < pivot ? left.push(current) : right.push(current);'
+      )
       expect(editor.lineTextForBufferRow(7)).toBe('    }')
     })
 
     it('does not comment the last line of a non-empty selection if it ends at column 0', () => {
       editor.setSelectedBufferRange([[4, 5], [7, 0]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
-      expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
-      expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+      expect(editor.lineTextForBufferRow(4)).toBe(
+        '    // while(items.length > 0) {'
+      )
+      expect(editor.lineTextForBufferRow(5)).toBe(
+        '    //   current = items.shift();'
+      )
+      expect(editor.lineTextForBufferRow(6)).toBe(
+        '    //   current < pivot ? left.push(current) : right.push(current);'
+      )
       expect(editor.lineTextForBufferRow(7)).toBe('    }')
     })
 
     it('uncomments lines if all lines match the comment regex', () => {
       editor.setSelectedBufferRange([[0, 0], [0, 1]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        '// var quicksort = function () {'
+      )
 
       editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('// // var quicksort = function () {')
-      expect(editor.lineTextForBufferRow(1)).toBe('//   var sort = function(items) {')
-      expect(editor.lineTextForBufferRow(2)).toBe('//     if (items.length <= 1) return items;')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        '// // var quicksort = function () {'
+      )
+      expect(editor.lineTextForBufferRow(1)).toBe(
+        '//   var sort = function(items) {'
+      )
+      expect(editor.lineTextForBufferRow(2)).toBe(
+        '//     if (items.length <= 1) return items;'
+      )
 
       editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
-      expect(editor.lineTextForBufferRow(1)).toBe('  var sort = function(items) {')
-      expect(editor.lineTextForBufferRow(2)).toBe('    if (items.length <= 1) return items;')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        '// var quicksort = function () {'
+      )
+      expect(editor.lineTextForBufferRow(1)).toBe(
+        '  var sort = function(items) {'
+      )
+      expect(editor.lineTextForBufferRow(2)).toBe(
+        '    if (items.length <= 1) return items;'
+      )
 
       editor.setSelectedBufferRange([[0, 0], [0, Infinity]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        'var quicksort = function () {'
+      )
     })
 
     it('uncomments commented lines separated by an empty line', () => {
       editor.setSelectedBufferRange([[0, 0], [1, Infinity]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('// var quicksort = function () {')
-      expect(editor.lineTextForBufferRow(1)).toBe('//   var sort = function(items) {')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        '// var quicksort = function () {'
+      )
+      expect(editor.lineTextForBufferRow(1)).toBe(
+        '//   var sort = function(items) {'
+      )
 
       editor.getBuffer().insert([0, Infinity], '\n')
 
       editor.setSelectedBufferRange([[0, 0], [2, Infinity]])
       editor.toggleLineCommentsInSelection()
-      expect(editor.lineTextForBufferRow(0)).toBe('var quicksort = function () {')
+      expect(editor.lineTextForBufferRow(0)).toBe(
+        'var quicksort = function () {'
+      )
       expect(editor.lineTextForBufferRow(1)).toBe('')
-      expect(editor.lineTextForBufferRow(2)).toBe('  var sort = function(items) {')
+      expect(editor.lineTextForBufferRow(2)).toBe(
+        '  var sort = function(items) {'
+      )
     })
 
     it('preserves selection emptiness', () => {
@@ -7202,7 +8370,9 @@ describe('TextEditor', () => {
     })
 
     it('does not explode if the current language mode has no comment regex', () => {
-      const editor = new TextEditor({buffer: new TextBuffer({text: 'hello'})})
+      const editor = new TextEditor({
+        buffer: new TextBuffer({ text: 'hello' })
+      })
       editor.setSelectedBufferRange([[0, 0], [0, 5]])
       editor.toggleLineCommentsInSelection()
       expect(editor.lineTextForBufferRow(0)).toBe('hello')
@@ -7254,6 +8424,66 @@ describe('TextEditor', () => {
         editor.toggleLineCommentsForBufferRows(0, 0)
         expect(editor.lineTextForBufferRow(0)).toBe('test')
       })
+
+      it('does not select the new delimiters', () => {
+        editor.setText('<!-- test -->')
+        let delimLength = '<!--'.length
+        let selection = editor.addSelectionForBufferRange([[0, delimLength], [0, delimLength]])
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(0)
+        }
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(delimLength + 1)
+        }
+
+        {
+          selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(0)
+          expect(range.end.column).toBe('test'.length)
+        }
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(delimLength + 1)
+          expect(range.end.column).toBe(delimLength + 1 + 'test'.length)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 4], [0, 4]])
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(4 + delimLength + 1)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 8], [0, 8]])
+          selection.selectToBeginningOfWord()
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(4 + delimLength + 1)
+          expect(range.end.column).toBe(4 + delimLength + 1 + 4)
+        }
+      })
     })
 
     describe('less', () => {
@@ -7280,35 +8510,50 @@ describe('TextEditor', () => {
         expect(editor.lineTextForBufferRow(0)).toBe('/* body {')
         expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px; */')
         expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        expect(editor.lineTextForBufferRow(3)).toBe(
+          '  font-weight: bold !important;'
+        )
 
         editor.toggleLineCommentsForBufferRows(2, 2)
         expect(editor.lineTextForBufferRow(0)).toBe('/* body {')
         expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px; */')
         expect(editor.lineTextForBufferRow(2)).toBe('  /* width: 110%; */')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        expect(editor.lineTextForBufferRow(3)).toBe(
+          '  font-weight: bold !important;'
+        )
 
         editor.toggleLineCommentsForBufferRows(0, 1)
         expect(editor.lineTextForBufferRow(0)).toBe('body {')
         expect(editor.lineTextForBufferRow(1)).toBe('  font-size: 1234px;')
         expect(editor.lineTextForBufferRow(2)).toBe('  /* width: 110%; */')
-        expect(editor.lineTextForBufferRow(3)).toBe('  font-weight: bold !important;')
+        expect(editor.lineTextForBufferRow(3)).toBe(
+          '  font-weight: bold !important;'
+        )
       })
 
       it('uncomments lines with leading whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '  /* width: 110%; */')
+        editor.setTextInBufferRange(
+          [[2, 0], [2, Infinity]],
+          '  /* width: 110%; */'
+        )
         editor.toggleLineCommentsForBufferRows(2, 2)
         expect(editor.lineTextForBufferRow(2)).toBe('  width: 110%;')
       })
 
       it('uncomments lines with trailing whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '/* width: 110%; */  ')
+        editor.setTextInBufferRange(
+          [[2, 0], [2, Infinity]],
+          '/* width: 110%; */  '
+        )
         editor.toggleLineCommentsForBufferRows(2, 2)
         expect(editor.lineTextForBufferRow(2)).toBe('width: 110%;  ')
       })
 
       it('uncomments lines with leading and trailing whitespace', () => {
-        editor.setTextInBufferRange([[2, 0], [2, Infinity]], '   /* width: 110%; */ ')
+        editor.setTextInBufferRange(
+          [[2, 0], [2, Infinity]],
+          '   /* width: 110%; */ '
+        )
         editor.toggleLineCommentsForBufferRows(2, 2)
         expect(editor.lineTextForBufferRow(2)).toBe('   width: 110%; ')
       })
@@ -7322,7 +8567,9 @@ describe('TextEditor', () => {
 
       it('comments/uncomments lines in the given range', () => {
         editor.toggleLineCommentsForBufferRows(4, 6)
-        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(4)).toBe(
+          '    # pivot = items.shift()'
+        )
         expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
         expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
 
@@ -7334,7 +8581,9 @@ describe('TextEditor', () => {
 
       it('comments/uncomments empty lines', () => {
         editor.toggleLineCommentsForBufferRows(4, 7)
-        expect(editor.lineTextForBufferRow(4)).toBe('    # pivot = items.shift()')
+        expect(editor.lineTextForBufferRow(4)).toBe(
+          '    # pivot = items.shift()'
+        )
         expect(editor.lineTextForBufferRow(5)).toBe('    # left = []')
         expect(editor.lineTextForBufferRow(6)).toBe('    # right = []')
         expect(editor.lineTextForBufferRow(7)).toBe('    # ')
@@ -7355,15 +8604,27 @@ describe('TextEditor', () => {
 
       it('comments/uncomments lines in the given range', () => {
         editor.toggleLineCommentsForBufferRows(4, 7)
-        expect(editor.lineTextForBufferRow(4)).toBe('    // while(items.length > 0) {')
-        expect(editor.lineTextForBufferRow(5)).toBe('    //   current = items.shift();')
-        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(editor.lineTextForBufferRow(4)).toBe(
+          '    // while(items.length > 0) {'
+        )
+        expect(editor.lineTextForBufferRow(5)).toBe(
+          '    //   current = items.shift();'
+        )
+        expect(editor.lineTextForBufferRow(6)).toBe(
+          '    //   current < pivot ? left.push(current) : right.push(current);'
+        )
         expect(editor.lineTextForBufferRow(7)).toBe('    // }')
 
         editor.toggleLineCommentsForBufferRows(4, 5)
-        expect(editor.lineTextForBufferRow(4)).toBe('    while(items.length > 0) {')
-        expect(editor.lineTextForBufferRow(5)).toBe('      current = items.shift();')
-        expect(editor.lineTextForBufferRow(6)).toBe('    //   current < pivot ? left.push(current) : right.push(current);')
+        expect(editor.lineTextForBufferRow(4)).toBe(
+          '    while(items.length > 0) {'
+        )
+        expect(editor.lineTextForBufferRow(5)).toBe(
+          '      current = items.shift();'
+        )
+        expect(editor.lineTextForBufferRow(6)).toBe(
+          '    //   current < pivot ? left.push(current) : right.push(current);'
+        )
         expect(editor.lineTextForBufferRow(7)).toBe('    // }')
 
         editor.setText('\tvar i;')
@@ -7402,7 +8663,7 @@ describe('TextEditor', () => {
     })
 
     it('maintains cursor buffer position when a folding/unfolding', async () => {
-      editor = await atom.workspace.open('sample.js', {autoIndent: false})
+      editor = await atom.workspace.open('sample.js', { autoIndent: false })
       editor.setCursorBufferPosition([5, 5])
       editor.foldAll()
       expect(editor.getCursorBufferPosition()).toEqual([5, 5])
@@ -7410,7 +8671,7 @@ describe('TextEditor', () => {
 
     describe('.unfoldAll()', () => {
       it('unfolds every folded line', async () => {
-        editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        editor = await atom.workspace.open('sample.js', { autoIndent: false })
 
         const initialScreenLineCount = editor.getScreenLineCount()
         editor.foldBufferRow(0)
@@ -7421,7 +8682,9 @@ describe('TextEditor', () => {
       })
 
       it('unfolds every folded line with comments', async () => {
-        editor = await atom.workspace.open('sample-with-comments.js', {autoIndent: false})
+        editor = await atom.workspace.open('sample-with-comments.js', {
+          autoIndent: false
+        })
 
         const initialScreenLineCount = editor.getScreenLineCount()
         editor.foldBufferRow(0)
@@ -7434,7 +8697,7 @@ describe('TextEditor', () => {
 
     describe('.foldAll()', () => {
       it('folds every foldable line', async () => {
-        editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        editor = await atom.workspace.open('sample.js', { autoIndent: false })
 
         editor.foldAll()
         const [fold1, fold2, fold3] = editor.unfoldAll()
@@ -7508,26 +8771,40 @@ describe('TextEditor', () => {
 
     describe('.foldAllAtIndentLevel(indentLevel)', () => {
       it('folds blocks of text at the given indentation level', async () => {
-        editor = await atom.workspace.open('sample.js', {autoIndent: false})
+        editor = await atom.workspace.open('sample.js', { autoIndent: false })
 
         editor.foldAllAtIndentLevel(0)
-        expect(editor.lineTextForScreenRow(0)).toBe(`var quicksort = function () {${editor.displayLayer.foldCharacter}};`)
+        expect(editor.lineTextForScreenRow(0)).toBe(
+          `var quicksort = function () {${editor.displayLayer.foldCharacter}};`
+        )
         expect(editor.getLastScreenRow()).toBe(0)
 
         editor.foldAllAtIndentLevel(1)
-        expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
-        expect(editor.lineTextForScreenRow(1)).toBe(`  var sort = function(items) {${editor.displayLayer.foldCharacter}};`)
+        expect(editor.lineTextForScreenRow(0)).toBe(
+          'var quicksort = function () {'
+        )
+        expect(editor.lineTextForScreenRow(1)).toBe(
+          `  var sort = function(items) {${editor.displayLayer.foldCharacter}};`
+        )
         expect(editor.getLastScreenRow()).toBe(4)
 
         editor.foldAllAtIndentLevel(2)
-        expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
-        expect(editor.lineTextForScreenRow(1)).toBe('  var sort = function(items) {')
-        expect(editor.lineTextForScreenRow(2)).toBe('    if (items.length <= 1) return items;')
+        expect(editor.lineTextForScreenRow(0)).toBe(
+          'var quicksort = function () {'
+        )
+        expect(editor.lineTextForScreenRow(1)).toBe(
+          '  var sort = function(items) {'
+        )
+        expect(editor.lineTextForScreenRow(2)).toBe(
+          '    if (items.length <= 1) return items;'
+        )
         expect(editor.getLastScreenRow()).toBe(9)
       })
 
       it('does not fold anything but the indentLevel', async () => {
-        editor = await atom.workspace.open('sample-with-comments.js', {autoIndent: false})
+        editor = await atom.workspace.open('sample-with-comments.js', {
+          autoIndent: false
+        })
 
         editor.foldAllAtIndentLevel(0)
         const folds = editor.unfoldAll()
