@@ -271,18 +271,17 @@ class AtomApplication extends EventEmitter {
 
   async launch (options) {
     if (!this.configFilePromise) {
-      this.configFilePromise = this.configFile.watch()
+      this.configFilePromise = this.configFile.watch().then(disposable => {
+        this.disposable.add(disposable)
+        this.config.onDidChange('core.titleBar', () => this.promptForRestart())
+        this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
+      })
 
       // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
       // in Windows machines, which affects directly the startup time.
-      if (process.platform === 'win32') {
-        this.configFilePromise.then(disposable => this.disposable.add(disposable))
-      } else {
-        this.disposable.add(await this.configFilePromise)
+      if (process.platform !== 'win32') {
+        await this.configFilePromise
       }
-      this.config.onDidChange('core.titleBar', () => this.promptForRestart())
-      this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
-      this.config.onDidChange('core.fileSystemWatcher', () => this.promptForRestart())
     }
 
     let optionsForWindowsToOpen = []
@@ -1231,7 +1230,7 @@ class AtomApplication extends EventEmitter {
     } else if (state.version === undefined) {
       // Atom <= 1.36.0
       // Schema: [{initialPaths: ['<root-dir>', ...]}, ...]
-      return await Promise.all(
+      return Promise.all(
         state.map(async windowState => {
           // Classify each window's initialPaths as directories or non-directories
           const classifiedPaths = await Promise.all(

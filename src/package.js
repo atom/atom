@@ -663,16 +663,15 @@ class Package {
       })
     }
 
-    return new Promise(resolve => {
-      if (this.preloadedPackage && this.packageManager.packagesCache[this.name]) {
-        for (let settingsPath in this.packageManager.packagesCache[this.name].settings) {
-          const properties = this.packageManager.packagesCache[this.name].settings[settingsPath]
-          const settingsFile = new SettingsFile(`core:${settingsPath}`, properties || {})
-          this.settings.push(settingsFile)
-          if (this.settingsActivated) settingsFile.activate(this.config)
-        }
-        return resolve()
-      } else {
+    if (this.preloadedPackage && this.packageManager.packagesCache[this.name]) {
+      for (let settingsPath in this.packageManager.packagesCache[this.name].settings) {
+        const properties = this.packageManager.packagesCache[this.name].settings[settingsPath]
+        const settingsFile = new SettingsFile(`core:${settingsPath}`, properties || {})
+        this.settings.push(settingsFile)
+        if (this.settingsActivated) settingsFile.activate(this.config)
+      }
+    } else {
+      return new Promise(resolve => {
         const settingsDirPath = path.join(this.path, 'settings')
         fs.exists(settingsDirPath, (settingsDirExists) => {
           if (!settingsDirExists) return resolve()
@@ -681,8 +680,8 @@ class Package {
             async.each(settingsPaths, loadSettingsFile, () => resolve())
           })
         })
-      }
-    })
+      })
+    }
   }
 
   serialize () {

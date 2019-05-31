@@ -69,7 +69,7 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'yauzl', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'fuzzy-native', 'lib', 'main.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'notify', 'lib', 'bin-path.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'vscode-ripgrep', 'lib', 'index.js') ||
         // The startup-time script is used by both the renderer and the main process and having it in the
         // snapshot causes issues.
         requiredModuleRelativePath === path.join('..', 'src', 'startup-time.js')
@@ -105,22 +105,36 @@ module.exports = function (packagedAppPath) {
       {env: Object.assign({}, process.env, {ELECTRON_RUN_AS_NODE: 1})}
     )
 
-    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
-    console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
-    childProcess.execFileSync(
-      path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
-      ['--no-use_ic', snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+    console.log('Generating startup blob with mksnapshot')
+    childProcess.spawnSync(
+      process.execPath, [
+        path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'mksnapshot.js'),
+        snapshotScriptPath,
+        '--output_dir',
+        CONFIG.buildOutputPath
+      ]
     )
 
     let startupBlobDestinationPath
     if (process.platform === 'darwin') {
-      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources`
     } else {
-      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+      startupBlobDestinationPath = packagedAppPath
     }
 
-    console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
-    fs.unlinkSync(startupBlobDestinationPath)
-    fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
+    const snapshotBinaries = ['v8_context_snapshot.bin', 'snapshot_blob.bin']
+    for (let snapshotBinary of snapshotBinaries) {
+      const destinationPath = path.join(startupBlobDestinationPath, snapshotBinary)
+      console.log(`Moving generated startup blob into "${destinationPath}"`)
+      try {
+        fs.unlinkSync(destinationPath)
+      } catch (err) {
+        // Doesn't matter if the file doesn't exist already
+        if (!err.code || err.code !== 'ENOENT') {
+          throw err
+        }
+      }
+      fs.renameSync(path.join(CONFIG.buildOutputPath, snapshotBinary), destinationPath)
+    }
   })
 }

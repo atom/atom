@@ -24,14 +24,7 @@
   },
   "rules": {
     "standard/no-callback-literal": ["off"],
-    "no-mixed-operators": ["off"],
-    "no-useless-escape": ["off"],
-    "no-return-await": ["off"],
     "node/no-deprecated-api": ["off"],
-    "prefer-promise-reject-errors": ["off"],
-    "no-unused-expressions": ["off"],
-    "symbol-description": ["off"],
-    "no-use-before-define": ["off"],
     "prettier/prettier": ["off"] // disable prettier rules for now.
   },
   "overrides": [

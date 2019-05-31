@@ -6,6 +6,7 @@ const fs = require('fs-plus')
 const {Directory} = require('pathwatcher')
 const Grim = require('grim')
 const DefaultDirectorySearcher = require('./default-directory-searcher')
+const RipgrepDirectorySearcher = require('./ripgrep-directory-searcher')
 const Dock = require('./dock')
 const Model = require('./model')
 const StateStore = require('./state-store')
@@ -203,7 +204,8 @@ module.exports = class Workspace extends Model {
     this.destroyedItemURIs = []
     this.stoppedChangingActivePaneItemTimeout = null
 
-    this.defaultDirectorySearcher = new DefaultDirectorySearcher()
+    this.scandalDirectorySearcher = new DefaultDirectorySearcher()
+    this.ripgrepDirectorySearcher = new RipgrepDirectorySearcher()
     this.consumeServices(this.packageManager)
 
     this.paneContainers = {
@@ -1853,7 +1855,7 @@ module.exports = class Workspace extends Model {
     // will be associated with an Array of Directory objects in the Map.
     const directoriesForSearcher = new Map()
     for (const directory of this.project.getDirectories()) {
-      let searcher = this.defaultDirectorySearcher
+      let searcher = options.ripgrep ? this.ripgrepDirectorySearcher : this.scandalDirectorySearcher
       for (const directorySearcher of this.directorySearchers) {
         if (directorySearcher.canSearchDirectory(directory)) {
           searcher = directorySearcher
@@ -1926,7 +1928,7 @@ module.exports = class Workspace extends Model {
         var matches = []
         buffer.scan(regex, match => matches.push(match))
         if (matches.length > 0) {
-          iterator({filePath, matches})
+          iterator({ filePath, matches })
         }
       }
     }
@@ -1945,9 +1947,9 @@ module.exports = class Workspace extends Model {
         }
       }
 
-      const onFailure = function () {
+      const onFailure = function (error) {
         for (let promise of allSearches) { promise.cancel() }
-        reject()
+        reject(error)
       }
 
       searchPromise.then(onSuccess, onFailure)
@@ -1960,12 +1962,6 @@ module.exports = class Workspace extends Model {
       allSearches.map((promise) => promise.cancel())
     }
 
-    // Although this method claims to return a `Promise`, the `ResultsPaneView.onSearch()`
-    // method in the find-and-replace package expects the object returned by this method to have a
-    // `done()` method. Include a done() method until find-and-replace can be updated.
-    cancellablePromise.done = onSuccessOrFailure => {
-      cancellablePromise.then(onSuccessOrFailure, onSuccessOrFailure)
-    }
     return cancellablePromise
   }
 

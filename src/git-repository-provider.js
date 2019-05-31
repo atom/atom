@@ -87,7 +87,7 @@ async function findGitDirectory (directory) {
   } else if (directory.isRoot()) {
     return null
   } else {
-    return await findGitDirectory(directory.getParent())
+    return findGitDirectory(directory.getParent())
   }
 }
 
@@ -117,7 +117,7 @@ async function isValidGitDirectory (directory) {
   return (
     (await directory.getSubdirectory('objects').exists()) &&
     (await directory.getFile('HEAD').exists()) &&
-    (await directory.getSubdirectory('refs').exists())
+    directory.getSubdirectory('refs').exists()
   )
 }
 
