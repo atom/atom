@@ -162,16 +162,16 @@ module.exports = function parseCommandLine(processArgs) {
     process.exit(0);
   }
 
-  const addToLastWindow = args['add']
-  const safeMode = args['safe']
-  const benchmark = args['benchmark']
-  const benchmarkTest = args['benchmark-test']
-  const test = args['test']
-  const mainProcess = args['main-process']
-  const timeout = args['timeout']
-  const newWindow = args['new-window']
-  const versionRequested = args['version']
-  let executedFrom = null
+  const addToLastWindow = args['add'];
+  const safeMode = args['safe'];
+  const benchmark = args['benchmark'];
+  const benchmarkTest = args['benchmark-test'];
+  const test = args['test'];
+  const mainProcess = args['main-process'];
+  const timeout = args['timeout'];
+  const newWindow = args['new-window'];
+  const versionRequested = args['version'];
+  let executedFrom = null;
   if (args['executed-from'] && args['executed-from'].toString()) {
     executedFrom = args['executed-from'].toString();
   } else {

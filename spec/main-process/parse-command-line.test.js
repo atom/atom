@@ -33,14 +33,14 @@ describe('parseCommandLine', () => {
         '/some/path',
         'atom://test/url',
         'atom://other/url'
-      ])
-      assert.isUndefined(args.devMode)
-      assert.isUndefined(args.safeMode)
-      assert.isUndefined(args.test)
-      assert.deepEqual(args.urlsToOpen, ['atom://test/url'])
-      assert.deepEqual(args.pathsToOpen, [])
-    })
-  })
+      ]);
+      assert.isUndefined(args.devMode);
+      assert.isUndefined(args.safeMode);
+      assert.isUndefined(args.test);
+      assert.deepEqual(args.urlsToOpen, ['atom://test/url']);
+      assert.deepEqual(args.pathsToOpen, []);
+    });
+  });
 
   describe('when -version is passed', () => {
     it('parses -version without crash', () => {
@@ -52,13 +52,16 @@ describe('parseCommandLine', () => {
         '/some/path',
         'atom://test/url',
         'atom://other/url'
-      ])
-      assert.isTrue(args.devMode)
-      assert.isTrue(args.safeMode)
-      assert.isTrue(args.test)
-      assert.isTrue(args.versionRequested)
-      assert.deepEqual(args.urlsToOpen, ['atom://test/url', 'atom://other/url'])
-      assert.deepEqual(args.pathsToOpen, ['/some/path'])
-    })
-  })
-})
+      ]);
+      assert.isTrue(args.devMode);
+      assert.isTrue(args.safeMode);
+      assert.isTrue(args.test);
+      assert.isTrue(args.versionRequested);
+      assert.deepEqual(args.urlsToOpen, [
+        'atom://test/url',
+        'atom://other/url'
+      ]);
+      assert.deepEqual(args.pathsToOpen, ['/some/path']);
+    });
+  });
+});

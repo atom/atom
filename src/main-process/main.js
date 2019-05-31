@@ -34,9 +34,12 @@ function isAtomRepoPath(repoPath) {
 let resourcePath;
 let devResourcePath;
 
-if (args.resourcePath && Object.prototype.toString.call(args.resourcePath) === '[object String]') {
-  resourcePath = args.resourcePath
-  devResourcePath = resourcePath
+if (
+  args.resourcePath &&
+  Object.prototype.toString.call(args.resourcePath) === '[object String]'
+) {
+  resourcePath = args.resourcePath;
+  devResourcePath = resourcePath;
 } else {
   const stableResourcePath = path.dirname(path.dirname(__dirname));
   const defaultRepositoryPath = path.join(
