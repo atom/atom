@@ -88,18 +88,18 @@ class BufferedProcess {
             return arg
           } else {
             // Escape double quotes by putting a backslash in front of them
-            return `\"${arg.toString().replace(/"/g, '\\"')}\"`
+            return `"${arg.toString().replace(/"/g, '\\"')}"`
           }
         })
     }
 
     // The command itself is quoted if it contains spaces, &, ^, | or # chars
-    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `\"${command}\"` : command)
+    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `"${command}"` : command)
 
     const cmdOptions = _.clone(options)
     cmdOptions.windowsVerbatimArguments = true
 
-    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `\"${cmdArgs.join(' ')}\"`], cmdOptions)
+    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `"${cmdArgs.join(' ')}"`], cmdOptions)
   }
 
   /*
