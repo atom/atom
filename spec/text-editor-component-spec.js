@@ -386,8 +386,8 @@ describe('TextEditorComponent', () => {
       const { component } = buildComponent({
         text: 'abc\n  de\nfghijklm\n  no',
         softWrapped: 'window'
-      })
-      await setEditorWidthInCharacters(component, 5)
+      });
+      await setEditorWidthInCharacters(component, 5);
       expect(
         lineNumberNodeForScreenRow(component, 0).classList.contains('foldable')
       ).toBe(true);
@@ -642,8 +642,8 @@ describe('TextEditorComponent', () => {
       // the line. This prevents the parent tile from disabling sub-pixel
       // anti-aliasing. For some reason, adding overflow: hidden to the cursor
       // container doesn't solve this issue so we're adding this workaround instead.
-      editor.setSoftWrapped('window')
-      await component.getNextUpdatePromise()
+      editor.setSoftWrapped('window');
+      await component.getNextUpdatePromise();
       expect(element.querySelector('.cursor').offsetWidth).toBeLessThan(
         Math.round(component.getBaseCharacterWidth())
       );
@@ -740,9 +740,9 @@ describe('TextEditorComponent', () => {
       const { component, element, editor } = buildComponent({
         width: gutterContainerWidth + baseCharacterWidth * 55,
         attach: false
-      })
-      editor.setSoftWrapped('window')
-      jasmine.attachToDOM(element)
+      });
+      editor.setSoftWrapped('window');
+      jasmine.attachToDOM(element);
 
       expect(getEditorWidthInBaseCharacters(component)).toBe(55);
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
@@ -771,9 +771,9 @@ describe('TextEditorComponent', () => {
         width: 800,
         attach: false,
         text
-      })
-      editor.setSoftWrapped('window')
-      jasmine.attachToDOM(element)
+      });
+      editor.setSoftWrapped('window');
+      jasmine.attachToDOM(element);
 
       element.style.width = 200 + 'px';
       await component.getNextUpdatePromise();
@@ -941,10 +941,10 @@ describe('TextEditorComponent', () => {
     });
 
     it('assigns buffer-row and screen-row to each line number as data fields', async () => {
-      const { editor, element, component } = buildComponent()
-      editor.setSoftWrapped('window')
-      await component.getNextUpdatePromise()
-      await setEditorWidthInCharacters(component, 40)
+      const { editor, element, component } = buildComponent();
+      editor.setSoftWrapped('window');
+      await component.getNextUpdatePromise();
+      await setEditorWidthInCharacters(component, 40);
       {
         const bufferRows = queryOnScreenLineNumberElements(element).map(
           e => e.dataset.bufferRow
@@ -1896,8 +1896,8 @@ describe('TextEditorComponent', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
       const { component, editor } = buildComponent({
         softWrapped: 'window'
-      })
-      await setEditorWidthInCharacters(component, 55)
+      });
+      await setEditorWidthInCharacters(component, 55);
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
         '    var pivot = items.shift(), current, left = [], '
       );
@@ -4714,10 +4714,10 @@ describe('TextEditorComponent', () => {
 
     describe('on the line number gutter', () => {
       it('selects all buffer rows intersecting the clicked screen row when a line number is clicked', async () => {
-        const { component, editor } = buildComponent()
-        spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped('window')
-        await component.getNextUpdatePromise()
+        const { component, editor } = buildComponent();
+        spyOn(component, 'handleMouseDragUntilMouseUp');
+        editor.setSoftWrapped('window');
+        await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
         editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
@@ -4742,9 +4742,9 @@ describe('TextEditorComponent', () => {
       });
 
       it('adds new selections when a line number is meta-clicked', async () => {
-        const { component, editor } = buildComponent()
-        editor.setSoftWrapped('window')
-        await component.getNextUpdatePromise()
+        const { component, editor } = buildComponent();
+        editor.setSoftWrapped('window');
+        await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
         editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
@@ -4785,10 +4785,10 @@ describe('TextEditorComponent', () => {
       });
 
       it('expands the last selection when a line number is shift-clicked', async () => {
-        const { component, editor } = buildComponent()
-        spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped('window')
-        await component.getNextUpdatePromise()
+        const { component, editor } = buildComponent();
+        spyOn(component, 'handleMouseDragUntilMouseUp');
+        editor.setSoftWrapped('window');
+        await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
         editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
@@ -4829,10 +4829,10 @@ describe('TextEditorComponent', () => {
       });
 
       it('expands the selection when dragging', async () => {
-        const { component, editor } = buildComponent()
-        spyOn(component, 'handleMouseDragUntilMouseUp')
-        editor.setSoftWrapped('window')
-        await component.getNextUpdatePromise()
+        const { component, editor } = buildComponent();
+        spyOn(component, 'handleMouseDragUntilMouseUp');
+        editor.setSoftWrapped('window');
+        await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
         editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
@@ -5463,11 +5463,11 @@ describe('TextEditorComponent', () => {
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do\n' +
           'eiusmod tempor incididunt ut labore et dolore magna' +
           'aliqua. Ut enim ad minim veniam, quis nostrud exercitation'
-      )
-      editor.setSoftWrapped('window')
-      await setEditorHeightInLines(component, 2)
-      await setEditorWidthInCharacters(component, 56)
-      await setScrollTop(component, 3 * component.getLineHeight())
+      );
+      editor.setSoftWrapped('window');
+      await setEditorHeightInLines(component, 2);
+      await setEditorWidthInCharacters(component, 56);
+      await setScrollTop(component, 3 * component.getLineHeight());
 
       element.style.fontSize = '20px';
       TextEditor.didUpdateStyles();
@@ -5535,12 +5535,12 @@ describe('TextEditorComponent', () => {
         width: 435,
         attach: false,
         updatedSynchronously: true
-      })
-      editor.setSoftWrapped('window')
-      spyOn(window, 'onerror').andCallThrough()
-      jasmine.attachToDOM(element) // should not throw an exception
-      expect(window.onerror).not.toHaveBeenCalled()
-    })
+      });
+      editor.setSoftWrapped('window');
+      spyOn(window, 'onerror').andCallThrough();
+      jasmine.attachToDOM(element); // should not throw an exception
+      expect(window.onerror).not.toHaveBeenCalled();
+    });
 
     it('updates synchronously when creating a component via TextEditor and TextEditorElement.prototype.updatedSynchronously is true', () => {
       TextEditorElement.prototype.setUpdatedSynchronously(true);

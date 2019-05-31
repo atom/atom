@@ -381,11 +381,11 @@ describe('TextEditor', () => {
 
       describe('when soft-wrap is enabled and code is folded', () => {
         beforeEach(() => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(50)
-          editor.foldBufferRowRange(2, 3)
-        })
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(50);
+          editor.foldBufferRowRange(2, 3);
+        });
 
         it('positions the cursor at the buffer position that corresponds to the given screen position', () => {
           editor.setCursorScreenPosition([9, 0]);
@@ -447,18 +447,18 @@ describe('TextEditor', () => {
 
       describe('when the cursor was moved down from the beginning of an indented soft-wrapped line', () => {
         it('moves to the beginning of the previous line', () => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(50)
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(50);
 
-          editor.setCursorScreenPosition([3, 0])
-          editor.moveDown()
-          editor.moveDown()
-          editor.moveUp()
-          expect(editor.getCursorScreenPosition()).toEqual([4, 4])
-        })
-      })
-    })
+          editor.setCursorScreenPosition([3, 0]);
+          editor.moveDown();
+          editor.moveDown();
+          editor.moveUp();
+          expect(editor.getCursorScreenPosition()).toEqual([4, 4]);
+        });
+      });
+    });
 
     describe('.moveDown()', () => {
       it('moves the cursor down', () => {
@@ -516,9 +516,9 @@ describe('TextEditor', () => {
 
       describe('when the cursor is at the beginning of an indented soft-wrapped line', () => {
         it("moves to the beginning of the line's continuation on the next screen row", () => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(50)
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(50);
 
           editor.setCursorScreenPosition([3, 0]);
           editor.moveDown();
@@ -600,10 +600,10 @@ describe('TextEditor', () => {
 
         describe('when line is wrapped and follow previous line indentation', () => {
           beforeEach(() => {
-            editor.setSoftWrapped('window')
-            editor.setDefaultCharWidth(1)
-            editor.setEditorWidthInChars(50)
-          })
+            editor.setSoftWrapped('window');
+            editor.setDefaultCharWidth(1);
+            editor.setEditorWidthInChars(50);
+          });
 
           it('wraps to the end of the previous line', () => {
             editor.setCursorScreenPosition([4, 4]);
@@ -776,14 +776,14 @@ describe('TextEditor', () => {
     describe('.moveToBeginningOfScreenLine()', () => {
       describe('when soft wrap is on', () => {
         it('moves cursor to the beginning of the screen line', () => {
-          editor.setSoftWrapped('window')
-          editor.setEditorWidthInChars(10)
-          editor.setCursorScreenPosition([1, 2])
-          editor.moveToBeginningOfScreenLine()
-          const cursor = editor.getLastCursor()
-          expect(cursor.getScreenPosition()).toEqual([1, 0])
-        })
-      })
+          editor.setSoftWrapped('window');
+          editor.setEditorWidthInChars(10);
+          editor.setCursorScreenPosition([1, 2]);
+          editor.moveToBeginningOfScreenLine();
+          const cursor = editor.getLastCursor();
+          expect(cursor.getScreenPosition()).toEqual([1, 0]);
+        });
+      });
 
       describe('when soft wrap is off', () => {
         it('moves cursor to the beginning of the line', () => {
@@ -801,15 +801,15 @@ describe('TextEditor', () => {
     describe('.moveToEndOfScreenLine()', () => {
       describe('when soft wrap is on', () => {
         it('moves cursor to the beginning of the screen line', () => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(10)
-          editor.setCursorScreenPosition([1, 2])
-          editor.moveToEndOfScreenLine()
-          const cursor = editor.getLastCursor()
-          expect(cursor.getScreenPosition()).toEqual([1, 9])
-        })
-      })
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(10);
+          editor.setCursorScreenPosition([1, 2]);
+          editor.moveToEndOfScreenLine();
+          const cursor = editor.getLastCursor();
+          expect(cursor.getScreenPosition()).toEqual([1, 9]);
+        });
+      });
 
       describe('when soft wrap is off', () => {
         it('moves cursor to the end of line', () => {
@@ -826,47 +826,47 @@ describe('TextEditor', () => {
 
     describe('.moveToBeginningOfLine()', () => {
       it('moves cursor to the beginning of the buffer line', () => {
-        editor.setSoftWrapped('window')
-        editor.setDefaultCharWidth(1)
-        editor.setEditorWidthInChars(10)
-        editor.setCursorScreenPosition([1, 2])
-        editor.moveToBeginningOfLine()
-        const cursor = editor.getLastCursor()
-        expect(cursor.getScreenPosition()).toEqual([0, 0])
-      })
-    })
+        editor.setSoftWrapped('window');
+        editor.setDefaultCharWidth(1);
+        editor.setEditorWidthInChars(10);
+        editor.setCursorScreenPosition([1, 2]);
+        editor.moveToBeginningOfLine();
+        const cursor = editor.getLastCursor();
+        expect(cursor.getScreenPosition()).toEqual([0, 0]);
+      });
+    });
 
     describe('.moveToEndOfLine()', () => {
       it('moves cursor to the end of the buffer line', () => {
-        editor.setSoftWrapped('window')
-        editor.setDefaultCharWidth(1)
-        editor.setEditorWidthInChars(10)
-        editor.setCursorScreenPosition([0, 2])
-        editor.moveToEndOfLine()
-        const cursor = editor.getLastCursor()
-        expect(cursor.getScreenPosition()).toEqual([4, 4])
-      })
-    })
+        editor.setSoftWrapped('window');
+        editor.setDefaultCharWidth(1);
+        editor.setEditorWidthInChars(10);
+        editor.setCursorScreenPosition([0, 2]);
+        editor.moveToEndOfLine();
+        const cursor = editor.getLastCursor();
+        expect(cursor.getScreenPosition()).toEqual([4, 4]);
+      });
+    });
 
     describe('.moveToFirstCharacterOfLine()', () => {
       describe('when soft wrap is on', () => {
         it("moves to the first character of the current screen line or the beginning of the screen line if it's already on the first character", () => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(10)
-          editor.setCursorScreenPosition([2, 5])
-          editor.addCursorAtScreenPosition([8, 7])
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(10);
+          editor.setCursorScreenPosition([2, 5]);
+          editor.addCursorAtScreenPosition([8, 7]);
 
-          editor.moveToFirstCharacterOfLine()
-          const [cursor1, cursor2] = editor.getCursors()
-          expect(cursor1.getScreenPosition()).toEqual([2, 0])
-          expect(cursor2.getScreenPosition()).toEqual([8, 2])
+          editor.moveToFirstCharacterOfLine();
+          const [cursor1, cursor2] = editor.getCursors();
+          expect(cursor1.getScreenPosition()).toEqual([2, 0]);
+          expect(cursor2.getScreenPosition()).toEqual([8, 2]);
 
-          editor.moveToFirstCharacterOfLine()
-          expect(cursor1.getScreenPosition()).toEqual([2, 0])
-          expect(cursor2.getScreenPosition()).toEqual([8, 2])
-        })
-      })
+          editor.moveToFirstCharacterOfLine();
+          expect(cursor1.getScreenPosition()).toEqual([2, 0]);
+          expect(cursor2.getScreenPosition()).toEqual([8, 2]);
+        });
+      });
 
       describe('when soft wrap is off', () => {
         it("moves to the first character of the current line or the beginning of the line if it's already on the first character", () => {
@@ -2459,9 +2459,9 @@ describe('TextEditor', () => {
         });
 
         it('can add selections to soft-wrapped line segments', () => {
-          editor.setSoftWrapped('window')
-          editor.setEditorWidthInChars(40)
-          editor.setDefaultCharWidth(1)
+          editor.setSoftWrapped('window');
+          editor.setEditorWidthInChars(40);
+          editor.setDefaultCharWidth(1);
 
           editor.setSelectedScreenRange([[3, 10], [3, 15]]);
           editor.addSelectionBelow();
@@ -2488,10 +2488,10 @@ describe('TextEditor', () => {
       describe('when the selection is empty', () => {
         describe('when lines are soft-wrapped', () => {
           beforeEach(() => {
-            editor.setSoftWrapped('window')
-            editor.setDefaultCharWidth(1)
-            editor.setEditorWidthInChars(40)
-          })
+            editor.setSoftWrapped('window');
+            editor.setDefaultCharWidth(1);
+            editor.setEditorWidthInChars(40);
+          });
 
           it('skips soft-wrap indentation tokens', () => {
             editor.setCursorScreenPosition([3, 0]);
@@ -2599,9 +2599,9 @@ describe('TextEditor', () => {
         });
 
         it('can add selections to soft-wrapped line segments', () => {
-          editor.setSoftWrapped('window')
-          editor.setDefaultCharWidth(1)
-          editor.setEditorWidthInChars(40)
+          editor.setSoftWrapped('window');
+          editor.setDefaultCharWidth(1);
+          editor.setEditorWidthInChars(40);
 
           editor.setSelectedScreenRange([[4, 10], [4, 15]]);
           editor.addSelectionAbove();
@@ -2628,10 +2628,10 @@ describe('TextEditor', () => {
       describe('when the selection is empty', () => {
         describe('when lines are soft-wrapped', () => {
           beforeEach(() => {
-            editor.setSoftWrapped('window')
-            editor.setDefaultCharWidth(1)
-            editor.setEditorWidthInChars(40)
-          })
+            editor.setSoftWrapped('window');
+            editor.setDefaultCharWidth(1);
+            editor.setEditorWidthInChars(40);
+          });
 
           it('skips soft-wrap indentation tokens', () => {
             editor.setCursorScreenPosition([5, 0]);
@@ -3832,8 +3832,8 @@ describe('TextEditor', () => {
 
         describe('when the selections are above a wrapped line', () => {
           beforeEach(() => {
-            editor.setSoftWrapped('window')
-            editor.setEditorWidthInChars(80)
+            editor.setSoftWrapped('window');
+            editor.setEditorWidthInChars(80);
             editor.setText(dedent`
               1
               2
@@ -5094,11 +5094,11 @@ describe('TextEditor', () => {
       describe('.cutToEndOfLine()', () => {
         describe('when soft wrap is on', () => {
           it('cuts up to the end of the line', () => {
-            editor.setSoftWrapped('window')
-            editor.setDefaultCharWidth(1)
-            editor.setEditorWidthInChars(25)
-            editor.setCursorScreenPosition([2, 6])
-            editor.cutToEndOfLine()
+            editor.setSoftWrapped('window');
+            editor.setDefaultCharWidth(1);
+            editor.setEditorWidthInChars(25);
+            editor.setCursorScreenPosition([2, 6]);
+            editor.cutToEndOfLine();
             expect(editor.lineTextForScreenRow(2)).toBe(
               '  var  function(items) {'
             );
@@ -5138,9 +5138,9 @@ describe('TextEditor', () => {
 
       describe('.cutToEndOfBufferLine()', () => {
         beforeEach(() => {
-          editor.setSoftWrapped('window')
-          editor.setEditorWidthInChars(10)
-        })
+          editor.setSoftWrapped('window');
+          editor.setEditorWidthInChars(10);
+        });
 
         describe('when nothing is selected', () => {
           it('cuts up to the end of the buffer line', () => {
@@ -6633,18 +6633,18 @@ describe('TextEditor', () => {
 
     describe('when soft wrap is enabled', () => {
       it('deletes the entire line that the cursor is on', () => {
-        editor.setSoftWrapped('window')
-        editor.setEditorWidthInChars(10)
-        editor.setCursorBufferPosition([6])
+        editor.setSoftWrapped('window');
+        editor.setEditorWidthInChars(10);
+        editor.setCursorBufferPosition([6]);
 
-        const line7 = buffer.lineForRow(7)
-        const count = buffer.getLineCount()
-        expect(buffer.lineForRow(6)).not.toBe(line7)
-        editor.deleteLine()
-        expect(buffer.lineForRow(6)).toBe(line7)
-        expect(buffer.getLineCount()).toBe(count - 1)
-      })
-    })
+        const line7 = buffer.lineForRow(7);
+        const count = buffer.getLineCount();
+        expect(buffer.lineForRow(6)).not.toBe(line7);
+        editor.deleteLine();
+        expect(buffer.lineForRow(6)).toBe(line7);
+        expect(buffer.getLineCount()).toBe(count - 1);
+      });
+    });
 
     describe('when the line being deleted precedes a fold, and the command is undone', () => {
       it('restores the line and preserves the fold', () => {
@@ -7339,24 +7339,24 @@ describe('TextEditor', () => {
   describe('.setIndentationForBufferRow', () => {
     describe('when the editor uses soft tabs but the row has hard tabs', () => {
       it('only replaces whitespace characters', () => {
-        editor.setSoftWrapped('window')
-        editor.setText('\t1\n\t2')
-        editor.setCursorBufferPosition([0, 0])
-        editor.setIndentationForBufferRow(0, 2)
-        expect(editor.getText()).toBe('    1\n\t2')
-      })
-    })
+        editor.setSoftWrapped('window');
+        editor.setText('\t1\n\t2');
+        editor.setCursorBufferPosition([0, 0]);
+        editor.setIndentationForBufferRow(0, 2);
+        expect(editor.getText()).toBe('    1\n\t2');
+      });
+    });
 
     describe('when the indentation level is a non-integer', () => {
       it('does not throw an exception', () => {
-        editor.setSoftWrapped('window')
-        editor.setText('\t1\n\t2')
-        editor.setCursorBufferPosition([0, 0])
-        editor.setIndentationForBufferRow(0, 2.1)
-        expect(editor.getText()).toBe('    1\n\t2')
-      })
-    })
-  })
+        editor.setSoftWrapped('window');
+        editor.setText('\t1\n\t2');
+        editor.setCursorBufferPosition([0, 0]);
+        editor.setIndentationForBufferRow(0, 2.1);
+        expect(editor.getText()).toBe('    1\n\t2');
+      });
+    });
+  });
 
   describe("when the editor's grammar has an injection selector", () => {
     beforeEach(async () => {
@@ -8100,26 +8100,28 @@ describe('TextEditor', () => {
         editorWidthInChars: 30,
         softWrapped: 'window',
         preferredLineLength: 20
-      })
+      });
 
-      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = function () {')
+      expect(editor.lineTextForScreenRow(0)).toBe(
+        'var quicksort = function () {'
+      );
 
-      editor.update({editorWidthInChars: 10})
-      expect(editor.lineTextForScreenRow(0)).toBe('var ')
-    })
+      editor.update({ editorWidthInChars: 10 });
+      expect(editor.lineTextForScreenRow(0)).toBe('var ');
+    });
 
     it('preferredLineLength: soft wraps the editor at preferred line length', () => {
       editor.update({
         editorWidthInChars: 30,
         softWrapped: 'preferredLineLength',
         preferredLineLength: 20
-      })
+      });
 
-      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ')
+      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ');
 
-      editor.update({editorWidthInChars: 10})
-      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ')
-    })
+      editor.update({ editorWidthInChars: 10 });
+      expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ');
+    });
 
     it('minWindowOrPll: soft wraps the editor at minimun value of window width and preferred line length', () => {
       editor.update({
@@ -8130,16 +8132,16 @@ describe('TextEditor', () => {
 
       expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ');
 
-      editor.update({ editorWidthInChars: 10 })
-      expect(editor.lineTextForScreenRow(0)).toBe('var ')
-    })
+      editor.update({ editorWidthInChars: 10 });
+      expect(editor.lineTextForScreenRow(0)).toBe('var ');
+    });
 
     it('maxWindowOrPll: soft wraps the editor at maximum value of window width and preferred line length', () => {
       editor.update({
         editorWidthInChars: 30,
         softWrapped: 'maxWindowOrPll',
         preferredLineLength: 20
-      })
+      });
 
       editor.update({ mini: true });
       expect(editor.lineTextForScreenRow(0)).toBe(

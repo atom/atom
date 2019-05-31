@@ -519,7 +519,7 @@ const configSchema = {
           },
           {
             value: 'window',
-            description: 'Window\'s Width'
+            description: "Window's Width"
           },
           {
             value: 'preferredLineLength',
@@ -527,14 +527,17 @@ const configSchema = {
           },
           {
             value: 'minWindowOrPll',
-            description: 'Shorter between window\'s width or preferred line length'
+            description:
+              "Shorter between window's width or preferred line length"
           },
           {
             value: 'maxWindowOrPll',
-            description: 'Longer between window\'s width or preferred line length'
+            description:
+              "Longer between window's width or preferred line length"
           }
         ],
-        description: 'Wraps lines that exceed certain width depending on selected behaviour.'
+        description:
+          'Wraps lines that exceed certain width depending on selected behaviour.'
       },
       softTabs: {
         type: 'boolean',

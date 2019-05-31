@@ -176,9 +176,9 @@ describe('TextEditorRegistry', function() {
       editor.setEncoding('utf16le');
       expect(editor.getEncoding()).toBe('utf16le');
 
-      expect(editor.isSoftWrapped()).toBe(false)
-      editor.setSoftWrapped('window')
-      expect(editor.isSoftWrapped()).toBe(true)
+      expect(editor.isSoftWrapped()).toBe(false);
+      editor.setSoftWrapped('window');
+      expect(editor.isSoftWrapped()).toBe(true);
 
       atom.grammars.assignLanguageMode(editor, 'source.js');
       await initialPackageActivation;
@@ -420,178 +420,178 @@ describe('TextEditorRegistry', function() {
       editor.update({
         showInvisibles: true,
         invisibles: invisibles1
-      })
-      expect(editor.getInvisibles()).toEqual(invisibles1)
+      });
+      expect(editor.getInvisibles()).toEqual(invisibles1);
 
-      atom.config.set('editor.showInvisibles', true)
-      atom.config.set('editor.invisibles', invisibles2)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getInvisibles()).toEqual(invisibles2)
+      atom.config.set('editor.showInvisibles', true);
+      atom.config.set('editor.invisibles', invisibles2);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getInvisibles()).toEqual(invisibles2);
 
-      atom.config.set('editor.invisibles', invisibles1)
-      expect(editor.getInvisibles()).toEqual(invisibles1)
+      atom.config.set('editor.invisibles', invisibles1);
+      expect(editor.getInvisibles()).toEqual(invisibles1);
 
-      atom.config.set('editor.showInvisibles', false)
-      expect(editor.getInvisibles()).toEqual({})
-    })
+      atom.config.set('editor.showInvisibles', false);
+      expect(editor.getInvisibles()).toEqual({});
+    });
 
-    it('enables or disables the indent guide based on the config', async function () {
-      editor.update({ showIndentGuide: true })
-      expect(editor.doesShowIndentGuide()).toBe(true)
+    it('enables or disables the indent guide based on the config', async function() {
+      editor.update({ showIndentGuide: true });
+      expect(editor.doesShowIndentGuide()).toBe(true);
 
-      atom.config.set('editor.showIndentGuide', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.doesShowIndentGuide()).toBe(false)
+      atom.config.set('editor.showIndentGuide', false);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.doesShowIndentGuide()).toBe(false);
 
-      atom.config.set('editor.showIndentGuide', true)
-      expect(editor.doesShowIndentGuide()).toBe(true)
-    })
+      atom.config.set('editor.showIndentGuide', true);
+      expect(editor.doesShowIndentGuide()).toBe(true);
+    });
 
-    it('enables or disables soft wrap based on the config', async function () {
-      editor.update({ softWrapped: 'window' })
-      expect(editor.isSoftWrapped()).toBe(true)
+    it('enables or disables soft wrap based on the config', async function() {
+      editor.update({ softWrapped: 'window' });
+      expect(editor.isSoftWrapped()).toBe(true);
 
-      atom.config.set('editor.softWrap', 'disabled')
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.isSoftWrapped()).toBe(false)
+      atom.config.set('editor.softWrap', 'disabled');
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.isSoftWrapped()).toBe(false);
 
-      atom.config.set('editor.softWrap', 'window')
-      expect(editor.isSoftWrapped()).toBe(true)
-    })
+      atom.config.set('editor.softWrap', 'window');
+      expect(editor.isSoftWrapped()).toBe(true);
+    });
 
-    it('sets the soft wrap indent length based on the config', async function () {
-      editor.update({ softWrapHangingIndentLength: 4 })
-      expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
+    it('sets the soft wrap indent length based on the config', async function() {
+      editor.update({ softWrapHangingIndentLength: 4 });
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(4);
 
-      atom.config.set('editor.softWrapHangingIndent', 2)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getSoftWrapHangingIndentLength()).toBe(2)
+      atom.config.set('editor.softWrapHangingIndent', 2);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(2);
 
-      atom.config.set('editor.softWrapHangingIndent', 4)
-      expect(editor.getSoftWrapHangingIndentLength()).toBe(4)
-    })
+      atom.config.set('editor.softWrapHangingIndent', 4);
+      expect(editor.getSoftWrapHangingIndentLength()).toBe(4);
+    });
 
-    it('allows for custom definition of maximum soft wrap based on config', async function () {
+    it('allows for custom definition of maximum soft wrap based on config', async function() {
       editor.update({
         softWrapped: 'disabled',
-        maxScreenLineLength: 1500,
-      })
+        maxScreenLineLength: 1500
+      });
 
-      expect(editor.getSoftWrapColumn()).toBe(1500)
+      expect(editor.getSoftWrapColumn()).toBe(1500);
 
-      atom.config.set('editor.softWrap', 'disabled')
-      atom.config.set('editor.maxScreenLineLength', 500)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getSoftWrapColumn()).toBe(500)
-    })
+      atom.config.set('editor.softWrap', 'disabled');
+      atom.config.set('editor.maxScreenLineLength', 500);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getSoftWrapColumn()).toBe(500);
+    });
 
-    it('sets the preferred line length based on the config', async function () {
-      editor.update({ preferredLineLength: 80 })
-      expect(editor.getPreferredLineLength()).toBe(80)
+    it('sets the preferred line length based on the config', async function() {
+      editor.update({ preferredLineLength: 80 });
+      expect(editor.getPreferredLineLength()).toBe(80);
 
-      atom.config.set('editor.preferredLineLength', 110)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getPreferredLineLength()).toBe(110)
+      atom.config.set('editor.preferredLineLength', 110);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getPreferredLineLength()).toBe(110);
 
-      atom.config.set('editor.preferredLineLength', 80)
-      expect(editor.getPreferredLineLength()).toBe(80)
-    })
+      atom.config.set('editor.preferredLineLength', 80);
+      expect(editor.getPreferredLineLength()).toBe(80);
+    });
 
-    it('enables or disables auto-indent based on the config', async function () {
-      editor.update({ autoIndent: true })
-      expect(editor.shouldAutoIndent()).toBe(true)
+    it('enables or disables auto-indent based on the config', async function() {
+      editor.update({ autoIndent: true });
+      expect(editor.shouldAutoIndent()).toBe(true);
 
-      atom.config.set('editor.autoIndent', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.shouldAutoIndent()).toBe(false)
+      atom.config.set('editor.autoIndent', false);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.shouldAutoIndent()).toBe(false);
 
-      atom.config.set('editor.autoIndent', true)
-      expect(editor.shouldAutoIndent()).toBe(true)
-    })
+      atom.config.set('editor.autoIndent', true);
+      expect(editor.shouldAutoIndent()).toBe(true);
+    });
 
-    it('enables or disables auto-indent-on-paste based on the config', async function () {
-      editor.update({ autoIndentOnPaste: true })
-      expect(editor.shouldAutoIndentOnPaste()).toBe(true)
+    it('enables or disables auto-indent-on-paste based on the config', async function() {
+      editor.update({ autoIndentOnPaste: true });
+      expect(editor.shouldAutoIndentOnPaste()).toBe(true);
 
-      atom.config.set('editor.autoIndentOnPaste', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.shouldAutoIndentOnPaste()).toBe(false)
+      atom.config.set('editor.autoIndentOnPaste', false);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.shouldAutoIndentOnPaste()).toBe(false);
 
-      atom.config.set('editor.autoIndentOnPaste', true)
-      expect(editor.shouldAutoIndentOnPaste()).toBe(true)
-    })
+      atom.config.set('editor.autoIndentOnPaste', true);
+      expect(editor.shouldAutoIndentOnPaste()).toBe(true);
+    });
 
-    it('enables or disables scrolling past the end of the buffer based on the config', async function () {
-      editor.update({ scrollPastEnd: true })
-      expect(editor.getScrollPastEnd()).toBe(true)
+    it('enables or disables scrolling past the end of the buffer based on the config', async function() {
+      editor.update({ scrollPastEnd: true });
+      expect(editor.getScrollPastEnd()).toBe(true);
 
-      atom.config.set('editor.scrollPastEnd', false)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getScrollPastEnd()).toBe(false)
+      atom.config.set('editor.scrollPastEnd', false);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getScrollPastEnd()).toBe(false);
 
-      atom.config.set('editor.scrollPastEnd', true)
-      expect(editor.getScrollPastEnd()).toBe(true)
-    })
+      atom.config.set('editor.scrollPastEnd', true);
+      expect(editor.getScrollPastEnd()).toBe(true);
+    });
 
-    it('sets the undo grouping interval based on the config', async function () {
-      editor.update({ undoGroupingInterval: 300 })
-      expect(editor.getUndoGroupingInterval()).toBe(300)
+    it('sets the undo grouping interval based on the config', async function() {
+      editor.update({ undoGroupingInterval: 300 });
+      expect(editor.getUndoGroupingInterval()).toBe(300);
 
-      atom.config.set('editor.undoGroupingInterval', 600)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getUndoGroupingInterval()).toBe(600)
+      atom.config.set('editor.undoGroupingInterval', 600);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getUndoGroupingInterval()).toBe(600);
 
-      atom.config.set('editor.undoGroupingInterval', 300)
-      expect(editor.getUndoGroupingInterval()).toBe(300)
-    })
+      atom.config.set('editor.undoGroupingInterval', 300);
+      expect(editor.getUndoGroupingInterval()).toBe(300);
+    });
 
-    it('sets the scroll sensitivity based on the config', async function () {
-      editor.update({ scrollSensitivity: 50 })
-      expect(editor.getScrollSensitivity()).toBe(50)
+    it('sets the scroll sensitivity based on the config', async function() {
+      editor.update({ scrollSensitivity: 50 });
+      expect(editor.getScrollSensitivity()).toBe(50);
 
-      atom.config.set('editor.scrollSensitivity', 60)
-      registry.maintainConfig(editor)
-      await initialPackageActivation
-      expect(editor.getScrollSensitivity()).toBe(60)
+      atom.config.set('editor.scrollSensitivity', 60);
+      registry.maintainConfig(editor);
+      await initialPackageActivation;
+      expect(editor.getScrollSensitivity()).toBe(60);
 
-      atom.config.set('editor.scrollSensitivity', 70)
-      expect(editor.getScrollSensitivity()).toBe(70)
-    })
+      atom.config.set('editor.scrollSensitivity', 70);
+      expect(editor.getScrollSensitivity()).toBe(70);
+    });
 
-    describe('when called twice with a given editor', function () {
-      it('does nothing the second time', async function () {
-        editor.update({ scrollSensitivity: 50 })
+    describe('when called twice with a given editor', function() {
+      it('does nothing the second time', async function() {
+        editor.update({ scrollSensitivity: 50 });
 
-        const disposable1 = registry.maintainConfig(editor)
-        const disposable2 = registry.maintainConfig(editor)
-        await initialPackageActivation
+        const disposable1 = registry.maintainConfig(editor);
+        const disposable2 = registry.maintainConfig(editor);
+        await initialPackageActivation;
 
-        atom.config.set('editor.scrollSensitivity', 60)
-        expect(editor.getScrollSensitivity()).toBe(60)
+        atom.config.set('editor.scrollSensitivity', 60);
+        expect(editor.getScrollSensitivity()).toBe(60);
 
-        disposable2.dispose()
-        atom.config.set('editor.scrollSensitivity', 70)
-        expect(editor.getScrollSensitivity()).toBe(70)
+        disposable2.dispose();
+        atom.config.set('editor.scrollSensitivity', 70);
+        expect(editor.getScrollSensitivity()).toBe(70);
 
-        disposable1.dispose()
-        atom.config.set('editor.scrollSensitivity', 80)
-        expect(editor.getScrollSensitivity()).toBe(70)
-      })
-    })
-  })
-})
+        disposable1.dispose();
+        atom.config.set('editor.scrollSensitivity', 80);
+        expect(editor.getScrollSensitivity()).toBe(70);
+      });
+    });
+  });
+});
 
-function getSubscriptionCount (editor) {
+function getSubscriptionCount(editor) {
   return (
     editor.emitter.getTotalListenerCount() +
     editor.tokenizedBuffer.emitter.getTotalListenerCount() +
