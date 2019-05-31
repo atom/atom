@@ -1,35 +1,35 @@
-const { TerminalReporter } = require('jasmine-tagged')
+const { TerminalReporter } = require('jasmine-tagged');
 
 class JasmineListReporter extends TerminalReporter {
-  fullDescription (spec) {
-    let fullDescription = 'it ' + spec.description
-    let currentSuite = spec.suite
+  fullDescription(spec) {
+    let fullDescription = 'it ' + spec.description;
+    let currentSuite = spec.suite;
     while (currentSuite) {
-      fullDescription = currentSuite.description + ' > ' + fullDescription
-      currentSuite = currentSuite.parentSuite
+      fullDescription = currentSuite.description + ' > ' + fullDescription;
+      currentSuite = currentSuite.parentSuite;
     }
-    return fullDescription
+    return fullDescription;
   }
 
-  reportSpecStarting (spec) {
-    this.print_(this.fullDescription(spec) + ' ')
+  reportSpecStarting(spec) {
+    this.print_(this.fullDescription(spec) + ' ');
   }
 
-  reportSpecResults (spec) {
-    const result = spec.results()
+  reportSpecResults(spec) {
+    const result = spec.results();
     if (result.skipped) {
-      return
+      return;
     }
 
-    let msg = ''
+    let msg = '';
     if (result.passed()) {
-      msg = this.stringWithColor_('[pass]', this.color_.pass())
+      msg = this.stringWithColor_('[pass]', this.color_.pass());
     } else {
-      msg = this.stringWithColor_('[FAIL]', this.color_.fail())
-      this.addFailureToFailures_(spec)
+      msg = this.stringWithColor_('[FAIL]', this.color_.fail());
+      this.addFailureToFailures_(spec);
     }
-    this.printLine_(msg)
+    this.printLine_(msg);
   }
 }
 
-module.exports = { JasmineListReporter }
+module.exports = { JasmineListReporter };

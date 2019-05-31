@@ -1,75 +1,77 @@
-const SelectListView = require('atom-select-list')
+const SelectListView = require('atom-select-list');
 
-module.exports =
-class ReopenProjectListView {
-  constructor (callback) {
-    this.callback = callback
+module.exports = class ReopenProjectListView {
+  constructor(callback) {
+    this.callback = callback;
     this.selectListView = new SelectListView({
       emptyMessage: 'No projects in history.',
       itemsClassList: ['mark-active'],
       items: [],
-      filterKeyForItem: (project) => project.name,
-      elementForItem: (project) => {
-        let element = document.createElement('li')
+      filterKeyForItem: project => project.name,
+      elementForItem: project => {
+        let element = document.createElement('li');
         if (project.name === this.currentProjectName) {
-          element.classList.add('active')
+          element.classList.add('active');
         }
-        element.textContent = project.name
-        return element
+        element.textContent = project.name;
+        return element;
       },
-      didConfirmSelection: (project) => {
-        this.cancel()
-        this.callback(project.value)
+      didConfirmSelection: project => {
+        this.cancel();
+        this.callback(project.value);
       },
       didCancelSelection: () => {
-        this.cancel()
+        this.cancel();
       }
-    })
-    this.selectListView.element.classList.add('reopen-project')
+    });
+    this.selectListView.element.classList.add('reopen-project');
   }
 
-  get element () {
-    return this.selectListView.element
+  get element() {
+    return this.selectListView.element;
   }
 
-  dispose () {
-    this.cancel()
-    return this.selectListView.destroy()
+  dispose() {
+    this.cancel();
+    return this.selectListView.destroy();
   }
 
-  cancel () {
+  cancel() {
     if (this.panel != null) {
-      this.panel.destroy()
+      this.panel.destroy();
     }
-    this.panel = null
-    this.currentProjectName = null
+    this.panel = null;
+    this.currentProjectName = null;
     if (this.previouslyFocusedElement) {
-      this.previouslyFocusedElement.focus()
-      this.previouslyFocusedElement = null
+      this.previouslyFocusedElement.focus();
+      this.previouslyFocusedElement = null;
     }
   }
 
-  attach () {
-    this.previouslyFocusedElement = document.activeElement
+  attach() {
+    this.previouslyFocusedElement = document.activeElement;
     if (this.panel == null) {
-      this.panel = atom.workspace.addModalPanel({item: this})
+      this.panel = atom.workspace.addModalPanel({ item: this });
     }
-    this.selectListView.focus()
-    this.selectListView.reset()
+    this.selectListView.focus();
+    this.selectListView.reset();
   }
 
-  async toggle () {
+  async toggle() {
     if (this.panel != null) {
-      this.cancel()
+      this.cancel();
     } else {
-      this.currentProjectName = atom.project != null ? this.makeName(atom.project.getPaths()) : null
-      const projects = atom.history.getProjects().map(p => ({ name: this.makeName(p.paths), value: p.paths }))
-      await this.selectListView.update({items: projects})
-      this.attach()
+      this.currentProjectName =
+        atom.project != null ? this.makeName(atom.project.getPaths()) : null;
+      const projects = atom.history
+        .getProjects()
+        .map(p => ({ name: this.makeName(p.paths), value: p.paths }));
+      await this.selectListView.update({ items: projects });
+      this.attach();
     }
   }
 
-  makeName (paths) {
-    return paths.join(', ')
+  makeName(paths) {
+    return paths.join(', ');
   }
-}
+};

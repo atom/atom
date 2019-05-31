@@ -11,18 +11,19 @@ const binFolder = path.join(rootAtomFolder, 'bin')
 const updateDotExe = path.join(rootAtomFolder, 'Update.exe')
 
 if (process.env.SystemRoot) {
-  const system32Path = path.join(process.env.SystemRoot, 'System32')
-  setxPath = path.join(system32Path, 'setx.exe')
+  const system32Path = path.join(process.env.SystemRoot, 'System32');
+  setxPath = path.join(system32Path, 'setx.exe');
 } else {
-  setxPath = 'setx.exe'
+  setxPath = 'setx.exe';
 }
 
 // Spawn setx.exe and callback when it completes
-const spawnSetx = (args, callback) => Spawner.spawn(setxPath, args, callback)
+const spawnSetx = (args, callback) => Spawner.spawn(setxPath, args, callback);
 
 // Spawn the Update.exe with the given arguments and invoke the callback when
 // the command completes.
-const spawnUpdate = (args, callback) => Spawner.spawn(updateDotExe, args, callback)
+const spawnUpdate = (args, callback) =>
+  Spawner.spawn(updateDotExe, args, callback);
 
 // Add atom and apm to the PATH
 //
@@ -56,45 +57,51 @@ const addCommandsToPath = (exeName, callback) => {
           fs.writeFile(apmShCommandPath, apmShCommand, () => callback())
         )
       )
-    )
-  }
+    );
+  };
 
   const addBinToPath = (pathSegments, callback) => {
-    pathSegments.push(binFolder)
-    const newPathEnv = pathSegments.join(';')
-    spawnSetx(['Path', newPathEnv], callback)
-  }
+    pathSegments.push(binFolder);
+    const newPathEnv = pathSegments.join(';');
+    spawnSetx(['Path', newPathEnv], callback);
+  };
 
   installCommands(error => {
-    if (error) return callback(error)
+    if (error) return callback(error);
 
     WinPowerShell.getPath((error, pathEnv) => {
-      if (error) return callback(error)
+      if (error) return callback(error);
 
-      const pathSegments = pathEnv.split(/;+/).filter(pathSegment => pathSegment)
+      const pathSegments = pathEnv
+        .split(/;+/)
+        .filter(pathSegment => pathSegment);
       if (pathSegments.indexOf(binFolder) === -1) {
-        addBinToPath(pathSegments, callback)
+        addBinToPath(pathSegments, callback);
       } else {
-        callback()
+        callback();
       }
-    })
-  })
-}
+    });
+  });
+};
 
 // Remove atom and apm from the PATH
 const removeCommandsFromPath = callback =>
   WinPowerShell.getPath((error, pathEnv) => {
-    if (error != null) { return callback(error) }
+    if (error != null) {
+      return callback(error);
+    }
 
-    const pathSegments = pathEnv.split(/;+/).filter(pathSegment => pathSegment && (pathSegment !== binFolder))
-    const newPathEnv = pathSegments.join(';')
+    const pathSegments = pathEnv
+      .split(/;+/)
+      .filter(pathSegment => pathSegment && pathSegment !== binFolder);
+    const newPathEnv = pathSegments.join(';');
 
     if (pathEnv !== newPathEnv) {
-      return spawnSetx(['Path', newPathEnv], callback)
+      return spawnSetx(['Path', newPathEnv], callback);
     } else {
-      return callback()
+      return callback();
     }
-  })
+  });
 
 const getExeName = (app) => path.basename(app.getPath('exe'))
 
@@ -111,25 +118,27 @@ const updateShortcuts = (appName, exeName, callback) => {
     const desktopShortcutPath = path.join(homeDirectory, 'Desktop', `${appName}.lnk`)
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
-    fs.exists(desktopShortcutPath, (desktopShortcutExists) => {
-      const locations = ['StartMenu']
-      if (desktopShortcutExists) { locations.push('Desktop') }
+    fs.exists(desktopShortcutPath, desktopShortcutExists => {
+      const locations = ['StartMenu'];
+      if (desktopShortcutExists) {
+        locations.push('Desktop');
+      }
 
       createShortcuts(exeName, locations, callback)
     })
   } else {
     createShortcuts(exeName, ['Desktop', 'StartMenu'], callback)
   }
-}
+};
 
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
 const removeShortcuts = (exeName, callback) => spawnUpdate(['--removeShortcut', exeName], callback)
 
-exports.spawn = spawnUpdate
+exports.spawn = spawnUpdate;
 
 // Is the Update.exe installed with Atom?
-exports.existsSync = () => fs.existsSync(updateDotExe)
+exports.existsSync = () => fs.existsSync(updateDotExe);
 
 // Restart Atom using the version pointed to by the atom.cmd shim
 exports.restartAtom = (app) => {
@@ -137,8 +146,8 @@ exports.restartAtom = (app) => {
   const exeName = getExeName(app)
   const atomCmdName = exeName.replace('.exe', '.cmd')
   if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
-    const {projectPath} = global.atomApplication.lastFocusedWindow
-    if (projectPath) args = [projectPath]
+    const { projectPath } = global.atomApplication.lastFocusedWindow;
+    if (projectPath) args = [projectPath];
   }
   app.once('will-quit', () => Spawner.spawn(path.join(binFolder, atomCmdName), args))
   app.quit()
@@ -153,26 +162,26 @@ exports.handleStartupEvent = (app, squirrelCommand) => {
         addCommandsToPath(exeName, () =>
           WinShell.registerShellIntegration(app.getName(), () => app.quit())
         )
-      )
-      return true
+      );
+      return true;
     case '--squirrel-updated':
       updateShortcuts(app.getName(), exeName, () =>
         addCommandsToPath(exeName, () =>
           WinShell.updateShellIntegration(app.getName(), () => app.quit())
         )
-      )
-      return true
+      );
+      return true;
     case '--squirrel-uninstall':
       removeShortcuts(exeName, () =>
         removeCommandsFromPath(() =>
           WinShell.deregisterShellIntegration(app.getName(), () => app.quit())
         )
-      )
-      return true
+      );
+      return true;
     case '--squirrel-obsolete':
-      app.quit()
-      return true
+      app.quit();
+      return true;
     default:
-      return false
+      return false;
   }
-}
+};
