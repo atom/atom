@@ -17,13 +17,12 @@
 //
 // See the [scopes and scope descriptor guide](http://flight-manual.atom.io/behind-atom/sections/scoped-settings-scopes-and-scope-descriptors/)
 // for more information.
-module.exports =
-class ScopeDescriptor {
-  static fromObject (scopes) {
+module.exports = class ScopeDescriptor {
+  static fromObject(scopes) {
     if (scopes instanceof ScopeDescriptor) {
-      return scopes
+      return scopes;
     } else {
-      return new ScopeDescriptor({scopes})
+      return new ScopeDescriptor({ scopes });
     }
   }
 
@@ -35,46 +34,50 @@ class ScopeDescriptor {
   //
   // * `object` {Object}
   //   * `scopes` {Array} of {String}s
-  constructor ({scopes}) {
-    this.scopes = scopes
+  constructor({ scopes }) {
+    this.scopes = scopes;
   }
 
   // Public: Returns an {Array} of {String}s
-  getScopesArray () {
-    return this.scopes
+  getScopesArray() {
+    return this.scopes;
   }
 
-  getScopeChain () {
+  getScopeChain() {
     // For backward compatibility, prefix TextMate-style scope names with
     // leading dots (e.g. 'source.js' -> '.source.js').
     if (this.scopes[0] != null && this.scopes[0].includes('.')) {
-      let result = ''
+      let result = '';
       for (let i = 0; i < this.scopes.length; i++) {
-        const scope = this.scopes[i]
-        if (i > 0) { result += ' ' }
-        if (scope[0] !== '.') { result += '.' }
-        result += scope
+        const scope = this.scopes[i];
+        if (i > 0) {
+          result += ' ';
+        }
+        if (scope[0] !== '.') {
+          result += '.';
+        }
+        result += scope;
       }
-      return result
+      return result;
     } else {
-      return this.scopes.join(' ')
+      return this.scopes.join(' ');
     }
   }
 
-  toString () {
-    return this.getScopeChain()
+  toString() {
+    return this.getScopeChain();
   }
 
-  isEqual (other) {
+  isEqual(other) {
     if (this.scopes.length !== other.scopes.length) {
-      return false
+      return false;
     }
     for (let i = 0; i < this.scopes.length; i++) {
-      const scope = this.scopes[i]
+      const scope = this.scopes[i];
       if (scope !== other.scopes[i]) {
-        return false
+        return false;
       }
     }
-    return true
+    return true;
   }
-}
+};

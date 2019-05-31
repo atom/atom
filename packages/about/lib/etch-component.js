@@ -1,15 +1,15 @@
-const etch = require('etch')
+const etch = require('etch');
 
 /*
   Public: Abstract class for handling the initialization
   boilerplate of an Etch component.
 */
 module.exports = class EtchComponent {
-  constructor (props) {
-    this.props = props
+  constructor(props) {
+    this.props = props;
 
-    etch.initialize(this)
-    EtchComponent.setScheduler(atom.views)
+    etch.initialize(this);
+    EtchComponent.setScheduler(atom.views);
   }
 
   /*
@@ -17,8 +17,8 @@ module.exports = class EtchComponent {
 
     Returns a {Scheduler}
   */
-  static getScheduler () {
-    return etch.getScheduler()
+  static getScheduler() {
+    return etch.getScheduler();
   }
 
   /*
@@ -26,8 +26,8 @@ module.exports = class EtchComponent {
 
     * `scheduler` {Scheduler}
   */
-  static setScheduler (scheduler) {
-    etch.setScheduler(scheduler)
+  static setScheduler(scheduler) {
+    etch.setScheduler(scheduler);
   }
 
   /*
@@ -37,20 +37,20 @@ module.exports = class EtchComponent {
 
     * `props` an {Object} representing the properties you want to update
   */
-  update (props) {
-    let oldProps = this.props
-    this.props = Object.assign({}, oldProps, props)
-    return etch.update(this)
+  update(props) {
+    let oldProps = this.props;
+    this.props = Object.assign({}, oldProps, props);
+    return etch.update(this);
   }
 
   /*
     Public: Destroys the component, removing it from the DOM.
   */
-  destroy () {
-    etch.destroy(this)
+  destroy() {
+    etch.destroy(this);
   }
 
-  render () {
-    throw new Error('Etch components must implement a `render` method')
+  render() {
+    throw new Error('Etch components must implement a `render` method');
   }
-}
+};

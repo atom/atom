@@ -1,72 +1,75 @@
-const Chart = require('chart.js')
-const glob = require('glob')
-const fs = require('fs-plus')
-const path = require('path')
+const Chart = require('chart.js');
+const glob = require('glob');
+const fs = require('fs-plus');
+const path = require('path');
 
-module.exports = async ({test, benchmarkPaths}) => {
-  document.body.style.backgroundColor = '#ffffff'
-  document.body.style.overflow = 'auto'
+module.exports = async ({ test, benchmarkPaths }) => {
+  document.body.style.backgroundColor = '#ffffff';
+  document.body.style.overflow = 'auto';
 
-  let paths = []
+  let paths = [];
   for (const benchmarkPath of benchmarkPaths) {
     if (fs.isDirectorySync(benchmarkPath)) {
-      paths = paths.concat(glob.sync(path.join(benchmarkPath, '**', '*.bench.js')))
+      paths = paths.concat(
+        glob.sync(path.join(benchmarkPath, '**', '*.bench.js'))
+      );
     } else {
-      paths.push(benchmarkPath)
+      paths.push(benchmarkPath);
     }
   }
 
   while (paths.length > 0) {
-    const benchmark = require(paths.shift())({test})
-    let results
+    const benchmark = require(paths.shift())({ test });
+    let results;
     if (benchmark instanceof Promise) {
-      results = await benchmark
+      results = await benchmark;
     } else {
-      results = benchmark
+      results = benchmark;
     }
 
-    const dataByBenchmarkName = {}
-    for (const {name, duration, x} of results) {
-      dataByBenchmarkName[name] = dataByBenchmarkName[name] || {points: []}
-      dataByBenchmarkName[name].points.push({x, y: duration})
+    const dataByBenchmarkName = {};
+    for (const { name, duration, x } of results) {
+      dataByBenchmarkName[name] = dataByBenchmarkName[name] || { points: [] };
+      dataByBenchmarkName[name].points.push({ x, y: duration });
     }
 
-    const benchmarkContainer = document.createElement('div')
-    document.body.appendChild(benchmarkContainer)
+    const benchmarkContainer = document.createElement('div');
+    document.body.appendChild(benchmarkContainer);
     for (const key in dataByBenchmarkName) {
-      const data = dataByBenchmarkName[key]
+      const data = dataByBenchmarkName[key];
       if (data.points.length > 1) {
-        const canvas = document.createElement('canvas')
-        benchmarkContainer.appendChild(canvas)
+        const canvas = document.createElement('canvas');
+        benchmarkContainer.appendChild(canvas);
         // eslint-disable-next-line no-new
         new Chart(canvas, {
           type: 'line',
           data: {
-            datasets: [{label: key, fill: false, data: data.points}]
+            datasets: [{ label: key, fill: false, data: data.points }]
           },
           options: {
             showLines: false,
-            scales: {xAxes: [{type: 'linear', position: 'bottom'}]}
+            scales: { xAxes: [{ type: 'linear', position: 'bottom' }] }
           }
-        })
+        });
 
-        const textualOutput = `${key}:\n\n` + data.points.map((p) => `${p.x}\t${p.y}`).join('\n')
-        console.log(textualOutput)
+        const textualOutput =
+          `${key}:\n\n` + data.points.map(p => `${p.x}\t${p.y}`).join('\n');
+        console.log(textualOutput);
       } else {
-        const title = document.createElement('h2')
-        title.textContent = key
-        benchmarkContainer.appendChild(title)
-        const duration = document.createElement('p')
-        duration.textContent = `${data.points[0].y}ms`
-        benchmarkContainer.appendChild(duration)
+        const title = document.createElement('h2');
+        title.textContent = key;
+        benchmarkContainer.appendChild(title);
+        const duration = document.createElement('p');
+        duration.textContent = `${data.points[0].y}ms`;
+        benchmarkContainer.appendChild(duration);
 
-        const textualOutput = `${key}: ${data.points[0].y}`
-        console.log(textualOutput)
+        const textualOutput = `${key}: ${data.points[0].y}`;
+        console.log(textualOutput);
       }
 
-      await global.atom.reset()
+      await global.atom.reset();
     }
   }
 
-  return 0
-}
+  return 0;
+};
