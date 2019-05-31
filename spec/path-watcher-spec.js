@@ -8,9 +8,9 @@ import { promisify } from 'util';
 import { CompositeDisposable } from 'event-kit';
 import { watchPath, stopAllWatchers } from '../src/path-watcher';
 
-import watcher from '@atom/watcher'
+import watcher from '@atom/watcher';
 
-temp.track()
+temp.track();
 
 const writeFile = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
@@ -53,18 +53,18 @@ describe('watchPath', function() {
     });
   }
 
-  describe('watchPath()', function () {
+  describe('watchPath()', function() {
     afterEach(async () => {
       await watcher.configure({
         jsLog: watcher.DISABLE,
         mainLog: watcher.DISABLE,
         workerLog: watcher.DISABLE,
         pollingLog: watcher.DISABLE
-      })
-    })
+      });
+    });
 
-    it('resolves the returned promise when the watcher begins listening', async function () {
-      const rootDir = await tempMkdir('atom-fsmanager-test-')
+    it('resolves the returned promise when the watcher begins listening', async function() {
+      const rootDir = await tempMkdir('atom-fsmanager-test-');
 
       const watcher = await watchPath(rootDir, {}, () => {});
       expect(watcher.constructor.name).toBe('PathWatcher');
@@ -101,18 +101,18 @@ describe('watchPath', function() {
       expect(watcher1.native).not.toBe(native0);
     });
 
-    it('reuses an existing native watcher on a parent directory and filters events', async function () {
+    it('reuses an existing native watcher on a parent directory and filters events', async function() {
       await watcher.configure({
         jsLog: 'path-watcher-0.js.log',
         mainLog: 'path-watcher-0.main.log',
         workerLog: 'path-watcher-0.worker.log',
         pollingLog: 'path-watcher-0.poll.log'
-      })
+      });
 
-      const rootDir = await tempMkdir('atom-fsmanager-test-').then(realpath)
-      const rootFile = path.join(rootDir, 'rootfile.txt')
-      const subDir = path.join(rootDir, 'subdir')
-      const subFile = path.join(subDir, 'subfile.txt')
+      const rootDir = await tempMkdir('atom-fsmanager-test-').then(realpath);
+      const rootFile = path.join(rootDir, 'rootfile.txt');
+      const subDir = path.join(rootDir, 'subdir');
+      const subFile = path.join(subDir, 'subfile.txt');
 
       await mkdir(subDir);
 
@@ -135,15 +135,15 @@ describe('watchPath', function() {
       await nextRootEvent;
     });
 
-    it('adopts existing child watchers and filters events appropriately to them', async function () {
+    it('adopts existing child watchers and filters events appropriately to them', async function() {
       await watcher.configure({
         jsLog: 'path-watcher-1.js.log',
         mainLog: 'path-watcher-1.main.log',
         workerLog: 'path-watcher-1.worker.log',
         pollingLog: 'path-watcher-1.poll.log'
-      })
+      });
 
-      const parentDir = await tempMkdir('atom-fsmanager-test-').then(realpath)
+      const parentDir = await tempMkdir('atom-fsmanager-test-').then(realpath);
 
       // Create the directory tree
       const rootFile = path.join(parentDir, 'rootfile.txt');

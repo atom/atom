@@ -4,7 +4,7 @@ const temp = require('temp').track();
 const dedent = require('dedent');
 const ConfigFile = require('../src/config-file');
 
-const watcher = require('@atom/watcher')
+const watcher = require('@atom/watcher');
 
 describe('ConfigFile', () => {
   let filePath, configFile, subscription;
@@ -43,8 +43,8 @@ describe('ConfigFile', () => {
         mainLog: 'config-file-0.main.log',
         workerLog: 'config-file-0.worker.log',
         pollingLog: 'config-file-0.poll.log'
-      })
-    })
+      });
+    });
 
     afterEach(async () => {
       await watcher.configure({
@@ -52,8 +52,8 @@ describe('ConfigFile', () => {
         mainLog: watcher.DISABLE,
         workerLog: watcher.DISABLE,
         pollingLog: watcher.DISABLE
-      })
-    })
+      });
+    });
 
     it('notifies onDidChange observers with the data', async () => {
       configFile = new ConfigFile(filePath);
@@ -91,8 +91,8 @@ describe('ConfigFile', () => {
         mainLog: 'config-file-0.main.log',
         workerLog: 'config-file-0.worker.log',
         pollingLog: 'config-file-0.poll.log'
-      })
-    })
+      });
+    });
 
     afterEach(async () => {
       await watcher.configure({
@@ -100,8 +100,8 @@ describe('ConfigFile', () => {
         mainLog: watcher.DISABLE,
         workerLog: watcher.DISABLE,
         pollingLog: watcher.DISABLE
-      })
-    })
+      });
+    });
 
     it('notifies onDidError observers', async () => {
       configFile = new ConfigFile(filePath);

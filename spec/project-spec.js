@@ -1,12 +1,12 @@
-const temp = require('temp').track()
-const TextBuffer = require('text-buffer')
-const Project = require('../src/project')
-const fs = require('fs-plus')
-const path = require('path')
-const { Directory } = require('pathwatcher')
-const GitRepository = require('../src/git-repository')
+const temp = require('temp').track();
+const TextBuffer = require('text-buffer');
+const Project = require('../src/project');
+const fs = require('fs-plus');
+const path = require('path');
+const { Directory } = require('pathwatcher');
+const GitRepository = require('../src/git-repository');
 
-const watcher = require('@atom/watcher')
+const watcher = require('@atom/watcher');
 
 describe('Project', () => {
   beforeEach(() => {
@@ -608,10 +608,10 @@ describe('Project', () => {
     });
 
     it('uses the custom onDidChangeFiles as the watcher if available', () => {
-      const remotePath = 'ssh://another-directory:8080/does-exist'
-      atom.project.setPaths([remotePath])
+      const remotePath = 'ssh://another-directory:8080/does-exist';
+      atom.project.setPaths([remotePath]);
 
-      waitsForPromise(() => atom.project.getWatcherPromise(remotePath))
+      waitsForPromise(() => atom.project.getWatcherPromise(remotePath));
 
       runs(() => {
         expect(onDidChangeFilesCallback).not.toBeNull();
@@ -1060,8 +1060,8 @@ describe('Project', () => {
         mainLog: watcher.DISABLE,
         workerLog: watcher.DISABLE,
         pollingLog: watcher.DISABLE
-      })
-    })
+      });
+    });
 
     const waitForEvents = paths => {
       const remaining = new Set(paths.map(p => fs.realpathSync(p)));
@@ -1094,17 +1094,17 @@ describe('Project', () => {
         mainLog: 'project-0.main.log',
         workerLog: 'project-0.worker.log',
         pollingLog: 'project-0.poll.log'
-      })
+      });
 
-      const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'))
-      const fileOne = path.join(dirOne, 'file-one.txt')
-      const fileTwo = path.join(dirOne, 'file-two.txt')
-      const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'))
-      const fileThree = path.join(dirTwo, 'file-three.txt')
+      const dirOne = fs.realpathSync(temp.mkdirSync('atom-spec-project-one'));
+      const fileOne = path.join(dirOne, 'file-one.txt');
+      const fileTwo = path.join(dirOne, 'file-two.txt');
+      const dirTwo = fs.realpathSync(temp.mkdirSync('atom-spec-project-two'));
+      const fileThree = path.join(dirTwo, 'file-three.txt');
 
-      atom.project.setPaths([dirOne])
+      atom.project.setPaths([dirOne]);
 
-      waitsForPromise(() => atom.project.getWatcherPromise(dirOne))
+      waitsForPromise(() => atom.project.getWatcherPromise(dirOne));
 
       runs(() => {
         expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined);
@@ -1117,10 +1117,10 @@ describe('Project', () => {
       waitsForPromise(() => waitForEvents([fileOne, fileTwo]));
 
       runs(() => {
-        expect(events.some(event => event.path === fileThree)).toBeFalsy()
-      })
-    })
-  })
+        expect(events.some(event => event.path === fileThree)).toBeFalsy();
+      });
+    });
+  });
 
   describe('.onDidAddBuffer()', () => {
     it('invokes the callback with added text buffers', () => {
