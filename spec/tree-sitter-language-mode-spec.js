@@ -143,7 +143,7 @@ describe('TreeSitterLanguageMode', () => {
         languageMode.tree.rootNode
           .descendantForPosition(Point(1, 2), Point(1, 6))
           .toString()
-      ).toBe('(declaration (primitive_type) (identifier) (MISSING))')
+      ).toBe('(declaration (primitive_type) (identifier) (MISSING ";"))')
 
       expectTokensToEqual(editor, [
         [
@@ -414,7 +414,7 @@ describe('TreeSitterLanguageMode', () => {
         const languageMode = new TreeSitterLanguageMode({
           buffer,
           grammar,
-          syncOperationLimit: 0
+          syncTimeoutMicros: 0
         })
         buffer.setLanguageMode(languageMode)
         await nextHighlightingUpdate(languageMode)
@@ -507,6 +507,7 @@ describe('TreeSitterLanguageMode', () => {
           scopeName: 'javascript',
           parser: 'tree-sitter-javascript',
           scopes: {
+            comment: 'comment',
             property_identifier: 'property',
             'call_expression > identifier': 'function',
             template_string: 'string',
@@ -766,6 +767,62 @@ describe('TreeSitterLanguageMode', () => {
         ])
       })
 
+      it('terminates comment token at the end of an injection, so that the next injection is NOT a continuation of the comment', async () => {
+        const ejsGrammar = new TreeSitterGrammar(
+          atom.grammars,
+          ejsGrammarPath,
+          {
+            id: 'ejs',
+            parser: 'tree-sitter-embedded-template',
+            scopes: {
+              '"<%"': 'directive',
+              '"%>"': 'directive'
+            },
+            injectionPoints: [
+              {
+                type: 'template',
+                language (node) { return 'javascript' },
+                content (node) { return node.descendantsOfType('code') },
+                newlinesBetween: true
+              },
+              {
+                type: 'template',
+                language (node) { return 'html' },
+                content (node) { return node.descendantsOfType('content') }
+              }
+            ]
+          }
+        )
+
+        atom.grammars.addGrammar(jsGrammar)
+        atom.grammars.addGrammar(htmlGrammar)
+
+        buffer.setText('<% // js comment %>\n<% b() %>')
+        const languageMode = new TreeSitterLanguageMode({
+          buffer,
+          grammar: ejsGrammar,
+          grammars: atom.grammars
+        })
+        buffer.setLanguageMode(languageMode)
+
+        expectTokensToEqual(editor, [
+          [
+            { text: '<%', scopes: ['directive'] },
+            { text: ' ', scopes: [] },
+            { text: '// js comment ', scopes: ['comment'] },
+            { text: '%>', scopes: ['directive'] },
+            { text: '', scopes: ['html'] }
+          ],
+          [
+            { text: '<%', scopes: ['directive'] },
+            { text: ' ', scopes: [] },
+            { text: 'b', scopes: ['function'] },
+            { text: '() ', scopes: [] },
+            { text: '%>', scopes: ['directive'] }
+          ]
+        ])
+      })
+
       it('notifies onDidTokenize listeners the first time all syntax highlighting is done', async () => {
         const promise = new Promise(resolve => {
           editor.onDidTokenize(event => {
@@ -797,7 +854,7 @@ describe('TreeSitterLanguageMode', () => {
           buffer,
           grammar: htmlGrammar,
           grammars: atom.grammars,
-          syncOperationLimit: 0
+          syncTimeoutMicros: 0
         })
         buffer.setLanguageMode(languageMode)
 
@@ -827,7 +884,7 @@ describe('TreeSitterLanguageMode', () => {
       )
       atom.grammars.loadGrammarSync(jsGrammarPath)
       atom.grammars.assignLanguageMode(buffer, 'source.js')
-      buffer.getLanguageMode().syncOperationLimit = 0
+      buffer.getLanguageMode().syncTimeoutMicros = 0
 
       const initialSeed = Date.now()
       for (let i = 0, trialCount = 10; i < trialCount; i++) {

@@ -14,7 +14,11 @@ describe('TextEditorRegistry', function () {
       assert: atom.assert,
       config: atom.config,
       grammarRegistry: atom.grammars,
-      packageManager: { deferredActivationHooks: null }
+      packageManager: {
+        getActivatePromise() {
+          return initialPackageActivation
+        }
+      }
     })
 
     editor = new TextEditor({ autoHeight: false })
@@ -112,32 +116,22 @@ describe('TextEditorRegistry', function () {
     })
 
     it('does not update the editor before the initial packages have loaded', async function () {
-      let didActivateInitialPackagesCallback
-
-      registry = new TextEditorRegistry({
-        assert: atom.assert,
-        config: atom.config,
-        grammarRegistry: atom.grammars,
-        packageManager: {
-          deferredActivationHooks: [],
-
-          onDidActivateInitialPackages (callback) {
-            didActivateInitialPackagesCallback = callback
-          }
-        }
+      let resolveActivatePromise
+      initialPackageActivation = new Promise(resolve => {
+        resolveActivatePromise = resolve
       })
 
       atom.config.set('core.fileEncoding', 'utf16le')
 
       registry.maintainConfig(editor)
-      await initialPackageActivation
+      await Promise.resolve()
       expect(editor.getEncoding()).toBe('utf8')
 
       atom.config.set('core.fileEncoding', 'utf16be')
-      await initialPackageActivation
+      await Promise.resolve()
       expect(editor.getEncoding()).toBe('utf8')
 
-      didActivateInitialPackagesCallback()
+      resolveActivatePromise()
       await initialPackageActivation
       expect(editor.getEncoding()).toBe('utf16be')
     })

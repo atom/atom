@@ -6,7 +6,7 @@ trigger:
 resources:
   containers:
   - container: atom-linux-ci
-    image: daviwil/atom-linux-ci:latest
+    image: atomeditor/atom-linux-ci:latest
 
 jobs:
 
@@ -21,7 +21,7 @@ jobs:
   - script: node script\vsts\get-release-version.js
     name: Version
 
-# Import OS-specific build definitions
+# Import OS-specific build definitions.
 - template: platforms/windows.yml
 - template: platforms/macos.yml
 - template: platforms/linux.yml
@@ -62,19 +62,17 @@ jobs:
       downloadType: 'specific'
     displayName: Download Release Artifacts
 
-  # NOTE: This has been disabled until one final issue has been resolved
-  #       around setting the SHA on GitHub releases.
-  # - script: |
-  #     node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
-  #   env:
-  #     GITHUB_TOKEN: $(GITHUB_TOKEN)
-  #     ATOM_RELEASE_VERSION: $(ReleaseVersion)
-  #     ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-  #     ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-  #     ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-  #     PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
-  #   displayName: Create Draft Release
-  #   condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+  - script: |
+      node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+      PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+    displayName: Create Draft Release
+    condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
 
   - script: |
       node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"

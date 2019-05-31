@@ -6,6 +6,7 @@ const StorageFolder = require('../storage-folder')
 const Config = require('../config')
 const ConfigFile = require('../config-file')
 const FileRecoveryService = require('./file-recovery-service')
+const StartupTime = require('../startup-time')
 const ipcHelpers = require('../ipc-helpers')
 const {BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell, screen} = require('electron')
 const {CompositeDisposable, Disposable} = require('event-kit')
@@ -15,6 +16,7 @@ const path = require('path')
 const os = require('os')
 const net = require('net')
 const url = require('url')
+const {promisify} = require('util')
 const {EventEmitter} = require('events')
 const _ = require('underscore-plus')
 let FindParentDir = null
@@ -75,10 +77,13 @@ const getExistingSocketSecret = (atomVersion) => {
   return fs.readFileSync(socketSecretPath, 'utf8')
 }
 
-const createSocketSecret = (atomVersion) => {
-  const socketSecret = crypto.randomBytes(16).toString('hex')
+const getRandomBytes = promisify(crypto.randomBytes)
+const writeFile = promisify(fs.writeFile)
 
-  fs.writeFileSync(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
+const createSocketSecret = async (atomVersion) => {
+  const socketSecret = (await getRandomBytes(16)).toString('hex')
+
+  await writeFile(getSocketSecretPath(atomVersion), socketSecret, {encoding: 'utf8', mode: 0o600})
 
   return socketSecret
 }
@@ -86,7 +91,15 @@ const createSocketSecret = (atomVersion) => {
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options)
 
-  const initVector = crypto.randomBytes(16)
+  // Even if the following IV is not cryptographically secure, there's a really good chance
+  // it's going to be unique between executions which is the requirement for GCM.
+  // We're not using `crypto.randomBytes()` because in electron v2, that API is really slow
+  // on Windows machines, which affects the startup time of Atom.
+  // TodoElectronIssue: Once we upgrade to electron v3 we can use `crypto.randomBytes()`
+  const initVectorHash = crypto.createHash('sha1')
+  initVectorHash.update(Date.now() + '')
+  initVectorHash.update(Math.random() + '')
+  const initVector = initVectorHash.digest()
 
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector)
 
@@ -123,6 +136,8 @@ module.exports =
 class AtomApplication extends EventEmitter {
   // Public: The entry point into the Atom application.
   static open (options) {
+    StartupTime.addMarker('main-process:atom-application:open')
+
     const socketSecret = getExistingSocketSecret(options.version)
     const socketPath = getSocketPath(socketSecret)
     const createApplication = options.createApplication || (async () => {
@@ -160,6 +175,8 @@ class AtomApplication extends EventEmitter {
   }
 
   constructor (options) {
+    StartupTime.addMarker('main-process:atom-application:constructor:start')
+
     super()
     this.quitting = false
     this.quittingForUpdate = false
@@ -173,12 +190,6 @@ class AtomApplication extends EventEmitter {
     this.logFile = options.logFile
     this.userDataDir = options.userDataDir
     this._killProcess = options.killProcess || process.kill.bind(process)
-
-    if (!options.test && !options.benchmark && !options.benchmarkTest) {
-      this.socketSecret = createSocketSecret(this.version)
-      this.socketPath = getSocketPath(this.socketSecret)
-    }
-
     this.waitSessionsByWindow = new Map()
     this.windowStack = new WindowStack()
 
@@ -208,6 +219,8 @@ class AtomApplication extends EventEmitter {
 
     this.disposable = new CompositeDisposable()
     this.handleEvents()
+
+    StartupTime.addMarker('main-process:atom-application:constructor:end')
   }
 
   // This stuff was previously done in the constructor, but we want to be able to construct this object
@@ -215,6 +228,8 @@ class AtomApplication extends EventEmitter {
   // of these various sub-objects into the constructor, but you'll need to remove the side-effects they
   // perform during their construction, adding an initialize method that you call here.
   async initialize (options) {
+    StartupTime.addMarker('main-process:atom-application:initialize:start')
+
     global.atomApplication = this
 
     // DEPRECATED: This can be removed at some point (added in 1.13)
@@ -227,11 +242,21 @@ class AtomApplication extends EventEmitter {
     this.applicationMenu = new ApplicationMenu(this.version, this.autoUpdateManager)
     this.atomProtocolHandler = new AtomProtocolHandler(this.resourcePath, this.safeMode)
 
-    this.listenForArgumentsFromNewProcess()
+    // Don't await for the following method to avoid delaying the opening of a new window.
+    // (we await it just after opening it).
+    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
+    // which is really slow on Windows machines.
+    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
+    const socketServerPromise = this.listenForArgumentsFromNewProcess(options)
+
     this.setupDockMenu()
 
     const result = await this.launch(options)
     this.autoUpdateManager.initialize()
+    await socketServerPromise
+
+    StartupTime.addMarker('main-process:atom-application:initialize:end')
+
     return result
   }
 
@@ -246,10 +271,17 @@ class AtomApplication extends EventEmitter {
 
   async launch (options) {
     if (!this.configFilePromise) {
-      this.configFilePromise = this.configFile.watch()
-      this.disposable.add(await this.configFilePromise)
-      this.config.onDidChange('core.titleBar', () => this.promptForRestart())
-      this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
+      this.configFilePromise = this.configFile.watch().then(disposable => {
+        this.disposable.add(disposable)
+        this.config.onDidChange('core.titleBar', () => this.promptForRestart())
+        this.config.onDidChange('core.colorProfile', () => this.promptForRestart())
+      })
+
+      // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
+      // in Windows machines, which affects directly the startup time.
+      if (process.platform !== 'win32') {
+        await this.configFilePromise
+      }
     }
 
     let optionsForWindowsToOpen = []
@@ -421,10 +453,15 @@ class AtomApplication extends EventEmitter {
   // You can run the atom command multiple times, but after the first launch
   // the other launches will just pass their information to this server and then
   // close immediately.
-  listenForArgumentsFromNewProcess () {
-    if (!this.socketPath) return
+  async listenForArgumentsFromNewProcess (options) {
+    if (!options.test && !options.benchmark && !options.benchmarkTest) {
+      this.socketSecretPromise = createSocketSecret(this.version)
+      this.socketSecret = await this.socketSecretPromise
+      this.socketPath = getSocketPath(this.socketSecret)
+    }
 
-    this.deleteSocketFile()
+    await this.deleteSocketFile()
+
     const server = net.createServer(connection => {
       let data = ''
       connection.on('data', chunk => { data += chunk })
@@ -445,8 +482,13 @@ class AtomApplication extends EventEmitter {
     })
   }
 
-  deleteSocketFile () {
-    if (process.platform === 'win32' || !this.socketPath) return
+  async deleteSocketFile () {
+    if (process.platform === 'win32') return
+
+    if (!this.socketSecretPromise) {
+      return
+    }
+    await this.socketSecretPromise
 
     if (fs.existsSync(this.socketPath)) {
       try {
@@ -460,10 +502,11 @@ class AtomApplication extends EventEmitter {
     }
   }
 
-  deleteSocketSecretFile () {
-    if (!this.socketSecret) {
+  async deleteSocketSecretFile () {
+    if (!this.socketSecretPromise) {
       return
     }
+    await this.socketSecretPromise
 
     const socketSecretPath = getSocketSecretPath(this.version)
 
@@ -564,7 +607,11 @@ class AtomApplication extends EventEmitter {
 
     this.configFile.onDidError(message => {
       const window = this.focusedWindow() || this.getLastFocusedWindow()
-      if (window) window.didFailToReadUserSettings(message)
+      if (window) {
+        window.didFailToReadUserSettings(message)
+      } else {
+        console.error(message)
+      }
     })
 
     this.disposable.add(ipcHelpers.on(app, 'before-quit', async event => {
@@ -595,8 +642,11 @@ class AtomApplication extends EventEmitter {
 
     this.disposable.add(ipcHelpers.on(app, 'will-quit', () => {
       this.killAllProcesses()
-      this.deleteSocketFile()
-      this.deleteSocketSecretFile()
+
+      return Promise.all([
+        this.deleteSocketFile(),
+        this.deleteSocketSecretFile()
+      ])
     }))
 
     // Triggered by the 'open-file' event from Electron:
@@ -637,10 +687,14 @@ class AtomApplication extends EventEmitter {
 
     // A request from the associated render process to open a set of paths using the standard window location logic.
     // Used for application:reopen-project.
-    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (_event, options) => {
+    this.disposable.add(ipcHelpers.on(ipcMain, 'open', (event, options) => {
       if (options) {
         if (typeof options.pathsToOpen === 'string') {
           options.pathsToOpen = [options.pathsToOpen]
+        }
+
+        if (options.here) {
+          options.window = this.atomWindowForEvent(event)
         }
 
         if (options.pathsToOpen && options.pathsToOpen.length > 0) {
@@ -649,7 +703,7 @@ class AtomApplication extends EventEmitter {
           this.addWindow(this.createWindow(options))
         }
       } else {
-        this.promptForPathToOpen('all', {window})
+        this.promptForPathToOpen('all', {})
       }
     }))
 
@@ -1045,6 +1099,7 @@ class AtomApplication extends EventEmitter {
     let openedWindow
     if (existingWindow) {
       openedWindow = existingWindow
+      StartupTime.addMarker('main-process:atom-application:open-in-existing')
       openedWindow.openLocations(locationsToOpen)
       if (openedWindow.isMinimized()) {
         openedWindow.restore()
@@ -1069,6 +1124,7 @@ class AtomApplication extends EventEmitter {
       if (!resourcePath) resourcePath = this.resourcePath
       if (!windowDimensions) windowDimensions = this.getDimensionsForNewWindow()
 
+      StartupTime.addMarker('main-process:atom-application:create-window')
       openedWindow = this.createWindow({
         locationsToOpen,
         windowInitializationScript,
@@ -1174,7 +1230,7 @@ class AtomApplication extends EventEmitter {
     } else if (state.version === undefined) {
       // Atom <= 1.36.0
       // Schema: [{initialPaths: ['<root-dir>', ...]}, ...]
-      return await Promise.all(
+      return Promise.all(
         state.map(async windowState => {
           // Classify each window's initialPaths as directories or non-directories
           const classifiedPaths = await Promise.all(
