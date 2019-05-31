@@ -155,15 +155,17 @@ module.exports = class GrammarRegistry {
   // * `grammar` The desired {Grammar}.
   //
   // Returns a {Boolean} that indicates whether the assignment was sucessful
-  assignGrammar (buffer, grammar) {
-    if (!grammar) return false
-    if (buffer.getBuffer) buffer = buffer.getBuffer()
-    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null)
-    this.grammarScoresByBuffer.set(buffer, null)
+  assignGrammar(buffer, grammar) {
+    if (!grammar) return false;
+    if (buffer.getBuffer) buffer = buffer.getBuffer();
+    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null);
+    this.grammarScoresByBuffer.set(buffer, null);
     if (grammar !== buffer.getLanguageMode().grammar) {
-      buffer.setLanguageMode(this.languageModeForGrammarAndBuffer(grammar, buffer))
+      buffer.setLanguageMode(
+        this.languageModeForGrammarAndBuffer(grammar, buffer)
+      );
     }
-    return true
+    return true;
   }
 
   // Extended: Get the `languageId` that has been explicitly assigned to
@@ -347,8 +349,8 @@ module.exports = class GrammarRegistry {
     }
   }
 
-  forEachGrammar (callback) {
-    this.grammars.forEach(callback)
+  forEachGrammar(callback) {
+    this.grammars.forEach(callback);
   }
 
   grammarForId(languageId) {
@@ -495,8 +497,8 @@ module.exports = class GrammarRegistry {
     return this.textmateRegistry.nullGrammar;
   }
 
-  get grammars () {
-    return this.getGrammars()
+  get grammars() {
+    return this.getGrammars();
   }
 
   decodeTokens() {
@@ -620,12 +622,14 @@ module.exports = class GrammarRegistry {
   //     [Tree-sitter](https://github.blog/2018-10-31-atoms-new-parsing-system/) grammars
   //
   // Returns a non-empty {Array} of {Grammar} instances.
-  getGrammars (params) {
-    let tmGrammars = this.textmateRegistry.getGrammars()
-    if (params && params.textMateOnly) return tmGrammars
+  getGrammars(params) {
+    let tmGrammars = this.textmateRegistry.getGrammars();
+    if (params && params.textMateOnly) return tmGrammars;
 
-    const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(g => g.scopeName)
-    return tmGrammars.concat(tsGrammars) // NullGrammar is expected to be first
+    const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(
+      g => g.scopeName
+    );
+    return tmGrammars.concat(tsGrammars); // NullGrammar is expected to be first
   }
 
   scopeForId(id) {
