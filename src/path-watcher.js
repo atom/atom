@@ -55,7 +55,7 @@ class NativeWatcher {
   }
 
   doStart () {
-    return Promise.reject('doStart() not overridden')
+    return Promise.reject(new Error('doStart() not overridden'))
   }
 
   // Private: Return true if the underlying watcher is actively listening for filesystem events.

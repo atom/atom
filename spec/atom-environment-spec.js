@@ -66,7 +66,7 @@ describe('AtomEnvironment', () => {
 
     it('will open the dev tools when an error is triggered', async () => {
       try {
-        a + 1 // eslint-disable-line no-undef
+        a + 1 // eslint-disable-line no-undef, no-unused-expressions
       } catch (e) {
         window.onerror(e.toString(), 'abc', 2, 3, e)
       }
@@ -87,7 +87,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onWillThrowError(willThrowSpy)
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           error = e
           window.onerror(e.toString(), 'abc', 2, 3, e)
@@ -108,7 +108,7 @@ describe('AtomEnvironment', () => {
         atom.onWillThrowError(willThrowSpy)
 
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           window.onerror(e.toString(), 'abc', 2, 3, e)
         }
@@ -127,7 +127,7 @@ describe('AtomEnvironment', () => {
         let error = null
         atom.onDidThrowError(didThrowSpy)
         try {
-          a + 1 // eslint-disable-line no-undef
+          a + 1 // eslint-disable-line no-undef, no-unused-expressions
         } catch (e) {
           error = e
           window.onerror(e.toString(), 'abc', 2, 3, e)
@@ -545,7 +545,7 @@ describe('AtomEnvironment', () => {
           spyOn(atom, 'confirm').andReturn(1)
           spyOn(atom.project, 'addPath')
           spyOn(atom.workspace, 'open')
-          const state = Symbol()
+          const state = Symbol('state')
           atom.attemptRestoreProjectStateForPaths(
             state,
             [__dirname],
@@ -560,7 +560,7 @@ describe('AtomEnvironment', () => {
         spyOn(atom, 'confirm').andCallFake((options, callback) => callback(1))
         spyOn(atom.project, 'addPath')
         spyOn(atom.workspace, 'open')
-        const state = Symbol()
+        const state = Symbol('state')
 
         atom.attemptRestoreProjectStateForPaths(
           state,
@@ -579,7 +579,7 @@ describe('AtomEnvironment', () => {
         jasmine.useRealClock()
         spyOn(atom, 'confirm').andCallFake((options, callback) => callback(0))
         spyOn(atom, 'open')
-        const state = Symbol()
+        const state = Symbol('state')
 
         atom.attemptRestoreProjectStateForPaths(
           state,
