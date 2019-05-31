@@ -8,9 +8,13 @@ const atomPaths = require('../atom-paths')
 const fs = require('fs')
 const CSON = require('season')
 const Config = require('../config')
+const StartupTime = require('../startup-time')
+
+StartupTime.setStartTime()
 
 module.exports = function start (resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime
+  StartupTime.addMarker('main-process:start')
 
   process.on('uncaughtException', function (error = {}) {
     if (error.message != null) {
@@ -85,7 +89,9 @@ module.exports = function start (resourcePath, devResourcePath, startTime) {
     app.setPath('userData', temp.mkdirSync('atom-test-data'))
   }
 
+  StartupTime.addMarker('main-process:electron-onready:start')
   app.on('ready', function () {
+    StartupTime.addMarker('main-process:electron-onready:end')
     app.removeListener('open-file', addPathToOpen)
     app.removeListener('open-url', addUrlToOpen)
     const AtomApplication = require(path.join(args.resourcePath, 'src', 'main-process', 'atom-application'))

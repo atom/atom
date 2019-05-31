@@ -1,7 +1,6 @@
-const {Disposable} = require('atom')
+const { Disposable } = require('atom')
 
-module.exports =
-class GrammarStatusView {
+module.exports = class GrammarStatusView {
   constructor (statusBar) {
     this.statusBar = statusBar
     this.element = document.createElement('grammar-selector-status')
@@ -10,15 +9,25 @@ class GrammarStatusView {
     this.grammarLink.classList.add('inline-block')
     this.element.appendChild(this.grammarLink)
 
-    this.activeItemSubscription = atom.workspace.observeActiveTextEditor(this.subscribeToActiveTextEditor.bind(this))
+    this.activeItemSubscription = atom.workspace.observeActiveTextEditor(
+      this.subscribeToActiveTextEditor.bind(this)
+    )
 
-    this.configSubscription = atom.config.observe('grammar-selector.showOnRightSideOfStatusBar', this.attach.bind(this))
-    const clickHandler = (event) => {
+    this.configSubscription = atom.config.observe(
+      'grammar-selector.showOnRightSideOfStatusBar',
+      this.attach.bind(this)
+    )
+    const clickHandler = event => {
       event.preventDefault()
-      atom.commands.dispatch(atom.views.getView(atom.workspace.getActiveTextEditor()), 'grammar-selector:show')
+      atom.commands.dispatch(
+        atom.views.getView(atom.workspace.getActiveTextEditor()),
+        'grammar-selector:show'
+      )
     }
     this.element.addEventListener('click', clickHandler)
-    this.clickSubscription = new Disposable(() => { this.element.removeEventListener('click', clickHandler) })
+    this.clickSubscription = new Disposable(() => {
+      this.element.removeEventListener('click', clickHandler)
+    })
   }
 
   attach () {
@@ -27,8 +36,8 @@ class GrammarStatusView {
     }
 
     this.tile = atom.config.get('grammar-selector.showOnRightSideOfStatusBar')
-      ? this.statusBar.addRightTile({item: this.element, priority: 10})
-      : this.statusBar.addLeftTile({item: this.element, priority: 10})
+      ? this.statusBar.addRightTile({ item: this.element, priority: 10 })
+      : this.statusBar.addLeftTile({ item: this.element, priority: 10 })
   }
 
   destroy () {
@@ -65,7 +74,9 @@ class GrammarStatusView {
 
     const editor = atom.workspace.getActiveTextEditor()
     if (editor) {
-      this.grammarSubscription = editor.onDidChangeGrammar(this.updateGrammarText.bind(this))
+      this.grammarSubscription = editor.onDidChangeGrammar(
+        this.updateGrammarText.bind(this)
+      )
     }
     this.updateGrammarText()
   }
@@ -92,7 +103,9 @@ class GrammarStatusView {
         this.grammarLink.dataset.grammar = grammarName
         this.element.style.display = ''
 
-        this.tooltip = atom.tooltips.add(this.element, {title: `File uses the ${grammarName} grammar`})
+        this.tooltip = atom.tooltips.add(this.element, {
+          title: `File uses the ${grammarName} grammar`
+        })
       } else {
         this.element.style.display = 'none'
       }

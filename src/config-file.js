@@ -1,7 +1,7 @@
 const _ = require('underscore-plus')
 const fs = require('fs-plus')
 const dedent = require('dedent')
-const {Emitter} = require('event-kit')
+const {Disposable, Emitter} = require('event-kit')
 const {watchPath} = require('./path-watcher')
 const CSON = require('season')
 const Path = require('path')
@@ -74,10 +74,9 @@ class ConfigFile {
     await this.reload()
 
     try {
-      const watcher = await watchPath(this.path, {}, events => {
+      return await watchPath(this.path, {}, events => {
         if (events.some(event => EVENT_TYPES.has(event.action))) this.requestLoad()
       })
-      return watcher
     } catch (error) {
       this.emitter.emit('did-error', dedent `
         Unable to watch path: \`${Path.basename(this.path)}\`.
@@ -88,6 +87,7 @@ class ConfigFile {
 
         [watches]:https://github.com/atom/atom/blob/master/docs/build-instructions/linux.md#typeerror-unable-to-watch-path\
       `)
+      return new Disposable()
     }
   }
 

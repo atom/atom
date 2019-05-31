@@ -1,4 +1,4 @@
-const {CompositeDisposable} = require('atom')
+const { CompositeDisposable } = require('atom')
 const semver = require('semver')
 const UpdateManager = require('./update-manager')
 const About = require('./about')
@@ -16,20 +16,33 @@ module.exports = {
     this.createModel()
 
     let availableVersion = window.localStorage.getItem(AvailableUpdateVersion)
-    if (atom.getReleaseChannel() === 'dev' || (availableVersion && semver.lte(availableVersion, atom.getVersion()))) {
+    if (
+      atom.getReleaseChannel() === 'dev' ||
+      (availableVersion && semver.lte(availableVersion, atom.getVersion()))
+    ) {
       this.clearUpdateState()
     }
 
-    this.subscriptions.add(updateManager.onDidChange(() => {
-      if (updateManager.getState() === UpdateManager.State.UpdateAvailableToInstall) {
-        window.localStorage.setItem(AvailableUpdateVersion, updateManager.getAvailableVersion())
-        this.showStatusBarIfNeeded()
-      }
-    }))
+    this.subscriptions.add(
+      updateManager.onDidChange(() => {
+        if (
+          updateManager.getState() ===
+          UpdateManager.State.UpdateAvailableToInstall
+        ) {
+          window.localStorage.setItem(
+            AvailableUpdateVersion,
+            updateManager.getAvailableVersion()
+          )
+          this.showStatusBarIfNeeded()
+        }
+      })
+    )
 
-    this.subscriptions.add(atom.commands.add('atom-workspace', 'about:clear-update-state', () => {
-      this.clearUpdateState()
-    }))
+    this.subscriptions.add(
+      atom.commands.add('atom-workspace', 'about:clear-update-state', () => {
+        this.clearUpdateState()
+      })
+    )
   },
 
   deactivate () {

@@ -12,12 +12,17 @@ describe('GitDiff package', () => {
     const otherPath = temp.mkdirSync('some-other-path-')
 
     fs.copySync(path.join(__dirname, 'fixtures', 'working-dir'), projectPath)
-    fs.moveSync(path.join(projectPath, 'git.git'), path.join(projectPath, '.git'))
+    fs.moveSync(
+      path.join(projectPath, 'git.git'),
+      path.join(projectPath, '.git')
+    )
     atom.project.setPaths([otherPath, projectPath])
 
     jasmine.attachToDOM(atom.workspace.getElement())
 
-    waitsForPromise(() => atom.workspace.open(path.join(projectPath, 'sample.js')))
+    waitsForPromise(() =>
+      atom.workspace.open(path.join(projectPath, 'sample.js'))
+    )
 
     runs(() => {
       editor = atom.workspace.getActiveTextEditor()
@@ -29,11 +34,18 @@ describe('GitDiff package', () => {
 
   describe('when the editor has modified lines', () => {
     it('highlights the modified lines', () => {
-      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(0)
+      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(
+        0
+      )
       editor.insertText('a')
       advanceClock(editor.getBuffer().stoppedChangingDelay)
-      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(1)
-      expect(editorElement.querySelector('.git-line-modified')).toHaveData('buffer-row', 0)
+      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(
+        1
+      )
+      expect(editorElement.querySelector('.git-line-modified')).toHaveData(
+        'buffer-row',
+        0
+      )
     })
   })
 
@@ -45,7 +57,10 @@ describe('GitDiff package', () => {
       editor.insertText('a')
       advanceClock(editor.getBuffer().stoppedChangingDelay)
       expect(editorElement.querySelectorAll('.git-line-added').length).toBe(1)
-      expect(editorElement.querySelector('.git-line-added')).toHaveData('buffer-row', 1)
+      expect(editorElement.querySelector('.git-line-added')).toHaveData(
+        'buffer-row',
+        1
+      )
     })
   })
 
@@ -56,7 +71,10 @@ describe('GitDiff package', () => {
       editor.deleteLine()
       advanceClock(editor.getBuffer().stoppedChangingDelay)
       expect(editorElement.querySelectorAll('.git-line-removed').length).toBe(1)
-      expect(editorElement.querySelector('.git-line-removed')).toHaveData('buffer-row', 4)
+      expect(editorElement.querySelector('.git-line-removed')).toHaveData(
+        'buffer-row',
+        4
+      )
     })
   })
 
@@ -66,29 +84,44 @@ describe('GitDiff package', () => {
       editor.setCursorBufferPosition([0, 0])
       editor.deleteLine()
       advanceClock(editor.getBuffer().stoppedChangingDelay)
-      expect(editorElement.querySelectorAll('.git-previous-line-removed').length).toBe(1)
-      expect(editorElement.querySelector('.git-previous-line-removed')).toHaveData('buffer-row', 0)
+      expect(
+        editorElement.querySelectorAll('.git-previous-line-removed').length
+      ).toBe(1)
+      expect(
+        editorElement.querySelector('.git-previous-line-removed')
+      ).toHaveData('buffer-row', 0)
     })
   })
 
   describe('when a modified line is restored to the HEAD version contents', () => {
     it('removes the diff highlight', () => {
-      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(0)
+      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(
+        0
+      )
       editor.insertText('a')
       advanceClock(editor.getBuffer().stoppedChangingDelay)
-      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(1)
+      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(
+        1
+      )
       editor.backspace()
       advanceClock(editor.getBuffer().stoppedChangingDelay)
-      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(0)
+      expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(
+        0
+      )
     })
   })
 
   describe('when a modified file is opened', () => {
     it('highlights the changed lines', () => {
-      fs.writeFileSync(path.join(projectPath, 'sample.txt'), 'Some different text.')
+      fs.writeFileSync(
+        path.join(projectPath, 'sample.txt'),
+        'Some different text.'
+      )
       let nextTick = false
 
-      waitsForPromise(() => atom.workspace.open(path.join(projectPath, 'sample.txt')))
+      waitsForPromise(() =>
+        atom.workspace.open(path.join(projectPath, 'sample.txt'))
+      )
 
       runs(() => {
         editorElement = atom.workspace.getActiveTextEditor().getElement()
@@ -101,8 +134,13 @@ describe('GitDiff package', () => {
       waitsFor(() => nextTick)
 
       runs(() => {
-        expect(editorElement.querySelectorAll('.git-line-modified').length).toBe(1)
-        expect(editorElement.querySelector('.git-line-modified')).toHaveData('buffer-row', 0)
+        expect(
+          editorElement.querySelectorAll('.git-line-modified').length
+        ).toBe(1)
+        expect(editorElement.querySelector('.git-line-modified')).toHaveData(
+          'buffer-row',
+          0
+        )
       })
     })
   })
@@ -148,7 +186,9 @@ describe('GitDiff package', () => {
     })
 
     describe('when the wrapAroundOnMoveToDiff config option is false', () => {
-      beforeEach(() => atom.config.set('git-diff.wrapAroundOnMoveToDiff', false))
+      beforeEach(() =>
+        atom.config.set('git-diff.wrapAroundOnMoveToDiff', false)
+      )
 
       it('does not wraps around to the first/last diff in the file', () => {
         editor.insertText('a')
@@ -177,19 +217,28 @@ describe('GitDiff package', () => {
       atom.config.set('git-diff.showIconsInEditorGutter', true)
     })
 
-    it('the gutter has a git-diff-icon class', () => expect(editorElement.querySelector('.gutter')).toHaveClass('git-diff-icon'))
+    it('the gutter has a git-diff-icon class', () =>
+      expect(editorElement.querySelector('.gutter')).toHaveClass(
+        'git-diff-icon'
+      ))
 
     it('keeps the git-diff-icon class when editor.showLineNumbers is toggled', () => {
       atom.config.set('editor.showLineNumbers', false)
-      expect(editorElement.querySelector('.gutter')).not.toHaveClass('git-diff-icon')
+      expect(editorElement.querySelector('.gutter')).not.toHaveClass(
+        'git-diff-icon'
+      )
 
       atom.config.set('editor.showLineNumbers', true)
-      expect(editorElement.querySelector('.gutter')).toHaveClass('git-diff-icon')
+      expect(editorElement.querySelector('.gutter')).toHaveClass(
+        'git-diff-icon'
+      )
     })
 
     it('removes the git-diff-icon class when the showIconsInEditorGutter config option set to false', () => {
       atom.config.set('git-diff.showIconsInEditorGutter', false)
-      expect(editorElement.querySelector('.gutter')).not.toHaveClass('git-diff-icon')
+      expect(editorElement.querySelector('.gutter')).not.toHaveClass(
+        'git-diff-icon'
+      )
     })
   })
 })
