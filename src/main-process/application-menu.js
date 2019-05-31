@@ -222,19 +222,20 @@ module.exports = class ApplicationMenu {
     template.forEach(item => {
       if (item.metadata == null) item.metadata = {};
       if (item.command) {
-        const keystrokes = keystrokesByCommand[item.command]
+        const keystrokes = keystrokesByCommand[item.command];
         if (keystrokes && keystrokes.length > 0) {
-          const keystroke = keystrokes[0]
+          const keystroke = keystrokes[0];
           // Electron does not support multi-keystroke accelerators. Therefore,
           // when the command maps to a multi-stroke key binding, show the
           // keystrokes next to the item's label.
           if (keystroke.includes(' ')) {
-            item.label += ` [${_.humanizeKeystroke(keystroke)}]`
+            item.label += ` [${_.humanizeKeystroke(keystroke)}]`;
           } else {
-            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystroke)
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystroke);
           }
         }
-        item.click = () => global.atomApplication.sendCommand(item.command, item.commandDetail)
+        item.click = () =>
+          global.atomApplication.sendCommand(item.command, item.commandDetail);
         if (!/^application:/.test(item.command)) {
           item.metadata.windowSpecific = true;
         }
@@ -244,4 +245,4 @@ module.exports = class ApplicationMenu {
     });
     return template;
   }
-}
+};
