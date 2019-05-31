@@ -2,6 +2,7 @@ const {BrowserWindow, app, dialog, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
 const {EventEmitter} = require('events')
+const StartupTime = require('../startup-time')
 
 const ICON_PATH = path.resolve(__dirname, '..', '..', 'resources', 'atom.png')
 
@@ -11,6 +12,8 @@ let nextId = 0
 module.exports =
 class AtomWindow extends EventEmitter {
   constructor (atomApplication, fileRecoveryService, settings = {}) {
+    StartupTime.addMarker('main-process:atom-window:start')
+
     super()
 
     this.id = nextId++
@@ -77,6 +80,22 @@ class AtomWindow extends EventEmitter {
     this.loadSettings.hasOpenFiles = locationsToOpen
       .some(location => location.pathToOpen && !location.isDirectory)
     this.loadSettings.initialProjectRoots = this.projectRoots
+
+    StartupTime.addMarker('main-process:atom-window:end')
+
+    // Expose the startup markers to the renderer process, so we can have unified
+    // measures about startup time between the main process and the renderer process.
+    Object.defineProperty(this.browserWindow, 'startupMarkers', {
+      get: () => {
+        // We only want to make the main process startup data available once,
+        // so if the window is refreshed or a new window is opened, the
+        // renderer process won't use it again.
+        const timingData = StartupTime.exportData()
+        StartupTime.deleteData()
+
+        return timingData
+      }
+    })
 
     // Only send to the first non-spec window created
     if (includeShellLoadTime && !this.isSpec) {

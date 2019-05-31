@@ -598,7 +598,7 @@ describe('AtomApplication', function () {
           assert.notStrictEqual(uw, w0)
           assert.strictEqual(
             uw.loadSettings.windowInitializationScript,
-            path.resolve(__dirname, '../../src/initialize-application-window.coffee')
+            path.resolve(__dirname, '../../src/initialize-application-window.js')
           )
 
           uw.emit('window:loaded')
@@ -820,6 +820,13 @@ describe('AtomApplication', function () {
       electron.ipcMain.emit('open', {}, {pathsToOpen: [scenario.convertRootPath('d')], here: true})
       await app.openPaths.lastCall.returnValue
       await scenario.assert('[a 1.md] [c,d _] [b _]')
+    })
+
+    it('"open" without any option open the prompt for selecting a path', async function () {
+      sinon.stub(app, 'atomWindowForEvent', () => w1)
+
+      electron.ipcMain.emit('open', {})
+      assert.strictEqual(app.promptForPath.lastCall.args[0], 'all')
     })
 
     it('"open-chosen-any" opens a file in the sending window', async function () {

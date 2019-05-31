@@ -949,7 +949,7 @@ class Pane {
       }
     })
 
-    return await saveDialogPromise
+    return saveDialogPromise
   }
 
   // Public: Save all items.

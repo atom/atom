@@ -1,5 +1,5 @@
 const {protocol} = require('electron')
-const fs = require('fs')
+const fs = require('fs-plus')
 const path = require('path')
 
 // Handles requests with 'atom' protocol.

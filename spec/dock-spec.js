@@ -1,8 +1,8 @@
 /** @babel */
 
-const Grim = require('grim')
-
 import etch from 'etch'
+
+const Grim = require('grim')
 
 const getNextUpdatePromise = () => etch.getScheduler().nextUpdatePromise
 
