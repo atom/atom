@@ -38,6 +38,8 @@ exports.respondTo = function (channel, callback) {
   return exports.on(ipcMain, channel, async (event, responseChannel, ...args) => {
     const browserWindow = BrowserWindow.fromWebContents(event.sender)
     const result = await callback(browserWindow, ...args)
-    event.sender.send(responseChannel, result)
+    if (!event.sender.isDestroyed()) {
+      event.sender.send(responseChannel, result)
+    }
   })
 }

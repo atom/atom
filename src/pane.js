@@ -393,7 +393,6 @@ class Pane {
 
   // Called by the view layer to indicate that the pane has gained focus.
   focus () {
-    this.focused = true
     return this.activate()
   }
 
@@ -950,7 +949,7 @@ class Pane {
       }
     })
 
-    return await saveDialogPromise
+    return saveDialogPromise
   }
 
   // Public: Save all items.
@@ -1011,6 +1010,8 @@ class Pane {
   // Public: Makes this pane the *active* pane, causing it to gain focus.
   activate () {
     if (this.isDestroyed()) throw new Error('Pane has been destroyed')
+    this.focused = true
+
     if (this.container) this.container.didActivatePane(this)
     this.emitter.emit('did-activate')
   }

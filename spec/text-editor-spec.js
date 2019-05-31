@@ -8424,6 +8424,66 @@ describe('TextEditor', () => {
         editor.toggleLineCommentsForBufferRows(0, 0)
         expect(editor.lineTextForBufferRow(0)).toBe('test')
       })
+
+      it('does not select the new delimiters', () => {
+        editor.setText('<!-- test -->')
+        let delimLength = '<!--'.length
+        let selection = editor.addSelectionForBufferRange([[0, delimLength], [0, delimLength]])
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(0)
+        }
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(delimLength + 1)
+        }
+
+        {
+          selection.setBufferRange([[0, delimLength], [0, delimLength + 1 + 'test'.length]])
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(0)
+          expect(range.end.column).toBe('test'.length)
+        }
+
+        {
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(delimLength + 1)
+          expect(range.end.column).toBe(delimLength + 1 + 'test'.length)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 4], [0, 4]])
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.isEmpty()).toBe(true)
+          expect(range.start.column).toBe(4 + delimLength + 1)
+        }
+
+        {
+          editor.setText('    test')
+          selection.setBufferRange([[0, 8], [0, 8]])
+          selection.selectToBeginningOfWord()
+          selection.toggleLineComments()
+
+          const range = selection.getBufferRange()
+          expect(range.start.column).toBe(4 + delimLength + 1)
+          expect(range.end.column).toBe(4 + delimLength + 1 + 4)
+        }
+      })
     })
 
     describe('less', () => {

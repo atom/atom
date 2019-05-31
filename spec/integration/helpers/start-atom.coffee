@@ -11,7 +11,6 @@ webdriverio = require '../../../script/node_modules/webdriverio'
 AtomPath = remote.process.argv[0]
 AtomLauncherPath = path.join(__dirname, "..", "helpers", "atom-launcher.sh")
 ChromedriverPath = path.resolve(__dirname, '..', '..', '..', 'script', 'node_modules', 'electron-chromedriver', 'bin', 'chromedriver')
-SocketPath = path.join(os.tmpdir(), "atom-integration-test-#{Date.now()}.sock")
 ChromedriverPort = 9515
 ChromedriverURLBase = "/wd/hub"
 ChromedriverStatusURL = "http://localhost:#{ChromedriverPort}#{ChromedriverURLBase}/status"
@@ -53,7 +52,6 @@ buildAtomClient = (args, env) ->
           "dev"
           "safe"
           "user-data-dir=#{userDataDir}"
-          "socket-path=#{SocketPath}"
         ])
 
   isRunning = false
@@ -111,16 +109,6 @@ buildAtomClient = (args, env) ->
             return done() unless newWindowHandle
             @window(newWindowHandle)
               .waitForExist('atom-workspace', 10000, done)
-
-    .addCommand "startAnotherAtom", (args, env, done) ->
-      @call ->
-        if isRunning
-          spawnSync(AtomPath, args.concat([
-            "--dev"
-            "--safe"
-            "--socket-path=#{SocketPath}"
-          ]), env: extend({}, process.env, env))
-        done()
 
     .addCommand "dispatchCommand", (command, done) ->
       @execute "atom.commands.dispatch(document.activeElement, '#{command}')"

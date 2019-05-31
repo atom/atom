@@ -51,7 +51,9 @@ function shouldGetEnvFromShell (env) {
     return false
   }
 
-  if (env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT || process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT) {
+  const disableSellingOut = env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT || process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+
+  if (disableSellingOut === 'true') {
     return false
   }
 

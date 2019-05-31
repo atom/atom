@@ -30,6 +30,10 @@ module.exports = function (packagedAppPath) {
         requiringModuleRelativePath.endsWith(path.join('node_modules/xregexp/xregexp-all.js')) ||
         (requiredModuleRelativePath.startsWith(path.join('..', 'src')) && requiredModuleRelativePath.endsWith('-element.js')) ||
         requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'dugite')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'yaml-front-matter')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'cheerio')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'markdown-preview', 'node_modules', 'marked')) ||
+        requiredModuleRelativePath.startsWith(path.join('..', 'node_modules', 'typescript-simple')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'coffee-script', 'lib', 'coffee-script', 'register.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'fs-extra', 'lib', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'graceful-fs', 'graceful-fs.js')) ||
@@ -37,12 +41,12 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'minimatch', 'minimatch.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'request', 'request.js')) ||
+        requiredModuleRelativePath.endsWith(path.join('node_modules', 'superstring', 'index.js')) ||
         requiredModuleRelativePath.endsWith(path.join('node_modules', 'temp', 'lib', 'temp.js')) ||
         requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
         requiredModuleRelativePath === path.join('..', 'src', 'electron-shims.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'atom-keymap', 'lib', 'command-event.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'babel-core', 'index.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'cached-run-in-this-context', 'lib', 'main.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'debug', 'node.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'git-utils', 'src', 'git.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'glob', 'glob.js') ||
@@ -52,7 +56,6 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'less', 'lib', 'less-node', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'lodash.isequal', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'node-fetch', 'lib', 'fetch-error.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'superstring', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'oniguruma', 'src', 'oniguruma.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'resolve', 'lib', 'core.js') ||
@@ -64,7 +67,12 @@ module.exports = function (packagedAppPath) {
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tmp', 'lib', 'tmp.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'tree-sitter', 'index.js') ||
         requiredModuleRelativePath === path.join('..', 'node_modules', 'yauzl', 'index.js') ||
-        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js')
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', '@atom', 'fuzzy-native', 'lib', 'main.js') ||
+        requiredModuleRelativePath === path.join('..', 'node_modules', 'vscode-ripgrep', 'lib', 'index.js') ||
+        // The startup-time script is used by both the renderer and the main process and having it in the
+        // snapshot causes issues.
+        requiredModuleRelativePath === path.join('..', 'src', 'startup-time.js')
       )
     }
   }).then(({snapshotScript}) => {
@@ -97,22 +105,36 @@ module.exports = function (packagedAppPath) {
       {env: Object.assign({}, process.env, {ELECTRON_RUN_AS_NODE: 1})}
     )
 
-    const generatedStartupBlobPath = path.join(CONFIG.buildOutputPath, 'snapshot_blob.bin')
-    console.log(`Generating startup blob at "${generatedStartupBlobPath}"`)
-    childProcess.execFileSync(
-      path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'bin', 'mksnapshot'),
-      ['--no-use_ic', snapshotScriptPath, '--startup_blob', generatedStartupBlobPath]
+    console.log('Generating startup blob with mksnapshot')
+    childProcess.spawnSync(
+      process.execPath, [
+        path.join(CONFIG.repositoryRootPath, 'script', 'node_modules', 'electron-mksnapshot', 'mksnapshot.js'),
+        snapshotScriptPath,
+        '--output_dir',
+        CONFIG.buildOutputPath
+      ]
     )
 
     let startupBlobDestinationPath
     if (process.platform === 'darwin') {
-      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources/snapshot_blob.bin`
+      startupBlobDestinationPath = `${packagedAppPath}/Contents/Frameworks/Electron Framework.framework/Resources`
     } else {
-      startupBlobDestinationPath = path.join(packagedAppPath, 'snapshot_blob.bin')
+      startupBlobDestinationPath = packagedAppPath
     }
 
-    console.log(`Moving generated startup blob into "${startupBlobDestinationPath}"`)
-    fs.unlinkSync(startupBlobDestinationPath)
-    fs.renameSync(generatedStartupBlobPath, startupBlobDestinationPath)
+    const snapshotBinaries = ['v8_context_snapshot.bin', 'snapshot_blob.bin']
+    for (let snapshotBinary of snapshotBinaries) {
+      const destinationPath = path.join(startupBlobDestinationPath, snapshotBinary)
+      console.log(`Moving generated startup blob into "${destinationPath}"`)
+      try {
+        fs.unlinkSync(destinationPath)
+      } catch (err) {
+        // Doesn't matter if the file doesn't exist already
+        if (!err.code || err.code !== 'ENOENT') {
+          throw err
+        }
+      }
+      fs.renameSync(path.join(CONFIG.buildOutputPath, snapshotBinary), destinationPath)
+    }
   })
 }

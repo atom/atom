@@ -1239,6 +1239,29 @@ describe('Config', () => {
         expect(events[0]).toEqual({ oldValue: 2, newValue: 12 })
       })
     })
+
+    it('keeps all the global scope settings after overriding one', () => {
+      atom.config.resetUserSettings({
+        '*': {
+          foo: {
+            bar: 'baz',
+            int: 99
+          }
+        }
+      })
+
+      atom.config.set('foo.int', 50, { scopeSelector: '*' })
+
+      advanceClock(100)
+
+      expect(savedSettings[0]['*'].foo).toEqual({
+        bar: 'baz',
+        int: 50
+      })
+      expect(atom.config.get('foo.int', { scope: ['*'] })).toEqual(50)
+      expect(atom.config.get('foo.bar', { scope: ['*'] })).toEqual('baz')
+      expect(atom.config.get('foo.int')).toEqual(50)
+    })
   })
 
   describe('.pushAtKeyPath(keyPath, value)', () => {

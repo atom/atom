@@ -2021,6 +2021,17 @@ jasmine.Queue = function(env) {
   this.abort = false;
 };
 
+jasmine.Queue.prototype.clone = function() {
+  var queue = new jasmine.Queue(this.env);
+  queue.ensured = this.ensured.slice(0)
+  queue.blocks = this.blocks.slice(0)
+  queue.running = this.running;
+  queue.index = this.index;
+  queue.offset = this.offset;
+  queue.abort = this.abort;
+  return queue;
+}
+
 jasmine.Queue.prototype.addBefore = function(block, ensure) {
   if (ensure === jasmine.undefined) {
     ensure = false;
@@ -2269,7 +2280,11 @@ jasmine.Spec.prototype.addToQueue = function (block) {
  * @param {jasmine.ExpectationResult} result
  */
 jasmine.Spec.prototype.addMatcherResult = function(result) {
-  this.results_.addResult(result);
+  if (this.retries > 0 && !result.passed_) {
+    this.retry();
+  } else {
+    this.results_.addResult(result);
+  }
 };
 
 jasmine.Spec.prototype.expect = function(actual) {
@@ -2330,13 +2345,17 @@ jasmine.Spec.prototype.waitsFor = function(latchFunction, optional_timeoutMessag
   return this;
 };
 
-jasmine.Spec.prototype.fail = function (e) {
-  var expectationResult = new jasmine.ExpectationResult({
-    passed: false,
-    message: e ? jasmine.util.formatException(e) : 'Exception',
-    trace: { stack: e.stack }
-  });
-  this.results_.addResult(expectationResult);
+jasmine.Spec.prototype.fail = function (e, onComplete) {
+  if (this.retries > 0) {
+    this.retry()
+  } else {
+    var expectationResult = new jasmine.ExpectationResult({
+      passed: false,
+      message: e ? jasmine.util.formatException(e) : 'Exception',
+      trace: { stack: e.stack }
+    });
+    this.results_.addResult(expectationResult);
+  }
 };
 
 jasmine.Spec.prototype.getMatchersClass_ = function() {
@@ -2453,6 +2472,19 @@ jasmine.Spec.prototype.removeAllSpies = function() {
   }
   this.spies_ = [];
 };
+
+jasmine.Spec.prototype.RETRY_FLAKY_TEST_AND_SLOW_DOWN_THE_BUILD = function() {
+  if (this.retries == null) {
+    this.retries = 5;
+    this.originalQueue = this.queue.clone();
+  }
+}
+
+jasmine.Spec.prototype.retry = function() {
+  this.retries--;
+  this.queue = this.originalQueue.clone();
+  this.suite.queue.insertNext(this)
+}
 
 /**
  * Internal representation of a Jasmine suite.
