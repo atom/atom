@@ -51,24 +51,46 @@ module.exports = class WindowEventHandler {
       );
     }
 
-    this.subscriptions.add(this.atomEnvironment.commands.add(this.document, {
-      'core:focus-next': this.handleFocusNext,
-      'core:focus-previous': this.handleFocusPrevious
-    }))
+    this.subscriptions.add(
+      this.atomEnvironment.commands.add(this.document, {
+        'core:focus-next': this.handleFocusNext,
+        'core:focus-previous': this.handleFocusPrevious
+      })
+    );
 
-    this.addEventListener(this.window, 'beforeunload', this.handleWindowBeforeunload)
-    this.addEventListener(this.window, 'focus', this.handleWindowFocus)
-    this.addEventListener(this.window, 'blur', this.handleWindowBlur)
-    this.addEventListener(this.window, 'resize', this.handleWindowResize)
+    this.addEventListener(
+      this.window,
+      'beforeunload',
+      this.handleWindowBeforeunload
+    );
+    this.addEventListener(this.window, 'focus', this.handleWindowFocus);
+    this.addEventListener(this.window, 'blur', this.handleWindowBlur);
+    this.addEventListener(this.window, 'resize', this.handleWindowResize);
 
-    this.addEventListener(this.document, 'keyup', this.handleDocumentKeyEvent)
-    this.addEventListener(this.document, 'keydown', this.handleDocumentKeyEvent)
-    this.addEventListener(this.document, 'contextmenu', this.handleDocumentContextmenu)
-    this.subscriptions.add(listen(this.document, 'click', 'a', this.handleLinkClick))
-    this.subscriptions.add(listen(this.document, 'submit', 'form', this.handleFormSubmit))
+    this.addEventListener(this.document, 'keyup', this.handleDocumentKeyEvent);
+    this.addEventListener(
+      this.document,
+      'keydown',
+      this.handleDocumentKeyEvent
+    );
+    this.addEventListener(
+      this.document,
+      'contextmenu',
+      this.handleDocumentContextmenu
+    );
+    this.subscriptions.add(
+      listen(this.document, 'click', 'a', this.handleLinkClick)
+    );
+    this.subscriptions.add(
+      listen(this.document, 'submit', 'form', this.handleFormSubmit)
+    );
 
-    this.subscriptions.add(this.applicationDelegate.onDidEnterFullScreen(this.handleEnterFullScreen))
-    this.subscriptions.add(this.applicationDelegate.onDidLeaveFullScreen(this.handleLeaveFullScreen))
+    this.subscriptions.add(
+      this.applicationDelegate.onDidEnterFullScreen(this.handleEnterFullScreen)
+    );
+    this.subscriptions.add(
+      this.applicationDelegate.onDidLeaveFullScreen(this.handleLeaveFullScreen)
+    );
   }
 
   // Wire commands that should be handled by Chromium for elements with the
@@ -121,7 +143,7 @@ module.exports = class WindowEventHandler {
     event.stopImmediatePropagation();
   }
 
-  eachTabIndexedElement (callback) {
+  eachTabIndexedElement(callback) {
     for (let element of this.document.querySelectorAll('[tabindex]')) {
       if (element.disabled) {
         continue;

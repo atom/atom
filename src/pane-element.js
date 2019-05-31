@@ -53,24 +53,40 @@ class PaneElement extends HTMLElement {
       }
     };
     const handleDragOver = event => {
-      const items = Array.from(event.dataTransfer.items).filter(item => item.kind === 'file')
+      const items = Array.from(event.dataTransfer.items).filter(
+        item => item.kind === 'file'
+      );
       // TextEditors are only allowed in the center workspace, so make sure this pane is in the center
-      if (items.length > 0 && atom.workspace.getCenter().getPanes().includes(this.getModel())) {
-        event.preventDefault()
-        event.stopPropagation()
+      if (
+        items.length > 0 &&
+        atom.workspace
+          .getCenter()
+          .getPanes()
+          .includes(this.getModel())
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
       }
-    }
+    };
     const handleDrop = event => {
-      const items = Array.from(event.dataTransfer.items).filter(item => item.kind === 'file')
+      const items = Array.from(event.dataTransfer.items).filter(
+        item => item.kind === 'file'
+      );
       // TextEditors are only allowed in the center workspace, so make sure this pane is in the center
-      if (items.length > 0 && atom.workspace.getCenter().getPanes().includes(this.getModel())) {
-        event.preventDefault()
-        event.stopPropagation()
-        this.getModel().activate()
+      if (
+        items.length > 0 &&
+        atom.workspace
+          .getCenter()
+          .getPanes()
+          .includes(this.getModel())
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.getModel().activate();
 
-        const files = items.map(item => item.getAsFile())
-        const pathsToOpen = files.map(file => file.path)
-        this.applicationDelegate.open({pathsToOpen, here: true})
+        const files = items.map(item => item.getAsFile());
+        const pathsToOpen = files.map(file => file.path);
+        this.applicationDelegate.open({ pathsToOpen, here: true });
       }
     };
     this.addEventListener('focus', handleFocus, true);
