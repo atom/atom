@@ -1,10 +1,10 @@
-const {remote} = require('electron')
+const { remote } = require('electron');
 
-let windowLoadSettings = null
+let windowLoadSettings = null;
 
 module.exports = () => {
   if (!windowLoadSettings) {
-    windowLoadSettings = JSON.parse(remote.getCurrentWindow().loadSettingsJSON)
+    windowLoadSettings = JSON.parse(remote.getCurrentWindow().loadSettingsJSON);
   }
-  return windowLoadSettings
-}
+  return windowLoadSettings;
+};

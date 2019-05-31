@@ -1,30 +1,35 @@
-const _ = require('underscore-plus')
-const path = require('path')
-const fs = require('fs-plus')
-const Grim = require('grim')
-const dedent = require('dedent')
-const {CompositeDisposable, Disposable, Emitter} = require('event-kit')
-const TextBuffer = require('text-buffer')
-const {Point, Range} = TextBuffer
-const DecorationManager = require('./decoration-manager')
-const Cursor = require('./cursor')
-const Selection = require('./selection')
-const NullGrammar = require('./null-grammar')
-const TextMateLanguageMode = require('./text-mate-language-mode')
-const ScopeDescriptor = require('./scope-descriptor')
+const _ = require('underscore-plus');
+const path = require('path');
+const fs = require('fs-plus');
+const Grim = require('grim');
+const dedent = require('dedent');
+const { CompositeDisposable, Disposable, Emitter } = require('event-kit');
+const TextBuffer = require('text-buffer');
+const { Point, Range } = TextBuffer;
+const DecorationManager = require('./decoration-manager');
+const Cursor = require('./cursor');
+const Selection = require('./selection');
+const NullGrammar = require('./null-grammar');
+const TextMateLanguageMode = require('./text-mate-language-mode');
+const ScopeDescriptor = require('./scope-descriptor');
 
-const TextMateScopeSelector = require('first-mate').ScopeSelector
-const GutterContainer = require('./gutter-container')
-let TextEditorComponent = null
-let TextEditorElement = null
-const {isDoubleWidthCharacter, isHalfWidthCharacter, isKoreanCharacter, isWrapBoundary} = require('./text-utils')
+const TextMateScopeSelector = require('first-mate').ScopeSelector;
+const GutterContainer = require('./gutter-container');
+let TextEditorComponent = null;
+let TextEditorElement = null;
+const {
+  isDoubleWidthCharacter,
+  isHalfWidthCharacter,
+  isKoreanCharacter,
+  isWrapBoundary
+} = require('./text-utils');
 
-const SERIALIZATION_VERSION = 1
-const NON_WHITESPACE_REGEXP = /\S/
-const ZERO_WIDTH_NBSP = '\ufeff'
-let nextId = 0
+const SERIALIZATION_VERSION = 1;
+const NON_WHITESPACE_REGEXP = /\S/;
+const ZERO_WIDTH_NBSP = '\ufeff';
+let nextId = 0;
 
-const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
+const DEFAULT_NON_WORD_CHARACTERS = '/\\()"\':,.;<>~!@#$%^&*|+=[]{}`?-…';
 
 // Essential: This class represents all essential editing state for a single
 // {TextBuffer}, including cursor and selection positions, folds, and soft wraps.
@@ -65,484 +70,555 @@ const DEFAULT_NON_WORD_CHARACTERS = "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…"
 //
 // **When in doubt, just default to buffer coordinates**, then experiment with
 // soft wraps and folds to ensure your code interacts with them correctly.
-module.exports =
-class TextEditor {
-  static setClipboard (clipboard) {
-    this.clipboard = clipboard
+module.exports = class TextEditor {
+  static setClipboard(clipboard) {
+    this.clipboard = clipboard;
   }
 
-  static setScheduler (scheduler) {
-    if (TextEditorComponent == null) { TextEditorComponent = require('./text-editor-component') }
-    return TextEditorComponent.setScheduler(scheduler)
+  static setScheduler(scheduler) {
+    if (TextEditorComponent == null) {
+      TextEditorComponent = require('./text-editor-component');
+    }
+    return TextEditorComponent.setScheduler(scheduler);
   }
 
-  static didUpdateStyles () {
-    if (TextEditorComponent == null) { TextEditorComponent = require('./text-editor-component') }
-    return TextEditorComponent.didUpdateStyles()
+  static didUpdateStyles() {
+    if (TextEditorComponent == null) {
+      TextEditorComponent = require('./text-editor-component');
+    }
+    return TextEditorComponent.didUpdateStyles();
   }
 
-  static didUpdateScrollbarStyles () {
-    if (TextEditorComponent == null) { TextEditorComponent = require('./text-editor-component') }
-    return TextEditorComponent.didUpdateScrollbarStyles()
+  static didUpdateScrollbarStyles() {
+    if (TextEditorComponent == null) {
+      TextEditorComponent = require('./text-editor-component');
+    }
+    return TextEditorComponent.didUpdateScrollbarStyles();
   }
 
-  static viewForItem (item) { return item.element || item }
+  static viewForItem(item) {
+    return item.element || item;
+  }
 
-  static deserialize (state, atomEnvironment) {
-    if (state.version !== SERIALIZATION_VERSION) return null
+  static deserialize(state, atomEnvironment) {
+    if (state.version !== SERIALIZATION_VERSION) return null;
 
     let bufferId = state.tokenizedBuffer
       ? state.tokenizedBuffer.bufferId
-      : state.bufferId
+      : state.bufferId;
 
     try {
-      state.buffer = atomEnvironment.project.bufferForIdSync(bufferId)
-      if (!state.buffer) return null
+      state.buffer = atomEnvironment.project.bufferForIdSync(bufferId);
+      if (!state.buffer) return null;
     } catch (error) {
       if (error.syscall === 'read') {
-        return // Error reading the file, don't deserialize an editor for it
+        return; // Error reading the file, don't deserialize an editor for it
       } else {
-        throw error
+        throw error;
       }
     }
 
-    state.assert = atomEnvironment.assert.bind(atomEnvironment)
+    state.assert = atomEnvironment.assert.bind(atomEnvironment);
 
     // Semantics of the readOnly flag have changed since its introduction.
     // Only respect readOnly2, which has been set with the current readOnly semantics.
-    delete state.readOnly
-    state.readOnly = state.readOnly2
-    delete state.readOnly2
+    delete state.readOnly;
+    state.readOnly = state.readOnly2;
+    delete state.readOnly2;
 
-    const editor = new TextEditor(state)
+    const editor = new TextEditor(state);
     if (state.registered) {
-      const disposable = atomEnvironment.textEditors.add(editor)
-      editor.onDidDestroy(() => disposable.dispose())
+      const disposable = atomEnvironment.textEditors.add(editor);
+      editor.onDidDestroy(() => disposable.dispose());
     }
-    return editor
+    return editor;
   }
 
-  constructor (params = {}) {
+  constructor(params = {}) {
     if (this.constructor.clipboard == null) {
-      throw new Error('Must call TextEditor.setClipboard at least once before creating TextEditor instances')
+      throw new Error(
+        'Must call TextEditor.setClipboard at least once before creating TextEditor instances'
+      );
     }
 
-    this.id = params.id != null ? params.id : nextId++
+    this.id = params.id != null ? params.id : nextId++;
     if (this.id >= nextId) {
       // Ensure that new editors get unique ids:
-      nextId = this.id + 1
+      nextId = this.id + 1;
     }
-    this.initialScrollTopRow = params.initialScrollTopRow
-    this.initialScrollLeftColumn = params.initialScrollLeftColumn
-    this.decorationManager = params.decorationManager
-    this.selectionsMarkerLayer = params.selectionsMarkerLayer
-    this.mini = (params.mini != null) ? params.mini : false
-    this.keyboardInputEnabled = (params.keyboardInputEnabled != null) ? params.keyboardInputEnabled : true
-    this.readOnly = (params.readOnly != null) ? params.readOnly : false
-    this.placeholderText = params.placeholderText
-    this.showLineNumbers = params.showLineNumbers
-    this.assert = params.assert || (condition => condition)
-    this.showInvisibles = (params.showInvisibles != null) ? params.showInvisibles : true
-    this.autoHeight = params.autoHeight
-    this.autoWidth = params.autoWidth
-    this.scrollPastEnd = (params.scrollPastEnd != null) ? params.scrollPastEnd : false
-    this.scrollSensitivity = (params.scrollSensitivity != null) ? params.scrollSensitivity : 40
-    this.editorWidthInChars = params.editorWidthInChars
-    this.invisibles = params.invisibles
-    this.showIndentGuide = params.showIndentGuide
-    this.softWrapped = params.softWrapped
-    this.softWrapAtPreferredLineLength = params.softWrapAtPreferredLineLength
-    this.preferredLineLength = params.preferredLineLength
-    this.showCursorOnSelection = (params.showCursorOnSelection != null) ? params.showCursorOnSelection : true
-    this.maxScreenLineLength = params.maxScreenLineLength
-    this.softTabs = (params.softTabs != null) ? params.softTabs : true
-    this.autoIndent = (params.autoIndent != null) ? params.autoIndent : true
-    this.autoIndentOnPaste = (params.autoIndentOnPaste != null) ? params.autoIndentOnPaste : true
-    this.undoGroupingInterval = (params.undoGroupingInterval != null) ? params.undoGroupingInterval : 300
-    this.softWrapped = (params.softWrapped != null) ? params.softWrapped : false
-    this.softWrapAtPreferredLineLength = (params.softWrapAtPreferredLineLength != null) ? params.softWrapAtPreferredLineLength : false
-    this.preferredLineLength = (params.preferredLineLength != null) ? params.preferredLineLength : 80
-    this.maxScreenLineLength = (params.maxScreenLineLength != null) ? params.maxScreenLineLength : 500
-    this.showLineNumbers = (params.showLineNumbers != null) ? params.showLineNumbers : true
-    const {tabLength = 2} = params
+    this.initialScrollTopRow = params.initialScrollTopRow;
+    this.initialScrollLeftColumn = params.initialScrollLeftColumn;
+    this.decorationManager = params.decorationManager;
+    this.selectionsMarkerLayer = params.selectionsMarkerLayer;
+    this.mini = params.mini != null ? params.mini : false;
+    this.keyboardInputEnabled =
+      params.keyboardInputEnabled != null ? params.keyboardInputEnabled : true;
+    this.readOnly = params.readOnly != null ? params.readOnly : false;
+    this.placeholderText = params.placeholderText;
+    this.showLineNumbers = params.showLineNumbers;
+    this.assert = params.assert || (condition => condition);
+    this.showInvisibles =
+      params.showInvisibles != null ? params.showInvisibles : true;
+    this.autoHeight = params.autoHeight;
+    this.autoWidth = params.autoWidth;
+    this.scrollPastEnd =
+      params.scrollPastEnd != null ? params.scrollPastEnd : false;
+    this.scrollSensitivity =
+      params.scrollSensitivity != null ? params.scrollSensitivity : 40;
+    this.editorWidthInChars = params.editorWidthInChars;
+    this.invisibles = params.invisibles;
+    this.showIndentGuide = params.showIndentGuide;
+    this.softWrapped = params.softWrapped;
+    this.softWrapAtPreferredLineLength = params.softWrapAtPreferredLineLength;
+    this.preferredLineLength = params.preferredLineLength;
+    this.showCursorOnSelection =
+      params.showCursorOnSelection != null
+        ? params.showCursorOnSelection
+        : true;
+    this.maxScreenLineLength = params.maxScreenLineLength;
+    this.softTabs = params.softTabs != null ? params.softTabs : true;
+    this.autoIndent = params.autoIndent != null ? params.autoIndent : true;
+    this.autoIndentOnPaste =
+      params.autoIndentOnPaste != null ? params.autoIndentOnPaste : true;
+    this.undoGroupingInterval =
+      params.undoGroupingInterval != null ? params.undoGroupingInterval : 300;
+    this.softWrapped = params.softWrapped != null ? params.softWrapped : false;
+    this.softWrapAtPreferredLineLength =
+      params.softWrapAtPreferredLineLength != null
+        ? params.softWrapAtPreferredLineLength
+        : false;
+    this.preferredLineLength =
+      params.preferredLineLength != null ? params.preferredLineLength : 80;
+    this.maxScreenLineLength =
+      params.maxScreenLineLength != null ? params.maxScreenLineLength : 500;
+    this.showLineNumbers =
+      params.showLineNumbers != null ? params.showLineNumbers : true;
+    const { tabLength = 2 } = params;
 
-    this.alive = true
-    this.doBackgroundWork = this.doBackgroundWork.bind(this)
-    this.serializationVersion = 1
-    this.suppressSelectionMerging = false
-    this.selectionFlashDuration = 500
-    this.gutterContainer = null
-    this.verticalScrollMargin = 2
-    this.horizontalScrollMargin = 6
-    this.lineHeightInPixels = null
-    this.defaultCharWidth = null
-    this.height = null
-    this.width = null
-    this.registered = false
-    this.atomicSoftTabs = true
-    this.emitter = new Emitter()
-    this.disposables = new CompositeDisposable()
-    this.cursors = []
-    this.cursorsByMarkerId = new Map()
-    this.selections = []
-    this.hasTerminatedPendingState = false
+    this.alive = true;
+    this.doBackgroundWork = this.doBackgroundWork.bind(this);
+    this.serializationVersion = 1;
+    this.suppressSelectionMerging = false;
+    this.selectionFlashDuration = 500;
+    this.gutterContainer = null;
+    this.verticalScrollMargin = 2;
+    this.horizontalScrollMargin = 6;
+    this.lineHeightInPixels = null;
+    this.defaultCharWidth = null;
+    this.height = null;
+    this.width = null;
+    this.registered = false;
+    this.atomicSoftTabs = true;
+    this.emitter = new Emitter();
+    this.disposables = new CompositeDisposable();
+    this.cursors = [];
+    this.cursorsByMarkerId = new Map();
+    this.selections = [];
+    this.hasTerminatedPendingState = false;
 
     if (params.buffer) {
-      this.buffer = params.buffer
+      this.buffer = params.buffer;
     } else {
       this.buffer = new TextBuffer({
-        shouldDestroyOnFileDelete () { return atom.config.get('core.closeDeletedFileTabs') }
-      })
-      this.buffer.setLanguageMode(new TextMateLanguageMode({buffer: this.buffer, config: atom.config}))
+        shouldDestroyOnFileDelete() {
+          return atom.config.get('core.closeDeletedFileTabs');
+        }
+      });
+      this.buffer.setLanguageMode(
+        new TextMateLanguageMode({ buffer: this.buffer, config: atom.config })
+      );
     }
 
-    const languageMode = this.buffer.getLanguageMode()
-    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
-      this.emitter.emit('did-tokenize')
-    })
-    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
+    const languageMode = this.buffer.getLanguageMode();
+    this.languageModeSubscription =
+      languageMode.onDidTokenize &&
+      languageMode.onDidTokenize(() => {
+        this.emitter.emit('did-tokenize');
+      });
+    if (this.languageModeSubscription)
+      this.disposables.add(this.languageModeSubscription);
 
     if (params.displayLayer) {
-      this.displayLayer = params.displayLayer
+      this.displayLayer = params.displayLayer;
     } else {
       const displayLayerParams = {
         invisibles: this.getInvisibles(),
         softWrapColumn: this.getSoftWrapColumn(),
         showIndentGuides: this.doesShowIndentGuide(),
-        atomicSoftTabs: params.atomicSoftTabs != null ? params.atomicSoftTabs : true,
+        atomicSoftTabs:
+          params.atomicSoftTabs != null ? params.atomicSoftTabs : true,
         tabLength,
         ratioForCharacter: this.ratioForCharacter.bind(this),
         isWrapBoundary,
         foldCharacter: ZERO_WIDTH_NBSP,
-        softWrapHangingIndent: params.softWrapHangingIndentLength != null ? params.softWrapHangingIndentLength : 0
-      }
+        softWrapHangingIndent:
+          params.softWrapHangingIndentLength != null
+            ? params.softWrapHangingIndentLength
+            : 0
+      };
 
-      this.displayLayer = this.buffer.getDisplayLayer(params.displayLayerId)
+      this.displayLayer = this.buffer.getDisplayLayer(params.displayLayerId);
       if (this.displayLayer) {
-        this.displayLayer.reset(displayLayerParams)
-        this.selectionsMarkerLayer = this.displayLayer.getMarkerLayer(params.selectionsMarkerLayerId)
+        this.displayLayer.reset(displayLayerParams);
+        this.selectionsMarkerLayer = this.displayLayer.getMarkerLayer(
+          params.selectionsMarkerLayerId
+        );
       } else {
-        this.displayLayer = this.buffer.addDisplayLayer(displayLayerParams)
+        this.displayLayer = this.buffer.addDisplayLayer(displayLayerParams);
       }
     }
 
-    this.backgroundWorkHandle = requestIdleCallback(this.doBackgroundWork)
-    this.disposables.add(new Disposable(() => {
-      if (this.backgroundWorkHandle != null) return cancelIdleCallback(this.backgroundWorkHandle)
-    }))
+    this.backgroundWorkHandle = requestIdleCallback(this.doBackgroundWork);
+    this.disposables.add(
+      new Disposable(() => {
+        if (this.backgroundWorkHandle != null)
+          return cancelIdleCallback(this.backgroundWorkHandle);
+      })
+    );
 
-    this.defaultMarkerLayer = this.displayLayer.addMarkerLayer()
+    this.defaultMarkerLayer = this.displayLayer.addMarkerLayer();
     if (!this.selectionsMarkerLayer) {
-      this.selectionsMarkerLayer = this.addMarkerLayer({maintainHistory: true, persistent: true, role: 'selections'})
+      this.selectionsMarkerLayer = this.addMarkerLayer({
+        maintainHistory: true,
+        persistent: true,
+        role: 'selections'
+      });
     }
 
-    this.decorationManager = new DecorationManager(this)
-    this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'cursor'})
-    if (!this.isMini()) this.decorateCursorLine()
+    this.decorationManager = new DecorationManager(this);
+    this.decorateMarkerLayer(this.selectionsMarkerLayer, { type: 'cursor' });
+    if (!this.isMini()) this.decorateCursorLine();
 
-    this.decorateMarkerLayer(this.displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
+    this.decorateMarkerLayer(this.displayLayer.foldsMarkerLayer, {
+      type: 'line-number',
+      class: 'folded'
+    });
 
     for (let marker of this.selectionsMarkerLayer.getMarkers()) {
-      this.addSelection(marker)
+      this.addSelection(marker);
     }
 
-    this.subscribeToBuffer()
-    this.subscribeToDisplayLayer()
+    this.subscribeToBuffer();
+    this.subscribeToDisplayLayer();
 
     if (this.cursors.length === 0 && !params.suppressCursorCreation) {
-      const initialLine = Math.max(parseInt(params.initialLine) || 0, 0)
-      const initialColumn = Math.max(parseInt(params.initialColumn) || 0, 0)
-      this.addCursorAtBufferPosition([initialLine, initialColumn])
+      const initialLine = Math.max(parseInt(params.initialLine) || 0, 0);
+      const initialColumn = Math.max(parseInt(params.initialColumn) || 0, 0);
+      this.addCursorAtBufferPosition([initialLine, initialColumn]);
     }
 
-    this.gutterContainer = new GutterContainer(this)
+    this.gutterContainer = new GutterContainer(this);
     this.lineNumberGutter = this.gutterContainer.addGutter({
       name: 'line-number',
       type: 'line-number',
       priority: 0,
       visible: params.lineNumberGutterVisible
-    })
+    });
   }
 
-  get element () {
-    return this.getElement()
+  get element() {
+    return this.getElement();
   }
 
-  get editorElement () {
+  get editorElement() {
     Grim.deprecate(dedent`\
       \`TextEditor.prototype.editorElement\` has always been private, but now
       it is gone. Reading the \`editorElement\` property still returns a
       reference to the editor element but this field will be removed in a
       later version of Atom, so we recommend using the \`element\` property instead.\
-    `)
+    `);
 
-    return this.getElement()
+    return this.getElement();
   }
 
-  get displayBuffer () {
+  get displayBuffer() {
     Grim.deprecate(dedent`\
       \`TextEditor.prototype.displayBuffer\` has always been private, but now
       it is gone. Reading the \`displayBuffer\` property now returns a reference
       to the containing \`TextEditor\`, which now provides *some* of the API of
       the defunct \`DisplayBuffer\` class.\
-    `)
-    return this
+    `);
+    return this;
   }
 
-  get languageMode () { return this.buffer.getLanguageMode() }
-  get tokenizedBuffer () { return this.buffer.getLanguageMode() }
-
-  get rowsPerPage () {
-    return this.getRowsPerPage()
+  get languageMode() {
+    return this.buffer.getLanguageMode();
+  }
+  get tokenizedBuffer() {
+    return this.buffer.getLanguageMode();
   }
 
-  decorateCursorLine () {
+  get rowsPerPage() {
+    return this.getRowsPerPage();
+  }
+
+  decorateCursorLine() {
     this.cursorLineDecorations = [
-      this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'line', class: 'cursor-line', onlyEmpty: true}),
-      this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'line-number', class: 'cursor-line'}),
-      this.decorateMarkerLayer(this.selectionsMarkerLayer, {type: 'line-number', class: 'cursor-line-no-selection', onlyHead: true, onlyEmpty: true})
-    ]
+      this.decorateMarkerLayer(this.selectionsMarkerLayer, {
+        type: 'line',
+        class: 'cursor-line',
+        onlyEmpty: true
+      }),
+      this.decorateMarkerLayer(this.selectionsMarkerLayer, {
+        type: 'line-number',
+        class: 'cursor-line'
+      }),
+      this.decorateMarkerLayer(this.selectionsMarkerLayer, {
+        type: 'line-number',
+        class: 'cursor-line-no-selection',
+        onlyHead: true,
+        onlyEmpty: true
+      })
+    ];
   }
 
-  doBackgroundWork (deadline) {
-    const previousLongestRow = this.getApproximateLongestScreenRow()
+  doBackgroundWork(deadline) {
+    const previousLongestRow = this.getApproximateLongestScreenRow();
     if (this.displayLayer.doBackgroundWork(deadline)) {
-      this.backgroundWorkHandle = requestIdleCallback(this.doBackgroundWork)
+      this.backgroundWorkHandle = requestIdleCallback(this.doBackgroundWork);
     } else {
-      this.backgroundWorkHandle = null
+      this.backgroundWorkHandle = null;
     }
 
-    if (this.component && this.getApproximateLongestScreenRow() !== previousLongestRow) {
-      this.component.scheduleUpdate()
+    if (
+      this.component &&
+      this.getApproximateLongestScreenRow() !== previousLongestRow
+    ) {
+      this.component.scheduleUpdate();
     }
   }
 
-  update (params) {
-    const displayLayerParams = {}
+  update(params) {
+    const displayLayerParams = {};
 
     for (let param of Object.keys(params)) {
-      const value = params[param]
+      const value = params[param];
 
       switch (param) {
         case 'autoIndent':
-          this.autoIndent = value
-          break
+          this.autoIndent = value;
+          break;
 
         case 'autoIndentOnPaste':
-          this.autoIndentOnPaste = value
-          break
+          this.autoIndentOnPaste = value;
+          break;
 
         case 'undoGroupingInterval':
-          this.undoGroupingInterval = value
-          break
+          this.undoGroupingInterval = value;
+          break;
 
         case 'scrollSensitivity':
-          this.scrollSensitivity = value
-          break
+          this.scrollSensitivity = value;
+          break;
 
         case 'encoding':
-          this.buffer.setEncoding(value)
-          break
+          this.buffer.setEncoding(value);
+          break;
 
         case 'softTabs':
           if (value !== this.softTabs) {
-            this.softTabs = value
+            this.softTabs = value;
           }
-          break
+          break;
 
         case 'atomicSoftTabs':
           if (value !== this.displayLayer.atomicSoftTabs) {
-            displayLayerParams.atomicSoftTabs = value
+            displayLayerParams.atomicSoftTabs = value;
           }
-          break
+          break;
 
         case 'tabLength':
           if (value > 0 && value !== this.displayLayer.tabLength) {
-            displayLayerParams.tabLength = value
+            displayLayerParams.tabLength = value;
           }
-          break
+          break;
 
         case 'softWrapped':
           if (value !== this.softWrapped) {
-            this.softWrapped = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
-            this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped())
+            this.softWrapped = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+            this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
           }
-          break
+          break;
 
         case 'softWrapHangingIndentLength':
           if (value !== this.displayLayer.softWrapHangingIndent) {
-            displayLayerParams.softWrapHangingIndent = value
+            displayLayerParams.softWrapHangingIndent = value;
           }
-          break
+          break;
 
         case 'softWrapAtPreferredLineLength':
           if (value !== this.softWrapAtPreferredLineLength) {
-            this.softWrapAtPreferredLineLength = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
+            this.softWrapAtPreferredLineLength = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
           }
-          break
+          break;
 
         case 'preferredLineLength':
           if (value !== this.preferredLineLength) {
-            this.preferredLineLength = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
+            this.preferredLineLength = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
           }
-          break
+          break;
 
         case 'maxScreenLineLength':
           if (value !== this.maxScreenLineLength) {
-            this.maxScreenLineLength = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
+            this.maxScreenLineLength = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
           }
-          break
+          break;
 
         case 'mini':
           if (value !== this.mini) {
-            this.mini = value
-            this.emitter.emit('did-change-mini', value)
-            displayLayerParams.invisibles = this.getInvisibles()
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide()
+            this.mini = value;
+            this.emitter.emit('did-change-mini', value);
+            displayLayerParams.invisibles = this.getInvisibles();
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
             if (this.mini) {
-              for (let decoration of this.cursorLineDecorations) { decoration.destroy() }
-              this.cursorLineDecorations = null
+              for (let decoration of this.cursorLineDecorations) {
+                decoration.destroy();
+              }
+              this.cursorLineDecorations = null;
             } else {
-              this.decorateCursorLine()
+              this.decorateCursorLine();
             }
             if (this.component != null) {
-              this.component.scheduleUpdate()
+              this.component.scheduleUpdate();
             }
           }
-          break
+          break;
 
         case 'readOnly':
           if (value !== this.readOnly) {
-            this.readOnly = value
+            this.readOnly = value;
             if (this.component != null) {
-              this.component.scheduleUpdate()
+              this.component.scheduleUpdate();
             }
           }
-          break
+          break;
 
         case 'keyboardInputEnabled':
           if (value !== this.keyboardInputEnabled) {
-            this.keyboardInputEnabled = value
+            this.keyboardInputEnabled = value;
             if (this.component != null) {
-              this.component.scheduleUpdate()
+              this.component.scheduleUpdate();
             }
           }
-          break
+          break;
 
         case 'placeholderText':
           if (value !== this.placeholderText) {
-            this.placeholderText = value
-            this.emitter.emit('did-change-placeholder-text', value)
+            this.placeholderText = value;
+            this.emitter.emit('did-change-placeholder-text', value);
           }
-          break
+          break;
 
         case 'lineNumberGutterVisible':
           if (value !== this.lineNumberGutterVisible) {
             if (value) {
-              this.lineNumberGutter.show()
+              this.lineNumberGutter.show();
             } else {
-              this.lineNumberGutter.hide()
+              this.lineNumberGutter.hide();
             }
-            this.emitter.emit('did-change-line-number-gutter-visible', this.lineNumberGutter.isVisible())
+            this.emitter.emit(
+              'did-change-line-number-gutter-visible',
+              this.lineNumberGutter.isVisible()
+            );
           }
-          break
+          break;
 
         case 'showIndentGuide':
           if (value !== this.showIndentGuide) {
-            this.showIndentGuide = value
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide()
+            this.showIndentGuide = value;
+            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
           }
-          break
+          break;
 
         case 'showLineNumbers':
           if (value !== this.showLineNumbers) {
-            this.showLineNumbers = value
+            this.showLineNumbers = value;
             if (this.component != null) {
-              this.component.scheduleUpdate()
+              this.component.scheduleUpdate();
             }
           }
-          break
+          break;
 
         case 'showInvisibles':
           if (value !== this.showInvisibles) {
-            this.showInvisibles = value
-            displayLayerParams.invisibles = this.getInvisibles()
+            this.showInvisibles = value;
+            displayLayerParams.invisibles = this.getInvisibles();
           }
-          break
+          break;
 
         case 'invisibles':
           if (!_.isEqual(value, this.invisibles)) {
-            this.invisibles = value
-            displayLayerParams.invisibles = this.getInvisibles()
+            this.invisibles = value;
+            displayLayerParams.invisibles = this.getInvisibles();
           }
-          break
+          break;
 
         case 'editorWidthInChars':
           if (value > 0 && value !== this.editorWidthInChars) {
-            this.editorWidthInChars = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
+            this.editorWidthInChars = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
           }
-          break
+          break;
 
         case 'width':
           if (value !== this.width) {
-            this.width = value
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn()
+            this.width = value;
+            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
           }
-          break
+          break;
 
         case 'scrollPastEnd':
           if (value !== this.scrollPastEnd) {
-            this.scrollPastEnd = value
-            if (this.component) this.component.scheduleUpdate()
+            this.scrollPastEnd = value;
+            if (this.component) this.component.scheduleUpdate();
           }
-          break
+          break;
 
         case 'autoHeight':
           if (value !== this.autoHeight) {
-            this.autoHeight = value
+            this.autoHeight = value;
           }
-          break
+          break;
 
         case 'autoWidth':
           if (value !== this.autoWidth) {
-            this.autoWidth = value
+            this.autoWidth = value;
           }
-          break
+          break;
 
         case 'showCursorOnSelection':
           if (value !== this.showCursorOnSelection) {
-            this.showCursorOnSelection = value
-            if (this.component) this.component.scheduleUpdate()
+            this.showCursorOnSelection = value;
+            if (this.component) this.component.scheduleUpdate();
           }
-          break
+          break;
 
         default:
           if (param !== 'ref' && param !== 'key') {
-            throw new TypeError(`Invalid TextEditor parameter: '${param}'`)
+            throw new TypeError(`Invalid TextEditor parameter: '${param}'`);
           }
       }
     }
 
-    this.displayLayer.reset(displayLayerParams)
+    this.displayLayer.reset(displayLayerParams);
 
     if (this.component) {
-      return this.component.getNextUpdatePromise()
+      return this.component.getNextUpdatePromise();
     } else {
-      return Promise.resolve()
+      return Promise.resolve();
     }
   }
 
-  scheduleComponentUpdate () {
-    if (this.component) this.component.scheduleUpdate()
+  scheduleComponentUpdate() {
+    if (this.component) this.component.scheduleUpdate();
   }
 
-  serialize () {
+  serialize() {
     return {
       deserializer: 'TextEditor',
       version: SERIALIZATION_VERSION,
@@ -575,69 +651,100 @@ class TextEditor {
       showIndentGuide: this.showIndentGuide,
       autoHeight: this.autoHeight,
       autoWidth: this.autoWidth
-    }
+    };
   }
 
-  subscribeToBuffer () {
-    this.buffer.retain()
-    this.disposables.add(this.buffer.onDidChangeLanguageMode(this.handleLanguageModeChange.bind(this)))
-    this.disposables.add(this.buffer.onDidChangePath(() => {
-      this.emitter.emit('did-change-title', this.getTitle())
-      this.emitter.emit('did-change-path', this.getPath())
-    }))
-    this.disposables.add(this.buffer.onDidChangeEncoding(() => {
-      this.emitter.emit('did-change-encoding', this.getEncoding())
-    }))
-    this.disposables.add(this.buffer.onDidDestroy(() => this.destroy()))
-    this.disposables.add(this.buffer.onDidChangeModified(() => {
-      if (!this.hasTerminatedPendingState && this.buffer.isModified()) this.terminatePendingState()
-    }))
+  subscribeToBuffer() {
+    this.buffer.retain();
+    this.disposables.add(
+      this.buffer.onDidChangeLanguageMode(
+        this.handleLanguageModeChange.bind(this)
+      )
+    );
+    this.disposables.add(
+      this.buffer.onDidChangePath(() => {
+        this.emitter.emit('did-change-title', this.getTitle());
+        this.emitter.emit('did-change-path', this.getPath());
+      })
+    );
+    this.disposables.add(
+      this.buffer.onDidChangeEncoding(() => {
+        this.emitter.emit('did-change-encoding', this.getEncoding());
+      })
+    );
+    this.disposables.add(this.buffer.onDidDestroy(() => this.destroy()));
+    this.disposables.add(
+      this.buffer.onDidChangeModified(() => {
+        if (!this.hasTerminatedPendingState && this.buffer.isModified())
+          this.terminatePendingState();
+      })
+    );
   }
 
-  terminatePendingState () {
-    if (!this.hasTerminatedPendingState) this.emitter.emit('did-terminate-pending-state')
-    this.hasTerminatedPendingState = true
+  terminatePendingState() {
+    if (!this.hasTerminatedPendingState)
+      this.emitter.emit('did-terminate-pending-state');
+    this.hasTerminatedPendingState = true;
   }
 
-  onDidTerminatePendingState (callback) {
-    return this.emitter.on('did-terminate-pending-state', callback)
+  onDidTerminatePendingState(callback) {
+    return this.emitter.on('did-terminate-pending-state', callback);
   }
 
-  subscribeToDisplayLayer () {
-    this.disposables.add(this.displayLayer.onDidChange(changes => {
-      this.mergeIntersectingSelections()
-      if (this.component) this.component.didChangeDisplayLayer(changes)
-      this.emitter.emit('did-change', changes.map(change => new ChangeEvent(change)))
-    }))
-    this.disposables.add(this.displayLayer.onDidReset(() => {
-      this.mergeIntersectingSelections()
-      if (this.component) this.component.didResetDisplayLayer()
-      this.emitter.emit('did-change', {})
-    }))
-    this.disposables.add(this.selectionsMarkerLayer.onDidCreateMarker(this.addSelection.bind(this)))
-    return this.disposables.add(this.selectionsMarkerLayer.onDidUpdate(() => (this.component != null ? this.component.didUpdateSelections() : undefined)))
+  subscribeToDisplayLayer() {
+    this.disposables.add(
+      this.displayLayer.onDidChange(changes => {
+        this.mergeIntersectingSelections();
+        if (this.component) this.component.didChangeDisplayLayer(changes);
+        this.emitter.emit(
+          'did-change',
+          changes.map(change => new ChangeEvent(change))
+        );
+      })
+    );
+    this.disposables.add(
+      this.displayLayer.onDidReset(() => {
+        this.mergeIntersectingSelections();
+        if (this.component) this.component.didResetDisplayLayer();
+        this.emitter.emit('did-change', {});
+      })
+    );
+    this.disposables.add(
+      this.selectionsMarkerLayer.onDidCreateMarker(this.addSelection.bind(this))
+    );
+    return this.disposables.add(
+      this.selectionsMarkerLayer.onDidUpdate(() =>
+        this.component != null
+          ? this.component.didUpdateSelections()
+          : undefined
+      )
+    );
   }
 
-  destroy () {
-    if (!this.alive) return
-    this.alive = false
-    this.disposables.dispose()
-    this.displayLayer.destroy()
+  destroy() {
+    if (!this.alive) return;
+    this.alive = false;
+    this.disposables.dispose();
+    this.displayLayer.destroy();
     for (let selection of this.selections.slice()) {
-      selection.destroy()
+      selection.destroy();
     }
-    this.buffer.release()
-    this.gutterContainer.destroy()
-    this.emitter.emit('did-destroy')
-    this.emitter.clear()
-    if (this.component) this.component.element.component = null
-    this.component = null
-    this.lineNumberGutter.element = null
+    this.buffer.release();
+    this.gutterContainer.destroy();
+    this.emitter.emit('did-destroy');
+    this.emitter.clear();
+    if (this.component) this.component.element.component = null;
+    this.component = null;
+    this.lineNumberGutter.element = null;
   }
 
-  isAlive () { return this.alive }
+  isAlive() {
+    return this.alive;
+  }
 
-  isDestroyed () { return !this.alive }
+  isDestroyed() {
+    return !this.alive;
+  }
 
   /*
   Section: Event Subscription
@@ -648,8 +755,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeTitle (callback) {
-    return this.emitter.on('did-change-title', callback)
+  onDidChangeTitle(callback) {
+    return this.emitter.on('did-change-title', callback);
   }
 
   // Essential: Calls your `callback` when the buffer's path, and therefore title, has changed.
@@ -657,8 +764,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangePath (callback) {
-    return this.emitter.on('did-change-path', callback)
+  onDidChangePath(callback) {
+    return this.emitter.on('did-change-path', callback);
   }
 
   // Essential: Invoke the given callback synchronously when the content of the
@@ -671,8 +778,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChange (callback) {
-    return this.emitter.on('did-change', callback)
+  onDidChange(callback) {
+    return this.emitter.on('did-change', callback);
   }
 
   // Essential: Invoke `callback` when the buffer's contents change. It is
@@ -682,8 +789,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidStopChanging (callback) {
-    return this.getBuffer().onDidStopChanging(callback)
+  onDidStopChanging(callback) {
+    return this.getBuffer().onDidStopChanging(callback);
   }
 
   // Essential: Calls your `callback` when a {Cursor} is moved. If there are
@@ -699,8 +806,8 @@ class TextEditor {
   //     * `cursor` {Cursor} that triggered the event
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeCursorPosition (callback) {
-    return this.emitter.on('did-change-cursor-position', callback)
+  onDidChangeCursorPosition(callback) {
+    return this.emitter.on('did-change-cursor-position', callback);
   }
 
   // Essential: Calls your `callback` when a selection's screen range changes.
@@ -714,8 +821,8 @@ class TextEditor {
   //     * `selection` {Selection} that triggered the event
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeSelectionRange (callback) {
-    return this.emitter.on('did-change-selection-range', callback)
+  onDidChangeSelectionRange(callback) {
+    return this.emitter.on('did-change-selection-range', callback);
   }
 
   // Extended: Calls your `callback` when soft wrap was enabled or disabled.
@@ -723,8 +830,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeSoftWrapped (callback) {
-    return this.emitter.on('did-change-soft-wrapped', callback)
+  onDidChangeSoftWrapped(callback) {
+    return this.emitter.on('did-change-soft-wrapped', callback);
   }
 
   // Extended: Calls your `callback` when the buffer's encoding has changed.
@@ -732,8 +839,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeEncoding (callback) {
-    return this.emitter.on('did-change-encoding', callback)
+  onDidChangeEncoding(callback) {
+    return this.emitter.on('did-change-encoding', callback);
   }
 
   // Extended: Calls your `callback` when the grammar that interprets and
@@ -744,9 +851,9 @@ class TextEditor {
   //   * `grammar` {Grammar}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeGrammar (callback) {
-    callback(this.getGrammar())
-    return this.onDidChangeGrammar(callback)
+  observeGrammar(callback) {
+    callback(this.getGrammar());
+    return this.onDidChangeGrammar(callback);
   }
 
   // Extended: Calls your `callback` when the grammar that interprets and
@@ -756,10 +863,10 @@ class TextEditor {
   //   * `grammar` {Grammar}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeGrammar (callback) {
+  onDidChangeGrammar(callback) {
     return this.buffer.onDidChangeLanguageMode(() => {
-      callback(this.buffer.getLanguageMode().grammar)
-    })
+      callback(this.buffer.getLanguageMode().grammar);
+    });
   }
 
   // Extended: Calls your `callback` when the result of {::isModified} changes.
@@ -767,8 +874,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeModified (callback) {
-    return this.getBuffer().onDidChangeModified(callback)
+  onDidChangeModified(callback) {
+    return this.getBuffer().onDidChangeModified(callback);
   }
 
   // Extended: Calls your `callback` when the buffer's underlying file changes on
@@ -777,8 +884,8 @@ class TextEditor {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidConflict (callback) {
-    return this.getBuffer().onDidConflict(callback)
+  onDidConflict(callback) {
+    return this.getBuffer().onDidConflict(callback);
   }
 
   // Extended: Calls your `callback` before text has been inserted.
@@ -789,8 +896,8 @@ class TextEditor {
   //     * `cancel` {Function} Call to prevent the text from being inserted
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onWillInsertText (callback) {
-    return this.emitter.on('will-insert-text', callback)
+  onWillInsertText(callback) {
+    return this.emitter.on('will-insert-text', callback);
   }
 
   // Extended: Calls your `callback` after text has been inserted.
@@ -800,8 +907,8 @@ class TextEditor {
   //     * `text` {String} text to be inserted
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidInsertText (callback) {
-    return this.emitter.on('did-insert-text', callback)
+  onDidInsertText(callback) {
+    return this.emitter.on('did-insert-text', callback);
   }
 
   // Essential: Invoke the given callback after the buffer is saved to disk.
@@ -811,8 +918,8 @@ class TextEditor {
   //     * `path` The path to which the buffer was saved.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidSave (callback) {
-    return this.getBuffer().onDidSave(callback)
+  onDidSave(callback) {
+    return this.getBuffer().onDidSave(callback);
   }
 
   // Essential: Invoke the given callback when the editor is destroyed.
@@ -820,8 +927,8 @@ class TextEditor {
   // * `callback` {Function} to be called when the editor is destroyed.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroy (callback) {
-    return this.emitter.once('did-destroy', callback)
+  onDidDestroy(callback) {
+    return this.emitter.once('did-destroy', callback);
   }
 
   // Extended: Calls your `callback` when a {Cursor} is added to the editor.
@@ -831,9 +938,9 @@ class TextEditor {
   //   * `cursor` {Cursor} that was added
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeCursors (callback) {
-    this.getCursors().forEach(callback)
-    return this.onDidAddCursor(callback)
+  observeCursors(callback) {
+    this.getCursors().forEach(callback);
+    return this.onDidAddCursor(callback);
   }
 
   // Extended: Calls your `callback` when a {Cursor} is added to the editor.
@@ -842,8 +949,8 @@ class TextEditor {
   //   * `cursor` {Cursor} that was added
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddCursor (callback) {
-    return this.emitter.on('did-add-cursor', callback)
+  onDidAddCursor(callback) {
+    return this.emitter.on('did-add-cursor', callback);
   }
 
   // Extended: Calls your `callback` when a {Cursor} is removed from the editor.
@@ -852,8 +959,8 @@ class TextEditor {
   //   * `cursor` {Cursor} that was removed
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidRemoveCursor (callback) {
-    return this.emitter.on('did-remove-cursor', callback)
+  onDidRemoveCursor(callback) {
+    return this.emitter.on('did-remove-cursor', callback);
   }
 
   // Extended: Calls your `callback` when a {Selection} is added to the editor.
@@ -863,9 +970,9 @@ class TextEditor {
   //   * `selection` {Selection} that was added
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeSelections (callback) {
-    this.getSelections().forEach(callback)
-    return this.onDidAddSelection(callback)
+  observeSelections(callback) {
+    this.getSelections().forEach(callback);
+    return this.onDidAddSelection(callback);
   }
 
   // Extended: Calls your `callback` when a {Selection} is added to the editor.
@@ -874,8 +981,8 @@ class TextEditor {
   //   * `selection` {Selection} that was added
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddSelection (callback) {
-    return this.emitter.on('did-add-selection', callback)
+  onDidAddSelection(callback) {
+    return this.emitter.on('did-add-selection', callback);
   }
 
   // Extended: Calls your `callback` when a {Selection} is removed from the editor.
@@ -884,8 +991,8 @@ class TextEditor {
   //   * `selection` {Selection} that was removed
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidRemoveSelection (callback) {
-    return this.emitter.on('did-remove-selection', callback)
+  onDidRemoveSelection(callback) {
+    return this.emitter.on('did-remove-selection', callback);
   }
 
   // Extended: Calls your `callback` with each {Decoration} added to the editor.
@@ -895,8 +1002,8 @@ class TextEditor {
   //   * `decoration` {Decoration}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeDecorations (callback) {
-    return this.decorationManager.observeDecorations(callback)
+  observeDecorations(callback) {
+    return this.decorationManager.observeDecorations(callback);
   }
 
   // Extended: Calls your `callback` when a {Decoration} is added to the editor.
@@ -905,8 +1012,8 @@ class TextEditor {
   //   * `decoration` {Decoration} that was added
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddDecoration (callback) {
-    return this.decorationManager.onDidAddDecoration(callback)
+  onDidAddDecoration(callback) {
+    return this.decorationManager.onDidAddDecoration(callback);
   }
 
   // Extended: Calls your `callback` when a {Decoration} is removed from the editor.
@@ -915,14 +1022,14 @@ class TextEditor {
   //   * `decoration` {Decoration} that was removed
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidRemoveDecoration (callback) {
-    return this.decorationManager.onDidRemoveDecoration(callback)
+  onDidRemoveDecoration(callback) {
+    return this.decorationManager.onDidRemoveDecoration(callback);
   }
 
   // Called by DecorationManager when a decoration is added.
-  didAddDecoration (decoration) {
+  didAddDecoration(decoration) {
     if (this.component && decoration.isType('block')) {
-      this.component.addBlockDecoration(decoration)
+      this.component.addBlockDecoration(decoration);
     }
   }
 
@@ -932,41 +1039,49 @@ class TextEditor {
   //   * `placeholderText` {String} new text
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangePlaceholderText (callback) {
-    return this.emitter.on('did-change-placeholder-text', callback)
+  onDidChangePlaceholderText(callback) {
+    return this.emitter.on('did-change-placeholder-text', callback);
   }
 
-  onDidChangeScrollTop (callback) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.')
-    return this.getElement().onDidChangeScrollTop(callback)
+  onDidChangeScrollTop(callback) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::onDidChangeScrollTop instead.'
+    );
+    return this.getElement().onDidChangeScrollTop(callback);
   }
 
-  onDidChangeScrollLeft (callback) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.')
-    return this.getElement().onDidChangeScrollLeft(callback)
+  onDidChangeScrollLeft(callback) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::onDidChangeScrollLeft instead.'
+    );
+    return this.getElement().onDidChangeScrollLeft(callback);
   }
 
-  onDidRequestAutoscroll (callback) {
-    return this.emitter.on('did-request-autoscroll', callback)
+  onDidRequestAutoscroll(callback) {
+    return this.emitter.on('did-request-autoscroll', callback);
   }
 
   // TODO Remove once the tabs package no longer uses .on subscriptions
-  onDidChangeIcon (callback) {
-    return this.emitter.on('did-change-icon', callback)
+  onDidChangeIcon(callback) {
+    return this.emitter.on('did-change-icon', callback);
   }
 
-  onDidUpdateDecorations (callback) {
-    return this.decorationManager.onDidUpdateDecorations(callback)
+  onDidUpdateDecorations(callback) {
+    return this.decorationManager.onDidUpdateDecorations(callback);
   }
 
   // Retrieves the current buffer's URI.
-  getURI () { return this.buffer.getUri() }
+  getURI() {
+    return this.buffer.getUri();
+  }
 
   // Create an {TextEditor} with its initial state based on this object
-  copy () {
-    const displayLayer = this.displayLayer.copy()
-    const selectionsMarkerLayer = displayLayer.getMarkerLayer(this.buffer.getMarkerLayer(this.selectionsMarkerLayer.id).copy().id)
-    const softTabs = this.getSoftTabs()
+  copy() {
+    const displayLayer = this.displayLayer.copy();
+    const selectionsMarkerLayer = displayLayer.getMarkerLayer(
+      this.buffer.getMarkerLayer(this.selectionsMarkerLayer.id).copy().id
+    );
+    const softTabs = this.getSoftTabs();
     return new TextEditor({
       buffer: this.buffer,
       selectionsMarkerLayer,
@@ -981,49 +1096,61 @@ class TextEditor {
       autoWidth: this.autoWidth,
       autoHeight: this.autoHeight,
       showCursorOnSelection: this.showCursorOnSelection
-    })
+    });
   }
 
   // Controls visibility based on the given {Boolean}.
-  setVisible (visible) {
+  setVisible(visible) {
     if (visible) {
-      const languageMode = this.buffer.getLanguageMode()
-      if (languageMode.startTokenizing) languageMode.startTokenizing()
+      const languageMode = this.buffer.getLanguageMode();
+      if (languageMode.startTokenizing) languageMode.startTokenizing();
     }
   }
 
-  setMini (mini) {
-    this.update({mini})
+  setMini(mini) {
+    this.update({ mini });
   }
 
-  isMini () { return this.mini }
-
-  setReadOnly (readOnly) {
-    this.update({readOnly})
+  isMini() {
+    return this.mini;
   }
 
-  isReadOnly () { return this.readOnly }
-
-  enableKeyboardInput (enabled) {
-    this.update({keyboardInputEnabled: enabled})
+  setReadOnly(readOnly) {
+    this.update({ readOnly });
   }
 
-  isKeyboardInputEnabled () { return this.keyboardInputEnabled }
-
-  onDidChangeMini (callback) {
-    return this.emitter.on('did-change-mini', callback)
+  isReadOnly() {
+    return this.readOnly;
   }
 
-  setLineNumberGutterVisible (lineNumberGutterVisible) { this.update({lineNumberGutterVisible}) }
-
-  isLineNumberGutterVisible () { return this.lineNumberGutter.isVisible() }
-
-  anyLineNumberGutterVisible () {
-    return this.getGutters().some(gutter => gutter.type === 'line-number' && gutter.visible)
+  enableKeyboardInput(enabled) {
+    this.update({ keyboardInputEnabled: enabled });
   }
 
-  onDidChangeLineNumberGutterVisible (callback) {
-    return this.emitter.on('did-change-line-number-gutter-visible', callback)
+  isKeyboardInputEnabled() {
+    return this.keyboardInputEnabled;
+  }
+
+  onDidChangeMini(callback) {
+    return this.emitter.on('did-change-mini', callback);
+  }
+
+  setLineNumberGutterVisible(lineNumberGutterVisible) {
+    this.update({ lineNumberGutterVisible });
+  }
+
+  isLineNumberGutterVisible() {
+    return this.lineNumberGutter.isVisible();
+  }
+
+  anyLineNumberGutterVisible() {
+    return this.getGutters().some(
+      gutter => gutter.type === 'line-number' && gutter.visible
+    );
+  }
+
+  onDidChangeLineNumberGutterVisible(callback) {
+    return this.emitter.on('did-change-line-number-gutter-visible', callback);
   }
 
   // Essential: Calls your `callback` when a {Gutter} is added to the editor.
@@ -1033,8 +1160,8 @@ class TextEditor {
   //   * `gutter` {Gutter} that currently exists/was added.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeGutters (callback) {
-    return this.gutterContainer.observeGutters(callback)
+  observeGutters(callback) {
+    return this.gutterContainer.observeGutters(callback);
   }
 
   // Essential: Calls your `callback` when a {Gutter} is added to the editor.
@@ -1043,8 +1170,8 @@ class TextEditor {
   //   * `gutter` {Gutter} that was added.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddGutter (callback) {
-    return this.gutterContainer.onDidAddGutter(callback)
+  onDidAddGutter(callback) {
+    return this.gutterContainer.onDidAddGutter(callback);
   }
 
   // Essential: Calls your `callback` when a {Gutter} is removed from the editor.
@@ -1053,8 +1180,8 @@ class TextEditor {
   //   * `name` The name of the {Gutter} that was removed.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidRemoveGutter (callback) {
-    return this.gutterContainer.onDidRemoveGutter(callback)
+  onDidRemoveGutter(callback) {
+    return this.gutterContainer.onDidRemoveGutter(callback);
   }
 
   // Set the number of characters that can be displayed horizontally in the
@@ -1062,14 +1189,16 @@ class TextEditor {
   //
   // * `editorWidthInChars` A {Number} representing the width of the
   // {TextEditorElement} in characters.
-  setEditorWidthInChars (editorWidthInChars) { this.update({editorWidthInChars}) }
+  setEditorWidthInChars(editorWidthInChars) {
+    this.update({ editorWidthInChars });
+  }
 
   // Returns the editor width in characters.
-  getEditorWidthInChars () {
+  getEditorWidthInChars() {
     if (this.width != null && this.defaultCharWidth > 0) {
-      return Math.max(0, Math.floor(this.width / this.defaultCharWidth))
+      return Math.max(0, Math.floor(this.width / this.defaultCharWidth));
     } else {
-      return this.editorWidthInChars
+      return this.editorWidthInChars;
     }
   }
 
@@ -1078,8 +1207,8 @@ class TextEditor {
   */
 
   // Essential: Retrieves the current {TextBuffer}.
-  getBuffer () {
-    return this.buffer
+  getBuffer() {
+    return this.buffer;
   }
 
   /*
@@ -1093,8 +1222,8 @@ class TextEditor {
   // unsaved, its title is "untitled".
   //
   // Returns a {String}.
-  getTitle () {
-    return this.getFileName() || 'untitled'
+  getTitle() {
+    return this.getFileName() || 'untitled';
   }
 
   // Essential: Get unique title for display in other parts of the UI, such as
@@ -1107,67 +1236,88 @@ class TextEditor {
   // * "<filename> — <unique-dir-prefix>" when other buffers have this file name.
   //
   // Returns a {String}
-  getLongTitle () {
+  getLongTitle() {
     if (this.getPath()) {
-      const fileName = this.getFileName()
+      const fileName = this.getFileName();
 
-      let myPathSegments
-      const openEditorPathSegmentsWithSameFilename = []
+      let myPathSegments;
+      const openEditorPathSegmentsWithSameFilename = [];
       for (const textEditor of atom.workspace.getTextEditors()) {
         if (textEditor.getFileName() === fileName) {
-          const pathSegments = fs.tildify(textEditor.getDirectoryPath()).split(path.sep)
-          openEditorPathSegmentsWithSameFilename.push(pathSegments)
-          if (textEditor === this) myPathSegments = pathSegments
+          const pathSegments = fs
+            .tildify(textEditor.getDirectoryPath())
+            .split(path.sep);
+          openEditorPathSegmentsWithSameFilename.push(pathSegments);
+          if (textEditor === this) myPathSegments = pathSegments;
         }
       }
 
-      if (!myPathSegments || openEditorPathSegmentsWithSameFilename.length === 1) return fileName
+      if (
+        !myPathSegments ||
+        openEditorPathSegmentsWithSameFilename.length === 1
+      )
+        return fileName;
 
-      let commonPathSegmentCount
-      for (let i = 0, {length} = myPathSegments; i < length; i++) {
-        const myPathSegment = myPathSegments[i]
-        if (openEditorPathSegmentsWithSameFilename.some(segments => (segments.length === i + 1) || (segments[i] !== myPathSegment))) {
-          commonPathSegmentCount = i
-          break
+      let commonPathSegmentCount;
+      for (let i = 0, { length } = myPathSegments; i < length; i++) {
+        const myPathSegment = myPathSegments[i];
+        if (
+          openEditorPathSegmentsWithSameFilename.some(
+            segments =>
+              segments.length === i + 1 || segments[i] !== myPathSegment
+          )
+        ) {
+          commonPathSegmentCount = i;
+          break;
         }
       }
 
-      return `${fileName} \u2014 ${path.join(...myPathSegments.slice(commonPathSegmentCount))}`
+      return `${fileName} \u2014 ${path.join(
+        ...myPathSegments.slice(commonPathSegmentCount)
+      )}`;
     } else {
-      return 'untitled'
+      return 'untitled';
     }
   }
 
   // Essential: Returns the {String} path of this editor's text buffer.
-  getPath () {
-    return this.buffer.getPath()
+  getPath() {
+    return this.buffer.getPath();
   }
 
-  getFileName () {
-    const fullPath = this.getPath()
-    if (fullPath) return path.basename(fullPath)
+  getFileName() {
+    const fullPath = this.getPath();
+    if (fullPath) return path.basename(fullPath);
   }
 
-  getDirectoryPath () {
-    const fullPath = this.getPath()
-    if (fullPath) return path.dirname(fullPath)
+  getDirectoryPath() {
+    const fullPath = this.getPath();
+    if (fullPath) return path.dirname(fullPath);
   }
 
   // Extended: Returns the {String} character set encoding of this editor's text
   // buffer.
-  getEncoding () { return this.buffer.getEncoding() }
+  getEncoding() {
+    return this.buffer.getEncoding();
+  }
 
   // Extended: Set the character set encoding to use in this editor's text
   // buffer.
   //
   // * `encoding` The {String} character set encoding name such as 'utf8'
-  setEncoding (encoding) { this.buffer.setEncoding(encoding) }
+  setEncoding(encoding) {
+    this.buffer.setEncoding(encoding);
+  }
 
   // Essential: Returns {Boolean} `true` if this editor has been modified.
-  isModified () { return this.buffer.isModified() }
+  isModified() {
+    return this.buffer.isModified();
+  }
 
   // Essential: Returns {Boolean} `true` if this editor has no content.
-  isEmpty () { return this.buffer.isEmpty() }
+  isEmpty() {
+    return this.buffer.isEmpty();
+  }
 
   /*
   Section: File Operations
@@ -1176,132 +1326,171 @@ class TextEditor {
   // Essential: Saves the editor's text buffer.
   //
   // See {TextBuffer::save} for more details.
-  save () { return this.buffer.save() }
+  save() {
+    return this.buffer.save();
+  }
 
   // Essential: Saves the editor's text buffer as the given path.
   //
   // See {TextBuffer::saveAs} for more details.
   //
   // * `filePath` A {String} path.
-  saveAs (filePath) { return this.buffer.saveAs(filePath) }
+  saveAs(filePath) {
+    return this.buffer.saveAs(filePath);
+  }
 
   // Determine whether the user should be prompted to save before closing
   // this editor.
-  shouldPromptToSave ({windowCloseRequested, projectHasPaths} = {}) {
-    if (windowCloseRequested && projectHasPaths && atom.stateStore.isConnected()) {
-      return this.buffer.isInConflict()
+  shouldPromptToSave({ windowCloseRequested, projectHasPaths } = {}) {
+    if (
+      windowCloseRequested &&
+      projectHasPaths &&
+      atom.stateStore.isConnected()
+    ) {
+      return this.buffer.isInConflict();
     } else {
-      return this.isModified() && !this.buffer.hasMultipleEditors()
+      return this.isModified() && !this.buffer.hasMultipleEditors();
     }
   }
 
   // Returns an {Object} to configure dialog shown when this editor is saved
   // via {Pane::saveItemAs}.
-  getSaveDialogOptions () { return {} }
+  getSaveDialogOptions() {
+    return {};
+  }
 
   /*
   Section: Reading Text
   */
 
   // Essential: Returns a {String} representing the entire contents of the editor.
-  getText () { return this.buffer.getText() }
+  getText() {
+    return this.buffer.getText();
+  }
 
   // Essential: Get the text in the given {Range} in buffer coordinates.
   //
   // * `range` A {Range} or range-compatible {Array}.
   //
   // Returns a {String}.
-  getTextInBufferRange (range) {
-    return this.buffer.getTextInRange(range)
+  getTextInBufferRange(range) {
+    return this.buffer.getTextInRange(range);
   }
 
   // Essential: Returns a {Number} representing the number of lines in the buffer.
-  getLineCount () { return this.buffer.getLineCount() }
+  getLineCount() {
+    return this.buffer.getLineCount();
+  }
 
   // Essential: Returns a {Number} representing the number of screen lines in the
   // editor. This accounts for folds.
-  getScreenLineCount () { return this.displayLayer.getScreenLineCount() }
+  getScreenLineCount() {
+    return this.displayLayer.getScreenLineCount();
+  }
 
-  getApproximateScreenLineCount () { return this.displayLayer.getApproximateScreenLineCount() }
+  getApproximateScreenLineCount() {
+    return this.displayLayer.getApproximateScreenLineCount();
+  }
 
   // Essential: Returns a {Number} representing the last zero-indexed buffer row
   // number of the editor.
-  getLastBufferRow () { return this.buffer.getLastRow() }
+  getLastBufferRow() {
+    return this.buffer.getLastRow();
+  }
 
   // Essential: Returns a {Number} representing the last zero-indexed screen row
   // number of the editor.
-  getLastScreenRow () { return this.getScreenLineCount() - 1 }
+  getLastScreenRow() {
+    return this.getScreenLineCount() - 1;
+  }
 
   // Essential: Returns a {String} representing the contents of the line at the
   // given buffer row.
   //
   // * `bufferRow` A {Number} representing a zero-indexed buffer row.
-  lineTextForBufferRow (bufferRow) { return this.buffer.lineForRow(bufferRow) }
+  lineTextForBufferRow(bufferRow) {
+    return this.buffer.lineForRow(bufferRow);
+  }
 
   // Essential: Returns a {String} representing the contents of the line at the
   // given screen row.
   //
   // * `screenRow` A {Number} representing a zero-indexed screen row.
-  lineTextForScreenRow (screenRow) {
-    const screenLine = this.screenLineForScreenRow(screenRow)
-    if (screenLine) return screenLine.lineText
+  lineTextForScreenRow(screenRow) {
+    const screenLine = this.screenLineForScreenRow(screenRow);
+    if (screenLine) return screenLine.lineText;
   }
 
-  logScreenLines (start = 0, end = this.getLastScreenRow()) {
+  logScreenLines(start = 0, end = this.getLastScreenRow()) {
     for (let row = start; row <= end; row++) {
-      const line = this.lineTextForScreenRow(row)
-      console.log(row, this.bufferRowForScreenRow(row), line, line.length)
+      const line = this.lineTextForScreenRow(row);
+      console.log(row, this.bufferRowForScreenRow(row), line, line.length);
     }
   }
 
-  tokensForScreenRow (screenRow) {
-    const tokens = []
-    let lineTextIndex = 0
-    const currentTokenScopes = []
-    const {lineText, tags} = this.screenLineForScreenRow(screenRow)
+  tokensForScreenRow(screenRow) {
+    const tokens = [];
+    let lineTextIndex = 0;
+    const currentTokenScopes = [];
+    const { lineText, tags } = this.screenLineForScreenRow(screenRow);
     for (const tag of tags) {
       if (this.displayLayer.isOpenTag(tag)) {
-        currentTokenScopes.push(this.displayLayer.classNameForTag(tag))
+        currentTokenScopes.push(this.displayLayer.classNameForTag(tag));
       } else if (this.displayLayer.isCloseTag(tag)) {
-        currentTokenScopes.pop()
+        currentTokenScopes.pop();
       } else {
         tokens.push({
           text: lineText.substr(lineTextIndex, tag),
           scopes: currentTokenScopes.slice()
-        })
-        lineTextIndex += tag
+        });
+        lineTextIndex += tag;
       }
     }
-    return tokens
+    return tokens;
   }
 
-  screenLineForScreenRow (screenRow) {
-    return this.displayLayer.getScreenLine(screenRow)
+  screenLineForScreenRow(screenRow) {
+    return this.displayLayer.getScreenLine(screenRow);
   }
 
-  bufferRowForScreenRow (screenRow) {
-    return this.displayLayer.translateScreenPosition(Point(screenRow, 0)).row
+  bufferRowForScreenRow(screenRow) {
+    return this.displayLayer.translateScreenPosition(Point(screenRow, 0)).row;
   }
 
-  bufferRowsForScreenRows (startScreenRow, endScreenRow) {
-    return this.displayLayer.bufferRowsForScreenRows(startScreenRow, endScreenRow + 1)
+  bufferRowsForScreenRows(startScreenRow, endScreenRow) {
+    return this.displayLayer.bufferRowsForScreenRows(
+      startScreenRow,
+      endScreenRow + 1
+    );
   }
 
-  screenRowForBufferRow (row) {
-    return this.displayLayer.translateBufferPosition(Point(row, 0)).row
+  screenRowForBufferRow(row) {
+    return this.displayLayer.translateBufferPosition(Point(row, 0)).row;
   }
 
-  getRightmostScreenPosition () { return this.displayLayer.getRightmostScreenPosition() }
+  getRightmostScreenPosition() {
+    return this.displayLayer.getRightmostScreenPosition();
+  }
 
-  getApproximateRightmostScreenPosition () { return this.displayLayer.getApproximateRightmostScreenPosition() }
+  getApproximateRightmostScreenPosition() {
+    return this.displayLayer.getApproximateRightmostScreenPosition();
+  }
 
-  getMaxScreenLineLength () { return this.getRightmostScreenPosition().column }
+  getMaxScreenLineLength() {
+    return this.getRightmostScreenPosition().column;
+  }
 
-  getLongestScreenRow () { return this.getRightmostScreenPosition().row }
+  getLongestScreenRow() {
+    return this.getRightmostScreenPosition().row;
+  }
 
-  getApproximateLongestScreenRow () { return this.getApproximateRightmostScreenPosition().row }
+  getApproximateLongestScreenRow() {
+    return this.getApproximateRightmostScreenPosition().row;
+  }
 
-  lineLengthForScreenRow (screenRow) { return this.displayLayer.lineLengthForScreenRow(screenRow) }
+  lineLengthForScreenRow(screenRow) {
+    return this.displayLayer.lineLengthForScreenRow(screenRow);
+  }
 
   // Returns the range for the given buffer row.
   //
@@ -1309,30 +1498,38 @@ class TextEditor {
   // * `options` (optional) An options hash with an `includeNewline` key.
   //
   // Returns a {Range}.
-  bufferRangeForBufferRow (row, options) {
-    return this.buffer.rangeForRow(row, options && options.includeNewline)
+  bufferRangeForBufferRow(row, options) {
+    return this.buffer.rangeForRow(row, options && options.includeNewline);
   }
 
   // Get the text in the given {Range}.
   //
   // Returns a {String}.
-  getTextInRange (range) { return this.buffer.getTextInRange(range) }
+  getTextInRange(range) {
+    return this.buffer.getTextInRange(range);
+  }
 
   // {Delegates to: TextBuffer.isRowBlank}
-  isBufferRowBlank (bufferRow) { return this.buffer.isRowBlank(bufferRow) }
+  isBufferRowBlank(bufferRow) {
+    return this.buffer.isRowBlank(bufferRow);
+  }
 
   // {Delegates to: TextBuffer.nextNonBlankRow}
-  nextNonBlankBufferRow (bufferRow) { return this.buffer.nextNonBlankRow(bufferRow) }
+  nextNonBlankBufferRow(bufferRow) {
+    return this.buffer.nextNonBlankRow(bufferRow);
+  }
 
   // {Delegates to: TextBuffer.getEndPosition}
-  getEofBufferPosition () { return this.buffer.getEndPosition() }
+  getEofBufferPosition() {
+    return this.buffer.getEndPosition();
+  }
 
   // Essential: Get the {Range} of the paragraph surrounding the most recently added
   // cursor.
   //
   // Returns a {Range}.
-  getCurrentParagraphBufferRange () {
-    return this.getLastCursor().getCurrentParagraphBufferRange()
+  getCurrentParagraphBufferRange() {
+    return this.getLastCursor().getCurrentParagraphBufferRange();
   }
 
   /*
@@ -1344,9 +1541,9 @@ class TextEditor {
   // * `text` A {String} to replace with
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  setText (text, options = {}) {
-    if (!this.ensureWritable('setText', options)) return
-    return this.buffer.setText(text)
+  setText(text, options = {}) {
+    if (!this.ensureWritable('setText', options)) return;
+    return this.buffer.setText(text);
   }
 
   // Essential: Set the text in the given {Range} in buffer coordinates.
@@ -1359,9 +1556,9 @@ class TextEditor {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
   //
   // Returns the {Range} of the newly-inserted text.
-  setTextInBufferRange (range, text, options = {}) {
-    if (!this.ensureWritable('setTextInBufferRange', options)) return
-    return this.getBuffer().setTextInRange(range, text, options)
+  setTextInBufferRange(range, text, options = {}) {
+    if (!this.ensureWritable('setTextInBufferRange', options)) return;
+    return this.getBuffer().setTextInRange(range, text, options);
   }
 
   // Essential: For each selection, replace the selected text with the given text.
@@ -1370,36 +1567,38 @@ class TextEditor {
   // * `options` (optional) See {Selection::insertText}.
   //
   // Returns a {Range} when the text has been inserted. Returns a {Boolean} `false` when the text has not been inserted.
-  insertText (text, options = {}) {
-    if (!this.ensureWritable('insertText', options)) return
-    if (!this.emitWillInsertTextEvent(text)) return false
+  insertText(text, options = {}) {
+    if (!this.ensureWritable('insertText', options)) return;
+    if (!this.emitWillInsertTextEvent(text)) return false;
 
-    let groupLastChanges = false
+    let groupLastChanges = false;
     if (options.undo === 'skip') {
-      options = Object.assign({}, options)
-      delete options.undo
-      groupLastChanges = true
+      options = Object.assign({}, options);
+      delete options.undo;
+      groupLastChanges = true;
     }
 
-    const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0
-    if (options.autoIndentNewline == null) options.autoIndentNewline = this.shouldAutoIndent()
-    if (options.autoDecreaseIndent == null) options.autoDecreaseIndent = this.shouldAutoIndent()
+    const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0;
+    if (options.autoIndentNewline == null)
+      options.autoIndentNewline = this.shouldAutoIndent();
+    if (options.autoDecreaseIndent == null)
+      options.autoDecreaseIndent = this.shouldAutoIndent();
     const result = this.mutateSelectedText(selection => {
-      const range = selection.insertText(text, options)
-      const didInsertEvent = {text, range}
-      this.emitter.emit('did-insert-text', didInsertEvent)
-      return range
-    }, groupingInterval)
-    if (groupLastChanges) this.buffer.groupLastChanges()
-    return result
+      const range = selection.insertText(text, options);
+      const didInsertEvent = { text, range };
+      this.emitter.emit('did-insert-text', didInsertEvent);
+      return range;
+    }, groupingInterval);
+    if (groupLastChanges) this.buffer.groupLastChanges();
+    return result;
   }
 
   // Essential: For each selection, replace the selected text with a newline.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  insertNewline (options = {}) {
-    return this.insertText('\n', options)
+  insertNewline(options = {}) {
+    return this.insertText('\n', options);
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
@@ -1407,9 +1606,9 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  delete (options = {}) {
-    if (!this.ensureWritable('delete', options)) return
-    return this.mutateSelectedText(selection => selection.delete(options))
+  delete(options = {}) {
+    if (!this.ensureWritable('delete', options)) return;
+    return this.mutateSelectedText(selection => selection.delete(options));
   }
 
   // Essential: For each selection, if the selection is empty, delete the character
@@ -1417,9 +1616,9 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  backspace (options = {}) {
-    if (!this.ensureWritable('backspace', options)) return
-    return this.mutateSelectedText(selection => selection.backspace(options))
+  backspace(options = {}) {
+    if (!this.ensureWritable('backspace', options)) return;
+    return this.mutateSelectedText(selection => selection.backspace(options));
   }
 
   // Extended: Mutate the text of all the selections in a single transaction.
@@ -1430,12 +1629,14 @@ class TextEditor {
   // * `fn` A {Function} that will be called once for each {Selection}. The first
   //      argument will be a {Selection} and the second argument will be the
   //      {Number} index of that selection.
-  mutateSelectedText (fn, groupingInterval = 0) {
+  mutateSelectedText(fn, groupingInterval = 0) {
     return this.mergeIntersectingSelections(() => {
       return this.transact(groupingInterval, () => {
-        return this.getSelectionsOrderedByBufferPosition().map((selection, index) => fn(selection, index))
-      })
-    })
+        return this.getSelectionsOrderedByBufferPosition().map(
+          (selection, index) => fn(selection, index)
+        );
+      });
+    });
   }
 
   // Move lines intersecting the most recent selection or multiple selections
@@ -1443,72 +1644,91 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  moveLineUp (options = {}) {
-    if (!this.ensureWritable('moveLineUp', options)) return
+  moveLineUp(options = {}) {
+    if (!this.ensureWritable('moveLineUp', options)) return;
 
-    const selections = this.getSelectedBufferRanges().sort((a, b) => a.compare(b))
+    const selections = this.getSelectedBufferRanges().sort((a, b) =>
+      a.compare(b)
+    );
 
-    if (selections[0].start.row === 0) return
-    if (selections[selections.length - 1].start.row === this.getLastBufferRow() && this.buffer.getLastLine() === '') return
+    if (selections[0].start.row === 0) return;
+    if (
+      selections[selections.length - 1].start.row === this.getLastBufferRow() &&
+      this.buffer.getLastLine() === ''
+    )
+      return;
 
     this.transact(() => {
-      const newSelectionRanges = []
+      const newSelectionRanges = [];
 
       while (selections.length > 0) {
         // Find selections spanning a contiguous set of lines
-        const selection = selections.shift()
-        const selectionsToMove = [selection]
+        const selection = selections.shift();
+        const selectionsToMove = [selection];
 
-        while (selection.end.row === (selections[0] != null ? selections[0].start.row : undefined)) {
-          selectionsToMove.push(selections[0])
-          selection.end.row = selections[0].end.row
-          selections.shift()
+        while (
+          selection.end.row ===
+          (selections[0] != null ? selections[0].start.row : undefined)
+        ) {
+          selectionsToMove.push(selections[0]);
+          selection.end.row = selections[0].end.row;
+          selections.shift();
         }
 
         // Compute the buffer range spanned by all these selections, expanding it
         // so that it includes any folded region that intersects them.
-        let startRow = selection.start.row
-        let endRow = selection.end.row
-        if (selection.end.row > selection.start.row && selection.end.column === 0) {
+        let startRow = selection.start.row;
+        let endRow = selection.end.row;
+        if (
+          selection.end.row > selection.start.row &&
+          selection.end.column === 0
+        ) {
           // Don't move the last line of a multi-line selection if the selection ends at column 0
-          endRow--
+          endRow--;
         }
 
-        startRow = this.displayLayer.findBoundaryPrecedingBufferRow(startRow)
-        endRow = this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
-        const linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
+        startRow = this.displayLayer.findBoundaryPrecedingBufferRow(startRow);
+        endRow = this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1);
+        const linesRange = new Range(Point(startRow, 0), Point(endRow, 0));
 
         // If selected line range is preceded by a fold, one line above on screen
         // could be multiple lines in the buffer.
-        const precedingRow = this.displayLayer.findBoundaryPrecedingBufferRow(startRow - 1)
-        const insertDelta = linesRange.start.row - precedingRow
+        const precedingRow = this.displayLayer.findBoundaryPrecedingBufferRow(
+          startRow - 1
+        );
+        const insertDelta = linesRange.start.row - precedingRow;
 
         // Any folds in the text that is moved will need to be re-created.
         // It includes the folds that were intersecting with the selection.
         const rangesToRefold = this.displayLayer
           .destroyFoldsIntersectingBufferRange(linesRange)
-          .map(range => range.translate([-insertDelta, 0]))
+          .map(range => range.translate([-insertDelta, 0]));
 
         // Delete lines spanned by selection and insert them on the preceding buffer row
-        let lines = this.buffer.getTextInRange(linesRange)
-        if (lines[lines.length - 1] !== '\n') { lines += this.buffer.lineEndingForRow(linesRange.end.row - 2) }
-        this.buffer.delete(linesRange)
-        this.buffer.insert([precedingRow, 0], lines)
+        let lines = this.buffer.getTextInRange(linesRange);
+        if (lines[lines.length - 1] !== '\n') {
+          lines += this.buffer.lineEndingForRow(linesRange.end.row - 2);
+        }
+        this.buffer.delete(linesRange);
+        this.buffer.insert([precedingRow, 0], lines);
 
         // Restore folds that existed before the lines were moved
         for (let rangeToRefold of rangesToRefold) {
-          this.displayLayer.foldBufferRange(rangeToRefold)
+          this.displayLayer.foldBufferRange(rangeToRefold);
         }
 
         for (const selectionToMove of selectionsToMove) {
-          newSelectionRanges.push(selectionToMove.translate([-insertDelta, 0]))
+          newSelectionRanges.push(selectionToMove.translate([-insertDelta, 0]));
         }
       }
 
-      this.setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
-      if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
-      this.scrollToBufferPosition([newSelectionRanges[0].start.row, 0])
-    })
+      this.setSelectedBufferRanges(newSelectionRanges, {
+        autoscroll: false,
+        preserveFolds: true
+      });
+      if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
+      this.scrollToBufferPosition([newSelectionRanges[0].start.row, 0]);
+    });
   }
 
   // Move lines intersecting the most recent selection or multiple selections
@@ -1516,104 +1736,123 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  moveLineDown (options = {}) {
-    if (!this.ensureWritable('moveLineDown', options)) return
+  moveLineDown(options = {}) {
+    if (!this.ensureWritable('moveLineDown', options)) return;
 
-    const selections = this.getSelectedBufferRanges()
-    selections.sort((a, b) => b.compare(a))
+    const selections = this.getSelectedBufferRanges();
+    selections.sort((a, b) => b.compare(a));
 
     this.transact(() => {
-      this.consolidateSelections()
-      const newSelectionRanges = []
+      this.consolidateSelections();
+      const newSelectionRanges = [];
 
       while (selections.length > 0) {
         // Find selections spanning a contiguous set of lines
-        const selection = selections.shift()
-        const selectionsToMove = [selection]
+        const selection = selections.shift();
+        const selectionsToMove = [selection];
 
         // if the current selection start row matches the next selections' end row - make them one selection
-        while (selection.start.row === (selections[0] != null ? selections[0].end.row : undefined)) {
-          selectionsToMove.push(selections[0])
-          selection.start.row = selections[0].start.row
-          selections.shift()
+        while (
+          selection.start.row ===
+          (selections[0] != null ? selections[0].end.row : undefined)
+        ) {
+          selectionsToMove.push(selections[0]);
+          selection.start.row = selections[0].start.row;
+          selections.shift();
         }
 
         // Compute the buffer range spanned by all these selections, expanding it
         // so that it includes any folded region that intersects them.
-        let startRow = selection.start.row
-        let endRow = selection.end.row
-        if (selection.end.row > selection.start.row && selection.end.column === 0) {
+        let startRow = selection.start.row;
+        let endRow = selection.end.row;
+        if (
+          selection.end.row > selection.start.row &&
+          selection.end.column === 0
+        ) {
           // Don't move the last line of a multi-line selection if the selection ends at column 0
-          endRow--
+          endRow--;
         }
 
-        startRow = this.displayLayer.findBoundaryPrecedingBufferRow(startRow)
-        endRow = this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
-        const linesRange = new Range(Point(startRow, 0), Point(endRow, 0))
+        startRow = this.displayLayer.findBoundaryPrecedingBufferRow(startRow);
+        endRow = this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1);
+        const linesRange = new Range(Point(startRow, 0), Point(endRow, 0));
 
         // If selected line range is followed by a fold, one line below on screen
         // could be multiple lines in the buffer. But at the same time, if the
         // next buffer row is wrapped, one line in the buffer can represent many
         // screen rows.
-        const followingRow = Math.min(this.buffer.getLineCount(), this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1))
-        const insertDelta = followingRow - linesRange.end.row
+        const followingRow = Math.min(
+          this.buffer.getLineCount(),
+          this.displayLayer.findBoundaryFollowingBufferRow(endRow + 1)
+        );
+        const insertDelta = followingRow - linesRange.end.row;
 
         // Any folds in the text that is moved will need to be re-created.
         // It includes the folds that were intersecting with the selection.
         const rangesToRefold = this.displayLayer
           .destroyFoldsIntersectingBufferRange(linesRange)
-          .map(range => range.translate([insertDelta, 0]))
+          .map(range => range.translate([insertDelta, 0]));
 
         // Delete lines spanned by selection and insert them on the following correct buffer row
-        let lines = this.buffer.getTextInRange(linesRange)
+        let lines = this.buffer.getTextInRange(linesRange);
         if (followingRow - 1 === this.buffer.getLastRow()) {
-          lines = `\n${lines}`
+          lines = `\n${lines}`;
         }
 
-        this.buffer.insert([followingRow, 0], lines)
-        this.buffer.delete(linesRange)
+        this.buffer.insert([followingRow, 0], lines);
+        this.buffer.delete(linesRange);
 
         // Restore folds that existed before the lines were moved
         for (let rangeToRefold of rangesToRefold) {
-          this.displayLayer.foldBufferRange(rangeToRefold)
+          this.displayLayer.foldBufferRange(rangeToRefold);
         }
 
         for (const selectionToMove of selectionsToMove) {
-          newSelectionRanges.push(selectionToMove.translate([insertDelta, 0]))
+          newSelectionRanges.push(selectionToMove.translate([insertDelta, 0]));
         }
       }
 
-      this.setSelectedBufferRanges(newSelectionRanges, {autoscroll: false, preserveFolds: true})
-      if (this.shouldAutoIndent()) this.autoIndentSelectedRows()
-      this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0])
-    })
+      this.setSelectedBufferRanges(newSelectionRanges, {
+        autoscroll: false,
+        preserveFolds: true
+      });
+      if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
+      this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0]);
+    });
   }
 
   // Move any active selections one column to the left.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  moveSelectionLeft (options = {}) {
-    if (!this.ensureWritable('moveSelectionLeft', options)) return
-    const selections = this.getSelectedBufferRanges()
-    const noSelectionAtStartOfLine = selections.every(selection => selection.start.column !== 0)
+  moveSelectionLeft(options = {}) {
+    if (!this.ensureWritable('moveSelectionLeft', options)) return;
+    const selections = this.getSelectedBufferRanges();
+    const noSelectionAtStartOfLine = selections.every(
+      selection => selection.start.column !== 0
+    );
 
-    const translationDelta = [0, -1]
-    const translatedRanges = []
+    const translationDelta = [0, -1];
+    const translatedRanges = [];
 
     if (noSelectionAtStartOfLine) {
       this.transact(() => {
         for (let selection of selections) {
-          const charToLeftOfSelection = new Range(selection.start.translate(translationDelta), selection.start)
-          const charTextToLeftOfSelection = this.buffer.getTextInRange(charToLeftOfSelection)
+          const charToLeftOfSelection = new Range(
+            selection.start.translate(translationDelta),
+            selection.start
+          );
+          const charTextToLeftOfSelection = this.buffer.getTextInRange(
+            charToLeftOfSelection
+          );
 
-          this.buffer.insert(selection.end, charTextToLeftOfSelection)
-          this.buffer.delete(charToLeftOfSelection)
-          translatedRanges.push(selection.translate(translationDelta))
+          this.buffer.insert(selection.end, charTextToLeftOfSelection);
+          this.buffer.delete(charToLeftOfSelection);
+          translatedRanges.push(selection.translate(translationDelta));
         }
 
-        this.setSelectedBufferRanges(translatedRanges)
-      })
+        this.setSelectedBufferRanges(translatedRanges);
+      });
     }
   }
 
@@ -1621,29 +1860,36 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  moveSelectionRight (options = {}) {
-    if (!this.ensureWritable('moveSelectionRight', options)) return
-    const selections = this.getSelectedBufferRanges()
+  moveSelectionRight(options = {}) {
+    if (!this.ensureWritable('moveSelectionRight', options)) return;
+    const selections = this.getSelectedBufferRanges();
     const noSelectionAtEndOfLine = selections.every(selection => {
-      return selection.end.column !== this.buffer.lineLengthForRow(selection.end.row)
-    })
+      return (
+        selection.end.column !== this.buffer.lineLengthForRow(selection.end.row)
+      );
+    });
 
-    const translationDelta = [0, 1]
-    const translatedRanges = []
+    const translationDelta = [0, 1];
+    const translatedRanges = [];
 
     if (noSelectionAtEndOfLine) {
       this.transact(() => {
         for (let selection of selections) {
-          const charToRightOfSelection = new Range(selection.end, selection.end.translate(translationDelta))
-          const charTextToRightOfSelection = this.buffer.getTextInRange(charToRightOfSelection)
+          const charToRightOfSelection = new Range(
+            selection.end,
+            selection.end.translate(translationDelta)
+          );
+          const charTextToRightOfSelection = this.buffer.getTextInRange(
+            charToRightOfSelection
+          );
 
-          this.buffer.delete(charToRightOfSelection)
-          this.buffer.insert(selection.start, charTextToRightOfSelection)
-          translatedRanges.push(selection.translate(translationDelta))
+          this.buffer.delete(charToRightOfSelection);
+          this.buffer.insert(selection.start, charTextToRightOfSelection);
+          translatedRanges.push(selection.translate(translationDelta));
         }
 
-        this.setSelectedBufferRanges(translatedRanges)
-      })
+        this.setSelectedBufferRanges(translatedRanges);
+      });
     }
   }
 
@@ -1651,65 +1897,80 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  duplicateLines (options = {}) {
-    if (!this.ensureWritable('duplicateLines', options)) return
+  duplicateLines(options = {}) {
+    if (!this.ensureWritable('duplicateLines', options)) return;
     this.transact(() => {
-      const selections = this.getSelectionsOrderedByBufferPosition()
-      const previousSelectionRanges = []
+      const selections = this.getSelectionsOrderedByBufferPosition();
+      const previousSelectionRanges = [];
 
-      let i = selections.length - 1
+      let i = selections.length - 1;
       while (i >= 0) {
-        const j = i
-        previousSelectionRanges[i] = selections[i].getBufferRange()
+        const j = i;
+        previousSelectionRanges[i] = selections[i].getBufferRange();
         if (selections[i].isEmpty()) {
-          const {start} = selections[i].getScreenRange()
-          selections[i].setScreenRange([[start.row, 0], [start.row + 1, 0]], {preserveFolds: true})
+          const { start } = selections[i].getScreenRange();
+          selections[i].setScreenRange([[start.row, 0], [start.row + 1, 0]], {
+            preserveFolds: true
+          });
         }
-        let [startRow, endRow] = selections[i].getBufferRowRange()
-        endRow++
+        let [startRow, endRow] = selections[i].getBufferRowRange();
+        endRow++;
         while (i > 0) {
-          const [previousSelectionStartRow, previousSelectionEndRow] = selections[i - 1].getBufferRowRange()
+          const [
+            previousSelectionStartRow,
+            previousSelectionEndRow
+          ] = selections[i - 1].getBufferRowRange();
           if (previousSelectionEndRow === startRow) {
-            startRow = previousSelectionStartRow
-            previousSelectionRanges[i - 1] = selections[i - 1].getBufferRange()
-            i--
+            startRow = previousSelectionStartRow;
+            previousSelectionRanges[i - 1] = selections[i - 1].getBufferRange();
+            i--;
           } else {
-            break
+            break;
           }
         }
 
-        const intersectingFolds = this.displayLayer.foldsIntersectingBufferRange([[startRow, 0], [endRow, 0]])
-        let textToDuplicate = this.getTextInBufferRange([[startRow, 0], [endRow, 0]])
-        if (endRow > this.getLastBufferRow()) textToDuplicate = `\n${textToDuplicate}`
-        this.buffer.insert([endRow, 0], textToDuplicate)
+        const intersectingFolds = this.displayLayer.foldsIntersectingBufferRange(
+          [[startRow, 0], [endRow, 0]]
+        );
+        let textToDuplicate = this.getTextInBufferRange([
+          [startRow, 0],
+          [endRow, 0]
+        ]);
+        if (endRow > this.getLastBufferRow())
+          textToDuplicate = `\n${textToDuplicate}`;
+        this.buffer.insert([endRow, 0], textToDuplicate);
 
-        const insertedRowCount = endRow - startRow
+        const insertedRowCount = endRow - startRow;
 
         for (let k = i; k <= j; k++) {
-          selections[k].setBufferRange(previousSelectionRanges[k].translate([insertedRowCount, 0]))
+          selections[k].setBufferRange(
+            previousSelectionRanges[k].translate([insertedRowCount, 0])
+          );
         }
 
         for (const fold of intersectingFolds) {
-          const foldRange = this.displayLayer.bufferRangeForFold(fold)
-          this.displayLayer.foldBufferRange(foldRange.translate([insertedRowCount, 0]))
+          const foldRange = this.displayLayer.bufferRangeForFold(fold);
+          this.displayLayer.foldBufferRange(
+            foldRange.translate([insertedRowCount, 0])
+          );
         }
 
-        i--
+        i--;
       }
-    })
+    });
   }
 
-  replaceSelectedText (options, fn) {
-    this.mutateSelectedText((selection) => {
-      selection.getBufferRange()
+  replaceSelectedText(options, fn) {
+    this.mutateSelectedText(selection => {
+      selection.getBufferRange();
       if (options && options.selectWordIfEmpty && selection.isEmpty()) {
-        selection.selectWord()
+        selection.selectWord();
       }
-      const text = selection.getText()
-      selection.deleteSelectedText()
-      const range = selection.insertText(fn(text))
-      selection.setBufferRange(range)
-    })
+      const text = selection.getText();
+      selection.deleteSelectedText();
+      const range = selection.insertText(fn(text));
+      selection.setBufferRange(range);
+    });
   }
 
   // Split multi-line selections into one selection per line.
@@ -1717,22 +1978,26 @@ class TextEditor {
   // Operates on all selections. This method breaks apart all multi-line
   // selections to create multiple single-line selections that cumulatively cover
   // the same original area.
-  splitSelectionsIntoLines () {
+  splitSelectionsIntoLines() {
     this.mergeIntersectingSelections(() => {
       for (const selection of this.getSelections()) {
-        const range = selection.getBufferRange()
-        if (range.isSingleLine()) continue
+        const range = selection.getBufferRange();
+        if (range.isSingleLine()) continue;
 
-        const {start, end} = range
-        this.addSelectionForBufferRange([start, [start.row, Infinity]])
-        let {row} = start
+        const { start, end } = range;
+        this.addSelectionForBufferRange([start, [start.row, Infinity]]);
+        let { row } = start;
         while (++row < end.row) {
-          this.addSelectionForBufferRange([[row, 0], [row, Infinity]])
+          this.addSelectionForBufferRange([[row, 0], [row, Infinity]]);
         }
-        if (end.column !== 0) this.addSelectionForBufferRange([[end.row, 0], [end.row, end.column]])
-        selection.destroy()
+        if (end.column !== 0)
+          this.addSelectionForBufferRange([
+            [end.row, 0],
+            [end.row, end.column]
+          ]);
+        selection.destroy();
       }
-    })
+    });
   }
 
   // Extended: For each selection, transpose the selected text.
@@ -1742,19 +2007,25 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  transpose (options = {}) {
-    if (!this.ensureWritable('transpose', options)) return
+  transpose(options = {}) {
+    if (!this.ensureWritable('transpose', options)) return;
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
-        selection.selectRight()
-        const text = selection.getText()
-        selection.delete()
-        selection.cursor.moveLeft()
-        selection.insertText(text)
+        selection.selectRight();
+        const text = selection.getText();
+        selection.delete();
+        selection.cursor.moveLeft();
+        selection.insertText(text);
       } else {
-        selection.insertText(selection.getText().split('').reverse().join(''))
+        selection.insertText(
+          selection
+            .getText()
+            .split('')
+            .reverse()
+            .join('')
+        );
       }
-    })
+    });
   }
 
   // Extended: Convert the selected text to upper case.
@@ -1764,9 +2035,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  upperCase (options = {}) {
-    if (!this.ensureWritable('upperCase', options)) return
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toUpperCase(options))
+  upperCase(options = {}) {
+    if (!this.ensureWritable('upperCase', options)) return;
+    this.replaceSelectedText({ selectWordIfEmpty: true }, text =>
+      text.toUpperCase(options)
+    );
   }
 
   // Extended: Convert the selected text to lower case.
@@ -1776,9 +2049,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  lowerCase (options = {}) {
-    if (!this.ensureWritable('lowerCase', options)) return
-    this.replaceSelectedText({selectWordIfEmpty: true}, text => text.toLowerCase(options))
+  lowerCase(options = {}) {
+    if (!this.ensureWritable('lowerCase', options)) return;
+    this.replaceSelectedText({ selectWordIfEmpty: true }, text =>
+      text.toLowerCase(options)
+    );
   }
 
   // Extended: Toggle line comments for rows intersecting selections.
@@ -1787,9 +2062,9 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  toggleLineCommentsInSelection (options = {}) {
-    if (!this.ensureWritable('toggleLineCommentsInSelection', options)) return
-    this.mutateSelectedText(selection => selection.toggleLineComments(options))
+  toggleLineCommentsInSelection(options = {}) {
+    if (!this.ensureWritable('toggleLineCommentsInSelection', options)) return;
+    this.mutateSelectedText(selection => selection.toggleLineComments(options));
   }
 
   // Convert multiple lines to a single line.
@@ -1803,47 +2078,50 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  joinLines (options = {}) {
-    if (!this.ensureWritable('joinLines', options)) return
-    this.mutateSelectedText(selection => selection.joinLines())
+  joinLines(options = {}) {
+    if (!this.ensureWritable('joinLines', options)) return;
+    this.mutateSelectedText(selection => selection.joinLines());
   }
 
   // Extended: For each cursor, insert a newline at beginning the following line.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  insertNewlineBelow (options = {}) {
-    if (!this.ensureWritable('insertNewlineBelow', options)) return
+  insertNewlineBelow(options = {}) {
+    if (!this.ensureWritable('insertNewlineBelow', options)) return;
     this.transact(() => {
-      this.moveToEndOfLine()
-      this.insertNewline(options)
-    })
+      this.moveToEndOfLine();
+      this.insertNewline(options);
+    });
   }
 
   // Extended: For each cursor, insert a newline at the end of the preceding line.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  insertNewlineAbove (options = {}) {
-    if (!this.ensureWritable('insertNewlineAbove', options)) return
+  insertNewlineAbove(options = {}) {
+    if (!this.ensureWritable('insertNewlineAbove', options)) return;
     this.transact(() => {
-      const bufferRow = this.getCursorBufferPosition().row
-      const indentLevel = this.indentationForBufferRow(bufferRow)
-      const onFirstLine = bufferRow === 0
+      const bufferRow = this.getCursorBufferPosition().row;
+      const indentLevel = this.indentationForBufferRow(bufferRow);
+      const onFirstLine = bufferRow === 0;
 
-      this.moveToBeginningOfLine()
-      this.moveLeft()
-      this.insertNewline(options)
+      this.moveToBeginningOfLine();
+      this.moveLeft();
+      this.insertNewline(options);
 
-      if (this.shouldAutoIndent() && (this.indentationForBufferRow(bufferRow) < indentLevel)) {
-        this.setIndentationForBufferRow(bufferRow, indentLevel)
+      if (
+        this.shouldAutoIndent() &&
+        this.indentationForBufferRow(bufferRow) < indentLevel
+      ) {
+        this.setIndentationForBufferRow(bufferRow, indentLevel);
       }
 
       if (onFirstLine) {
-        this.moveUp()
-        this.moveToEndOfLine()
+        this.moveUp();
+        this.moveToEndOfLine();
       }
-    })
+    });
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
@@ -1852,9 +2130,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToBeginningOfWord (options = {}) {
-    if (!this.ensureWritable('deleteToBeginningOfWord', options)) return
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfWord(options))
+  deleteToBeginningOfWord(options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfWord', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToBeginningOfWord(options)
+    );
   }
 
   // Extended: Similar to {::deleteToBeginningOfWord}, but deletes only back to the
@@ -1862,9 +2142,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToPreviousWordBoundary (options = {}) {
-    if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return
-    this.mutateSelectedText(selection => selection.deleteToPreviousWordBoundary(options))
+  deleteToPreviousWordBoundary(options = {}) {
+    if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToPreviousWordBoundary(options)
+    );
   }
 
   // Extended: Similar to {::deleteToEndOfWord}, but deletes only up to the
@@ -1872,9 +2154,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToNextWordBoundary (options = {}) {
-    if (!this.ensureWritable('deleteToNextWordBoundary', options)) return
-    this.mutateSelectedText(selection => selection.deleteToNextWordBoundary(options))
+  deleteToNextWordBoundary(options = {}) {
+    if (!this.ensureWritable('deleteToNextWordBoundary', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToNextWordBoundary(options)
+    );
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
@@ -1883,9 +2167,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToBeginningOfSubword (options = {}) {
-    if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfSubword(options))
+  deleteToBeginningOfSubword(options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToBeginningOfSubword(options)
+    );
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
@@ -1894,9 +2180,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToEndOfSubword (options = {}) {
-    if (!this.ensureWritable('deleteToEndOfSubword', options)) return
-    this.mutateSelectedText(selection => selection.deleteToEndOfSubword(options))
+  deleteToEndOfSubword(options = {}) {
+    if (!this.ensureWritable('deleteToEndOfSubword', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToEndOfSubword(options)
+    );
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
@@ -1905,9 +2193,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToBeginningOfLine (options = {}) {
-    if (!this.ensureWritable('deleteToBeginningOfLine', options)) return
-    this.mutateSelectedText(selection => selection.deleteToBeginningOfLine(options))
+  deleteToBeginningOfLine(options = {}) {
+    if (!this.ensureWritable('deleteToBeginningOfLine', options)) return;
+    this.mutateSelectedText(selection =>
+      selection.deleteToBeginningOfLine(options)
+    );
   }
 
   // Extended: For each selection, if the selection is not empty, deletes the
@@ -1917,9 +2207,9 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToEndOfLine (options = {}) {
-    if (!this.ensureWritable('deleteToEndOfLine', options)) return
-    this.mutateSelectedText(selection => selection.deleteToEndOfLine(options))
+  deleteToEndOfLine(options = {}) {
+    if (!this.ensureWritable('deleteToEndOfLine', options)) return;
+    this.mutateSelectedText(selection => selection.deleteToEndOfLine(options));
   }
 
   // Extended: For each selection, if the selection is empty, delete all characters
@@ -1928,38 +2218,38 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteToEndOfWord (options = {}) {
-    if (!this.ensureWritable('deleteToEndOfWord', options)) return
-    this.mutateSelectedText(selection => selection.deleteToEndOfWord(options))
+  deleteToEndOfWord(options = {}) {
+    if (!this.ensureWritable('deleteToEndOfWord', options)) return;
+    this.mutateSelectedText(selection => selection.deleteToEndOfWord(options));
   }
 
   // Extended: Delete all lines intersecting selections.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  deleteLine (options = {}) {
-    if (!this.ensureWritable('deleteLine', options)) return
-    this.mergeSelectionsOnSameRows()
-    this.mutateSelectedText(selection => selection.deleteLine(options))
+  deleteLine(options = {}) {
+    if (!this.ensureWritable('deleteLine', options)) return;
+    this.mergeSelectionsOnSameRows();
+    this.mutateSelectedText(selection => selection.deleteLine(options));
   }
 
   // Private: Ensure that this editor is not marked read-only before allowing a buffer modification to occur. If
   // the editor is read-only, require an explicit opt-in option to proceed (`bypassReadOnly`) or throw an Error.
-  ensureWritable (methodName, opts) {
+  ensureWritable(methodName, opts) {
     if (!opts.bypassReadOnly && this.isReadOnly()) {
       if (atom.inDevMode() || atom.inSpecMode()) {
-        const e = new Error('Attempt to mutate a read-only TextEditor')
+        const e = new Error('Attempt to mutate a read-only TextEditor');
         e.detail =
           `Your package is attempting to call ${methodName} on an editor that has been marked read-only. ` +
           'Pass {bypassReadOnly: true} to modify it anyway, or test editors with .isReadOnly() before attempting ' +
-          'modifications.'
-        throw e
+          'modifications.';
+        throw e;
       }
 
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 
   /*
@@ -1970,20 +2260,24 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  undo (options = {}) {
-    if (!this.ensureWritable('undo', options)) return
-    this.avoidMergingSelections(() => this.buffer.undo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
-    this.getLastSelection().autoscroll()
+  undo(options = {}) {
+    if (!this.ensureWritable('undo', options)) return;
+    this.avoidMergingSelections(() =>
+      this.buffer.undo({ selectionsMarkerLayer: this.selectionsMarkerLayer })
+    );
+    this.getLastSelection().autoscroll();
   }
 
   // Essential: Redo the last change.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor. (default: false)
-  redo (options = {}) {
-    if (!this.ensureWritable('redo', options)) return
-    this.avoidMergingSelections(() => this.buffer.redo({selectionsMarkerLayer: this.selectionsMarkerLayer}))
-    this.getLastSelection().autoscroll()
+  redo(options = {}) {
+    if (!this.ensureWritable('redo', options)) return;
+    this.avoidMergingSelections(() =>
+      this.buffer.redo({ selectionsMarkerLayer: this.selectionsMarkerLayer })
+    );
+    this.getLastSelection().autoscroll();
   }
 
   // Extended: Batch multiple operations as a single undo/redo step.
@@ -1998,26 +2292,30 @@ class TextEditor {
   //   with a positive `groupingInterval` is committed while the previous transaction is
   //   still 'groupable', the two transactions are merged with respect to undo and redo.
   // * `fn` A {Function} to call inside the transaction.
-  transact (groupingInterval, fn) {
-    const options = {selectionsMarkerLayer: this.selectionsMarkerLayer}
+  transact(groupingInterval, fn) {
+    const options = { selectionsMarkerLayer: this.selectionsMarkerLayer };
     if (typeof groupingInterval === 'function') {
-      fn = groupingInterval
+      fn = groupingInterval;
     } else {
-      options.groupingInterval = groupingInterval
+      options.groupingInterval = groupingInterval;
     }
-    return this.buffer.transact(options, fn)
+    return this.buffer.transact(options, fn);
   }
 
   // Extended: Abort an open transaction, undoing any operations performed so far
   // within the transaction.
-  abortTransaction () { return this.buffer.abortTransaction() }
+  abortTransaction() {
+    return this.buffer.abortTransaction();
+  }
 
   // Extended: Create a pointer to the current state of the buffer for use
   // with {::revertToCheckpoint} and {::groupChangesSinceCheckpoint}.
   //
   // Returns a checkpoint value.
-  createCheckpoint () {
-    return this.buffer.createCheckpoint({selectionsMarkerLayer: this.selectionsMarkerLayer})
+  createCheckpoint() {
+    return this.buffer.createCheckpoint({
+      selectionsMarkerLayer: this.selectionsMarkerLayer
+    });
   }
 
   // Extended: Revert the buffer to the state it was in when the given
@@ -2031,7 +2329,9 @@ class TextEditor {
   // * `checkpoint` The checkpoint to revert to.
   //
   // Returns a {Boolean} indicating whether the operation succeeded.
-  revertToCheckpoint (checkpoint) { return this.buffer.revertToCheckpoint(checkpoint) }
+  revertToCheckpoint(checkpoint) {
+    return this.buffer.revertToCheckpoint(checkpoint);
+  }
 
   // Extended: Group all changes since the given checkpoint into a single
   // transaction for purposes of undo/redo.
@@ -2042,8 +2342,10 @@ class TextEditor {
   // * `checkpoint` The checkpoint from which to group changes.
   //
   // Returns a {Boolean} indicating whether the operation succeeded.
-  groupChangesSinceCheckpoint (checkpoint) {
-    return this.buffer.groupChangesSinceCheckpoint(checkpoint, {selectionsMarkerLayer: this.selectionsMarkerLayer})
+  groupChangesSinceCheckpoint(checkpoint) {
+    return this.buffer.groupChangesSinceCheckpoint(checkpoint, {
+      selectionsMarkerLayer: this.selectionsMarkerLayer
+    });
   }
 
   /*
@@ -2060,21 +2362,33 @@ class TextEditor {
   // * `options` (optional) An options hash for {::clipScreenPosition}.
   //
   // Returns a {Point}.
-  screenPositionForBufferPosition (bufferPosition, options) {
+  screenPositionForBufferPosition(bufferPosition, options) {
     if (options && options.clip) {
-      Grim.deprecate('The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.')
-      if (options.clipDirection) options.clipDirection = options.clip
+      Grim.deprecate(
+        'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
+      );
+      if (options.clipDirection) options.clipDirection = options.clip;
     }
     if (options && options.wrapAtSoftNewlines != null) {
-      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapAtSoftNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapAtSoftNewlines
+          ? 'forward'
+          : 'backward';
     }
     if (options && options.wrapBeyondNewlines != null) {
-      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapBeyondNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapBeyondNewlines
+          ? 'forward'
+          : 'backward';
     }
 
-    return this.displayLayer.translateBufferPosition(bufferPosition, options)
+    return this.displayLayer.translateBufferPosition(bufferPosition, options);
   }
 
   // Essential: Convert a position in screen-coordinates to buffer-coordinates.
@@ -2085,21 +2399,33 @@ class TextEditor {
   // * `options` (optional) An options hash for {::clipScreenPosition}.
   //
   // Returns a {Point}.
-  bufferPositionForScreenPosition (screenPosition, options) {
+  bufferPositionForScreenPosition(screenPosition, options) {
     if (options && options.clip) {
-      Grim.deprecate('The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.')
-      if (options.clipDirection) options.clipDirection = options.clip
+      Grim.deprecate(
+        'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
+      );
+      if (options.clipDirection) options.clipDirection = options.clip;
     }
     if (options && options.wrapAtSoftNewlines != null) {
-      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapAtSoftNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapAtSoftNewlines
+          ? 'forward'
+          : 'backward';
     }
     if (options && options.wrapBeyondNewlines != null) {
-      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapBeyondNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapBeyondNewlines
+          ? 'forward'
+          : 'backward';
     }
 
-    return this.displayLayer.translateScreenPosition(screenPosition, options)
+    return this.displayLayer.translateScreenPosition(screenPosition, options);
   }
 
   // Essential: Convert a range in buffer-coordinates to screen-coordinates.
@@ -2107,11 +2433,14 @@ class TextEditor {
   // * `bufferRange` {Range} in buffer coordinates to translate into screen coordinates.
   //
   // Returns a {Range}.
-  screenRangeForBufferRange (bufferRange, options) {
-    bufferRange = Range.fromObject(bufferRange)
-    const start = this.screenPositionForBufferPosition(bufferRange.start, options)
-    const end = this.screenPositionForBufferPosition(bufferRange.end, options)
-    return new Range(start, end)
+  screenRangeForBufferRange(bufferRange, options) {
+    bufferRange = Range.fromObject(bufferRange);
+    const start = this.screenPositionForBufferPosition(
+      bufferRange.start,
+      options
+    );
+    const end = this.screenPositionForBufferPosition(bufferRange.end, options);
+    return new Range(start, end);
   }
 
   // Essential: Convert a range in screen-coordinates to buffer-coordinates.
@@ -2119,11 +2448,11 @@ class TextEditor {
   // * `screenRange` {Range} in screen coordinates to translate into buffer coordinates.
   //
   // Returns a {Range}.
-  bufferRangeForScreenRange (screenRange) {
-    screenRange = Range.fromObject(screenRange)
-    const start = this.bufferPositionForScreenPosition(screenRange.start)
-    const end = this.bufferPositionForScreenPosition(screenRange.end)
-    return new Range(start, end)
+  bufferRangeForScreenRange(screenRange) {
+    screenRange = Range.fromObject(screenRange);
+    const start = this.bufferPositionForScreenPosition(screenRange.start);
+    const end = this.bufferPositionForScreenPosition(screenRange.end);
+    return new Range(start, end);
   }
 
   // Extended: Clip the given {Point} to a valid position in the buffer.
@@ -2145,7 +2474,9 @@ class TextEditor {
   // * `bufferPosition` The {Point} representing the position to clip.
   //
   // Returns a {Point}.
-  clipBufferPosition (bufferPosition) { return this.buffer.clipPosition(bufferPosition) }
+  clipBufferPosition(bufferPosition) {
+    return this.buffer.clipPosition(bufferPosition);
+  }
 
   // Extended: Clip the start and end of the given range to valid positions in the
   // buffer. See {::clipBufferPosition} for more information.
@@ -2153,7 +2484,9 @@ class TextEditor {
   // * `range` The {Range} to clip.
   //
   // Returns a {Range}.
-  clipBufferRange (range) { return this.buffer.clipRange(range) }
+  clipBufferRange(range) {
+    return this.buffer.clipRange(range);
+  }
 
   // Extended: Clip the given {Point} to a valid position on screen.
   //
@@ -2180,21 +2513,33 @@ class TextEditor {
   //     Defaults to `'closest'`.
   //
   // Returns a {Point}.
-  clipScreenPosition (screenPosition, options) {
+  clipScreenPosition(screenPosition, options) {
     if (options && options.clip) {
-      Grim.deprecate('The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.')
-      if (options.clipDirection) options.clipDirection = options.clip
+      Grim.deprecate(
+        'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
+      );
+      if (options.clipDirection) options.clipDirection = options.clip;
     }
     if (options && options.wrapAtSoftNewlines != null) {
-      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapAtSoftNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapAtSoftNewlines
+          ? 'forward'
+          : 'backward';
     }
     if (options && options.wrapBeyondNewlines != null) {
-      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapBeyondNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapBeyondNewlines
+          ? 'forward'
+          : 'backward';
     }
 
-    return this.displayLayer.clipScreenPosition(screenPosition, options)
+    return this.displayLayer.clipScreenPosition(screenPosition, options);
   }
 
   // Extended: Clip the start and end of the given range to valid positions on screen.
@@ -2204,11 +2549,14 @@ class TextEditor {
   // * `options` (optional) See {::clipScreenPosition} `options`.
   //
   // Returns a {Range}.
-  clipScreenRange (screenRange, options) {
-    screenRange = Range.fromObject(screenRange)
-    const start = this.displayLayer.clipScreenPosition(screenRange.start, options)
-    const end = this.displayLayer.clipScreenPosition(screenRange.end, options)
-    return Range(start, end)
+  clipScreenRange(screenRange, options) {
+    screenRange = Range.fromObject(screenRange);
+    const start = this.displayLayer.clipScreenPosition(
+      screenRange.start,
+      options
+    );
+    const end = this.displayLayer.clipScreenPosition(screenRange.end, options);
+    return Range(start, end);
   }
 
   /*
@@ -2292,8 +2640,8 @@ class TextEditor {
   //      overflow the editor. Defaults to `true`.
   //
   // Returns the created {Decoration} object.
-  decorateMarker (marker, decorationParams) {
-    return this.decorationManager.decorateMarker(marker, decorationParams)
+  decorateMarker(marker, decorationParams) {
+    return this.decorationManager.decorateMarker(marker, decorationParams);
   }
 
   // Essential: Add a decoration to every marker in the given marker layer. Can
@@ -2305,8 +2653,11 @@ class TextEditor {
   //   {TextEditor::decorateMarker}, except the `type` cannot be `overlay` or `gutter`.
   //
   // Returns a {LayerDecoration}.
-  decorateMarkerLayer (markerLayer, decorationParams) {
-    return this.decorationManager.decorateMarkerLayer(markerLayer, decorationParams)
+  decorateMarkerLayer(markerLayer, decorationParams) {
+    return this.decorationManager.decorateMarkerLayer(
+      markerLayer,
+      decorationParams
+    );
   }
 
   // Deprecated: Get all the decorations within a screen row range on the default
@@ -2320,12 +2671,18 @@ class TextEditor {
   //   where the keys are {DisplayMarker} IDs, and the values are an array of decoration
   //   params objects attached to the marker.
   // Returns an empty object when no decorations are found
-  decorationsForScreenRowRange (startScreenRow, endScreenRow) {
-    return this.decorationManager.decorationsForScreenRowRange(startScreenRow, endScreenRow)
+  decorationsForScreenRowRange(startScreenRow, endScreenRow) {
+    return this.decorationManager.decorationsForScreenRowRange(
+      startScreenRow,
+      endScreenRow
+    );
   }
 
-  decorationsStateForScreenRowRange (startScreenRow, endScreenRow) {
-    return this.decorationManager.decorationsStateForScreenRowRange(startScreenRow, endScreenRow)
+  decorationsStateForScreenRowRange(startScreenRow, endScreenRow) {
+    return this.decorationManager.decorationsStateForScreenRowRange(
+      startScreenRow,
+      endScreenRow
+    );
   }
 
   // Extended: Get all decorations.
@@ -2334,8 +2691,8 @@ class TextEditor {
   //   the returned decorations' properties must match.
   //
   // Returns an {Array} of {Decoration}s.
-  getDecorations (propertyFilter) {
-    return this.decorationManager.getDecorations(propertyFilter)
+  getDecorations(propertyFilter) {
+    return this.decorationManager.getDecorations(propertyFilter);
   }
 
   // Extended: Get all decorations of type 'line'.
@@ -2344,8 +2701,8 @@ class TextEditor {
   //   the returned decorations' properties must match.
   //
   // Returns an {Array} of {Decoration}s.
-  getLineDecorations (propertyFilter) {
-    return this.decorationManager.getLineDecorations(propertyFilter)
+  getLineDecorations(propertyFilter) {
+    return this.decorationManager.getLineDecorations(propertyFilter);
   }
 
   // Extended: Get all decorations of type 'line-number'.
@@ -2354,8 +2711,8 @@ class TextEditor {
   //   the returned decorations' properties must match.
   //
   // Returns an {Array} of {Decoration}s.
-  getLineNumberDecorations (propertyFilter) {
-    return this.decorationManager.getLineNumberDecorations(propertyFilter)
+  getLineNumberDecorations(propertyFilter) {
+    return this.decorationManager.getLineNumberDecorations(propertyFilter);
   }
 
   // Extended: Get all decorations of type 'highlight'.
@@ -2364,8 +2721,8 @@ class TextEditor {
   //   the returned decorations' properties must match.
   //
   // Returns an {Array} of {Decoration}s.
-  getHighlightDecorations (propertyFilter) {
-    return this.decorationManager.getHighlightDecorations(propertyFilter)
+  getHighlightDecorations(propertyFilter) {
+    return this.decorationManager.getHighlightDecorations(propertyFilter);
   }
 
   // Extended: Get all decorations of type 'overlay'.
@@ -2374,8 +2731,8 @@ class TextEditor {
   //   the returned decorations' properties must match.
   //
   // Returns an {Array} of {Decoration}s.
-  getOverlayDecorations (propertyFilter) {
-    return this.decorationManager.getOverlayDecorations(propertyFilter)
+  getOverlayDecorations(propertyFilter) {
+    return this.decorationManager.getOverlayDecorations(propertyFilter);
   }
 
   /*
@@ -2412,8 +2769,8 @@ class TextEditor {
   //       start or start at the marker's end. This is the most fragile strategy.
   //
   // Returns a {DisplayMarker}.
-  markBufferRange (bufferRange, options) {
-    return this.defaultMarkerLayer.markBufferRange(bufferRange, options)
+  markBufferRange(bufferRange, options) {
+    return this.defaultMarkerLayer.markBufferRange(bufferRange, options);
   }
 
   // Essential: Create a marker on the default marker layer with the given range
@@ -2446,8 +2803,8 @@ class TextEditor {
   //       start or start at the marker's end. This is the most fragile strategy.
   //
   // Returns a {DisplayMarker}.
-  markScreenRange (screenRange, options) {
-    return this.defaultMarkerLayer.markScreenRange(screenRange, options)
+  markScreenRange(screenRange, options) {
+    return this.defaultMarkerLayer.markScreenRange(screenRange, options);
   }
 
   // Essential: Create a marker on the default marker layer with the given buffer
@@ -2472,8 +2829,8 @@ class TextEditor {
   //       start or start at the marker's end. This is the most fragile strategy.
   //
   // Returns a {DisplayMarker}.
-  markBufferPosition (bufferPosition, options) {
-    return this.defaultMarkerLayer.markBufferPosition(bufferPosition, options)
+  markBufferPosition(bufferPosition, options) {
+    return this.defaultMarkerLayer.markBufferPosition(bufferPosition, options);
   }
 
   // Essential: Create a marker on the default marker layer with the given screen
@@ -2503,8 +2860,8 @@ class TextEditor {
   //     Defaults to `'closest'`.
   //
   // Returns a {DisplayMarker}.
-  markScreenPosition (screenPosition, options) {
-    return this.defaultMarkerLayer.markScreenPosition(screenPosition, options)
+  markScreenPosition(screenPosition, options) {
+    return this.defaultMarkerLayer.markScreenPosition(screenPosition, options);
   }
 
   // Essential: Find all {DisplayMarker}s on the default marker layer that
@@ -2529,34 +2886,34 @@ class TextEditor {
   //       or {Array} of `[row, column]` in buffer coordinates.
   //
   // Returns an {Array} of {DisplayMarker}s
-  findMarkers (params) {
-    return this.defaultMarkerLayer.findMarkers(params)
+  findMarkers(params) {
+    return this.defaultMarkerLayer.findMarkers(params);
   }
 
   // Extended: Get the {DisplayMarker} on the default layer for the given
   // marker id.
   //
   // * `id` {Number} id of the marker
-  getMarker (id) {
-    return this.defaultMarkerLayer.getMarker(id)
+  getMarker(id) {
+    return this.defaultMarkerLayer.getMarker(id);
   }
 
   // Extended: Get all {DisplayMarker}s on the default marker layer. Consider
   // using {::findMarkers}
-  getMarkers () {
-    return this.defaultMarkerLayer.getMarkers()
+  getMarkers() {
+    return this.defaultMarkerLayer.getMarkers();
   }
 
   // Extended: Get the number of markers in the default marker layer.
   //
   // Returns a {Number}.
-  getMarkerCount () {
-    return this.defaultMarkerLayer.getMarkerCount()
+  getMarkerCount() {
+    return this.defaultMarkerLayer.getMarkerCount();
   }
 
-  destroyMarker (id) {
-    const marker = this.getMarker(id)
-    if (marker) marker.destroy()
+  destroyMarker(id) {
+    const marker = this.getMarker(id);
+    if (marker) marker.destroy();
   }
 
   // Essential: Create a marker layer to group related markers.
@@ -2571,8 +2928,8 @@ class TextEditor {
   //     it via {::getMarkerLayer}.
   //
   // Returns a {DisplayMarkerLayer}.
-  addMarkerLayer (options) {
-    return this.displayLayer.addMarkerLayer(options)
+  addMarkerLayer(options) {
+    return this.displayLayer.addMarkerLayer(options);
   }
 
   // Essential: Get a {DisplayMarkerLayer} by id.
@@ -2581,8 +2938,8 @@ class TextEditor {
   //
   // Returns a {DisplayMarkerLayer} or `undefined` if no layer exists with the
   // given id.
-  getMarkerLayer (id) {
-    return this.displayLayer.getMarkerLayer(id)
+  getMarkerLayer(id) {
+    return this.displayLayer.getMarkerLayer(id);
   }
 
   // Essential: Get the default {DisplayMarkerLayer}.
@@ -2591,8 +2948,8 @@ class TextEditor {
   // layer.
   //
   // Returns a {DisplayMarkerLayer}.
-  getDefaultMarkerLayer () {
-    return this.defaultMarkerLayer
+  getDefaultMarkerLayer() {
+    return this.defaultMarkerLayer;
   }
 
   /*
@@ -2603,15 +2960,15 @@ class TextEditor {
   // coordinates.
   //
   // Returns a {Point}
-  getCursorBufferPosition () {
-    return this.getLastCursor().getBufferPosition()
+  getCursorBufferPosition() {
+    return this.getLastCursor().getBufferPosition();
   }
 
   // Essential: Get the position of all the cursor positions in buffer coordinates.
   //
   // Returns {Array} of {Point}s in the order they were added
-  getCursorBufferPositions () {
-    return this.getCursors().map((cursor) => cursor.getBufferPosition())
+  getCursorBufferPositions() {
+    return this.getCursors().map(cursor => cursor.getBufferPosition());
   }
 
   // Essential: Move the cursor to the given position in buffer coordinates.
@@ -2622,8 +2979,10 @@ class TextEditor {
   // * `options` (optional) An {Object} containing the following keys:
   //   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   //     position. Defaults to true.
-  setCursorBufferPosition (position, options) {
-    return this.moveCursors(cursor => cursor.setBufferPosition(position, options))
+  setCursorBufferPosition(position, options) {
+    return this.moveCursors(cursor =>
+      cursor.setBufferPosition(position, options)
+    );
   }
 
   // Essential: Get a {Cursor} at given screen coordinates {Point}
@@ -2631,10 +2990,10 @@ class TextEditor {
   // * `position` A {Point} or {Array} of `[row, column]`
   //
   // Returns the first matched {Cursor} or undefined
-  getCursorAtScreenPosition (position) {
-    const selection = this.getSelectionAtScreenPosition(position)
+  getCursorAtScreenPosition(position) {
+    const selection = this.getSelectionAtScreenPosition(position);
     if (selection && selection.getHeadScreenPosition().isEqual(position)) {
-      return selection.cursor
+      return selection.cursor;
     }
   }
 
@@ -2642,15 +3001,15 @@ class TextEditor {
   // coordinates.
   //
   // Returns a {Point}.
-  getCursorScreenPosition () {
-    return this.getLastCursor().getScreenPosition()
+  getCursorScreenPosition() {
+    return this.getLastCursor().getScreenPosition();
   }
 
   // Essential: Get the position of all the cursor positions in screen coordinates.
   //
   // Returns {Array} of {Point}s in the order the cursors were added
-  getCursorScreenPositions () {
-    return this.getCursors().map((cursor) => cursor.getScreenPosition())
+  getCursorScreenPositions() {
+    return this.getCursors().map(cursor => cursor.getScreenPosition());
   }
 
   // Essential: Move the cursor to the given position in screen coordinates.
@@ -2661,21 +3020,35 @@ class TextEditor {
   // * `options` (optional) An {Object} combining options for {::clipScreenPosition} with:
   //   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   //     position. Defaults to true.
-  setCursorScreenPosition (position, options) {
+  setCursorScreenPosition(position, options) {
     if (options && options.clip) {
-      Grim.deprecate('The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.')
-      if (options.clipDirection) options.clipDirection = options.clip
+      Grim.deprecate(
+        'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
+      );
+      if (options.clipDirection) options.clipDirection = options.clip;
     }
     if (options && options.wrapAtSoftNewlines != null) {
-      Grim.deprecate("The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapAtSoftNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapAtSoftNewlines
+          ? 'forward'
+          : 'backward';
     }
     if (options && options.wrapBeyondNewlines != null) {
-      Grim.deprecate("The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead.")
-      if (options.clipDirection) options.clipDirection = options.wrapBeyondNewlines ? 'forward' : 'backward'
+      Grim.deprecate(
+        "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
+      );
+      if (options.clipDirection)
+        options.clipDirection = options.wrapBeyondNewlines
+          ? 'forward'
+          : 'backward';
     }
 
-    return this.moveCursors(cursor => cursor.setScreenPosition(position, options))
+    return this.moveCursors(cursor =>
+      cursor.setScreenPosition(position, options)
+    );
   }
 
   // Essential: Add a cursor at the given position in buffer coordinates.
@@ -2683,10 +3056,13 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`
   //
   // Returns a {Cursor}.
-  addCursorAtBufferPosition (bufferPosition, options) {
-    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {invalidate: 'never'})
-    if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
-    return this.getLastSelection().cursor
+  addCursorAtBufferPosition(bufferPosition, options) {
+    this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {
+      invalidate: 'never'
+    });
+    if (!options || options.autoscroll !== false)
+      this.getLastSelection().cursor.autoscroll();
+    return this.getLastSelection().cursor;
   }
 
   // Essential: Add a cursor at the position in screen coordinates.
@@ -2694,78 +3070,89 @@ class TextEditor {
   // * `screenPosition` A {Point} or {Array} of `[row, column]`
   //
   // Returns a {Cursor}.
-  addCursorAtScreenPosition (screenPosition, options) {
-    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {invalidate: 'never'})
-    if (!options || options.autoscroll !== false) this.getLastSelection().cursor.autoscroll()
-    return this.getLastSelection().cursor
+  addCursorAtScreenPosition(screenPosition, options) {
+    this.selectionsMarkerLayer.markScreenPosition(screenPosition, {
+      invalidate: 'never'
+    });
+    if (!options || options.autoscroll !== false)
+      this.getLastSelection().cursor.autoscroll();
+    return this.getLastSelection().cursor;
   }
 
   // Essential: Returns {Boolean} indicating whether or not there are multiple cursors.
-  hasMultipleCursors () {
-    return this.getCursors().length > 1
+  hasMultipleCursors() {
+    return this.getCursors().length > 1;
   }
 
   // Essential: Move every cursor up one row in screen coordinates.
   //
   // * `lineCount` (optional) {Number} number of lines to move
-  moveUp (lineCount) {
-    return this.moveCursors(cursor => cursor.moveUp(lineCount, {moveToEndOfSelection: true}))
+  moveUp(lineCount) {
+    return this.moveCursors(cursor =>
+      cursor.moveUp(lineCount, { moveToEndOfSelection: true })
+    );
   }
 
   // Essential: Move every cursor down one row in screen coordinates.
   //
   // * `lineCount` (optional) {Number} number of lines to move
-  moveDown (lineCount) {
-    return this.moveCursors(cursor => cursor.moveDown(lineCount, {moveToEndOfSelection: true}))
+  moveDown(lineCount) {
+    return this.moveCursors(cursor =>
+      cursor.moveDown(lineCount, { moveToEndOfSelection: true })
+    );
   }
 
   // Essential: Move every cursor left one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
-  moveLeft (columnCount) {
-    return this.moveCursors(cursor => cursor.moveLeft(columnCount, {moveToEndOfSelection: true}))
+  moveLeft(columnCount) {
+    return this.moveCursors(cursor =>
+      cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+    );
   }
 
   // Essential: Move every cursor right one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
-  moveRight (columnCount) {
-    return this.moveCursors(cursor => cursor.moveRight(columnCount, {moveToEndOfSelection: true}))
+  moveRight(columnCount) {
+    return this.moveCursors(cursor =>
+      cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+    );
   }
 
   // Essential: Move every cursor to the beginning of its line in buffer coordinates.
-  moveToBeginningOfLine () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfLine())
+  moveToBeginningOfLine() {
+    return this.moveCursors(cursor => cursor.moveToBeginningOfLine());
   }
 
   // Essential: Move every cursor to the beginning of its line in screen coordinates.
-  moveToBeginningOfScreenLine () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfScreenLine())
+  moveToBeginningOfScreenLine() {
+    return this.moveCursors(cursor => cursor.moveToBeginningOfScreenLine());
   }
 
   // Essential: Move every cursor to the first non-whitespace character of its line.
-  moveToFirstCharacterOfLine () {
-    return this.moveCursors(cursor => cursor.moveToFirstCharacterOfLine())
+  moveToFirstCharacterOfLine() {
+    return this.moveCursors(cursor => cursor.moveToFirstCharacterOfLine());
   }
 
   // Essential: Move every cursor to the end of its line in buffer coordinates.
-  moveToEndOfLine () {
-    return this.moveCursors(cursor => cursor.moveToEndOfLine())
+  moveToEndOfLine() {
+    return this.moveCursors(cursor => cursor.moveToEndOfLine());
   }
 
   // Essential: Move every cursor to the end of its line in screen coordinates.
-  moveToEndOfScreenLine () {
-    return this.moveCursors(cursor => cursor.moveToEndOfScreenLine())
+  moveToEndOfScreenLine() {
+    return this.moveCursors(cursor => cursor.moveToEndOfScreenLine());
   }
 
   // Essential: Move every cursor to the beginning of its surrounding word.
-  moveToBeginningOfWord () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfWord())
+  moveToBeginningOfWord() {
+    return this.moveCursors(cursor => cursor.moveToBeginningOfWord());
   }
 
   // Essential: Move every cursor to the end of its surrounding word.
-  moveToEndOfWord () {
-    return this.moveCursors(cursor => cursor.moveToEndOfWord())
+  moveToEndOfWord() {
+    return this.moveCursors(cursor => cursor.moveToEndOfWord());
   }
 
   // Cursor Extended
@@ -2773,116 +3160,126 @@ class TextEditor {
   // Extended: Move every cursor to the top of the buffer.
   //
   // If there are multiple cursors, they will be merged into a single cursor.
-  moveToTop () {
-    return this.moveCursors(cursor => cursor.moveToTop())
+  moveToTop() {
+    return this.moveCursors(cursor => cursor.moveToTop());
   }
 
   // Extended: Move every cursor to the bottom of the buffer.
   //
   // If there are multiple cursors, they will be merged into a single cursor.
-  moveToBottom () {
-    return this.moveCursors(cursor => cursor.moveToBottom())
+  moveToBottom() {
+    return this.moveCursors(cursor => cursor.moveToBottom());
   }
 
   // Extended: Move every cursor to the beginning of the next word.
-  moveToBeginningOfNextWord () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfNextWord())
+  moveToBeginningOfNextWord() {
+    return this.moveCursors(cursor => cursor.moveToBeginningOfNextWord());
   }
 
   // Extended: Move every cursor to the previous word boundary.
-  moveToPreviousWordBoundary () {
-    return this.moveCursors(cursor => cursor.moveToPreviousWordBoundary())
+  moveToPreviousWordBoundary() {
+    return this.moveCursors(cursor => cursor.moveToPreviousWordBoundary());
   }
 
   // Extended: Move every cursor to the next word boundary.
-  moveToNextWordBoundary () {
-    return this.moveCursors(cursor => cursor.moveToNextWordBoundary())
+  moveToNextWordBoundary() {
+    return this.moveCursors(cursor => cursor.moveToNextWordBoundary());
   }
 
   // Extended: Move every cursor to the previous subword boundary.
-  moveToPreviousSubwordBoundary () {
-    return this.moveCursors(cursor => cursor.moveToPreviousSubwordBoundary())
+  moveToPreviousSubwordBoundary() {
+    return this.moveCursors(cursor => cursor.moveToPreviousSubwordBoundary());
   }
 
   // Extended: Move every cursor to the next subword boundary.
-  moveToNextSubwordBoundary () {
-    return this.moveCursors(cursor => cursor.moveToNextSubwordBoundary())
+  moveToNextSubwordBoundary() {
+    return this.moveCursors(cursor => cursor.moveToNextSubwordBoundary());
   }
 
   // Extended: Move every cursor to the beginning of the next paragraph.
-  moveToBeginningOfNextParagraph () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfNextParagraph())
+  moveToBeginningOfNextParagraph() {
+    return this.moveCursors(cursor => cursor.moveToBeginningOfNextParagraph());
   }
 
   // Extended: Move every cursor to the beginning of the previous paragraph.
-  moveToBeginningOfPreviousParagraph () {
-    return this.moveCursors(cursor => cursor.moveToBeginningOfPreviousParagraph())
+  moveToBeginningOfPreviousParagraph() {
+    return this.moveCursors(cursor =>
+      cursor.moveToBeginningOfPreviousParagraph()
+    );
   }
 
   // Extended: Returns the most recently added {Cursor}
-  getLastCursor () {
-    this.createLastSelectionIfNeeded()
-    return _.last(this.cursors)
+  getLastCursor() {
+    this.createLastSelectionIfNeeded();
+    return _.last(this.cursors);
   }
 
   // Extended: Returns the word surrounding the most recently added cursor.
   //
   // * `options` (optional) See {Cursor::getBeginningOfCurrentWordBufferPosition}.
-  getWordUnderCursor (options) {
-    return this.getTextInBufferRange(this.getLastCursor().getCurrentWordBufferRange(options))
+  getWordUnderCursor(options) {
+    return this.getTextInBufferRange(
+      this.getLastCursor().getCurrentWordBufferRange(options)
+    );
   }
 
   // Extended: Get an Array of all {Cursor}s.
-  getCursors () {
-    this.createLastSelectionIfNeeded()
-    return this.cursors.slice()
+  getCursors() {
+    this.createLastSelectionIfNeeded();
+    return this.cursors.slice();
   }
 
   // Extended: Get all {Cursor}s, ordered by their position in the buffer
   // instead of the order in which they were added.
   //
   // Returns an {Array} of {Selection}s.
-  getCursorsOrderedByBufferPosition () {
-    return this.getCursors().sort((a, b) => a.compare(b))
+  getCursorsOrderedByBufferPosition() {
+    return this.getCursors().sort((a, b) => a.compare(b));
   }
 
-  cursorsForScreenRowRange (startScreenRow, endScreenRow) {
-    const cursors = []
-    for (let marker of this.selectionsMarkerLayer.findMarkers({intersectsScreenRowRange: [startScreenRow, endScreenRow]})) {
-      const cursor = this.cursorsByMarkerId.get(marker.id)
-      if (cursor) cursors.push(cursor)
+  cursorsForScreenRowRange(startScreenRow, endScreenRow) {
+    const cursors = [];
+    for (let marker of this.selectionsMarkerLayer.findMarkers({
+      intersectsScreenRowRange: [startScreenRow, endScreenRow]
+    })) {
+      const cursor = this.cursorsByMarkerId.get(marker.id);
+      if (cursor) cursors.push(cursor);
     }
-    return cursors
+    return cursors;
   }
 
   // Add a cursor based on the given {DisplayMarker}.
-  addCursor (marker) {
-    const cursor = new Cursor({editor: this, marker, showCursorOnSelection: this.showCursorOnSelection})
-    this.cursors.push(cursor)
-    this.cursorsByMarkerId.set(marker.id, cursor)
-    return cursor
+  addCursor(marker) {
+    const cursor = new Cursor({
+      editor: this,
+      marker,
+      showCursorOnSelection: this.showCursorOnSelection
+    });
+    this.cursors.push(cursor);
+    this.cursorsByMarkerId.set(marker.id, cursor);
+    return cursor;
   }
 
-  moveCursors (fn) {
+  moveCursors(fn) {
     return this.transact(() => {
-      this.getCursors().forEach(fn)
-      return this.mergeCursors()
-    })
+      this.getCursors().forEach(fn);
+      return this.mergeCursors();
+    });
   }
 
-  cursorMoved (event) {
-    return this.emitter.emit('did-change-cursor-position', event)
+  cursorMoved(event) {
+    return this.emitter.emit('did-change-cursor-position', event);
   }
 
   // Merge cursors that have the same screen position
-  mergeCursors () {
-    const positions = {}
+  mergeCursors() {
+    const positions = {};
     for (let cursor of this.getCursors()) {
-      const position = cursor.getBufferPosition().toString()
+      const position = cursor.getBufferPosition().toString();
       if (positions.hasOwnProperty(position)) {
-        cursor.destroy()
+        cursor.destroy();
       } else {
-        positions[position] = true
+        positions[position] = true;
       }
     }
   }
@@ -2894,16 +3291,16 @@ class TextEditor {
   // Essential: Get the selected text of the most recently added selection.
   //
   // Returns a {String}.
-  getSelectedText () {
-    return this.getLastSelection().getText()
+  getSelectedText() {
+    return this.getLastSelection().getText();
   }
 
   // Essential: Get the {Range} of the most recently added selection in buffer
   // coordinates.
   //
   // Returns a {Range}.
-  getSelectedBufferRange () {
-    return this.getLastSelection().getBufferRange()
+  getSelectedBufferRange() {
+    return this.getLastSelection().getBufferRange();
   }
 
   // Essential: Get the {Range}s of all selections in buffer coordinates.
@@ -2911,8 +3308,8 @@ class TextEditor {
   // The ranges are sorted by when the selections were added. Most recent at the end.
   //
   // Returns an {Array} of {Range}s.
-  getSelectedBufferRanges () {
-    return this.getSelections().map((selection) => selection.getBufferRange())
+  getSelectedBufferRanges() {
+    return this.getSelections().map(selection => selection.getBufferRange());
   }
 
   // Essential: Set the selected range in buffer coordinates. If there are multiple
@@ -2924,8 +3321,8 @@ class TextEditor {
   //     reversed orientation.
   //   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
   //     selection is set.
-  setSelectedBufferRange (bufferRange, options) {
-    return this.setSelectedBufferRanges([bufferRange], options)
+  setSelectedBufferRange(bufferRange, options) {
+    return this.setSelectedBufferRanges([bufferRange], options);
   }
 
   // Essential: Set the selected ranges in buffer coordinates. If there are multiple
@@ -2937,33 +3334,34 @@ class TextEditor {
   //     reversed orientation.
   //   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
   //     selection is set.
-  setSelectedBufferRanges (bufferRanges, options = {}) {
-    if (!bufferRanges.length) throw new Error('Passed an empty array to setSelectedBufferRanges')
+  setSelectedBufferRanges(bufferRanges, options = {}) {
+    if (!bufferRanges.length)
+      throw new Error('Passed an empty array to setSelectedBufferRanges');
 
-    const selections = this.getSelections()
+    const selections = this.getSelections();
     for (let selection of selections.slice(bufferRanges.length)) {
-      selection.destroy()
+      selection.destroy();
     }
 
     this.mergeIntersectingSelections(options, () => {
       for (let i = 0; i < bufferRanges.length; i++) {
-        let bufferRange = bufferRanges[i]
-        bufferRange = Range.fromObject(bufferRange)
+        let bufferRange = bufferRanges[i];
+        bufferRange = Range.fromObject(bufferRange);
         if (selections[i]) {
-          selections[i].setBufferRange(bufferRange, options)
+          selections[i].setBufferRange(bufferRange, options);
         } else {
-          this.addSelectionForBufferRange(bufferRange, options)
+          this.addSelectionForBufferRange(bufferRange, options);
         }
       }
-    })
+    });
   }
 
   // Essential: Get the {Range} of the most recently added selection in screen
   // coordinates.
   //
   // Returns a {Range}.
-  getSelectedScreenRange () {
-    return this.getLastSelection().getScreenRange()
+  getSelectedScreenRange() {
+    return this.getLastSelection().getScreenRange();
   }
 
   // Essential: Get the {Range}s of all selections in screen coordinates.
@@ -2971,8 +3369,8 @@ class TextEditor {
   // The ranges are sorted by when the selections were added. Most recent at the end.
   //
   // Returns an {Array} of {Range}s.
-  getSelectedScreenRanges () {
-    return this.getSelections().map((selection) => selection.getScreenRange())
+  getSelectedScreenRanges() {
+    return this.getSelections().map(selection => selection.getScreenRange());
   }
 
   // Essential: Set the selected range in screen coordinates. If there are multiple
@@ -2982,8 +3380,11 @@ class TextEditor {
   // * `options` (optional) An options {Object}:
   //   * `reversed` A {Boolean} indicating whether to create the selection in a
   //     reversed orientation.
-  setSelectedScreenRange (screenRange, options) {
-    return this.setSelectedBufferRange(this.bufferRangeForScreenRange(screenRange, options), options)
+  setSelectedScreenRange(screenRange, options) {
+    return this.setSelectedBufferRange(
+      this.bufferRangeForScreenRange(screenRange, options),
+      options
+    );
   }
 
   // Essential: Set the selected ranges in screen coordinates. If there are multiple
@@ -2993,25 +3394,26 @@ class TextEditor {
   // * `options` (optional) An options {Object}:
   //   * `reversed` A {Boolean} indicating whether to create the selection in a
   //     reversed orientation.
-  setSelectedScreenRanges (screenRanges, options = {}) {
-    if (!screenRanges.length) throw new Error('Passed an empty array to setSelectedScreenRanges')
+  setSelectedScreenRanges(screenRanges, options = {}) {
+    if (!screenRanges.length)
+      throw new Error('Passed an empty array to setSelectedScreenRanges');
 
-    const selections = this.getSelections()
+    const selections = this.getSelections();
     for (let selection of selections.slice(screenRanges.length)) {
-      selection.destroy()
+      selection.destroy();
     }
 
     this.mergeIntersectingSelections(options, () => {
       for (let i = 0; i < screenRanges.length; i++) {
-        let screenRange = screenRanges[i]
-        screenRange = Range.fromObject(screenRange)
+        let screenRange = screenRanges[i];
+        screenRange = Range.fromObject(screenRange);
         if (selections[i]) {
-          selections[i].setScreenRange(screenRange, options)
+          selections[i].setScreenRange(screenRange, options);
         } else {
-          this.addSelectionForScreenRange(screenRange, options)
+          this.addSelectionForScreenRange(screenRange, options);
         }
       }
-    })
+    });
   }
 
   // Essential: Add a selection for the given range in buffer coordinates.
@@ -3024,14 +3426,20 @@ class TextEditor {
   //     selection is set.
   //
   // Returns the added {Selection}.
-  addSelectionForBufferRange (bufferRange, options = {}) {
-    bufferRange = Range.fromObject(bufferRange)
+  addSelectionForBufferRange(bufferRange, options = {}) {
+    bufferRange = Range.fromObject(bufferRange);
     if (!options.preserveFolds) {
-      this.displayLayer.destroyFoldsContainingBufferPositions([bufferRange.start, bufferRange.end], true)
+      this.displayLayer.destroyFoldsContainingBufferPositions(
+        [bufferRange.start, bufferRange.end],
+        true
+      );
     }
-    this.selectionsMarkerLayer.markBufferRange(bufferRange, {invalidate: 'never', reversed: options.reversed != null ? options.reversed : false})
-    if (options.autoscroll !== false) this.getLastSelection().autoscroll()
-    return this.getLastSelection()
+    this.selectionsMarkerLayer.markBufferRange(bufferRange, {
+      invalidate: 'never',
+      reversed: options.reversed != null ? options.reversed : false
+    });
+    if (options.autoscroll !== false) this.getLastSelection().autoscroll();
+    return this.getLastSelection();
   }
 
   // Essential: Add a selection for the given range in screen coordinates.
@@ -3043,8 +3451,11 @@ class TextEditor {
   //   * `preserveFolds` A {Boolean}, which if `true` preserves the fold settings after the
   //     selection is set.
   // Returns the added {Selection}.
-  addSelectionForScreenRange (screenRange, options = {}) {
-    return this.addSelectionForBufferRange(this.bufferRangeForScreenRange(screenRange), options)
+  addSelectionForScreenRange(screenRange, options = {}) {
+    return this.addSelectionForBufferRange(
+      this.bufferRangeForScreenRange(screenRange),
+      options
+    );
   }
 
   // Essential: Select from the current cursor position to the given position in
@@ -3053,10 +3464,12 @@ class TextEditor {
   // This method may merge selections that end up intersecting.
   //
   // * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToBufferPosition (position) {
-    const lastSelection = this.getLastSelection()
-    lastSelection.selectToBufferPosition(position)
-    return this.mergeIntersectingSelections({reversed: lastSelection.isReversed()})
+  selectToBufferPosition(position) {
+    const lastSelection = this.getLastSelection();
+    lastSelection.selectToBufferPosition(position);
+    return this.mergeIntersectingSelections({
+      reversed: lastSelection.isReversed()
+    });
   }
 
   // Essential: Select from the current cursor position to the given position in
@@ -3065,11 +3478,13 @@ class TextEditor {
   // This method may merge selections that end up intersecting.
   //
   // * `position` An instance of {Point}, with a given `row` and `column`.
-  selectToScreenPosition (position, options) {
-    const lastSelection = this.getLastSelection()
-    lastSelection.selectToScreenPosition(position, options)
+  selectToScreenPosition(position, options) {
+    const lastSelection = this.getLastSelection();
+    lastSelection.selectToScreenPosition(position, options);
     if (!options || !options.suppressSelectionMerge) {
-      return this.mergeIntersectingSelections({reversed: lastSelection.isReversed()})
+      return this.mergeIntersectingSelections({
+        reversed: lastSelection.isReversed()
+      });
     }
   }
 
@@ -3079,8 +3494,10 @@ class TextEditor {
   // * `rowCount` (optional) {Number} number of rows to select (default: 1)
   //
   // This method may merge selections that end up intersecting.
-  selectUp (rowCount) {
-    return this.expandSelectionsBackward(selection => selection.selectUp(rowCount))
+  selectUp(rowCount) {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectUp(rowCount)
+    );
   }
 
   // Essential: Move the cursor of each selection one character downward while
@@ -3089,8 +3506,10 @@ class TextEditor {
   // * `rowCount` (optional) {Number} number of rows to select (default: 1)
   //
   // This method may merge selections that end up intersecting.
-  selectDown (rowCount) {
-    return this.expandSelectionsForward(selection => selection.selectDown(rowCount))
+  selectDown(rowCount) {
+    return this.expandSelectionsForward(selection =>
+      selection.selectDown(rowCount)
+    );
   }
 
   // Essential: Move the cursor of each selection one character leftward while
@@ -3099,8 +3518,10 @@ class TextEditor {
   // * `columnCount` (optional) {Number} number of columns to select (default: 1)
   //
   // This method may merge selections that end up intersecting.
-  selectLeft (columnCount) {
-    return this.expandSelectionsBackward(selection => selection.selectLeft(columnCount))
+  selectLeft(columnCount) {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectLeft(columnCount)
+    );
   }
 
   // Essential: Move the cursor of each selection one character rightward while
@@ -3109,39 +3530,45 @@ class TextEditor {
   // * `columnCount` (optional) {Number} number of columns to select (default: 1)
   //
   // This method may merge selections that end up intersecting.
-  selectRight (columnCount) {
-    return this.expandSelectionsForward(selection => selection.selectRight(columnCount))
+  selectRight(columnCount) {
+    return this.expandSelectionsForward(selection =>
+      selection.selectRight(columnCount)
+    );
   }
 
   // Essential: Select from the top of the buffer to the end of the last selection
   // in the buffer.
   //
   // This method merges multiple selections into a single selection.
-  selectToTop () {
-    return this.expandSelectionsBackward(selection => selection.selectToTop())
+  selectToTop() {
+    return this.expandSelectionsBackward(selection => selection.selectToTop());
   }
 
   // Essential: Selects from the top of the first selection in the buffer to the end
   // of the buffer.
   //
   // This method merges multiple selections into a single selection.
-  selectToBottom () {
-    return this.expandSelectionsForward(selection => selection.selectToBottom())
+  selectToBottom() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToBottom()
+    );
   }
 
   // Essential: Select all text in the buffer.
   //
   // This method merges multiple selections into a single selection.
-  selectAll () {
-    return this.expandSelectionsForward(selection => selection.selectAll())
+  selectAll() {
+    return this.expandSelectionsForward(selection => selection.selectAll());
   }
 
   // Essential: Move the cursor of each selection to the beginning of its line
   // while preserving the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToBeginningOfLine () {
-    return this.expandSelectionsBackward(selection => selection.selectToBeginningOfLine())
+  selectToBeginningOfLine() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToBeginningOfLine()
+    );
   }
 
   // Essential: Move the cursor of each selection to the first non-whitespace
@@ -3150,60 +3577,72 @@ class TextEditor {
   // beginning of the line.
   //
   // This method may merge selections that end up intersecting.
-  selectToFirstCharacterOfLine () {
-    return this.expandSelectionsBackward(selection => selection.selectToFirstCharacterOfLine())
+  selectToFirstCharacterOfLine() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToFirstCharacterOfLine()
+    );
   }
 
   // Essential: Move the cursor of each selection to the end of its line while
   // preserving the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToEndOfLine () {
-    return this.expandSelectionsForward(selection => selection.selectToEndOfLine())
+  selectToEndOfLine() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToEndOfLine()
+    );
   }
 
   // Essential: Expand selections to the beginning of their containing word.
   //
   // Operates on all selections. Moves the cursor to the beginning of the
   // containing word while preserving the selection's tail position.
-  selectToBeginningOfWord () {
-    return this.expandSelectionsBackward(selection => selection.selectToBeginningOfWord())
+  selectToBeginningOfWord() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToBeginningOfWord()
+    );
   }
 
   // Essential: Expand selections to the end of their containing word.
   //
   // Operates on all selections. Moves the cursor to the end of the containing
   // word while preserving the selection's tail position.
-  selectToEndOfWord () {
-    return this.expandSelectionsForward(selection => selection.selectToEndOfWord())
+  selectToEndOfWord() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToEndOfWord()
+    );
   }
 
   // Extended: For each selection, move its cursor to the preceding subword
   // boundary while maintaining the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToPreviousSubwordBoundary () {
-    return this.expandSelectionsBackward(selection => selection.selectToPreviousSubwordBoundary())
+  selectToPreviousSubwordBoundary() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToPreviousSubwordBoundary()
+    );
   }
 
   // Extended: For each selection, move its cursor to the next subword boundary
   // while maintaining the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToNextSubwordBoundary () {
-    return this.expandSelectionsForward(selection => selection.selectToNextSubwordBoundary())
+  selectToNextSubwordBoundary() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToNextSubwordBoundary()
+    );
   }
 
   // Essential: For each cursor, select the containing line.
   //
   // This method merges selections on successive lines.
-  selectLinesContainingCursors () {
-    return this.expandSelectionsForward(selection => selection.selectLine())
+  selectLinesContainingCursors() {
+    return this.expandSelectionsForward(selection => selection.selectLine());
   }
 
   // Essential: Select the word surrounding each cursor.
-  selectWordsContainingCursors () {
-    return this.expandSelectionsForward(selection => selection.selectWord())
+  selectWordsContainingCursors() {
+    return this.expandSelectionsForward(selection => selection.selectWord());
   }
 
   // Selection Extended
@@ -3212,70 +3651,83 @@ class TextEditor {
   // while maintaining the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToPreviousWordBoundary () {
-    return this.expandSelectionsBackward(selection => selection.selectToPreviousWordBoundary())
+  selectToPreviousWordBoundary() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToPreviousWordBoundary()
+    );
   }
 
   // Extended: For each selection, move its cursor to the next word boundary while
   // maintaining the selection's tail position.
   //
   // This method may merge selections that end up intersecting.
-  selectToNextWordBoundary () {
-    return this.expandSelectionsForward(selection => selection.selectToNextWordBoundary())
+  selectToNextWordBoundary() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToNextWordBoundary()
+    );
   }
 
   // Extended: Expand selections to the beginning of the next word.
   //
   // Operates on all selections. Moves the cursor to the beginning of the next
   // word while preserving the selection's tail position.
-  selectToBeginningOfNextWord () {
-    return this.expandSelectionsForward(selection => selection.selectToBeginningOfNextWord())
+  selectToBeginningOfNextWord() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToBeginningOfNextWord()
+    );
   }
 
   // Extended: Expand selections to the beginning of the next paragraph.
   //
   // Operates on all selections. Moves the cursor to the beginning of the next
   // paragraph while preserving the selection's tail position.
-  selectToBeginningOfNextParagraph () {
-    return this.expandSelectionsForward(selection => selection.selectToBeginningOfNextParagraph())
+  selectToBeginningOfNextParagraph() {
+    return this.expandSelectionsForward(selection =>
+      selection.selectToBeginningOfNextParagraph()
+    );
   }
 
   // Extended: Expand selections to the beginning of the next paragraph.
   //
   // Operates on all selections. Moves the cursor to the beginning of the next
   // paragraph while preserving the selection's tail position.
-  selectToBeginningOfPreviousParagraph () {
-    return this.expandSelectionsBackward(selection => selection.selectToBeginningOfPreviousParagraph())
+  selectToBeginningOfPreviousParagraph() {
+    return this.expandSelectionsBackward(selection =>
+      selection.selectToBeginningOfPreviousParagraph()
+    );
   }
 
   // Extended: For each selection, select the syntax node that contains
   // that selection.
-  selectLargerSyntaxNode () {
-    const languageMode = this.buffer.getLanguageMode()
-    if (!languageMode.getRangeForSyntaxNodeContainingRange) return
+  selectLargerSyntaxNode() {
+    const languageMode = this.buffer.getLanguageMode();
+    if (!languageMode.getRangeForSyntaxNodeContainingRange) return;
 
     this.expandSelectionsForward(selection => {
-      const currentRange = selection.getBufferRange()
-      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(currentRange)
+      const currentRange = selection.getBufferRange();
+      const newRange = languageMode.getRangeForSyntaxNodeContainingRange(
+        currentRange
+      );
       if (newRange) {
-        if (!selection._rangeStack) selection._rangeStack = []
-        selection._rangeStack.push(currentRange)
-        selection.setBufferRange(newRange)
+        if (!selection._rangeStack) selection._rangeStack = [];
+        selection._rangeStack.push(currentRange);
+        selection.setBufferRange(newRange);
       }
-    })
+    });
   }
 
   // Extended: Undo the effect a preceding call to {::selectLargerSyntaxNode}.
-  selectSmallerSyntaxNode () {
+  selectSmallerSyntaxNode() {
     this.expandSelectionsForward(selection => {
       if (selection._rangeStack) {
-        const lastRange = selection._rangeStack[selection._rangeStack.length - 1]
+        const lastRange =
+          selection._rangeStack[selection._rangeStack.length - 1];
         if (lastRange && selection.getBufferRange().containsRange(lastRange)) {
-          selection._rangeStack.length--
-          selection.setBufferRange(lastRange)
+          selection._rangeStack.length--;
+          selection.setBufferRange(lastRange);
         }
       }
-    })
+    });
   }
 
   // Extended: Select the range of the given marker if it is valid.
@@ -3283,41 +3735,44 @@ class TextEditor {
   // * `marker` A {DisplayMarker}
   //
   // Returns the selected {Range} or `undefined` if the marker is invalid.
-  selectMarker (marker) {
+  selectMarker(marker) {
     if (marker.isValid()) {
-      const range = marker.getBufferRange()
-      this.setSelectedBufferRange(range)
-      return range
+      const range = marker.getBufferRange();
+      this.setSelectedBufferRange(range);
+      return range;
     }
   }
 
   // Extended: Get the most recently added {Selection}.
   //
   // Returns a {Selection}.
-  getLastSelection () {
-    this.createLastSelectionIfNeeded()
-    return _.last(this.selections)
+  getLastSelection() {
+    this.createLastSelectionIfNeeded();
+    return _.last(this.selections);
   }
 
-  getSelectionAtScreenPosition (position) {
-    const markers = this.selectionsMarkerLayer.findMarkers({containsScreenPosition: position})
-    if (markers.length > 0) return this.cursorsByMarkerId.get(markers[0].id).selection
+  getSelectionAtScreenPosition(position) {
+    const markers = this.selectionsMarkerLayer.findMarkers({
+      containsScreenPosition: position
+    });
+    if (markers.length > 0)
+      return this.cursorsByMarkerId.get(markers[0].id).selection;
   }
 
   // Extended: Get current {Selection}s.
   //
   // Returns: An {Array} of {Selection}s.
-  getSelections () {
-    this.createLastSelectionIfNeeded()
-    return this.selections.slice()
+  getSelections() {
+    this.createLastSelectionIfNeeded();
+    return this.selections.slice();
   }
 
   // Extended: Get all {Selection}s, ordered by their position in the buffer
   // instead of the order in which they were added.
   //
   // Returns an {Array} of {Selection}s.
-  getSelectionsOrderedByBufferPosition () {
-    return this.getSelections().sort((a, b) => a.compare(b))
+  getSelectionsOrderedByBufferPosition() {
+    return this.getSelections().sort((a, b) => a.compare(b));
   }
 
   // Extended: Determine if a given range in buffer coordinates intersects a
@@ -3326,8 +3781,10 @@ class TextEditor {
   // * `bufferRange` A {Range} or range-compatible {Array}.
   //
   // Returns a {Boolean}.
-  selectionIntersectsBufferRange (bufferRange) {
-    return this.getSelections().some(selection => selection.intersectsBufferRange(bufferRange))
+  selectionIntersectsBufferRange(bufferRange) {
+    return this.getSelections().some(selection =>
+      selection.intersectsBufferRange(bufferRange)
+    );
   }
 
   // Selections Private
@@ -3340,8 +3797,10 @@ class TextEditor {
   // selection's column as possible. If the selection is non-empty, adds a
   // selection to the next line that is long enough for a non-empty selection
   // starting at the same column as the current selection to be added to it.
-  addSelectionBelow () {
-    return this.expandSelectionsForward(selection => selection.addSelectionBelow())
+  addSelectionBelow() {
+    return this.expandSelectionsForward(selection =>
+      selection.addSelectionBelow()
+    );
   }
 
   // Add a similarly-shaped selection to the next eligible line above
@@ -3352,76 +3811,94 @@ class TextEditor {
   // selection's column as possible. If the selection is non-empty, adds a
   // selection to the next line that is long enough for a non-empty selection
   // starting at the same column as the current selection to be added to it.
-  addSelectionAbove () {
-    return this.expandSelectionsBackward(selection => selection.addSelectionAbove())
+  addSelectionAbove() {
+    return this.expandSelectionsBackward(selection =>
+      selection.addSelectionAbove()
+    );
   }
 
   // Calls the given function with each selection, then merges selections
-  expandSelectionsForward (fn) {
-    this.mergeIntersectingSelections(() => this.getSelections().forEach(fn))
+  expandSelectionsForward(fn) {
+    this.mergeIntersectingSelections(() => this.getSelections().forEach(fn));
   }
 
   // Calls the given function with each selection, then merges selections in the
   // reversed orientation
-  expandSelectionsBackward (fn) {
-    this.mergeIntersectingSelections({reversed: true}, () => this.getSelections().forEach(fn))
+  expandSelectionsBackward(fn) {
+    this.mergeIntersectingSelections({ reversed: true }, () =>
+      this.getSelections().forEach(fn)
+    );
   }
 
-  finalizeSelections () {
-    for (let selection of this.getSelections()) { selection.finalize() }
+  finalizeSelections() {
+    for (let selection of this.getSelections()) {
+      selection.finalize();
+    }
   }
 
-  selectionsForScreenRows (startRow, endRow) {
-    return this.getSelections().filter(selection => selection.intersectsScreenRowRange(startRow, endRow))
+  selectionsForScreenRows(startRow, endRow) {
+    return this.getSelections().filter(selection =>
+      selection.intersectsScreenRowRange(startRow, endRow)
+    );
   }
 
   // Merges intersecting selections. If passed a function, it executes
   // the function with merging suppressed, then merges intersecting selections
   // afterward.
-  mergeIntersectingSelections (...args) {
-    return this.mergeSelections(...args, (previousSelection, currentSelection) => {
-      const exclusive = !currentSelection.isEmpty() && !previousSelection.isEmpty()
-      return previousSelection.intersectsWith(currentSelection, exclusive)
-    })
+  mergeIntersectingSelections(...args) {
+    return this.mergeSelections(
+      ...args,
+      (previousSelection, currentSelection) => {
+        const exclusive =
+          !currentSelection.isEmpty() && !previousSelection.isEmpty();
+        return previousSelection.intersectsWith(currentSelection, exclusive);
+      }
+    );
   }
 
-  mergeSelectionsOnSameRows (...args) {
-    return this.mergeSelections(...args, (previousSelection, currentSelection) => {
-      const screenRange = currentSelection.getScreenRange()
-      return previousSelection.intersectsScreenRowRange(screenRange.start.row, screenRange.end.row)
-    })
+  mergeSelectionsOnSameRows(...args) {
+    return this.mergeSelections(
+      ...args,
+      (previousSelection, currentSelection) => {
+        const screenRange = currentSelection.getScreenRange();
+        return previousSelection.intersectsScreenRowRange(
+          screenRange.start.row,
+          screenRange.end.row
+        );
+      }
+    );
   }
 
-  avoidMergingSelections (...args) {
-    return this.mergeSelections(...args, () => false)
+  avoidMergingSelections(...args) {
+    return this.mergeSelections(...args, () => false);
   }
 
-  mergeSelections (...args) {
-    const mergePredicate = args.pop()
-    let fn = args.pop()
-    let options = args.pop()
+  mergeSelections(...args) {
+    const mergePredicate = args.pop();
+    let fn = args.pop();
+    let options = args.pop();
     if (typeof fn !== 'function') {
-      options = fn
-      fn = () => {}
+      options = fn;
+      fn = () => {};
     }
 
-    if (this.suppressSelectionMerging) return fn()
+    if (this.suppressSelectionMerging) return fn();
 
-    this.suppressSelectionMerging = true
-    const result = fn()
-    this.suppressSelectionMerging = false
+    this.suppressSelectionMerging = true;
+    const result = fn();
+    this.suppressSelectionMerging = false;
 
-    const selections = this.getSelectionsOrderedByBufferPosition()
-    let lastSelection = selections.shift()
+    const selections = this.getSelectionsOrderedByBufferPosition();
+    let lastSelection = selections.shift();
     for (const selection of selections) {
       if (mergePredicate(lastSelection, selection)) {
-        lastSelection.merge(selection, options)
+        lastSelection.merge(selection, options);
       } else {
-        lastSelection = selection
+        lastSelection = selection;
       }
     }
 
-    return result
+    return result;
   }
 
   // Add a {Selection} based on the given {DisplayMarker}.
@@ -3430,61 +3907,69 @@ class TextEditor {
   // * `options` (optional) An {Object} that pertains to the {Selection} constructor.
   //
   // Returns the new {Selection}.
-  addSelection (marker, options = {}) {
-    const cursor = this.addCursor(marker)
-    let selection = new Selection(Object.assign({editor: this, marker, cursor}, options))
-    this.selections.push(selection)
-    const selectionBufferRange = selection.getBufferRange()
-    this.mergeIntersectingSelections({preserveFolds: options.preserveFolds})
+  addSelection(marker, options = {}) {
+    const cursor = this.addCursor(marker);
+    let selection = new Selection(
+      Object.assign({ editor: this, marker, cursor }, options)
+    );
+    this.selections.push(selection);
+    const selectionBufferRange = selection.getBufferRange();
+    this.mergeIntersectingSelections({ preserveFolds: options.preserveFolds });
 
     if (selection.destroyed) {
       for (selection of this.getSelections()) {
-        if (selection.intersectsBufferRange(selectionBufferRange)) return selection
+        if (selection.intersectsBufferRange(selectionBufferRange))
+          return selection;
       }
     } else {
-      this.emitter.emit('did-add-cursor', cursor)
-      this.emitter.emit('did-add-selection', selection)
-      return selection
+      this.emitter.emit('did-add-cursor', cursor);
+      this.emitter.emit('did-add-selection', selection);
+      return selection;
     }
   }
 
   // Remove the given selection.
-  removeSelection (selection) {
-    _.remove(this.cursors, selection.cursor)
-    _.remove(this.selections, selection)
-    this.cursorsByMarkerId.delete(selection.cursor.marker.id)
-    this.emitter.emit('did-remove-cursor', selection.cursor)
-    return this.emitter.emit('did-remove-selection', selection)
+  removeSelection(selection) {
+    _.remove(this.cursors, selection.cursor);
+    _.remove(this.selections, selection);
+    this.cursorsByMarkerId.delete(selection.cursor.marker.id);
+    this.emitter.emit('did-remove-cursor', selection.cursor);
+    return this.emitter.emit('did-remove-selection', selection);
   }
 
   // Reduce one or more selections to a single empty selection based on the most
   // recently added cursor.
-  clearSelections (options) {
-    this.consolidateSelections()
-    this.getLastSelection().clear(options)
+  clearSelections(options) {
+    this.consolidateSelections();
+    this.getLastSelection().clear(options);
   }
 
   // Reduce multiple selections to the least recently added selection.
-  consolidateSelections () {
-    const selections = this.getSelections()
+  consolidateSelections() {
+    const selections = this.getSelections();
     if (selections.length > 1) {
-      for (let selection of selections.slice(1, (selections.length))) { selection.destroy() }
-      selections[0].autoscroll({center: true})
-      return true
+      for (let selection of selections.slice(1, selections.length)) {
+        selection.destroy();
+      }
+      selections[0].autoscroll({ center: true });
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 
   // Called by the selection
-  selectionRangeChanged (event) {
-    if (this.component) this.component.didChangeSelectionRange()
-    this.emitter.emit('did-change-selection-range', event)
+  selectionRangeChanged(event) {
+    if (this.component) this.component.didChangeSelectionRange();
+    this.emitter.emit('did-change-selection-range', event);
   }
 
-  createLastSelectionIfNeeded () {
+  createLastSelectionIfNeeded() {
     if (this.selections.length === 0) {
-      this.addSelectionForBufferRange([[0, 0], [0, 0]], {autoscroll: false, preserveFolds: true})
+      this.addSelectionForBufferRange([[0, 0], [0, 0]], {
+        autoscroll: false,
+        preserveFolds: true
+      });
     }
   }
 
@@ -3513,13 +3998,13 @@ class TextEditor {
   //     * `range` The {Range} of the match.
   //     * `stop` Call this {Function} to terminate the scan.
   //     * `replace` Call this {Function} with a {String} to replace the match.
-  scan (regex, options = {}, iterator) {
+  scan(regex, options = {}, iterator) {
     if (_.isFunction(options)) {
-      iterator = options
-      options = {}
+      iterator = options;
+      options = {};
     }
 
-    return this.buffer.scan(regex, options, iterator)
+    return this.buffer.scan(regex, options, iterator);
   }
 
   // Essential: Scan regular expression matches in a given range, calling the given
@@ -3534,7 +4019,9 @@ class TextEditor {
   //   * `range` The {Range} of the match.
   //   * `stop` Call this {Function} to terminate the scan.
   //   * `replace` Call this {Function} with a {String} to replace the match.
-  scanInBufferRange (regex, range, iterator) { return this.buffer.scanInRange(regex, range, iterator) }
+  scanInBufferRange(regex, range, iterator) {
+    return this.buffer.scanInRange(regex, range, iterator);
+  }
 
   // Essential: Scan regular expression matches in a given range in reverse order,
   // calling the given iterator function on each match.
@@ -3548,7 +4035,9 @@ class TextEditor {
   //   * `range` The {Range} of the match.
   //   * `stop` Call this {Function} to terminate the scan.
   //   * `replace` Call this {Function} with a {String} to replace the match.
-  backwardsScanInBufferRange (regex, range, iterator) { return this.buffer.backwardsScanInRange(regex, range, iterator) }
+  backwardsScanInBufferRange(regex, range, iterator) {
+    return this.buffer.backwardsScanInRange(regex, range, iterator);
+  }
 
   /*
   Section: Tab Behavior
@@ -3556,47 +4045,61 @@ class TextEditor {
 
   // Essential: Returns a {Boolean} indicating whether softTabs are enabled for this
   // editor.
-  getSoftTabs () { return this.softTabs }
+  getSoftTabs() {
+    return this.softTabs;
+  }
 
   // Essential: Enable or disable soft tabs for this editor.
   //
   // * `softTabs` A {Boolean}
-  setSoftTabs (softTabs) {
-    this.softTabs = softTabs
-    this.update({softTabs: this.softTabs})
+  setSoftTabs(softTabs) {
+    this.softTabs = softTabs;
+    this.update({ softTabs: this.softTabs });
   }
 
   // Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
-  hasAtomicSoftTabs () { return this.displayLayer.atomicSoftTabs }
+  hasAtomicSoftTabs() {
+    return this.displayLayer.atomicSoftTabs;
+  }
 
   // Essential: Toggle soft tabs for this editor
-  toggleSoftTabs () { this.setSoftTabs(!this.getSoftTabs()) }
+  toggleSoftTabs() {
+    this.setSoftTabs(!this.getSoftTabs());
+  }
 
   // Essential: Get the on-screen length of tab characters.
   //
   // Returns a {Number}.
-  getTabLength () { return this.displayLayer.tabLength }
+  getTabLength() {
+    return this.displayLayer.tabLength;
+  }
 
   // Essential: Set the on-screen length of tab characters. Setting this to a
   // {Number} This will override the `editor.tabLength` setting.
   //
   // * `tabLength` {Number} length of a single tab. Setting to `null` will
   //   fallback to using the `editor.tabLength` config setting
-  setTabLength (tabLength) { this.update({tabLength}) }
+  setTabLength(tabLength) {
+    this.update({ tabLength });
+  }
 
   // Returns an {Object} representing the current invisible character
   // substitutions for this editor. See {::setInvisibles}.
-  getInvisibles () {
-    if (!this.mini && this.showInvisibles && (this.invisibles != null)) {
-      return this.invisibles
+  getInvisibles() {
+    if (!this.mini && this.showInvisibles && this.invisibles != null) {
+      return this.invisibles;
     } else {
-      return {}
+      return {};
     }
   }
 
-  doesShowIndentGuide () { return this.showIndentGuide && !this.mini }
+  doesShowIndentGuide() {
+    return this.showIndentGuide && !this.mini;
+  }
 
-  getSoftWrapHangingIndentLength () { return this.displayLayer.softWrapHangingIndent }
+  getSoftWrapHangingIndentLength() {
+    return this.displayLayer.softWrapHangingIndent;
+  }
 
   // Extended: Determine if the buffer uses hard or soft tabs.
   //
@@ -3605,14 +4108,18 @@ class TextEditor {
   //
   // Returns a {Boolean} or undefined if no non-comment lines had leading
   // whitespace.
-  usesSoftTabs () {
-    const languageMode = this.buffer.getLanguageMode()
-    const hasIsRowCommented = languageMode.isRowCommented
-    for (let bufferRow = 0, end = Math.min(1000, this.buffer.getLastRow()); bufferRow <= end; bufferRow++) {
-      if (hasIsRowCommented && languageMode.isRowCommented(bufferRow)) continue
-      const line = this.buffer.lineForRow(bufferRow)
-      if (line[0] === ' ') return true
-      if (line[0] === '\t') return false
+  usesSoftTabs() {
+    const languageMode = this.buffer.getLanguageMode();
+    const hasIsRowCommented = languageMode.isRowCommented;
+    for (
+      let bufferRow = 0, end = Math.min(1000, this.buffer.getLastRow());
+      bufferRow <= end;
+      bufferRow++
+    ) {
+      if (hasIsRowCommented && languageMode.isRowCommented(bufferRow)) continue;
+      const line = this.buffer.lineForRow(bufferRow);
+      if (line[0] === ' ') return true;
+      if (line[0] === '\t') return false;
     }
   }
 
@@ -3622,13 +4129,19 @@ class TextEditor {
   // tab length. Otherwise the text is a tab character (`\t`).
   //
   // Returns a {String}.
-  getTabText () { return this.buildIndentString(1) }
+  getTabText() {
+    return this.buildIndentString(1);
+  }
 
   // If soft tabs are enabled, convert all hard tabs to soft tabs in the given
   // {Range}.
-  normalizeTabsInBufferRange (bufferRange) {
-    if (!this.getSoftTabs()) { return }
-    return this.scanInBufferRange(/\t/g, bufferRange, ({replace}) => replace(this.getTabText()))
+  normalizeTabsInBufferRange(bufferRange) {
+    if (!this.getSoftTabs()) {
+      return;
+    }
+    return this.scanInBufferRange(/\t/g, bufferRange, ({ replace }) =>
+      replace(this.getTabText())
+    );
   }
 
   /*
@@ -3638,35 +4151,41 @@ class TextEditor {
   // Essential: Determine whether lines in this editor are soft-wrapped.
   //
   // Returns a {Boolean}.
-  isSoftWrapped () { return this.softWrapped }
+  isSoftWrapped() {
+    return this.softWrapped;
+  }
 
   // Essential: Enable or disable soft wrapping for this editor.
   //
   // * `softWrapped` A {Boolean}
   //
   // Returns a {Boolean}.
-  setSoftWrapped (softWrapped) {
-    this.update({softWrapped})
-    return this.isSoftWrapped()
+  setSoftWrapped(softWrapped) {
+    this.update({ softWrapped });
+    return this.isSoftWrapped();
   }
 
-  getPreferredLineLength () { return this.preferredLineLength }
+  getPreferredLineLength() {
+    return this.preferredLineLength;
+  }
 
   // Essential: Toggle soft wrapping for this editor
   //
   // Returns a {Boolean}.
-  toggleSoftWrapped () { return this.setSoftWrapped(!this.isSoftWrapped()) }
+  toggleSoftWrapped() {
+    return this.setSoftWrapped(!this.isSoftWrapped());
+  }
 
   // Essential: Gets the column at which column will soft wrap
-  getSoftWrapColumn () {
+  getSoftWrapColumn() {
     if (this.isSoftWrapped() && !this.mini) {
       if (this.softWrapAtPreferredLineLength) {
-        return Math.min(this.getEditorWidthInChars(), this.preferredLineLength)
+        return Math.min(this.getEditorWidthInChars(), this.preferredLineLength);
       } else {
-        return this.getEditorWidthInChars()
+        return this.getEditorWidthInChars();
       }
     } else {
-      return this.maxScreenLineLength
+      return this.maxScreenLineLength;
     }
   }
 
@@ -3684,8 +4203,8 @@ class TextEditor {
   // * `bufferRow` A {Number} indicating the buffer row.
   //
   // Returns a {Number}.
-  indentationForBufferRow (bufferRow) {
-    return this.indentLevelForLine(this.lineTextForBufferRow(bufferRow))
+  indentationForBufferRow(bufferRow) {
+    return this.indentLevelForLine(this.lineTextForBufferRow(bufferRow));
   }
 
   // Essential: Set the indentation level for the given buffer row.
@@ -3700,33 +4219,44 @@ class TextEditor {
   // * `options` (optional) An {Object} with the following keys:
   //   * `preserveLeadingWhitespace` `true` to preserve any whitespace already at
   //      the beginning of the line (default: false).
-  setIndentationForBufferRow (bufferRow, newLevel, {preserveLeadingWhitespace} = {}) {
-    let endColumn
+  setIndentationForBufferRow(
+    bufferRow,
+    newLevel,
+    { preserveLeadingWhitespace } = {}
+  ) {
+    let endColumn;
     if (preserveLeadingWhitespace) {
-      endColumn = 0
+      endColumn = 0;
     } else {
-      endColumn = this.lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length
+      endColumn = this.lineTextForBufferRow(bufferRow).match(/^\s*/)[0].length;
     }
-    const newIndentString = this.buildIndentString(newLevel)
-    return this.buffer.setTextInRange([[bufferRow, 0], [bufferRow, endColumn]], newIndentString)
+    const newIndentString = this.buildIndentString(newLevel);
+    return this.buffer.setTextInRange(
+      [[bufferRow, 0], [bufferRow, endColumn]],
+      newIndentString
+    );
   }
 
   // Extended: Indent rows intersecting selections by one level.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  indentSelectedRows (options = {}) {
-    if (!this.ensureWritable('indentSelectedRows', options)) return
-    return this.mutateSelectedText(selection => selection.indentSelectedRows(options))
+  indentSelectedRows(options = {}) {
+    if (!this.ensureWritable('indentSelectedRows', options)) return;
+    return this.mutateSelectedText(selection =>
+      selection.indentSelectedRows(options)
+    );
   }
 
   // Extended: Outdent rows intersecting selections by one level.
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  outdentSelectedRows (options = {}) {
-    if (!this.ensureWritable('outdentSelectedRows', options)) return
-    return this.mutateSelectedText(selection => selection.outdentSelectedRows(options))
+  outdentSelectedRows(options = {}) {
+    if (!this.ensureWritable('outdentSelectedRows', options)) return;
+    return this.mutateSelectedText(selection =>
+      selection.outdentSelectedRows(options)
+    );
   }
 
   // Extended: Get the indentation level of the given line of text.
@@ -3739,20 +4269,20 @@ class TextEditor {
   // * `line` A {String} representing a line of text.
   //
   // Returns a {Number}.
-  indentLevelForLine (line) {
-    const tabLength = this.getTabLength()
-    let indentLength = 0
-    for (let i = 0, {length} = line; i < length; i++) {
-      const char = line[i]
+  indentLevelForLine(line) {
+    const tabLength = this.getTabLength();
+    let indentLength = 0;
+    for (let i = 0, { length } = line; i < length; i++) {
+      const char = line[i];
       if (char === '\t') {
-        indentLength += tabLength - (indentLength % tabLength)
+        indentLength += tabLength - (indentLength % tabLength);
       } else if (char === ' ') {
-        indentLength++
+        indentLength++;
       } else {
-        break
+        break;
       }
     }
-    return indentLength / tabLength
+    return indentLength / tabLength;
   }
 
   // Extended: Indent rows intersecting selections based on the grammar's suggested
@@ -3760,9 +4290,11 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  autoIndentSelectedRows (options = {}) {
-    if (!this.ensureWritable('autoIndentSelectedRows', options)) return
-    return this.mutateSelectedText(selection => selection.autoIndentSelectedRows(options))
+  autoIndentSelectedRows(options = {}) {
+    if (!this.ensureWritable('autoIndentSelectedRows', options)) return;
+    return this.mutateSelectedText(selection =>
+      selection.autoIndentSelectedRows(options)
+    );
   }
 
   // Indent all lines intersecting selections. See {Selection::indent} for more
@@ -3770,20 +4302,27 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  indent (options = {}) {
-    if (!this.ensureWritable('indent', options)) return
-    if (options.autoIndent == null) options.autoIndent = this.shouldAutoIndent()
-    this.mutateSelectedText(selection => selection.indent(options))
+  indent(options = {}) {
+    if (!this.ensureWritable('indent', options)) return;
+    if (options.autoIndent == null)
+      options.autoIndent = this.shouldAutoIndent();
+    this.mutateSelectedText(selection => selection.indent(options));
   }
 
   // Constructs the string used for indents.
-  buildIndentString (level, column = 0) {
+  buildIndentString(level, column = 0) {
     if (this.getSoftTabs()) {
-      const tabStopViolation = column % this.getTabLength()
-      return _.multiplyString(' ', Math.floor(level * this.getTabLength()) - tabStopViolation)
+      const tabStopViolation = column % this.getTabLength();
+      return _.multiplyString(
+        ' ',
+        Math.floor(level * this.getTabLength()) - tabStopViolation
+      );
     } else {
-      const excessWhitespace = _.multiplyString(' ', Math.round((level - Math.floor(level)) * this.getTabLength()))
-      return _.multiplyString('\t', Math.floor(level)) + excessWhitespace
+      const excessWhitespace = _.multiplyString(
+        ' ',
+        Math.round((level - Math.floor(level)) * this.getTabLength())
+      );
+      return _.multiplyString('\t', Math.floor(level)) + excessWhitespace;
     }
   }
 
@@ -3792,9 +4331,11 @@ class TextEditor {
   */
 
   // Essential: Get the current {Grammar} of this editor.
-  getGrammar () {
-    const languageMode = this.buffer.getLanguageMode()
-    return languageMode.getGrammar && languageMode.getGrammar() || NullGrammar
+  getGrammar() {
+    const languageMode = this.buffer.getLanguageMode();
+    return (
+      (languageMode.getGrammar && languageMode.getGrammar()) || NullGrammar
+    );
   }
 
   // Deprecated: Set the current {Grammar} of this editor.
@@ -3803,14 +4344,16 @@ class TextEditor {
   // grammar.
   //
   // * `grammar` {Grammar}
-  setGrammar (grammar) {
-    const buffer = this.getBuffer()
-    buffer.setLanguageMode(atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer))
+  setGrammar(grammar) {
+    const buffer = this.getBuffer();
+    buffer.setLanguageMode(
+      atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer)
+    );
   }
 
   // Experimental: Get a notification when async tokenization is completed.
-  onDidTokenize (callback) {
-    return this.emitter.on('did-tokenize', callback)
+  onDidTokenize(callback) {
+    return this.emitter.on('did-tokenize', callback);
   }
 
   /*
@@ -3820,8 +4363,8 @@ class TextEditor {
   // Essential: Returns a {ScopeDescriptor} that includes this editor's language.
   // e.g. `['.source.ruby']`, or `['.source.coffee']`. You can use this with
   // {Config::get} to get language specific config values.
-  getRootScopeDescriptor () {
-    return this.buffer.getLanguageMode().rootScopeDescriptor
+  getRootScopeDescriptor() {
+    return this.buffer.getLanguageMode().rootScopeDescriptor;
   }
 
   // Essential: Get the syntactic {ScopeDescriptor} for the given position in buffer
@@ -3835,11 +4378,11 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  scopeDescriptorForBufferPosition (bufferPosition) {
-    const languageMode = this.buffer.getLanguageMode()
+  scopeDescriptorForBufferPosition(bufferPosition) {
+    const languageMode = this.buffer.getLanguageMode();
     return languageMode.scopeDescriptorForPosition
       ? languageMode.scopeDescriptorForPosition(bufferPosition)
-      : new ScopeDescriptor({scopes: ['text']})
+      : new ScopeDescriptor({ scopes: ['text'] });
   }
 
   // Essential: Get the syntactic tree {ScopeDescriptor} for the given position in buffer
@@ -3857,11 +4400,11 @@ class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of `[row, column]`.
   //
   // Returns a {ScopeDescriptor}.
-  syntaxTreeScopeDescriptorForBufferPosition (bufferPosition) {
-    const languageMode = this.buffer.getLanguageMode()
+  syntaxTreeScopeDescriptorForBufferPosition(bufferPosition) {
+    const languageMode = this.buffer.getLanguageMode();
     return languageMode.syntaxTreeScopeDescriptorForPosition
       ? languageMode.syntaxTreeScopeDescriptorForPosition(bufferPosition)
-      : this.scopeDescriptorForBufferPosition(bufferPosition)
+      : this.scopeDescriptorForBufferPosition(bufferPosition);
   }
 
   // Extended: Get the range in buffer coordinates of all tokens surrounding the
@@ -3873,35 +4416,43 @@ class TextEditor {
   // * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
   //
   // Returns a {Range}.
-  bufferRangeForScopeAtCursor (scopeSelector) {
-    return this.bufferRangeForScopeAtPosition(scopeSelector, this.getCursorBufferPosition())
+  bufferRangeForScopeAtCursor(scopeSelector) {
+    return this.bufferRangeForScopeAtPosition(
+      scopeSelector,
+      this.getCursorBufferPosition()
+    );
   }
 
-  bufferRangeForScopeAtPosition (scopeSelector, position) {
-    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, position)
+  bufferRangeForScopeAtPosition(scopeSelector, position) {
+    return this.buffer
+      .getLanguageMode()
+      .bufferRangeForScopeAtPosition(scopeSelector, position);
   }
 
   // Extended: Determine if the given row is entirely a comment
-  isBufferRowCommented (bufferRow) {
-    const match = this.lineTextForBufferRow(bufferRow).match(/\S/)
+  isBufferRowCommented(bufferRow) {
+    const match = this.lineTextForBufferRow(bufferRow).match(/\S/);
     if (match) {
-      if (!this.commentScopeSelector) this.commentScopeSelector = new TextMateScopeSelector('comment.*')
-      return this.commentScopeSelector.matches(this.scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes)
+      if (!this.commentScopeSelector)
+        this.commentScopeSelector = new TextMateScopeSelector('comment.*');
+      return this.commentScopeSelector.matches(
+        this.scopeDescriptorForBufferPosition([bufferRow, match.index]).scopes
+      );
     }
   }
 
   // Get the scope descriptor at the cursor.
-  getCursorScope () {
-    return this.getLastCursor().getScopeDescriptor()
+  getCursorScope() {
+    return this.getLastCursor().getScopeDescriptor();
   }
 
   // Get the syntax nodes at the cursor.
-  getCursorSyntaxTreeScope () {
-    return this.getLastCursor().getSyntaxTreeScopeDescriptor()
+  getCursorSyntaxTreeScope() {
+    return this.getLastCursor().getSyntaxTreeScopeDescriptor();
   }
 
-  tokenForBufferPosition (bufferPosition) {
-    return this.buffer.getLanguageMode().tokenForPosition(bufferPosition)
+  tokenForBufferPosition(bufferPosition) {
+    return this.buffer.getLanguageMode().tokenForPosition(bufferPosition);
   }
 
   /*
@@ -3909,28 +4460,28 @@ class TextEditor {
   */
 
   // Essential: For each selection, copy the selected text.
-  copySelectedText () {
-    let maintainClipboard = false
+  copySelectedText() {
+    let maintainClipboard = false;
     for (let selection of this.getSelectionsOrderedByBufferPosition()) {
       if (selection.isEmpty()) {
-        const previousRange = selection.getBufferRange()
-        selection.selectLine()
-        selection.copy(maintainClipboard, true)
-        selection.setBufferRange(previousRange)
+        const previousRange = selection.getBufferRange();
+        selection.selectLine();
+        selection.copy(maintainClipboard, true);
+        selection.setBufferRange(previousRange);
       } else {
-        selection.copy(maintainClipboard, false)
+        selection.copy(maintainClipboard, false);
       }
-      maintainClipboard = true
+      maintainClipboard = true;
     }
   }
 
   // Private: For each selection, only copy highlighted text.
-  copyOnlySelectedText () {
-    let maintainClipboard = false
+  copyOnlySelectedText() {
+    let maintainClipboard = false;
     for (let selection of this.getSelectionsOrderedByBufferPosition()) {
       if (!selection.isEmpty()) {
-        selection.copy(maintainClipboard, false)
-        maintainClipboard = true
+        selection.copy(maintainClipboard, false);
+        maintainClipboard = true;
       }
     }
   }
@@ -3939,18 +4490,18 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  cutSelectedText (options = {}) {
-    if (!this.ensureWritable('cutSelectedText', options)) return
-    let maintainClipboard = false
+  cutSelectedText(options = {}) {
+    if (!this.ensureWritable('cutSelectedText', options)) return;
+    let maintainClipboard = false;
     this.mutateSelectedText(selection => {
       if (selection.isEmpty()) {
-        selection.selectLine()
-        selection.cut(maintainClipboard, true, options.bypassReadOnly)
+        selection.selectLine();
+        selection.cut(maintainClipboard, true, options.bypassReadOnly);
       } else {
-        selection.cut(maintainClipboard, false, options.bypassReadOnly)
+        selection.cut(maintainClipboard, false, options.bypassReadOnly);
       }
-      maintainClipboard = true
-    })
+      maintainClipboard = true;
+    });
   }
 
   // Essential: For each selection, replace the selected text with the contents of
@@ -3961,43 +4512,54 @@ class TextEditor {
   // corresponding clipboard selection text.
   //
   // * `options` (optional) See {Selection::insertText}.
-  pasteText (options = {}) {
-    if (!this.ensureWritable('parseText', options)) return
-    options = Object.assign({}, options)
-    let {text: clipboardText, metadata} = this.constructor.clipboard.readWithMetadata()
-    if (!this.emitWillInsertTextEvent(clipboardText)) return false
+  pasteText(options = {}) {
+    if (!this.ensureWritable('parseText', options)) return;
+    options = Object.assign({}, options);
+    let {
+      text: clipboardText,
+      metadata
+    } = this.constructor.clipboard.readWithMetadata();
+    if (!this.emitWillInsertTextEvent(clipboardText)) return false;
 
-    if (!metadata) metadata = {}
-    if (options.autoIndent == null) options.autoIndent = this.shouldAutoIndentOnPaste()
+    if (!metadata) metadata = {};
+    if (options.autoIndent == null)
+      options.autoIndent = this.shouldAutoIndentOnPaste();
 
     this.mutateSelectedText((selection, index) => {
-      let fullLine, indentBasis, text
-      if (metadata.selections && metadata.selections.length === this.getSelections().length) {
-        ({text, indentBasis, fullLine} = metadata.selections[index])
+      let fullLine, indentBasis, text;
+      if (
+        metadata.selections &&
+        metadata.selections.length === this.getSelections().length
+      ) {
+        ({ text, indentBasis, fullLine } = metadata.selections[index]);
       } else {
-        ({indentBasis, fullLine} = metadata)
-        text = clipboardText
+        ({ indentBasis, fullLine } = metadata);
+        text = clipboardText;
       }
 
-      if (indentBasis != null && (text.includes('\n') || !selection.cursor.hasPrecedingCharactersOnLine())) {
-        options.indentBasis = indentBasis
+      if (
+        indentBasis != null &&
+        (text.includes('\n') ||
+          !selection.cursor.hasPrecedingCharactersOnLine())
+      ) {
+        options.indentBasis = indentBasis;
       } else {
-        options.indentBasis = null
+        options.indentBasis = null;
       }
 
-      let range
+      let range;
       if (fullLine && selection.isEmpty()) {
-        const oldPosition = selection.getBufferRange().start
-        selection.setBufferRange([[oldPosition.row, 0], [oldPosition.row, 0]])
-        range = selection.insertText(text, options)
-        const newPosition = oldPosition.translate([1, 0])
-        selection.setBufferRange([newPosition, newPosition])
+        const oldPosition = selection.getBufferRange().start;
+        selection.setBufferRange([[oldPosition.row, 0], [oldPosition.row, 0]]);
+        range = selection.insertText(text, options);
+        const newPosition = oldPosition.translate([1, 0]);
+        selection.setBufferRange([newPosition, newPosition]);
       } else {
-        range = selection.insertText(text, options)
+        range = selection.insertText(text, options);
       }
 
-      this.emitter.emit('did-insert-text', {text, range})
-    })
+      this.emitter.emit('did-insert-text', { text, range });
+    });
   }
 
   // Essential: For each selection, if the selection is empty, cut all characters
@@ -4006,13 +4568,13 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  cutToEndOfLine (options = {}) {
-    if (!this.ensureWritable('cutToEndOfLine', options)) return
-    let maintainClipboard = false
+  cutToEndOfLine(options = {}) {
+    if (!this.ensureWritable('cutToEndOfLine', options)) return;
+    let maintainClipboard = false;
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfLine(maintainClipboard, options)
-      maintainClipboard = true
-    })
+      selection.cutToEndOfLine(maintainClipboard, options);
+      maintainClipboard = true;
+    });
   }
 
   // Essential: For each selection, if the selection is empty, cut all characters
@@ -4021,13 +4583,13 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
-  cutToEndOfBufferLine (options = {}) {
-    if (!this.ensureWritable('cutToEndOfBufferLine', options)) return
-    let maintainClipboard = false
+  cutToEndOfBufferLine(options = {}) {
+    if (!this.ensureWritable('cutToEndOfBufferLine', options)) return;
+    let maintainClipboard = false;
     this.mutateSelectedText(selection => {
-      selection.cutToEndOfBufferLine(maintainClipboard, options)
-      maintainClipboard = true
-    })
+      selection.cutToEndOfBufferLine(maintainClipboard, options);
+      maintainClipboard = true;
+    });
   }
 
   /*
@@ -4039,20 +4601,25 @@ class TextEditor {
   // The fold will extend from the nearest preceding line with a lower
   // indentation level up to the nearest following row with a lower indentation
   // level.
-  foldCurrentRow () {
-    const {row} = this.getCursorBufferPosition()
-    const languageMode = this.buffer.getLanguageMode()
-    const range = (
+  foldCurrentRow() {
+    const { row } = this.getCursorBufferPosition();
+    const languageMode = this.buffer.getLanguageMode();
+    const range =
       languageMode.getFoldableRangeContainingPoint &&
-      languageMode.getFoldableRangeContainingPoint(Point(row, Infinity), this.getTabLength())
-    )
-    if (range) return this.displayLayer.foldBufferRange(range)
+      languageMode.getFoldableRangeContainingPoint(
+        Point(row, Infinity),
+        this.getTabLength()
+      );
+    if (range) return this.displayLayer.foldBufferRange(range);
   }
 
   // Essential: Unfold the most recent cursor's row by one level.
-  unfoldCurrentRow () {
-    const {row} = this.getCursorBufferPosition()
-    return this.displayLayer.destroyFoldsContainingBufferPositions([Point(row, Infinity)], false)
+  unfoldCurrentRow() {
+    const { row } = this.getCursorBufferPosition();
+    return this.displayLayer.destroyFoldsContainingBufferPositions(
+      [Point(row, Infinity)],
+      false
+    );
   }
 
   // Essential: Fold the given row in buffer coordinates based on its indentation
@@ -4062,77 +4629,81 @@ class TextEditor {
   // begin at the first foldable row preceding the given row.
   //
   // * `bufferRow` A {Number}.
-  foldBufferRow (bufferRow) {
-    let position = Point(bufferRow, Infinity)
-    const languageMode = this.buffer.getLanguageMode()
+  foldBufferRow(bufferRow) {
+    let position = Point(bufferRow, Infinity);
+    const languageMode = this.buffer.getLanguageMode();
     while (true) {
-      const foldableRange = (
+      const foldableRange =
         languageMode.getFoldableRangeContainingPoint &&
-        languageMode.getFoldableRangeContainingPoint(position, this.getTabLength())
-      )
+        languageMode.getFoldableRangeContainingPoint(
+          position,
+          this.getTabLength()
+        );
       if (foldableRange) {
-        const existingFolds = this.displayLayer.foldsIntersectingBufferRange(Range(foldableRange.start, foldableRange.start))
+        const existingFolds = this.displayLayer.foldsIntersectingBufferRange(
+          Range(foldableRange.start, foldableRange.start)
+        );
         if (existingFolds.length === 0) {
-          this.displayLayer.foldBufferRange(foldableRange)
+          this.displayLayer.foldBufferRange(foldableRange);
         } else {
-          const firstExistingFoldRange = this.displayLayer.bufferRangeForFold(existingFolds[0])
+          const firstExistingFoldRange = this.displayLayer.bufferRangeForFold(
+            existingFolds[0]
+          );
           if (firstExistingFoldRange.start.isLessThan(position)) {
-            position = Point(firstExistingFoldRange.start.row, 0)
-            continue
+            position = Point(firstExistingFoldRange.start.row, 0);
+            continue;
           }
         }
       }
-      break
+      break;
     }
   }
 
   // Essential: Unfold all folds containing the given row in buffer coordinates.
   //
   // * `bufferRow` A {Number}
-  unfoldBufferRow (bufferRow) {
-    const position = Point(bufferRow, Infinity)
-    return this.displayLayer.destroyFoldsContainingBufferPositions([position])
+  unfoldBufferRow(bufferRow) {
+    const position = Point(bufferRow, Infinity);
+    return this.displayLayer.destroyFoldsContainingBufferPositions([position]);
   }
 
   // Extended: For each selection, fold the rows it intersects.
-  foldSelectedLines () {
+  foldSelectedLines() {
     for (let selection of this.selections) {
-      selection.fold()
+      selection.fold();
     }
   }
 
   // Extended: Fold all foldable lines.
-  foldAll () {
-    const languageMode = this.buffer.getLanguageMode()
-    const foldableRanges = (
+  foldAll() {
+    const languageMode = this.buffer.getLanguageMode();
+    const foldableRanges =
       languageMode.getFoldableRanges &&
-      languageMode.getFoldableRanges(this.getTabLength())
-    )
-    this.displayLayer.destroyAllFolds()
+      languageMode.getFoldableRanges(this.getTabLength());
+    this.displayLayer.destroyAllFolds();
     for (let range of foldableRanges || []) {
-      this.displayLayer.foldBufferRange(range)
+      this.displayLayer.foldBufferRange(range);
     }
   }
 
   // Extended: Unfold all existing folds.
-  unfoldAll () {
-    const result = this.displayLayer.destroyAllFolds()
-    if (result.length > 0) this.scrollToCursorPosition()
-    return result
+  unfoldAll() {
+    const result = this.displayLayer.destroyAllFolds();
+    if (result.length > 0) this.scrollToCursorPosition();
+    return result;
   }
 
   // Extended: Fold all foldable lines at the given indent level.
   //
   // * `level` A {Number} starting at 0.
-  foldAllAtIndentLevel (level) {
-    const languageMode = this.buffer.getLanguageMode()
-    const foldableRanges = (
+  foldAllAtIndentLevel(level) {
+    const languageMode = this.buffer.getLanguageMode();
+    const foldableRanges =
       languageMode.getFoldableRangesAtIndentLevel &&
-      languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength())
-    )
-    this.displayLayer.destroyAllFolds()
+      languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength());
+    this.displayLayer.destroyAllFolds();
     for (let range of foldableRanges || []) {
-      this.displayLayer.foldBufferRange(range)
+      this.displayLayer.foldBufferRange(range);
     }
   }
 
@@ -4143,9 +4714,11 @@ class TextEditor {
   // * `bufferRow` A {Number}
   //
   // Returns a {Boolean}.
-  isFoldableAtBufferRow (bufferRow) {
-    const languageMode = this.buffer.getLanguageMode()
-    return languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
+  isFoldableAtBufferRow(bufferRow) {
+    const languageMode = this.buffer.getLanguageMode();
+    return (
+      languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
+    );
   }
 
   // Extended: Determine whether the given row in screen coordinates is foldable.
@@ -4155,25 +4728,25 @@ class TextEditor {
   // * `bufferRow` A {Number}
   //
   // Returns a {Boolean}.
-  isFoldableAtScreenRow (screenRow) {
-    return this.isFoldableAtBufferRow(this.bufferRowForScreenRow(screenRow))
+  isFoldableAtScreenRow(screenRow) {
+    return this.isFoldableAtBufferRow(this.bufferRowForScreenRow(screenRow));
   }
 
   // Extended: Fold the given buffer row if it isn't currently folded, and unfold
   // it otherwise.
-  toggleFoldAtBufferRow (bufferRow) {
+  toggleFoldAtBufferRow(bufferRow) {
     if (this.isFoldedAtBufferRow(bufferRow)) {
-      return this.unfoldBufferRow(bufferRow)
+      return this.unfoldBufferRow(bufferRow);
     } else {
-      return this.foldBufferRow(bufferRow)
+      return this.foldBufferRow(bufferRow);
     }
   }
 
   // Extended: Determine whether the most recently added cursor's row is folded.
   //
   // Returns a {Boolean}.
-  isFoldedAtCursorRow () {
-    return this.isFoldedAtBufferRow(this.getCursorBufferPosition().row)
+  isFoldedAtCursorRow() {
+    return this.isFoldedAtBufferRow(this.getCursorBufferPosition().row);
   }
 
   // Extended: Determine whether the given row in buffer coordinates is folded.
@@ -4181,12 +4754,12 @@ class TextEditor {
   // * `bufferRow` A {Number}
   //
   // Returns a {Boolean}.
-  isFoldedAtBufferRow (bufferRow) {
+  isFoldedAtBufferRow(bufferRow) {
     const range = Range(
       Point(bufferRow, 0),
       Point(bufferRow, this.buffer.lineLengthForRow(bufferRow))
-    )
-    return this.displayLayer.foldsIntersectingBufferRange(range).length > 0
+    );
+    return this.displayLayer.foldsIntersectingBufferRange(range).length > 0;
   }
 
   // Extended: Determine whether the given row in screen coordinates is folded.
@@ -4194,8 +4767,8 @@ class TextEditor {
   // * `screenRow` A {Number}
   //
   // Returns a {Boolean}.
-  isFoldedAtScreenRow (screenRow) {
-    return this.isFoldedAtBufferRow(this.bufferRowForScreenRow(screenRow))
+  isFoldedAtScreenRow(screenRow) {
+    return this.isFoldedAtBufferRow(this.bufferRowForScreenRow(screenRow));
   }
 
   // Creates a new fold between two row numbers.
@@ -4204,22 +4777,27 @@ class TextEditor {
   // endRow - The row {Number} to end the fold
   //
   // Returns the new {Fold}.
-  foldBufferRowRange (startRow, endRow) {
-    return this.foldBufferRange(Range(Point(startRow, Infinity), Point(endRow, Infinity)))
+  foldBufferRowRange(startRow, endRow) {
+    return this.foldBufferRange(
+      Range(Point(startRow, Infinity), Point(endRow, Infinity))
+    );
   }
 
-  foldBufferRange (range) {
-    return this.displayLayer.foldBufferRange(range)
+  foldBufferRange(range) {
+    return this.displayLayer.foldBufferRange(range);
   }
 
   // Remove any {Fold}s found that intersect the given buffer range.
-  destroyFoldsIntersectingBufferRange (bufferRange) {
-    return this.displayLayer.destroyFoldsIntersectingBufferRange(bufferRange)
+  destroyFoldsIntersectingBufferRange(bufferRange) {
+    return this.displayLayer.destroyFoldsIntersectingBufferRange(bufferRange);
   }
 
   // Remove any {Fold}s found that contain the given array of buffer positions.
-  destroyFoldsContainingBufferPositions (bufferPositions, excludeEndpoints) {
-    return this.displayLayer.destroyFoldsContainingBufferPositions(bufferPositions, excludeEndpoints)
+  destroyFoldsContainingBufferPositions(bufferPositions, excludeEndpoints) {
+    return this.displayLayer.destroyFoldsContainingBufferPositions(
+      bufferPositions,
+      excludeEndpoints
+    );
   }
 
   /*
@@ -4260,26 +4838,26 @@ class TextEditor {
   //       * `screenRow` {Number}
   //
   // Returns the newly-created {Gutter}.
-  addGutter (options) {
-    return this.gutterContainer.addGutter(options)
+  addGutter(options) {
+    return this.gutterContainer.addGutter(options);
   }
 
   // Essential: Get this editor's gutters.
   //
   // Returns an {Array} of {Gutter}s.
-  getGutters () {
-    return this.gutterContainer.getGutters()
+  getGutters() {
+    return this.gutterContainer.getGutters();
   }
 
-  getLineNumberGutter () {
-    return this.lineNumberGutter
+  getLineNumberGutter() {
+    return this.lineNumberGutter;
   }
 
   // Essential: Get the gutter with the given name.
   //
   // Returns a {Gutter}, or `null` if no gutter exists for the given name.
-  gutterWithName (name) {
-    return this.gutterContainer.gutterWithName(name)
+  gutterWithName(name) {
+    return this.gutterContainer.gutterWithName(name);
   }
 
   /*
@@ -4291,8 +4869,10 @@ class TextEditor {
   //
   // * `options` (optional) {Object}
   //   * `center` Center the editor around the cursor if possible. (default: true)
-  scrollToCursorPosition (options) {
-    this.getLastCursor().autoscroll({center: options && options.center !== false})
+  scrollToCursorPosition(options) {
+    this.getLastCursor().autoscroll({
+      center: options && options.center !== false
+    });
   }
 
   // Essential: Scrolls the editor to the given buffer position.
@@ -4301,8 +4881,11 @@ class TextEditor {
   //   an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   // * `options` (optional) {Object}
   //   * `center` Center the editor around the position if possible. (default: false)
-  scrollToBufferPosition (bufferPosition, options) {
-    return this.scrollToScreenPosition(this.screenPositionForBufferPosition(bufferPosition), options)
+  scrollToBufferPosition(bufferPosition, options) {
+    return this.scrollToScreenPosition(
+      this.screenPositionForBufferPosition(bufferPosition),
+      options
+    );
   }
 
   // Essential: Scrolls the editor to the given screen position.
@@ -4311,61 +4894,72 @@ class TextEditor {
   //    an {Object} (`{row, column}`), {Array} (`[row, column]`), or {Point}
   // * `options` (optional) {Object}
   //   * `center` Center the editor around the position if possible. (default: false)
-  scrollToScreenPosition (screenPosition, options) {
-    this.scrollToScreenRange(new Range(screenPosition, screenPosition), options)
+  scrollToScreenPosition(screenPosition, options) {
+    this.scrollToScreenRange(
+      new Range(screenPosition, screenPosition),
+      options
+    );
   }
 
-  scrollToTop () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::scrollToTop instead.')
-    this.getElement().scrollToTop()
+  scrollToTop() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::scrollToTop instead.'
+    );
+    this.getElement().scrollToTop();
   }
 
-  scrollToBottom () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::scrollToTop instead.')
-    this.getElement().scrollToBottom()
+  scrollToBottom() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::scrollToTop instead.'
+    );
+    this.getElement().scrollToBottom();
   }
 
-  scrollToScreenRange (screenRange, options = {}) {
-    if (options.clip !== false) screenRange = this.clipScreenRange(screenRange)
-    const scrollEvent = {screenRange, options}
-    if (this.component) this.component.didRequestAutoscroll(scrollEvent)
-    this.emitter.emit('did-request-autoscroll', scrollEvent)
+  scrollToScreenRange(screenRange, options = {}) {
+    if (options.clip !== false) screenRange = this.clipScreenRange(screenRange);
+    const scrollEvent = { screenRange, options };
+    if (this.component) this.component.didRequestAutoscroll(scrollEvent);
+    this.emitter.emit('did-request-autoscroll', scrollEvent);
   }
 
-  getHorizontalScrollbarHeight () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.')
-    return this.getElement().getHorizontalScrollbarHeight()
+  getHorizontalScrollbarHeight() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getHorizontalScrollbarHeight instead.'
+    );
+    return this.getElement().getHorizontalScrollbarHeight();
   }
 
-  getVerticalScrollbarWidth () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.')
-    return this.getElement().getVerticalScrollbarWidth()
+  getVerticalScrollbarWidth() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getVerticalScrollbarWidth instead.'
+    );
+    return this.getElement().getVerticalScrollbarWidth();
   }
 
-  pageUp () {
-    this.moveUp(this.getRowsPerPage())
+  pageUp() {
+    this.moveUp(this.getRowsPerPage());
   }
 
-  pageDown () {
-    this.moveDown(this.getRowsPerPage())
+  pageDown() {
+    this.moveDown(this.getRowsPerPage());
   }
 
-  selectPageUp () {
-    this.selectUp(this.getRowsPerPage())
+  selectPageUp() {
+    this.selectUp(this.getRowsPerPage());
   }
 
-  selectPageDown () {
-    this.selectDown(this.getRowsPerPage())
+  selectPageDown() {
+    this.selectDown(this.getRowsPerPage());
   }
 
   // Returns the number of rows per page
-  getRowsPerPage () {
+  getRowsPerPage() {
     if (this.component) {
-      const clientHeight = this.component.getScrollContainerClientHeight()
-      const lineHeight = this.component.getLineHeight()
-      return Math.max(1, Math.ceil(clientHeight / lineHeight))
+      const clientHeight = this.component.getScrollContainerClientHeight();
+      const lineHeight = this.component.getLineHeight();
+      return Math.max(1, Math.ceil(clientHeight / lineHeight));
     } else {
-      return 1
+      return 1;
     }
   }
 
@@ -4376,21 +4970,25 @@ class TextEditor {
   // Experimental: Is auto-indentation enabled for this editor?
   //
   // Returns a {Boolean}.
-  shouldAutoIndent () { return this.autoIndent }
+  shouldAutoIndent() {
+    return this.autoIndent;
+  }
 
   // Experimental: Is auto-indentation on paste enabled for this editor?
   //
   // Returns a {Boolean}.
-  shouldAutoIndentOnPaste () { return this.autoIndentOnPaste }
+  shouldAutoIndentOnPaste() {
+    return this.autoIndentOnPaste;
+  }
 
   // Experimental: Does this editor allow scrolling past the last line?
   //
   // Returns a {Boolean}.
-  getScrollPastEnd () {
+  getScrollPastEnd() {
     if (this.getAutoHeight()) {
-      return false
+      return false;
     } else {
-      return this.scrollPastEnd
+      return this.scrollPastEnd;
     }
   }
 
@@ -4398,56 +4996,72 @@ class TextEditor {
   // movements?
   //
   // Returns a positive {Number}.
-  getScrollSensitivity () { return this.scrollSensitivity }
+  getScrollSensitivity() {
+    return this.scrollSensitivity;
+  }
 
   // Experimental: Does this editor show cursors while there is a selection?
   //
   // Returns a positive {Boolean}.
-  getShowCursorOnSelection () { return this.showCursorOnSelection }
+  getShowCursorOnSelection() {
+    return this.showCursorOnSelection;
+  }
 
   // Experimental: Are line numbers enabled for this editor?
   //
   // Returns a {Boolean}
-  doesShowLineNumbers () { return this.showLineNumbers }
+  doesShowLineNumbers() {
+    return this.showLineNumbers;
+  }
 
   // Experimental: Get the time interval within which text editing operations
   // are grouped together in the editor's undo history.
   //
   // Returns the time interval {Number} in milliseconds.
-  getUndoGroupingInterval () { return this.undoGroupingInterval }
+  getUndoGroupingInterval() {
+    return this.undoGroupingInterval;
+  }
 
   // Experimental: Get the characters that are *not* considered part of words,
   // for the purpose of word-based cursor movements.
   //
   // Returns a {String} containing the non-word characters.
-  getNonWordCharacters (position) {
-    const languageMode = this.buffer.getLanguageMode()
+  getNonWordCharacters(position) {
+    const languageMode = this.buffer.getLanguageMode();
     return (
-      languageMode.getNonWordCharacters &&
-      languageMode.getNonWordCharacters(position || Point(0, 0))
-    ) || DEFAULT_NON_WORD_CHARACTERS
+      (languageMode.getNonWordCharacters &&
+        languageMode.getNonWordCharacters(position || Point(0, 0))) ||
+      DEFAULT_NON_WORD_CHARACTERS
+    );
   }
 
   /*
   Section: Event Handlers
   */
 
-  handleLanguageModeChange () {
-    this.unfoldAll()
+  handleLanguageModeChange() {
+    this.unfoldAll();
     if (this.languageModeSubscription) {
-      this.languageModeSubscription.dispose()
-      this.disposables.remove(this.languageModeSubscription)
+      this.languageModeSubscription.dispose();
+      this.disposables.remove(this.languageModeSubscription);
     }
-    const languageMode = this.buffer.getLanguageMode()
+    const languageMode = this.buffer.getLanguageMode();
 
-    if (this.component && this.component.visible && languageMode.startTokenizing) {
-      languageMode.startTokenizing()
+    if (
+      this.component &&
+      this.component.visible &&
+      languageMode.startTokenizing
+    ) {
+      languageMode.startTokenizing();
     }
-    this.languageModeSubscription = languageMode.onDidTokenize && languageMode.onDidTokenize(() => {
-      this.emitter.emit('did-tokenize')
-    })
-    if (this.languageModeSubscription) this.disposables.add(this.languageModeSubscription)
-    this.emitter.emit('did-change-grammar', languageMode.grammar)
+    this.languageModeSubscription =
+      languageMode.onDidTokenize &&
+      languageMode.onDidTokenize(() => {
+        this.emitter.emit('did-tokenize');
+      });
+    if (this.languageModeSubscription)
+      this.disposables.add(this.languageModeSubscription);
+    this.emitter.emit('did-change-grammar', languageMode.grammar);
   }
 
   /*
@@ -4455,493 +5069,622 @@ class TextEditor {
   */
 
   // Get the Element for the editor.
-  getElement () {
+  getElement() {
     if (!this.component) {
-      if (!TextEditorComponent) TextEditorComponent = require('./text-editor-component')
-      if (!TextEditorElement) TextEditorElement = require('./text-editor-element')
+      if (!TextEditorComponent)
+        TextEditorComponent = require('./text-editor-component');
+      if (!TextEditorElement)
+        TextEditorElement = require('./text-editor-element');
       this.component = new TextEditorComponent({
         model: this,
         updatedSynchronously: TextEditorElement.prototype.updatedSynchronously,
         initialScrollTopRow: this.initialScrollTopRow,
         initialScrollLeftColumn: this.initialScrollLeftColumn
-      })
+      });
     }
-    return this.component.element
+    return this.component.element;
   }
 
-  getAllowedLocations () {
-    return ['center']
+  getAllowedLocations() {
+    return ['center'];
   }
 
   // Essential: Retrieves the greyed out placeholder of a mini editor.
   //
   // Returns a {String}.
-  getPlaceholderText () { return this.placeholderText }
+  getPlaceholderText() {
+    return this.placeholderText;
+  }
 
   // Essential: Set the greyed out placeholder of a mini editor. Placeholder text
   // will be displayed when the editor has no content.
   //
   // * `placeholderText` {String} text that is displayed when the editor has no content.
-  setPlaceholderText (placeholderText) { this.update({placeholderText}) }
-
-  pixelPositionForBufferPosition (bufferPosition) {
-    Grim.deprecate('This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead')
-    return this.getElement().pixelPositionForBufferPosition(bufferPosition)
+  setPlaceholderText(placeholderText) {
+    this.update({ placeholderText });
   }
 
-  pixelPositionForScreenPosition (screenPosition) {
-    Grim.deprecate('This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead')
-    return this.getElement().pixelPositionForScreenPosition(screenPosition)
+  pixelPositionForBufferPosition(bufferPosition) {
+    Grim.deprecate(
+      'This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForBufferPosition` instead'
+    );
+    return this.getElement().pixelPositionForBufferPosition(bufferPosition);
   }
 
-  getVerticalScrollMargin () {
-    const maxScrollMargin = Math.floor(((this.height / this.getLineHeightInPixels()) - 1) / 2)
-    return Math.min(this.verticalScrollMargin, maxScrollMargin)
+  pixelPositionForScreenPosition(screenPosition) {
+    Grim.deprecate(
+      'This method is deprecated on the model layer. Use `TextEditorElement::pixelPositionForScreenPosition` instead'
+    );
+    return this.getElement().pixelPositionForScreenPosition(screenPosition);
   }
 
-  setVerticalScrollMargin (verticalScrollMargin) {
-    this.verticalScrollMargin = verticalScrollMargin
-    return this.verticalScrollMargin
+  getVerticalScrollMargin() {
+    const maxScrollMargin = Math.floor(
+      (this.height / this.getLineHeightInPixels() - 1) / 2
+    );
+    return Math.min(this.verticalScrollMargin, maxScrollMargin);
   }
 
-  getHorizontalScrollMargin () {
-    return Math.min(this.horizontalScrollMargin, Math.floor(((this.width / this.getDefaultCharWidth()) - 1) / 2))
-  }
-  setHorizontalScrollMargin (horizontalScrollMargin) {
-    this.horizontalScrollMargin = horizontalScrollMargin
-    return this.horizontalScrollMargin
+  setVerticalScrollMargin(verticalScrollMargin) {
+    this.verticalScrollMargin = verticalScrollMargin;
+    return this.verticalScrollMargin;
   }
 
-  getLineHeightInPixels () { return this.lineHeightInPixels }
-  setLineHeightInPixels (lineHeightInPixels) {
-    this.lineHeightInPixels = lineHeightInPixels
-    return this.lineHeightInPixels
+  getHorizontalScrollMargin() {
+    return Math.min(
+      this.horizontalScrollMargin,
+      Math.floor((this.width / this.getDefaultCharWidth() - 1) / 2)
+    );
+  }
+  setHorizontalScrollMargin(horizontalScrollMargin) {
+    this.horizontalScrollMargin = horizontalScrollMargin;
+    return this.horizontalScrollMargin;
   }
 
-  getKoreanCharWidth () { return this.koreanCharWidth }
-  getHalfWidthCharWidth () { return this.halfWidthCharWidth }
-  getDoubleWidthCharWidth () { return this.doubleWidthCharWidth }
-  getDefaultCharWidth () { return this.defaultCharWidth }
+  getLineHeightInPixels() {
+    return this.lineHeightInPixels;
+  }
+  setLineHeightInPixels(lineHeightInPixels) {
+    this.lineHeightInPixels = lineHeightInPixels;
+    return this.lineHeightInPixels;
+  }
 
-  ratioForCharacter (character) {
+  getKoreanCharWidth() {
+    return this.koreanCharWidth;
+  }
+  getHalfWidthCharWidth() {
+    return this.halfWidthCharWidth;
+  }
+  getDoubleWidthCharWidth() {
+    return this.doubleWidthCharWidth;
+  }
+  getDefaultCharWidth() {
+    return this.defaultCharWidth;
+  }
+
+  ratioForCharacter(character) {
     if (isKoreanCharacter(character)) {
-      return this.getKoreanCharWidth() / this.getDefaultCharWidth()
+      return this.getKoreanCharWidth() / this.getDefaultCharWidth();
     } else if (isHalfWidthCharacter(character)) {
-      return this.getHalfWidthCharWidth() / this.getDefaultCharWidth()
+      return this.getHalfWidthCharWidth() / this.getDefaultCharWidth();
     } else if (isDoubleWidthCharacter(character)) {
-      return this.getDoubleWidthCharWidth() / this.getDefaultCharWidth()
+      return this.getDoubleWidthCharWidth() / this.getDefaultCharWidth();
     } else {
-      return 1
+      return 1;
     }
   }
 
-  setDefaultCharWidth (defaultCharWidth, doubleWidthCharWidth, halfWidthCharWidth, koreanCharWidth) {
-    if (doubleWidthCharWidth == null) { doubleWidthCharWidth = defaultCharWidth }
-    if (halfWidthCharWidth == null) { halfWidthCharWidth = defaultCharWidth }
-    if (koreanCharWidth == null) { koreanCharWidth = defaultCharWidth }
-    if (defaultCharWidth !== this.defaultCharWidth ||
-        (doubleWidthCharWidth !== this.doubleWidthCharWidth &&
-         halfWidthCharWidth !== this.halfWidthCharWidth &&
-         koreanCharWidth !== this.koreanCharWidth)) {
-      this.defaultCharWidth = defaultCharWidth
-      this.doubleWidthCharWidth = doubleWidthCharWidth
-      this.halfWidthCharWidth = halfWidthCharWidth
-      this.koreanCharWidth = koreanCharWidth
+  setDefaultCharWidth(
+    defaultCharWidth,
+    doubleWidthCharWidth,
+    halfWidthCharWidth,
+    koreanCharWidth
+  ) {
+    if (doubleWidthCharWidth == null) {
+      doubleWidthCharWidth = defaultCharWidth;
+    }
+    if (halfWidthCharWidth == null) {
+      halfWidthCharWidth = defaultCharWidth;
+    }
+    if (koreanCharWidth == null) {
+      koreanCharWidth = defaultCharWidth;
+    }
+    if (
+      defaultCharWidth !== this.defaultCharWidth ||
+      (doubleWidthCharWidth !== this.doubleWidthCharWidth &&
+        halfWidthCharWidth !== this.halfWidthCharWidth &&
+        koreanCharWidth !== this.koreanCharWidth)
+    ) {
+      this.defaultCharWidth = defaultCharWidth;
+      this.doubleWidthCharWidth = doubleWidthCharWidth;
+      this.halfWidthCharWidth = halfWidthCharWidth;
+      this.koreanCharWidth = koreanCharWidth;
       if (this.isSoftWrapped()) {
         this.displayLayer.reset({
           softWrapColumn: this.getSoftWrapColumn()
-        })
+        });
       }
     }
-    return defaultCharWidth
+    return defaultCharWidth;
   }
 
-  setHeight (height) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setHeight instead.')
-    this.getElement().setHeight(height)
+  setHeight(height) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setHeight instead.'
+    );
+    this.getElement().setHeight(height);
   }
 
-  getHeight () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getHeight instead.')
-    return this.getElement().getHeight()
+  getHeight() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getHeight instead.'
+    );
+    return this.getElement().getHeight();
   }
 
-  getAutoHeight () { return this.autoHeight != null ? this.autoHeight : true }
-
-  getAutoWidth () { return this.autoWidth != null ? this.autoWidth : false }
-
-  setWidth (width) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setWidth instead.')
-    this.getElement().setWidth(width)
+  getAutoHeight() {
+    return this.autoHeight != null ? this.autoHeight : true;
   }
 
-  getWidth () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getWidth instead.')
-    return this.getElement().getWidth()
+  getAutoWidth() {
+    return this.autoWidth != null ? this.autoWidth : false;
+  }
+
+  setWidth(width) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setWidth instead.'
+    );
+    this.getElement().setWidth(width);
+  }
+
+  getWidth() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getWidth instead.'
+    );
+    return this.getElement().getWidth();
   }
 
   // Use setScrollTopRow instead of this method
-  setFirstVisibleScreenRow (screenRow) {
-    this.setScrollTopRow(screenRow)
+  setFirstVisibleScreenRow(screenRow) {
+    this.setScrollTopRow(screenRow);
   }
 
-  getFirstVisibleScreenRow () {
-    return this.getElement().component.getFirstVisibleRow()
+  getFirstVisibleScreenRow() {
+    return this.getElement().component.getFirstVisibleRow();
   }
 
-  getLastVisibleScreenRow () {
-    return this.getElement().component.getLastVisibleRow()
+  getLastVisibleScreenRow() {
+    return this.getElement().component.getLastVisibleRow();
   }
 
-  getVisibleRowRange () {
-    return [this.getFirstVisibleScreenRow(), this.getLastVisibleScreenRow()]
+  getVisibleRowRange() {
+    return [this.getFirstVisibleScreenRow(), this.getLastVisibleScreenRow()];
   }
 
   // Use setScrollLeftColumn instead of this method
-  setFirstVisibleScreenColumn (column) {
-    return this.setScrollLeftColumn(column)
+  setFirstVisibleScreenColumn(column) {
+    return this.setScrollLeftColumn(column);
   }
 
-  getFirstVisibleScreenColumn () {
-    return this.getElement().component.getFirstVisibleColumn()
+  getFirstVisibleScreenColumn() {
+    return this.getElement().component.getFirstVisibleColumn();
   }
 
-  getScrollTop () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollTop instead.')
-    return this.getElement().getScrollTop()
+  getScrollTop() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollTop instead.'
+    );
+    return this.getElement().getScrollTop();
   }
 
-  setScrollTop (scrollTop) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setScrollTop instead.')
-    this.getElement().setScrollTop(scrollTop)
+  setScrollTop(scrollTop) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setScrollTop instead.'
+    );
+    this.getElement().setScrollTop(scrollTop);
   }
 
-  getScrollBottom () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollBottom instead.')
-    return this.getElement().getScrollBottom()
+  getScrollBottom() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollBottom instead.'
+    );
+    return this.getElement().getScrollBottom();
   }
 
-  setScrollBottom (scrollBottom) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setScrollBottom instead.')
-    this.getElement().setScrollBottom(scrollBottom)
+  setScrollBottom(scrollBottom) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setScrollBottom instead.'
+    );
+    this.getElement().setScrollBottom(scrollBottom);
   }
 
-  getScrollLeft () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollLeft instead.')
-    return this.getElement().getScrollLeft()
+  getScrollLeft() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollLeft instead.'
+    );
+    return this.getElement().getScrollLeft();
   }
 
-  setScrollLeft (scrollLeft) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setScrollLeft instead.')
-    this.getElement().setScrollLeft(scrollLeft)
+  setScrollLeft(scrollLeft) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setScrollLeft instead.'
+    );
+    this.getElement().setScrollLeft(scrollLeft);
   }
 
-  getScrollRight () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollRight instead.')
-    return this.getElement().getScrollRight()
+  getScrollRight() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollRight instead.'
+    );
+    return this.getElement().getScrollRight();
   }
 
-  setScrollRight (scrollRight) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::setScrollRight instead.')
-    this.getElement().setScrollRight(scrollRight)
+  setScrollRight(scrollRight) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::setScrollRight instead.'
+    );
+    this.getElement().setScrollRight(scrollRight);
   }
 
-  getScrollHeight () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollHeight instead.')
-    return this.getElement().getScrollHeight()
+  getScrollHeight() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollHeight instead.'
+    );
+    return this.getElement().getScrollHeight();
   }
 
-  getScrollWidth () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getScrollWidth instead.')
-    return this.getElement().getScrollWidth()
+  getScrollWidth() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getScrollWidth instead.'
+    );
+    return this.getElement().getScrollWidth();
   }
 
-  getMaxScrollTop () {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::getMaxScrollTop instead.')
-    return this.getElement().getMaxScrollTop()
+  getMaxScrollTop() {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::getMaxScrollTop instead.'
+    );
+    return this.getElement().getMaxScrollTop();
   }
 
-  getScrollTopRow () {
-    return this.getElement().component.getScrollTopRow()
+  getScrollTopRow() {
+    return this.getElement().component.getScrollTopRow();
   }
 
-  setScrollTopRow (scrollTopRow) {
-    this.getElement().component.setScrollTopRow(scrollTopRow)
+  setScrollTopRow(scrollTopRow) {
+    this.getElement().component.setScrollTopRow(scrollTopRow);
   }
 
-  getScrollLeftColumn () {
-    return this.getElement().component.getScrollLeftColumn()
+  getScrollLeftColumn() {
+    return this.getElement().component.getScrollLeftColumn();
   }
 
-  setScrollLeftColumn (scrollLeftColumn) {
-    this.getElement().component.setScrollLeftColumn(scrollLeftColumn)
+  setScrollLeftColumn(scrollLeftColumn) {
+    this.getElement().component.setScrollLeftColumn(scrollLeftColumn);
   }
 
-  intersectsVisibleRowRange (startRow, endRow) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.')
-    return this.getElement().intersectsVisibleRowRange(startRow, endRow)
+  intersectsVisibleRowRange(startRow, endRow) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::intersectsVisibleRowRange instead.'
+    );
+    return this.getElement().intersectsVisibleRowRange(startRow, endRow);
   }
 
-  selectionIntersectsVisibleRowRange (selection) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.')
-    return this.getElement().selectionIntersectsVisibleRowRange(selection)
+  selectionIntersectsVisibleRowRange(selection) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::selectionIntersectsVisibleRowRange instead.'
+    );
+    return this.getElement().selectionIntersectsVisibleRowRange(selection);
   }
 
-  screenPositionForPixelPosition (pixelPosition) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.')
-    return this.getElement().screenPositionForPixelPosition(pixelPosition)
+  screenPositionForPixelPosition(pixelPosition) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::screenPositionForPixelPosition instead.'
+    );
+    return this.getElement().screenPositionForPixelPosition(pixelPosition);
   }
 
-  pixelRectForScreenRange (screenRange) {
-    Grim.deprecate('This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.')
-    return this.getElement().pixelRectForScreenRange(screenRange)
+  pixelRectForScreenRange(screenRange) {
+    Grim.deprecate(
+      'This is now a view method. Call TextEditorElement::pixelRectForScreenRange instead.'
+    );
+    return this.getElement().pixelRectForScreenRange(screenRange);
   }
 
   /*
   Section: Utility
   */
 
-  inspect () {
-    return `<TextEditor ${this.id}>`
+  inspect() {
+    return `<TextEditor ${this.id}>`;
   }
 
-  emitWillInsertTextEvent (text) {
-    let result = true
-    const cancel = () => { result = false }
-    this.emitter.emit('will-insert-text', {cancel, text})
-    return result
+  emitWillInsertTextEvent(text) {
+    let result = true;
+    const cancel = () => {
+      result = false;
+    };
+    this.emitter.emit('will-insert-text', { cancel, text });
+    return result;
   }
 
   /*
   Section: Language Mode Delegated Methods
   */
 
-  suggestedIndentForBufferRow (bufferRow, options) {
-    const languageMode = this.buffer.getLanguageMode()
+  suggestedIndentForBufferRow(bufferRow, options) {
+    const languageMode = this.buffer.getLanguageMode();
     return (
       languageMode.suggestedIndentForBufferRow &&
-      languageMode.suggestedIndentForBufferRow(bufferRow, this.getTabLength(), options)
-    )
+      languageMode.suggestedIndentForBufferRow(
+        bufferRow,
+        this.getTabLength(),
+        options
+      )
+    );
   }
 
   // Given a buffer row, indent it.
   //
   // * bufferRow - The row {Number}.
   // * options - An options {Object} to pass through to {TextEditor::setIndentationForBufferRow}.
-  autoIndentBufferRow (bufferRow, options) {
-    const indentLevel = this.suggestedIndentForBufferRow(bufferRow, options)
-    return this.setIndentationForBufferRow(bufferRow, indentLevel, options)
+  autoIndentBufferRow(bufferRow, options) {
+    const indentLevel = this.suggestedIndentForBufferRow(bufferRow, options);
+    return this.setIndentationForBufferRow(bufferRow, indentLevel, options);
   }
 
   // Indents all the rows between two buffer row numbers.
   //
   // * startRow - The row {Number} to start at
   // * endRow - The row {Number} to end at
-  autoIndentBufferRows (startRow, endRow) {
-    let row = startRow
+  autoIndentBufferRows(startRow, endRow) {
+    let row = startRow;
     while (row <= endRow) {
-      this.autoIndentBufferRow(row)
-      row++
+      this.autoIndentBufferRow(row);
+      row++;
     }
   }
 
-  autoDecreaseIndentForBufferRow (bufferRow) {
-    const languageMode = this.buffer.getLanguageMode()
-    const indentLevel = (
+  autoDecreaseIndentForBufferRow(bufferRow) {
+    const languageMode = this.buffer.getLanguageMode();
+    const indentLevel =
       languageMode.suggestedIndentForEditedBufferRow &&
-      languageMode.suggestedIndentForEditedBufferRow(bufferRow, this.getTabLength())
-    )
-    if (indentLevel != null) this.setIndentationForBufferRow(bufferRow, indentLevel)
+      languageMode.suggestedIndentForEditedBufferRow(
+        bufferRow,
+        this.getTabLength()
+      );
+    if (indentLevel != null)
+      this.setIndentationForBufferRow(bufferRow, indentLevel);
   }
 
-  toggleLineCommentForBufferRow (row) { this.toggleLineCommentsForBufferRows(row, row) }
+  toggleLineCommentForBufferRow(row) {
+    this.toggleLineCommentsForBufferRows(row, row);
+  }
 
-  toggleLineCommentsForBufferRows (start, end, options = {}) {
-    const languageMode = this.buffer.getLanguageMode()
-    let {commentStartString, commentEndString} =
-      languageMode.commentStringsForPosition &&
-      languageMode.commentStringsForPosition(new Point(start, 0)) || {}
-    if (!commentStartString) return
-    commentStartString = commentStartString.trim()
+  toggleLineCommentsForBufferRows(start, end, options = {}) {
+    const languageMode = this.buffer.getLanguageMode();
+    let { commentStartString, commentEndString } =
+      (languageMode.commentStringsForPosition &&
+        languageMode.commentStringsForPosition(new Point(start, 0))) ||
+      {};
+    if (!commentStartString) return;
+    commentStartString = commentStartString.trim();
 
     if (commentEndString) {
-      commentEndString = commentEndString.trim()
+      commentEndString = commentEndString.trim();
       const startDelimiterColumnRange = columnRangeForStartDelimiter(
         this.buffer.lineForRow(start),
         commentStartString
-      )
+      );
       if (startDelimiterColumnRange) {
         const endDelimiterColumnRange = columnRangeForEndDelimiter(
           this.buffer.lineForRow(end),
           commentEndString
-        )
+        );
         if (endDelimiterColumnRange) {
           this.buffer.transact(() => {
-            this.buffer.delete([[end, endDelimiterColumnRange[0]], [end, endDelimiterColumnRange[1]]])
-            this.buffer.delete([[start, startDelimiterColumnRange[0]], [start, startDelimiterColumnRange[1]]])
-          })
+            this.buffer.delete([
+              [end, endDelimiterColumnRange[0]],
+              [end, endDelimiterColumnRange[1]]
+            ]);
+            this.buffer.delete([
+              [start, startDelimiterColumnRange[0]],
+              [start, startDelimiterColumnRange[1]]
+            ]);
+          });
         }
       } else {
         this.buffer.transact(() => {
-          const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0].length
-          this.buffer.insert([start, indentLength], commentStartString + ' ')
-          this.buffer.insert([end, this.buffer.lineLengthForRow(end)], ' ' + commentEndString)
+          const indentLength = this.buffer.lineForRow(start).match(/^\s*/)[0]
+            .length;
+          this.buffer.insert([start, indentLength], commentStartString + ' ');
+          this.buffer.insert(
+            [end, this.buffer.lineLengthForRow(end)],
+            ' ' + commentEndString
+          );
 
           // Prevent the cursor from selecting / passing the delimiters
           // See https://github.com/atom/atom/pull/17519
           if (options.correctSelection && options.selection) {
-            const endLineLength = this.buffer.lineLengthForRow(end)
-            const oldRange = options.selection.getBufferRange()
+            const endLineLength = this.buffer.lineLengthForRow(end);
+            const oldRange = options.selection.getBufferRange();
             if (oldRange.isEmpty()) {
               if (oldRange.start.column === endLineLength) {
-                const endCol = endLineLength - commentEndString.length - 1
-                options.selection.setBufferRange([[end, endCol], [end, endCol]], {autoscroll: false})
+                const endCol = endLineLength - commentEndString.length - 1;
+                options.selection.setBufferRange(
+                  [[end, endCol], [end, endCol]],
+                  { autoscroll: false }
+                );
               }
             } else {
-              const startDelta = oldRange.start.column === indentLength ? [0, commentStartString.length + 1] : [0, 0]
-              const endDelta = oldRange.end.column === endLineLength ? [0, -commentEndString.length - 1] : [0, 0]
-              options.selection.setBufferRange(oldRange.translate(startDelta, endDelta), {autoscroll: false})
+              const startDelta =
+                oldRange.start.column === indentLength
+                  ? [0, commentStartString.length + 1]
+                  : [0, 0];
+              const endDelta =
+                oldRange.end.column === endLineLength
+                  ? [0, -commentEndString.length - 1]
+                  : [0, 0];
+              options.selection.setBufferRange(
+                oldRange.translate(startDelta, endDelta),
+                { autoscroll: false }
+              );
             }
           }
-        })
+        });
       }
     } else {
-      let hasCommentedLines = false
-      let hasUncommentedLines = false
+      let hasCommentedLines = false;
+      let hasUncommentedLines = false;
       for (let row = start; row <= end; row++) {
-        const line = this.buffer.lineForRow(row)
+        const line = this.buffer.lineForRow(row);
         if (NON_WHITESPACE_REGEXP.test(line)) {
           if (columnRangeForStartDelimiter(line, commentStartString)) {
-            hasCommentedLines = true
+            hasCommentedLines = true;
           } else {
-            hasUncommentedLines = true
+            hasUncommentedLines = true;
           }
         }
       }
 
-      const shouldUncomment = hasCommentedLines && !hasUncommentedLines
+      const shouldUncomment = hasCommentedLines && !hasUncommentedLines;
 
       if (shouldUncomment) {
         for (let row = start; row <= end; row++) {
           const columnRange = columnRangeForStartDelimiter(
             this.buffer.lineForRow(row),
             commentStartString
-          )
-          if (columnRange) this.buffer.delete([[row, columnRange[0]], [row, columnRange[1]]])
+          );
+          if (columnRange)
+            this.buffer.delete([[row, columnRange[0]], [row, columnRange[1]]]);
         }
       } else {
-        let minIndentLevel = Infinity
-        let minBlankIndentLevel = Infinity
+        let minIndentLevel = Infinity;
+        let minBlankIndentLevel = Infinity;
         for (let row = start; row <= end; row++) {
-          const line = this.buffer.lineForRow(row)
-          const indentLevel = this.indentLevelForLine(line)
+          const line = this.buffer.lineForRow(row);
+          const indentLevel = this.indentLevelForLine(line);
           if (NON_WHITESPACE_REGEXP.test(line)) {
-            if (indentLevel < minIndentLevel) minIndentLevel = indentLevel
+            if (indentLevel < minIndentLevel) minIndentLevel = indentLevel;
           } else {
-            if (indentLevel < minBlankIndentLevel) minBlankIndentLevel = indentLevel
+            if (indentLevel < minBlankIndentLevel)
+              minBlankIndentLevel = indentLevel;
           }
         }
         minIndentLevel = Number.isFinite(minIndentLevel)
           ? minIndentLevel
           : Number.isFinite(minBlankIndentLevel)
-              ? minBlankIndentLevel
-              : 0
+          ? minBlankIndentLevel
+          : 0;
 
-        const indentString = this.buildIndentString(minIndentLevel)
+        const indentString = this.buildIndentString(minIndentLevel);
         for (let row = start; row <= end; row++) {
-          const line = this.buffer.lineForRow(row)
+          const line = this.buffer.lineForRow(row);
           if (NON_WHITESPACE_REGEXP.test(line)) {
-            const indentColumn = columnForIndentLevel(line, minIndentLevel, this.getTabLength())
-            this.buffer.insert(Point(row, indentColumn), commentStartString + ' ')
+            const indentColumn = columnForIndentLevel(
+              line,
+              minIndentLevel,
+              this.getTabLength()
+            );
+            this.buffer.insert(
+              Point(row, indentColumn),
+              commentStartString + ' '
+            );
           } else {
             this.buffer.setTextInRange(
               new Range(new Point(row, 0), new Point(row, Infinity)),
               indentString + commentStartString + ' '
-            )
+            );
           }
         }
       }
     }
   }
 
-  rowRangeForParagraphAtBufferRow (bufferRow) {
-    if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(bufferRow))) return
+  rowRangeForParagraphAtBufferRow(bufferRow) {
+    if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(bufferRow)))
+      return;
 
-    const languageMode = this.buffer.getLanguageMode()
-    const isCommented = languageMode.isRowCommented(bufferRow)
+    const languageMode = this.buffer.getLanguageMode();
+    const isCommented = languageMode.isRowCommented(bufferRow);
 
-    let startRow = bufferRow
+    let startRow = bufferRow;
     while (startRow > 0) {
-      if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(startRow - 1))) break
-      if (languageMode.isRowCommented(startRow - 1) !== isCommented) break
-      startRow--
+      if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(startRow - 1)))
+        break;
+      if (languageMode.isRowCommented(startRow - 1) !== isCommented) break;
+      startRow--;
     }
 
-    let endRow = bufferRow
-    const rowCount = this.getLineCount()
+    let endRow = bufferRow;
+    const rowCount = this.getLineCount();
     while (endRow + 1 < rowCount) {
-      if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1))) break
-      if (languageMode.isRowCommented(endRow + 1) !== isCommented) break
-      endRow++
+      if (!NON_WHITESPACE_REGEXP.test(this.lineTextForBufferRow(endRow + 1)))
+        break;
+      if (languageMode.isRowCommented(endRow + 1) !== isCommented) break;
+      endRow++;
     }
 
-    return new Range(new Point(startRow, 0), new Point(endRow, this.buffer.lineLengthForRow(endRow)))
+    return new Range(
+      new Point(startRow, 0),
+      new Point(endRow, this.buffer.lineLengthForRow(endRow))
+    );
   }
-}
+};
 
-function columnForIndentLevel (line, indentLevel, tabLength) {
-  let column = 0
-  let indentLength = 0
-  const goalIndentLength = indentLevel * tabLength
+function columnForIndentLevel(line, indentLevel, tabLength) {
+  let column = 0;
+  let indentLength = 0;
+  const goalIndentLength = indentLevel * tabLength;
   while (indentLength < goalIndentLength) {
-    const char = line[column]
+    const char = line[column];
     if (char === '\t') {
-      indentLength += tabLength - (indentLength % tabLength)
+      indentLength += tabLength - (indentLength % tabLength);
     } else if (char === ' ') {
-      indentLength++
+      indentLength++;
     } else {
-      break
+      break;
     }
-    column++
+    column++;
   }
-  return column
+  return column;
 }
 
-function columnRangeForStartDelimiter (line, delimiter) {
-  const startColumn = line.search(NON_WHITESPACE_REGEXP)
-  if (startColumn === -1) return null
-  if (!line.startsWith(delimiter, startColumn)) return null
+function columnRangeForStartDelimiter(line, delimiter) {
+  const startColumn = line.search(NON_WHITESPACE_REGEXP);
+  if (startColumn === -1) return null;
+  if (!line.startsWith(delimiter, startColumn)) return null;
 
-  let endColumn = startColumn + delimiter.length
-  if (line[endColumn] === ' ') endColumn++
-  return [startColumn, endColumn]
+  let endColumn = startColumn + delimiter.length;
+  if (line[endColumn] === ' ') endColumn++;
+  return [startColumn, endColumn];
 }
 
-function columnRangeForEndDelimiter (line, delimiter) {
-  let startColumn = line.lastIndexOf(delimiter)
-  if (startColumn === -1) return null
+function columnRangeForEndDelimiter(line, delimiter) {
+  let startColumn = line.lastIndexOf(delimiter);
+  if (startColumn === -1) return null;
 
-  const endColumn = startColumn + delimiter.length
-  if (NON_WHITESPACE_REGEXP.test(line.slice(endColumn))) return null
-  if (line[startColumn - 1] === ' ') startColumn--
-  return [startColumn, endColumn]
+  const endColumn = startColumn + delimiter.length;
+  if (NON_WHITESPACE_REGEXP.test(line.slice(endColumn))) return null;
+  if (line[startColumn - 1] === ' ') startColumn--;
+  return [startColumn, endColumn];
 }
 
 class ChangeEvent {
-  constructor ({oldRange, newRange}) {
-    this.oldRange = oldRange
-    this.newRange = newRange
+  constructor({ oldRange, newRange }) {
+    this.oldRange = oldRange;
+    this.newRange = newRange;
   }
 
-  get start () {
-    return this.newRange.start
+  get start() {
+    return this.newRange.start;
   }
 
-  get oldExtent () {
-    return this.oldRange.getExtent()
+  get oldExtent() {
+    return this.oldRange.getExtent();
   }
 
-  get newExtent () {
-    return this.newRange.getExtent()
+  get newExtent() {
+    return this.newRange.getExtent();
   }
 }
