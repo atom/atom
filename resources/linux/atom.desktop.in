@@ -2,7 +2,7 @@
 Name=<%= appName %>
 Comment=<%= description %>
 GenericName=Text Editor
-Exec=<%= installDir %>/bin/<%= appFileName %> %F
+Exec=env ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=false <%= installDir %>/bin/<%= appFileName %> %F
 Icon=<%= iconPath %>
 Type=Application
 StartupNotify=true

@@ -2301,7 +2301,8 @@ class TextEditorComponent {
     let textNodesIndex = 0
     let lastTextNodeRight = null
 
-    columnLoop: // eslint-disable-line no-labels
+    // eslint-disable-next-line no-labels
+    columnLoop:
     for (let columnsIndex = 0; columnsIndex < columnsToMeasure.length; columnsIndex++) {
       const nextColumnToMeasure = columnsToMeasure[columnsIndex]
       while (textNodesIndex < textNodes.length) {
@@ -3775,7 +3776,8 @@ class LinesTileComponent {
         if (newScreenLineIndex < oldScreenLineIndexInNewScreenLines && oldScreenLineIndexInNewScreenLines < newScreenLinesEndIndex) {
           var newScreenLineComponents = []
           while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
-            var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
+            // eslint-disable-next-line no-redeclare
+            var newScreenLineComponent = new LineComponent({
               screenLine: newScreenLines[newScreenLineIndex],
               screenRow: tileStartRow + newScreenLineIndex,
               lineDecoration: lineDecorations[newScreenLineIndex],
@@ -3801,7 +3803,8 @@ class LinesTileComponent {
           }
         } else {
           var oldScreenLineComponent = this.lineComponents[lineComponentIndex]
-          var newScreenLineComponent = new LineComponent({ // eslint-disable-line no-redeclare
+          // eslint-disable-next-line no-redeclare
+          var newScreenLineComponent = new LineComponent({
             screenLine: newScreenLines[newScreenLineIndex],
             screenRow: tileStartRow + newScreenLineIndex,
             lineDecoration: lineDecorations[newScreenLineIndex],
@@ -4446,7 +4449,7 @@ class NodePool {
 
     if (element) {
       element.className = className || ''
-      element.styleMap.forEach((value, key) => {
+      element.attributeStyleMap.forEach((value, key) => {
         if (!style || style[key] == null) element.style[key] = ''
       })
       if (style) Object.assign(element.style, style)

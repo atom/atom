@@ -414,7 +414,7 @@ describe('CommandRegistry', () => {
         () =>
           new Promise((resolve, reject) => {
             setTimeout(() => {
-              reject(3)
+              reject(3) // eslint-disable-line prefer-promise-reject-errors
             }, 1)
           })
       )

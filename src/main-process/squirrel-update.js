@@ -34,19 +34,19 @@ const addCommandsToPath = callback => {
   const installCommands = callback => {
     const atomCommandPath = path.join(binFolder, 'atom.cmd')
     const relativeAtomPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.cmd'))
-    const atomCommand = `@echo off\r\n\"%~dp0\\${relativeAtomPath}\" %*`
+    const atomCommand = `@echo off\r\n"%~dp0\\${relativeAtomPath}" %*`
 
     const atomShCommandPath = path.join(binFolder, 'atom')
     const relativeAtomShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'atom.sh'))
-    const atomShCommand = `#!/bin/sh\r\n\"$(dirname \"$0\")/${relativeAtomShPath.replace(/\\/g, '/')}\" \"$@\"\r\necho`
+    const atomShCommand = `#!/bin/sh\r\n"$(dirname "$0")/${relativeAtomShPath.replace(/\\/g, '/')}" "$@"\r\necho`
 
     const apmCommandPath = path.join(binFolder, 'apm.cmd')
     const relativeApmPath = path.relative(binFolder, path.join(process.resourcesPath, 'app', 'apm', 'bin', 'apm.cmd'))
-    const apmCommand = `@echo off\r\n\"%~dp0\\${relativeApmPath}\" %*`
+    const apmCommand = `@echo off\r\n"%~dp0\\${relativeApmPath}" %*`
 
     const apmShCommandPath = path.join(binFolder, 'apm')
     const relativeApmShPath = path.relative(binFolder, path.join(appFolder, 'resources', 'cli', 'apm.sh'))
-    const apmShCommand = `#!/bin/sh\r\n\"$(dirname \"$0\")/${relativeApmShPath.replace(/\\/g, '/')}\" \"$@\"`
+    const apmShCommand = `#!/bin/sh\r\n"$(dirname "$0")/${relativeApmShPath.replace(/\\/g, '/')}" "$@"`
 
     fs.writeFile(atomCommandPath, atomCommand, () =>
       fs.writeFile(atomShCommandPath, atomShCommand, () =>

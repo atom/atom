@@ -582,12 +582,39 @@ describe('WorkspaceElement', () => {
 
   describe('mousing over docks', () => {
     let workspaceElement
+    let originalTimeout = jasmine.getEnv().defaultTimeoutInterval
 
     beforeEach(() => {
       workspaceElement = atom.workspace.getElement()
       workspaceElement.style.width = '600px'
       workspaceElement.style.height = '300px'
       jasmine.attachToDOM(workspaceElement)
+
+      // To isolate this test from unintended events happening on the host machine,
+      // we remove any listener that could cause interferences.
+      window.removeEventListener(
+        'mousemove',
+        workspaceElement.handleEdgesMouseMove
+      )
+      workspaceElement.htmlElement.removeEventListener(
+        'mouseleave',
+        workspaceElement.handleCenterLeave
+      )
+
+      jasmine.getEnv().defaultTimeoutInterval = 10000
+    })
+
+    afterEach(() => {
+      jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+
+      window.addEventListener(
+        'mousemove',
+        workspaceElement.handleEdgesMouseMove
+      )
+      workspaceElement.htmlElement.addEventListener(
+        'mouseleave',
+        workspaceElement.handleCenterLeave
+      )
     })
 
     it('shows the toggle button when the dock is open', async () => {
@@ -763,7 +790,8 @@ describe('WorkspaceElement', () => {
     })
 
     function moveMouse (coordinates) {
-      window.dispatchEvent(new MouseEvent('mousemove', coordinates))
+      // Simulate a mouse move event by calling the method that handles that event.
+      workspaceElement.updateHoveredDock({x: coordinates.clientX, y: coordinates.clientY})
       advanceClock(100)
     }
 

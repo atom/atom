@@ -6,6 +6,7 @@ const TextBuffer = require('text-buffer')
 const GrammarRegistry = require('../src/grammar-registry')
 const TreeSitterGrammar = require('../src/tree-sitter-grammar')
 const FirstMate = require('first-mate')
+const { OnigRegExp } = require('oniguruma')
 
 describe('GrammarRegistry', () => {
   let grammarRegistry
@@ -743,6 +744,30 @@ describe('GrammarRegistry', () => {
         `
         )
         expect(grammar.name).toBe('JavaScript')
+      })
+    })
+
+    describe('text-mate grammars with content regexes', () => {
+      it('favors grammars that match the content regex', () => {
+        const grammar1 = {
+          name: 'foo',
+          fileTypes: ['foo']
+        }
+        grammarRegistry.addGrammar(grammar1)
+        const grammar2 = {
+          name: 'foo++',
+          contentRegex: new OnigRegExp('.*bar'),
+          fileTypes: ['foo']
+        }
+        grammarRegistry.addGrammar(grammar2)
+
+        const grammar = grammarRegistry.selectGrammar(
+          'test.foo',
+          dedent`
+          ${'\n'.repeat(50)}bar${'\n'.repeat(50)}
+        `)
+
+        expect(grammar).toBe(grammar2)
       })
     })
   })

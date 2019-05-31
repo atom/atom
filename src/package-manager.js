@@ -90,6 +90,7 @@ module.exports = class PackageManager {
     this.packagesCache = packageJSON._atomPackages != null ? packageJSON._atomPackages : {}
     this.packageDependencies = packageJSON.packageDependencies != null ? packageJSON.packageDependencies : {}
     this.triggeredActivationHooks.clear()
+    this.activatePromise = null
   }
 
   /*
@@ -112,6 +113,14 @@ module.exports = class PackageManager {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivateInitialPackages (callback) {
     return this.emitter.on('did-activate-initial-packages', callback)
+  }
+
+  getActivatePromise() {
+    if (this.activatePromise) {
+      return this.activatePromise
+    } else {
+      return Promise.resolve()
+    }
   }
 
   // Public: Invoke the given callback when a package is activated.
@@ -659,11 +668,13 @@ module.exports = class PackageManager {
       const packages = this.getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     }
-    return Promise.all(promises).then(() => {
+    this.activatePromise = Promise.all(promises).then(() => {
       this.triggerDeferredActivationHooks()
       this.initialPackagesActivated = true
       this.emitter.emit('did-activate-initial-packages')
+      this.activatePromise = null
     })
+    return this.activatePromise
   }
 
   registerURIHandlerForPackage (packageName, handler) {
