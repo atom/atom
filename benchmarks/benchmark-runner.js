@@ -38,7 +38,8 @@ module.exports = async ({test, benchmarkPaths}) => {
       if (data.points.length > 1) {
         const canvas = document.createElement('canvas')
         benchmarkContainer.appendChild(canvas)
-        const chart = new Chart(canvas, {
+        // eslint-disable-next-line no-new
+        new Chart(canvas, {
           type: 'line',
           data: {
             datasets: [{label: key, fill: false, data: data.points}]

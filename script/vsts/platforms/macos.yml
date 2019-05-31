@@ -21,6 +21,10 @@ jobs:
 
   - script: script/bootstrap
     displayName: Bootstrap build environment
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+      NPM_BIN_PATH: /usr/local/bin/npm
 
   - script: script/lint
     displayName: Run linter

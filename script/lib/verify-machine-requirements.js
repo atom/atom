@@ -6,9 +6,9 @@ const path = require('path')
 
 const CONFIG = require('../config')
 
-module.exports = function () {
+module.exports = function (ci) {
   verifyNode()
-  verifyNpm()
+  verifyNpm(ci)
   if (process.platform === 'win32') {
     verifyPython()
   }
@@ -27,14 +27,15 @@ function verifyNode () {
   }
 }
 
-function verifyNpm () {
-  const stdout = childProcess.execFileSync(CONFIG.getNpmBinPath(), ['--version'], {env: process.env})
+function verifyNpm (ci) {
+  const stdout = childProcess.execFileSync(CONFIG.getNpmBinPath(ci), ['--version'], {env: process.env})
   const fullVersion = stdout.toString().trim()
   const majorVersion = fullVersion.split('.')[0]
-  if (majorVersion >= 3) {
+  const oldestMajorVersionSupported = ci ? 6 : 3
+  if (majorVersion >= oldestMajorVersionSupported) {
     console.log(`Npm:\tv${fullVersion}`)
   } else {
-    throw new Error(`npm v3+ is required to build Atom. npm v${fullVersion} was detected.`)
+    throw new Error(`npm v${oldestMajorVersionSupported}+ is required to build Atom. npm v${fullVersion} was detected.`)
   }
 }
 
