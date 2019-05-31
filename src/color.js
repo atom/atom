@@ -1,10 +1,9 @@
-/** @babel */
-
 let ParsedColor = null
 
 // Essential: A simple color class returned from {Config::get} when the value
 // at the key path is of type 'color'.
-export default class Color {
+module.exports =
+class Color {
   // Essential: Parse a {String} or {Object} into a {Color}.
   //
   // * `value` A {String} such as `'white'`, `#ff00ff`, or
@@ -87,6 +86,10 @@ export default class Color {
 
   toJSON () {
     return this.alpha === 1 ? this.toHexString() : this.toRGBAString()
+  }
+
+  toString () {
+    return this.toRGBAString()
   }
 
   isEqual (color) {

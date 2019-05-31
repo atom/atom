@@ -1,6 +1,4 @@
-/** @babel */
-
-import {Disposable} from 'event-kit'
+const {Disposable} = require('event-kit')
 
 // Extended: Manages the deserializers used for serialized state
 //
@@ -21,7 +19,8 @@ import {Disposable} from 'event-kit'
 //   serialize: ->
 //     @state
 // ```
-export default class DeserializerManager {
+module.exports =
+class DeserializerManager {
   constructor (atomEnvironment) {
     this.atomEnvironment = atomEnvironment
     this.deserializers = {}
@@ -34,7 +33,7 @@ export default class DeserializerManager {
   //   common approach is to register a *constructor* as the deserializer for its
   //   instances by adding a `.deserialize()` class method. When your method is
   //   called, it will be passed serialized state as the first argument and the
-  //   {Atom} environment object as the second argument, which is useful if you
+  //   {AtomEnvironment} object as the second argument, which is useful if you
   //   wish to avoid referencing the `atom` global.
   add (...deserializers) {
     for (let i = 0; i < deserializers.length; i++) {

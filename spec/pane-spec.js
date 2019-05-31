@@ -1,15 +1,15 @@
-const {extend} = require('underscore-plus')
-const {Emitter} = require('event-kit')
+const { extend } = require('underscore-plus')
+const { Emitter } = require('event-kit')
 const Grim = require('grim')
 const Pane = require('../src/pane')
 const PaneContainer = require('../src/pane-container')
-const {it, fit, ffit, fffit, beforeEach, timeoutPromise} = require('./async-spec-helpers')
+const { conditionPromise, timeoutPromise } = require('./async-spec-helpers')
 
 describe('Pane', () => {
   let confirm, showSaveDialog, deserializerDisposable
 
   class Item {
-    static deserialize ({name, uri}) {
+    static deserialize ({ name, uri }) {
       return new Item(name, uri)
     }
 
@@ -20,14 +20,24 @@ describe('Pane', () => {
       this.destroyed = false
     }
 
-    getURI () { return this.uri }
-    getPath () { return this.path }
-    isEqual (other) { return this.name === (other && other.name) }
-    isPermanentDockItem () { return false }
-    isDestroyed () { return this.destroyed }
+    getURI () {
+      return this.uri
+    }
+    getPath () {
+      return this.path
+    }
+    isEqual (other) {
+      return this.name === (other && other.name)
+    }
+    isPermanentDockItem () {
+      return false
+    }
+    isDestroyed () {
+      return this.destroyed
+    }
 
     serialize () {
-      return {deserializer: 'Item', name: this.name, uri: this.uri}
+      return { deserializer: 'Item', name: this.name, uri: this.uri }
     }
 
     copy () {
@@ -63,22 +73,29 @@ describe('Pane', () => {
   })
 
   function paneParams (params) {
-    return extend({
-      applicationDelegate: atom.applicationDelegate,
-      config: atom.config,
-      deserializerManager: atom.deserializers,
-      notificationManager: atom.notifications
-    }, params)
+    return extend(
+      {
+        applicationDelegate: atom.applicationDelegate,
+        config: atom.config,
+        deserializerManager: atom.deserializers,
+        notificationManager: atom.notifications
+      },
+      params
+    )
   }
 
   describe('construction', () => {
     it('sets the active item to the first item', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       expect(pane.getActiveItem()).toBe(pane.itemAtIndex(0))
     })
 
     it('compacts the items array', () => {
-      const pane = new Pane(paneParams({items: [undefined, new Item('A'), null, new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [undefined, new Item('A'), null, new Item('B')] })
+      )
       expect(pane.getItems().length).toBe(2)
       expect(pane.getActiveItem()).toBe(pane.itemAtIndex(0))
     })
@@ -136,15 +153,19 @@ describe('Pane', () => {
 
   describe('::addItem(item, index)', () => {
     it('adds the item at the given index', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const [item1, item2] = pane.getItems()
       const item3 = new Item('C')
-      pane.addItem(item3, {index: 1})
+      pane.addItem(item3, { index: 1 })
       expect(pane.getItems()).toEqual([item1, item3, item2])
     })
 
     it('adds the item after the active item if no index is provided', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [item1, item2, item3] = pane.getItems()
       pane.activateItem(item2)
       const item4 = new Item('D')
@@ -160,18 +181,23 @@ describe('Pane', () => {
     })
 
     it('invokes ::onDidAddItem() observers', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const events = []
       pane.onDidAddItem(event => events.push(event))
 
       const item = new Item('C')
-      pane.addItem(item, {index: 1})
-      expect(events).toEqual([{item, index: 1, moved: false}])
+      pane.addItem(item, { index: 1 })
+      expect(events).toEqual([{ item, index: 1, moved: false }])
     })
 
     it('throws an exception if the item is already present on a pane', () => {
       const item = new Item('A')
-      const container = new PaneContainer({config: atom.config, applicationDelegate: atom.applicationDelegate})
+      const container = new PaneContainer({
+        config: atom.config,
+        applicationDelegate: atom.applicationDelegate
+      })
       const pane1 = container.getActivePane()
       pane1.addItem(item)
       const pane2 = pane1.splitRight()
@@ -179,36 +205,36 @@ describe('Pane', () => {
     })
 
     it("throws an exception if the item isn't an object", () => {
-      const pane = new Pane(paneParams({items: []}))
+      const pane = new Pane(paneParams({ items: [] }))
       expect(() => pane.addItem(null)).toThrow()
       expect(() => pane.addItem('foo')).toThrow()
       expect(() => pane.addItem(1)).toThrow()
     })
 
     it('destroys any existing pending item', () => {
-      const pane = new Pane(paneParams({items: []}))
+      const pane = new Pane(paneParams({ items: [] }))
       const itemA = new Item('A')
       const itemB = new Item('B')
       const itemC = new Item('C')
-      pane.addItem(itemA, {pending: false})
-      pane.addItem(itemB, {pending: true})
-      pane.addItem(itemC, {pending: false})
+      pane.addItem(itemA, { pending: false })
+      pane.addItem(itemB, { pending: true })
+      pane.addItem(itemC, { pending: false })
       expect(itemB.isDestroyed()).toBe(true)
     })
 
     it('adds the new item before destroying any existing pending item', () => {
       const eventOrder = []
 
-      const pane = new Pane(paneParams({items: []}))
+      const pane = new Pane(paneParams({ items: [] }))
       const itemA = new Item('A')
       const itemB = new Item('B')
-      pane.addItem(itemA, {pending: true})
+      pane.addItem(itemA, { pending: true })
 
-      pane.onDidAddItem(function ({item}) {
+      pane.onDidAddItem(function ({ item }) {
         if (item === itemB) eventOrder.push('add')
       })
 
-      pane.onDidRemoveItem(function ({item}) {
+      pane.onDidRemoveItem(function ({ item }) {
         if (item === itemA) eventOrder.push('remove')
       })
 
@@ -219,11 +245,41 @@ describe('Pane', () => {
       runs(() => expect(eventOrder).toEqual(['add', 'remove']))
     })
 
+    it('subscribes to be notified when item terminates its pending state', () => {
+      const fakeDisposable = { dispose: () => {} }
+      const spy = jasmine
+        .createSpy('onDidTerminatePendingState')
+        .andReturn(fakeDisposable)
+
+      const pane = new Pane(paneParams({ items: [] }))
+      const item = {
+        getTitle: () => '',
+        onDidTerminatePendingState: spy
+      }
+      pane.addItem(item)
+
+      expect(spy).toHaveBeenCalled()
+    })
+
+    it('subscribes to be notified when item is destroyed', () => {
+      const fakeDisposable = { dispose: () => {} }
+      const spy = jasmine.createSpy('onDidDestroy').andReturn(fakeDisposable)
+
+      const pane = new Pane(paneParams({ items: [] }))
+      const item = {
+        getTitle: () => '',
+        onDidDestroy: spy
+      }
+      pane.addItem(item)
+
+      expect(spy).toHaveBeenCalled()
+    })
+
     describe('when using the old API of ::addItem(item, index)', () => {
       beforeEach(() => spyOn(Grim, 'deprecate'))
 
       it('supports the older public API', () => {
-        const pane = new Pane(paneParams({items: []}))
+        const pane = new Pane(paneParams({ items: [] }))
         const itemA = new Item('A')
         const itemB = new Item('B')
         const itemC = new Item('C')
@@ -234,9 +290,11 @@ describe('Pane', () => {
       })
 
       it('shows a deprecation warning', () => {
-        const pane = new Pane(paneParams({items: []}))
+        const pane = new Pane(paneParams({ items: [] }))
         pane.addItem(new Item(), 2)
-        expect(Grim.deprecate).toHaveBeenCalledWith('Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})')
+        expect(Grim.deprecate).toHaveBeenCalledWith(
+          'Pane::addItem(item, 2) is deprecated in favor of Pane::addItem(item, {index: 2})'
+        )
       })
     })
   })
@@ -245,7 +303,7 @@ describe('Pane', () => {
     let pane = null
 
     beforeEach(() => {
-      pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      pane = new Pane(paneParams({ items: [new Item('A'), new Item('B')] }))
     })
 
     it('changes the active item to the current item', () => {
@@ -278,16 +336,16 @@ describe('Pane', () => {
       })
 
       it('replaces the active item if it is pending', () => {
-        pane.activateItem(itemC, {pending: true})
+        pane.activateItem(itemC, { pending: true })
         expect(pane.getItems().map(item => item.name)).toEqual(['A', 'C', 'B'])
-        pane.activateItem(itemD, {pending: true})
+        pane.activateItem(itemD, { pending: true })
         expect(pane.getItems().map(item => item.name)).toEqual(['A', 'D', 'B'])
       })
 
       it('adds the item after the active item if it is not pending', () => {
-        pane.activateItem(itemC, {pending: true})
+        pane.activateItem(itemC, { pending: true })
         pane.activateItemAtIndex(2)
-        pane.activateItem(itemD, {pending: true})
+        pane.activateItem(itemD, { pending: true })
         expect(pane.getItems().map(item => item.name)).toEqual(['A', 'B', 'D'])
       })
     })
@@ -341,14 +399,14 @@ describe('Pane', () => {
       const pendingSpy = jasmine.createSpy('onItemDidTerminatePendingState')
       const destroySpy = jasmine.createSpy('onWillDestroyItem')
 
-      await atom.workspace.open('sample.txt', {pending: true}).then(() => {
+      await atom.workspace.open('sample.txt', { pending: true }).then(() => {
         pane = atom.workspace.getActivePane()
       })
 
       pane.onItemDidTerminatePendingState(pendingSpy)
       pane.onWillDestroyItem(destroySpy)
 
-      await atom.workspace.open('sample.js', {pending: true})
+      await atom.workspace.open('sample.js', { pending: true })
 
       expect(destroySpy).toHaveBeenCalled()
       expect(pendingSpy).not.toHaveBeenCalled()
@@ -357,7 +415,17 @@ describe('Pane', () => {
 
   describe('::activateNextRecentlyUsedItem() and ::activatePreviousRecentlyUsedItem()', () => {
     it('sets the active item to the next/previous item in the itemStack, looping around at either end', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C'), new Item('D'), new Item('E')]}))
+      const pane = new Pane(
+        paneParams({
+          items: [
+            new Item('A'),
+            new Item('B'),
+            new Item('C'),
+            new Item('D'),
+            new Item('E')
+          ]
+        })
+      )
       const [item1, item2, item3, item4, item5] = pane.getItems()
       pane.itemStack = [item3, item1, item2, item5, item4]
 
@@ -388,7 +456,9 @@ describe('Pane', () => {
 
   describe('::activateNextItem() and ::activatePreviousItem()', () => {
     it('sets the active item to the next/previous item, looping around at either end', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [item1, item2, item3] = pane.getItems()
 
       expect(pane.getActiveItem()).toBe(item1)
@@ -405,8 +475,10 @@ describe('Pane', () => {
 
   describe('::activateLastItem()', () => {
     it('sets the active item to the last item', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
-      const [item1,, item3] = pane.getItems()
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
+      const [item1, , item3] = pane.getItems()
 
       expect(pane.getActiveItem()).toBe(item1)
       pane.activateLastItem()
@@ -416,7 +488,9 @@ describe('Pane', () => {
 
   describe('::moveItemRight() and ::moveItemLeft()', () => {
     it('moves the active item to the right and left, without looping around at either end', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [item1, item2, item3] = pane.getItems()
 
       pane.activateItemAtIndex(0)
@@ -436,7 +510,9 @@ describe('Pane', () => {
 
   describe('::activateItemAtIndex(index)', () => {
     it('activates the item at the given index', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [item1, item2, item3] = pane.getItems()
       pane.activateItemAtIndex(2)
       expect(pane.getActiveItem()).toBe(item3)
@@ -457,7 +533,9 @@ describe('Pane', () => {
     let pane, item1, item2, item3
 
     beforeEach(() => {
-      pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       ;[item1, item2, item3] = pane.getItems()
     })
 
@@ -493,17 +571,17 @@ describe('Pane', () => {
 
     it('invokes ::onWillDestroyItem() and PaneContainer::onWillDestroyPaneItem observers before destroying the item', async () => {
       jasmine.useRealClock()
-      pane.container = new PaneContainer({config: atom.config, confirm})
+      pane.container = new PaneContainer({ config: atom.config, confirm })
       const events = []
 
-      pane.onWillDestroyItem(async (event) => {
+      pane.onWillDestroyItem(async event => {
         expect(item2.isDestroyed()).toBe(false)
         await timeoutPromise(50)
         expect(item2.isDestroyed()).toBe(false)
         events.push(['will-destroy-item', event])
       })
 
-      pane.container.onWillDestroyPaneItem(async (event) => {
+      pane.container.onWillDestroyPaneItem(async event => {
         expect(item2.isDestroyed()).toBe(false)
         await timeoutPromise(50)
         expect(item2.isDestroyed()).toBe(false)
@@ -513,8 +591,8 @@ describe('Pane', () => {
       await pane.destroyItem(item2)
       expect(item2.isDestroyed()).toBe(true)
       expect(events).toEqual([
-        ['will-destroy-item', {item: item2, index: 1}],
-        ['will-destroy-pane-item', {item: item2, index: 1, pane}]
+        ['will-destroy-item', { item: item2, index: 1 }],
+        ['will-destroy-pane-item', { item: item2, index: 1, pane }]
       ])
     })
 
@@ -522,14 +600,18 @@ describe('Pane', () => {
       const events = []
       pane.onWillRemoveItem(event => events.push(event))
       pane.destroyItem(item2)
-      expect(events).toEqual([{item: item2, index: 1, moved: false, destroyed: true}])
+      expect(events).toEqual([
+        { item: item2, index: 1, moved: false, destroyed: true }
+      ])
     })
 
     it('invokes ::onDidRemoveItem() observers', () => {
       const events = []
       pane.onDidRemoveItem(event => events.push(event))
       pane.destroyItem(item2)
-      expect(events).toEqual([{item: item2, index: 1, moved: false, destroyed: true}])
+      expect(events).toEqual([
+        { item: item2, index: 1, moved: false, destroyed: true }
+      ])
     })
 
     describe('when the destroyed item is the active item and is the first item', () => {
@@ -564,7 +646,7 @@ describe('Pane', () => {
         describe('when the item has a uri', () => {
           it('saves the item before destroying it', async () => {
             itemURI = 'test'
-            confirm.andReturn(0)
+            confirm.andCallFake((options, callback) => callback(0))
 
             const success = await pane.destroyItem(item1)
             expect(item1.save).toHaveBeenCalled()
@@ -576,13 +658,19 @@ describe('Pane', () => {
 
         describe('when the item has no uri', () => {
           it('presents a save-as dialog, then saves the item with the given uri before removing and destroying it', async () => {
+            jasmine.useRealClock()
+
             itemURI = null
 
-            showSaveDialog.andReturn('/selected/path')
-            confirm.andReturn(0)
+            showSaveDialog.andCallFake((options, callback) =>
+              callback('/selected/path')
+            )
+            confirm.andCallFake((options, callback) => callback(0))
 
             const success = await pane.destroyItem(item1)
-            expect(showSaveDialog).toHaveBeenCalledWith({})
+            expect(showSaveDialog.mostRecentCall.args[0]).toEqual({})
+
+            await conditionPromise(() => item1.saveAs.callCount === 1)
             expect(item1.saveAs).toHaveBeenCalledWith('/selected/path')
             expect(pane.getItems().includes(item1)).toBe(false)
             expect(item1.isDestroyed()).toBe(true)
@@ -593,19 +681,19 @@ describe('Pane', () => {
 
       describe("if the [Don't Save] option is selected", () => {
         it('removes and destroys the item without saving it', async () => {
-          confirm.andReturn(2)
+          confirm.andCallFake((options, callback) => callback(2))
 
           const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
           expect(pane.getItems().includes(item1)).toBe(false)
           expect(item1.isDestroyed()).toBe(true)
-          expect(success).toBe(true);
+          expect(success).toBe(true)
         })
       })
 
       describe('if the [Cancel] option is selected', () => {
         it('does not save, remove, or destroy the item', async () => {
-          confirm.andReturn(1)
+          confirm.andCallFake((options, callback) => callback(1))
 
           const success = await pane.destroyItem(item1)
           expect(item1.save).not.toHaveBeenCalled()
@@ -630,7 +718,9 @@ describe('Pane', () => {
       describe("when the 'core.destroyEmptyPanes' config option is false (the default)", () => {
         it('does not destroy the pane, but leaves it in place with empty items', () => {
           expect(atom.config.get('core.destroyEmptyPanes')).toBe(false)
-          for (let item of pane.getItems()) { pane.destroyItem(item) }
+          for (let item of pane.getItems()) {
+            pane.destroyItem(item)
+          }
           expect(pane.isDestroyed()).toBe(false)
           expect(pane.getActiveItem()).toBeUndefined()
           expect(() => pane.saveActiveItem()).not.toThrow()
@@ -655,7 +745,7 @@ describe('Pane', () => {
         const success = await pane.destroyItem(item1)
         expect(pane.getItems().includes(item1)).toBe(true)
         expect(item1.isDestroyed()).toBe(false)
-        expect(success).toBe(false);
+        expect(success).toBe(false)
       })
 
       it('destroy the item if force=true', async () => {
@@ -670,7 +760,9 @@ describe('Pane', () => {
 
   describe('::destroyActiveItem()', () => {
     it('destroys the active item', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const activeItem = pane.getActiveItem()
       pane.destroyActiveItem()
       expect(activeItem.isDestroyed()).toBe(true)
@@ -685,7 +777,9 @@ describe('Pane', () => {
 
   describe('::destroyItems()', () => {
     it('destroys all items', async () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [item1, item2, item3] = pane.getItems()
 
       await pane.destroyItems()
@@ -698,7 +792,7 @@ describe('Pane', () => {
 
   describe('::observeItems()', () => {
     it('invokes the observer with all current and future items', () => {
-      const pane = new Pane(paneParams({items: [new Item(), new Item()]}))
+      const pane = new Pane(paneParams({ items: [new Item(), new Item()] }))
       const [item1, item2] = pane.getItems()
 
       const observed = []
@@ -713,8 +807,10 @@ describe('Pane', () => {
 
   describe('when an item emits a destroyed event', () => {
     it('removes it from the list of items', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
-      const [item1,, item3] = pane.getItems()
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
+      const [item1, , item3] = pane.getItems()
       pane.itemAtIndex(1).destroy()
       expect(pane.getItems()).toEqual([item1, item3])
     })
@@ -722,7 +818,9 @@ describe('Pane', () => {
 
   describe('::destroyInactiveItems()', () => {
     it('destroys all items but the active item', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B'), new Item('C')] })
+      )
       const [, item2] = pane.getItems()
       pane.activateItem(item2)
       pane.destroyInactiveItems()
@@ -734,8 +832,10 @@ describe('Pane', () => {
     let pane
 
     beforeEach(() => {
-      pane = new Pane(paneParams({items: [new Item('A')]}))
-      showSaveDialog.andReturn('/selected/path')
+      pane = new Pane(paneParams({ items: [new Item('A')] }))
+      showSaveDialog.andCallFake((options, callback) =>
+        callback('/selected/path')
+      )
     })
 
     describe('when the active item has a uri', () => {
@@ -764,8 +864,10 @@ describe('Pane', () => {
         it('opens a save dialog and saves the current item as the selected path', async () => {
           pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
           await pane.saveActiveItem()
-          expect(showSaveDialog).toHaveBeenCalledWith({})
-          expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
+          expect(showSaveDialog.mostRecentCall.args[0]).toEqual({})
+          expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith(
+            '/selected/path'
+          )
         })
       })
 
@@ -779,7 +881,7 @@ describe('Pane', () => {
 
       it('does nothing if the user cancels choosing a path', async () => {
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
-        showSaveDialog.andReturn(undefined)
+        showSaveDialog.andCallFake((options, callback) => callback(undefined))
         await pane.saveActiveItem()
         expect(pane.getActiveItem().saveAs).not.toHaveBeenCalled()
       })
@@ -794,14 +896,16 @@ describe('Pane', () => {
           return Promise.reject(error)
         }
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(function (notification) {
-            expect(notification.getType()).toBe('warning')
-            expect(notification.getMessage()).toContain('Permission denied')
-            expect(notification.getMessage()).toContain('/foo')
-            subscription.dispose()
-            done()
-          })
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(
+            function (notification) {
+              expect(notification.getType()).toBe('warning')
+              expect(notification.getMessage()).toContain('Permission denied')
+              expect(notification.getMessage()).toContain('/foo')
+              subscription.dispose()
+              done()
+            }
+          )
           pane.saveActiveItem()
         })
       })
@@ -816,14 +920,16 @@ describe('Pane', () => {
           throw error
         }
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(function (notification) {
-            expect(notification.getType()).toBe('warning')
-            expect(notification.getMessage()).toContain('Permission denied')
-            expect(notification.getMessage()).toContain('/foo')
-            subscription.dispose()
-            done()
-          })
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(
+            function (notification) {
+              expect(notification.getType()).toBe('warning')
+              expect(notification.getMessage()).toContain('Permission denied')
+              expect(notification.getMessage()).toContain('/foo')
+              subscription.dispose()
+              done()
+            }
+          )
           pane.saveActiveItem()
         })
       })
@@ -834,17 +940,29 @@ describe('Pane', () => {
     let pane = null
 
     beforeEach(() => {
-      pane = new Pane(paneParams({items: [new Item('A')]}))
-      showSaveDialog.andReturn('/selected/path')
+      pane = new Pane(paneParams({ items: [new Item('A')] }))
+      showSaveDialog.andCallFake((options, callback) =>
+        callback('/selected/path')
+      )
     })
 
     describe('when the current item has a saveAs method', () => {
-      it('opens the save dialog and calls saveAs on the item with the selected path', () => {
+      it('opens the save dialog and calls saveAs on the item with the selected path', async () => {
+        jasmine.useRealClock()
+
         pane.getActiveItem().path = __filename
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs')
         pane.saveActiveItemAs()
-        expect(showSaveDialog).toHaveBeenCalledWith({defaultPath: __filename})
-        expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith('/selected/path')
+        expect(showSaveDialog.mostRecentCall.args[0]).toEqual({
+          defaultPath: __filename
+        })
+
+        await conditionPromise(
+          () => pane.getActiveItem().saveAs.callCount === 1
+        )
+        expect(pane.getActiveItem().saveAs).toHaveBeenCalledWith(
+          '/selected/path'
+        )
       })
     })
 
@@ -865,14 +983,16 @@ describe('Pane', () => {
           return Promise.reject(error)
         }
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(function (notification) {
-            expect(notification.getType()).toBe('warning')
-            expect(notification.getMessage()).toContain('Permission denied')
-            expect(notification.getMessage()).toContain('/foo')
-            subscription.dispose()
-            done()
-          })
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(
+            function (notification) {
+              expect(notification.getType()).toBe('warning')
+              expect(notification.getMessage()).toContain('Permission denied')
+              expect(notification.getMessage()).toContain('/foo')
+              subscription.dispose()
+              done()
+            }
+          )
           pane.saveActiveItemAs()
         })
       })
@@ -881,7 +1001,11 @@ describe('Pane', () => {
 
   describe('::itemForURI(uri)', () => {
     it('returns the item for which a call to .getURI() returns the given uri', () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]}))
+      const pane = new Pane(
+        paneParams({
+          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]
+        })
+      )
       const [item1, item2] = pane.getItems()
       item1.uri = 'a'
       item2.uri = 'b'
@@ -895,7 +1019,11 @@ describe('Pane', () => {
     let pane, item1, item2, item3, item4
 
     beforeEach(() => {
-      pane = new Pane(paneParams({items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]}))
+      pane = new Pane(
+        paneParams({
+          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]
+        })
+      )
       ;[item1, item2, item3, item4] = pane.getItems()
     })
 
@@ -917,8 +1045,8 @@ describe('Pane', () => {
       pane.moveItem(item1, 2)
       pane.moveItem(item2, 3)
       expect(events).toEqual([
-        {item: item1, oldIndex: 0, newIndex: 2},
-        {item: item2, oldIndex: 0, newIndex: 3}
+        { item: item1, oldIndex: 0, newIndex: 2 },
+        { item: item2, oldIndex: 0, newIndex: 3 }
       ])
     })
   })
@@ -928,12 +1056,12 @@ describe('Pane', () => {
     let item1, item2, item3, item4, item5
 
     beforeEach(() => {
-      container = new PaneContainer({config: atom.config, confirm})
+      container = new PaneContainer({ config: atom.config, confirm })
       pane1 = container.getActivePane()
       pane1.addItems([new Item('A'), new Item('B'), new Item('C')])
-      pane2 = pane1.splitRight({items: [new Item('D'), new Item('E')]});
-      [item1, item2, item3] = pane1.getItems();
-      [item4, item5] = pane2.getItems()
+      pane2 = pane1.splitRight({ items: [new Item('D'), new Item('E')] })
+      ;[item1, item2, item3] = pane1.getItems()
+      ;[item4, item5] = pane2.getItems()
     })
 
     it('moves the item to the given pane at the given index', () => {
@@ -947,7 +1075,9 @@ describe('Pane', () => {
       pane1.onWillRemoveItem(event => events.push(event))
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual([{item: item2, index: 1, moved: true, destroyed: false}])
+      expect(events).toEqual([
+        { item: item2, index: 1, moved: true, destroyed: false }
+      ])
     })
 
     it('invokes ::onDidRemoveItem() observers', () => {
@@ -955,7 +1085,9 @@ describe('Pane', () => {
       pane1.onDidRemoveItem(event => events.push(event))
       pane1.moveItemToPane(item2, pane2, 1)
 
-      expect(events).toEqual([{item: item2, index: 1, moved: true, destroyed: false}])
+      expect(events).toEqual([
+        { item: item2, index: 1, moved: true, destroyed: false }
+      ])
     })
 
     it('does not invoke ::onDidAddPaneItem observers on the container', () => {
@@ -989,7 +1121,7 @@ describe('Pane', () => {
     describe('when the item being moved is pending', () => {
       it('is made permanent in the new pane', () => {
         const item6 = new Item('F')
-        pane1.addItem(item6, {pending: true})
+        pane1.addItem(item6, { pending: true })
         expect(pane1.getPendingItem()).toEqual(item6)
         pane1.moveItemToPane(item6, pane2, 0)
         expect(pane2.getPendingItem()).not.toEqual(item6)
@@ -999,7 +1131,7 @@ describe('Pane', () => {
     describe('when the target pane has a pending item', () => {
       it('does not destroy the pending item', () => {
         const item6 = new Item('F')
-        pane1.addItem(item6, {pending: true})
+        pane1.addItem(item6, { pending: true })
         expect(pane1.getPendingItem()).toEqual(item6)
         pane2.moveItemToPane(item5, pane1, 0)
         expect(pane1.getPendingItem()).toEqual(item6)
@@ -1011,7 +1143,11 @@ describe('Pane', () => {
     let pane1, item1, container
 
     beforeEach(() => {
-      container = new PaneContainer({config: atom.config, confirm, deserializerManager: atom.deserializers})
+      container = new PaneContainer({
+        config: atom.config,
+        confirm,
+        deserializerManager: atom.deserializers
+      })
       pane1 = container.getActivePane()
       item1 = new Item('A')
       pane1.addItem(item1)
@@ -1020,8 +1156,8 @@ describe('Pane', () => {
     describe('::splitLeft(params)', () => {
       describe('when the parent is the container root', () => {
         it('replaces itself with a row and inserts a new pane to the left of itself', () => {
-          const pane2 = pane1.splitLeft({items: [new Item('B')]})
-          const pane3 = pane1.splitLeft({items: [new Item('C')]})
+          const pane2 = pane1.splitLeft({ items: [new Item('B')] })
+          const pane3 = pane1.splitLeft({ items: [new Item('C')] })
           expect(container.root.orientation).toBe('horizontal')
           expect(container.root.children).toEqual([pane2, pane3, pane1])
         })
@@ -1029,20 +1165,20 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitLeft({moveActiveItem: true})
+          const pane2 = pane1.splitLeft({ moveActiveItem: true })
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
 
       describe('when `copyActiveItem: true` is passed in the params', () => {
         it('duplicates the active item', () => {
-          const pane2 = pane1.splitLeft({copyActiveItem: true})
+          const pane2 = pane1.splitLeft({ copyActiveItem: true })
           expect(pane2.getActiveItem()).toEqual(pane1.getActiveItem())
         })
 
         it("does nothing if the active item doesn't implement .copy()", () => {
           item1.copy = null
-          const pane2 = pane1.splitLeft({copyActiveItem: true})
+          const pane2 = pane1.splitLeft({ copyActiveItem: true })
           expect(pane2.getActiveItem()).toBeUndefined()
         })
       })
@@ -1050,8 +1186,8 @@ describe('Pane', () => {
       describe('when the parent is a column', () => {
         it('replaces itself with a row and inserts a new pane to the left of itself', () => {
           pane1.splitDown()
-          const pane2 = pane1.splitLeft({items: [new Item('B')]})
-          const pane3 = pane1.splitLeft({items: [new Item('C')]})
+          const pane2 = pane1.splitLeft({ items: [new Item('B')] })
+          const pane3 = pane1.splitLeft({ items: [new Item('C')] })
           const row = container.root.children[0]
           expect(row.orientation).toBe('horizontal')
           expect(row.children).toEqual([pane2, pane3, pane1])
@@ -1062,8 +1198,8 @@ describe('Pane', () => {
     describe('::splitRight(params)', () => {
       describe('when the parent is the container root', () => {
         it('replaces itself with a row and inserts a new pane to the right of itself', () => {
-          const pane2 = pane1.splitRight({items: [new Item('B')]})
-          const pane3 = pane1.splitRight({items: [new Item('C')]})
+          const pane2 = pane1.splitRight({ items: [new Item('B')] })
+          const pane3 = pane1.splitRight({ items: [new Item('C')] })
           expect(container.root.orientation).toBe('horizontal')
           expect(container.root.children).toEqual([pane1, pane3, pane2])
         })
@@ -1071,14 +1207,14 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitRight({moveActiveItem: true})
+          const pane2 = pane1.splitRight({ moveActiveItem: true })
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
 
       describe('when `copyActiveItem: true` is passed in the params', () => {
         it('duplicates the active item', () => {
-          const pane2 = pane1.splitRight({copyActiveItem: true})
+          const pane2 = pane1.splitRight({ copyActiveItem: true })
           expect(pane2.getActiveItem()).toEqual(pane1.getActiveItem())
         })
       })
@@ -1086,8 +1222,8 @@ describe('Pane', () => {
       describe('when the parent is a column', () => {
         it('replaces itself with a row and inserts a new pane to the right of itself', () => {
           pane1.splitDown()
-          const pane2 = pane1.splitRight({items: [new Item('B')]})
-          const pane3 = pane1.splitRight({items: [new Item('C')]})
+          const pane2 = pane1.splitRight({ items: [new Item('B')] })
+          const pane3 = pane1.splitRight({ items: [new Item('C')] })
           const row = container.root.children[0]
           expect(row.orientation).toBe('horizontal')
           expect(row.children).toEqual([pane1, pane3, pane2])
@@ -1098,8 +1234,8 @@ describe('Pane', () => {
     describe('::splitUp(params)', () => {
       describe('when the parent is the container root', () => {
         it('replaces itself with a column and inserts a new pane above itself', () => {
-          const pane2 = pane1.splitUp({items: [new Item('B')]})
-          const pane3 = pane1.splitUp({items: [new Item('C')]})
+          const pane2 = pane1.splitUp({ items: [new Item('B')] })
+          const pane3 = pane1.splitUp({ items: [new Item('C')] })
           expect(container.root.orientation).toBe('vertical')
           expect(container.root.children).toEqual([pane2, pane3, pane1])
         })
@@ -1107,14 +1243,14 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitUp({moveActiveItem: true})
+          const pane2 = pane1.splitUp({ moveActiveItem: true })
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
 
       describe('when `copyActiveItem: true` is passed in the params', () => {
         it('duplicates the active item', () => {
-          const pane2 = pane1.splitUp({copyActiveItem: true})
+          const pane2 = pane1.splitUp({ copyActiveItem: true })
           expect(pane2.getActiveItem()).toEqual(pane1.getActiveItem())
         })
       })
@@ -1122,8 +1258,8 @@ describe('Pane', () => {
       describe('when the parent is a row', () => {
         it('replaces itself with a column and inserts a new pane above itself', () => {
           pane1.splitRight()
-          const pane2 = pane1.splitUp({items: [new Item('B')]})
-          const pane3 = pane1.splitUp({items: [new Item('C')]})
+          const pane2 = pane1.splitUp({ items: [new Item('B')] })
+          const pane3 = pane1.splitUp({ items: [new Item('C')] })
           const column = container.root.children[0]
           expect(column.orientation).toBe('vertical')
           expect(column.children).toEqual([pane2, pane3, pane1])
@@ -1134,8 +1270,8 @@ describe('Pane', () => {
     describe('::splitDown(params)', () => {
       describe('when the parent is the container root', () => {
         it('replaces itself with a column and inserts a new pane below itself', () => {
-          const pane2 = pane1.splitDown({items: [new Item('B')]})
-          const pane3 = pane1.splitDown({items: [new Item('C')]})
+          const pane2 = pane1.splitDown({ items: [new Item('B')] })
+          const pane3 = pane1.splitDown({ items: [new Item('C')] })
           expect(container.root.orientation).toBe('vertical')
           expect(container.root.children).toEqual([pane1, pane3, pane2])
         })
@@ -1143,14 +1279,14 @@ describe('Pane', () => {
 
       describe('when `moveActiveItem: true` is passed in the params', () => {
         it('moves the active item', () => {
-          const pane2 = pane1.splitDown({moveActiveItem: true})
+          const pane2 = pane1.splitDown({ moveActiveItem: true })
           expect(pane2.getActiveItem()).toBe(item1)
         })
       })
 
       describe('when `copyActiveItem: true` is passed in the params', () => {
         it('duplicates the active item', () => {
-          const pane2 = pane1.splitDown({copyActiveItem: true})
+          const pane2 = pane1.splitDown({ copyActiveItem: true })
           expect(pane2.getActiveItem()).toEqual(pane1.getActiveItem())
         })
       })
@@ -1158,8 +1294,8 @@ describe('Pane', () => {
       describe('when the parent is a row', () => {
         it('replaces itself with a column and inserts a new pane below itself', () => {
           pane1.splitRight()
-          const pane2 = pane1.splitDown({items: [new Item('B')]})
-          const pane3 = pane1.splitDown({items: [new Item('C')]})
+          const pane2 = pane1.splitDown({ items: [new Item('B')] })
+          const pane3 = pane1.splitDown({ items: [new Item('C')] })
           const column = container.root.children[0]
           expect(column.orientation).toBe('vertical')
           expect(column.children).toEqual([pane1, pane3, pane2])
@@ -1173,7 +1309,9 @@ describe('Pane', () => {
           pane1.destroyItem(item1)
           expect(pane1.getActiveItem()).toBe(undefined)
 
-          const pane2 = pane1.split('horizontal', 'before', {moveActiveItem: true})
+          const pane2 = pane1.split('horizontal', 'before', {
+            moveActiveItem: true
+          })
           expect(container.root.children).toEqual([pane2, pane1])
 
           expect(pane2.getActiveItem()).toBe(undefined)
@@ -1185,7 +1323,9 @@ describe('Pane', () => {
           pane1.destroyItem(item1)
           expect(pane1.getActiveItem()).toBe(undefined)
 
-          const pane2 = pane1.split('horizontal', 'before', {copyActiveItem: true})
+          const pane2 = pane1.split('horizontal', 'before', {
+            copyActiveItem: true
+          })
           expect(container.root.children).toEqual([pane2, pane1])
 
           expect(pane2.getActiveItem()).toBe(undefined)
@@ -1203,14 +1343,16 @@ describe('Pane', () => {
 
   describe('::close()', () => {
     it('prompts to save unsaved items before destroying the pane', async () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const [item1] = pane.getItems()
 
       item1.shouldPromptToSave = () => true
       item1.getURI = () => '/test/path'
       item1.save = jasmine.createSpy('save')
 
-      confirm.andReturn(0)
+      confirm.andCallFake((options, callback) => callback(0))
       await pane.close()
       expect(confirm).toHaveBeenCalled()
       expect(item1.save).toHaveBeenCalled()
@@ -1218,14 +1360,16 @@ describe('Pane', () => {
     })
 
     it('does not destroy the pane if the user clicks cancel', async () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const [item1] = pane.getItems()
 
       item1.shouldPromptToSave = () => true
       item1.getURI = () => '/test/path'
       item1.save = jasmine.createSpy('save')
 
-      confirm.andReturn(1)
+      confirm.andCallFake((options, callback) => callback(1))
 
       await pane.close()
       expect(confirm).toHaveBeenCalled()
@@ -1234,14 +1378,16 @@ describe('Pane', () => {
     })
 
     it('does not destroy the pane if the user starts to save but then does not choose a path', async () => {
-      const pane = new Pane(paneParams({items: [new Item('A'), new Item('B')]}))
+      const pane = new Pane(
+        paneParams({ items: [new Item('A'), new Item('B')] })
+      )
       const [item1] = pane.getItems()
 
       item1.shouldPromptToSave = () => true
       item1.saveAs = jasmine.createSpy('saveAs')
 
-      confirm.andReturn(0)
-      showSaveDialog.andReturn(undefined)
+      confirm.andCallFake((options, callback) => callback(0))
+      showSaveDialog.andCallFake((options, callback) => callback(undefined))
 
       await pane.close()
       expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
@@ -1254,8 +1400,12 @@ describe('Pane', () => {
       let pane, item1
 
       beforeEach(() => {
-        pane = new Pane({items: [new Item('A'), new Item('B')], applicationDelegate: atom.applicationDelegate, config: atom.config});
-        [item1] = pane.getItems()
+        pane = new Pane({
+          items: [new Item('A'), new Item('B')],
+          applicationDelegate: atom.applicationDelegate,
+          config: atom.config
+        })
+        ;[item1] = pane.getItems()
 
         item1.shouldPromptToSave = () => true
         item1.getURI = () => '/test/path'
@@ -1270,12 +1420,12 @@ describe('Pane', () => {
 
       it('does not destroy the pane if save fails and user clicks cancel', async () => {
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
           if (confirmations === 1) {
-            return 0 // click save
+            callback(0) // click save
           } else {
-            return 1
+            callback(1)
           }
         }) // click cancel
 
@@ -1290,17 +1440,19 @@ describe('Pane', () => {
         item1.saveAs = jasmine.createSpy('saveAs').andReturn(true)
 
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
-          return 0
+          callback(0)
         }) // save and then save as
 
-        showSaveDialog.andReturn('new/path')
+        showSaveDialog.andCallFake((options, callback) => callback('new/path'))
 
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(2)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
+        expect(
+          atom.applicationDelegate.showSaveDialog.mostRecentCall.args[0]
+        ).toEqual({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)
@@ -1315,20 +1467,23 @@ describe('Pane', () => {
         })
 
         let confirmations = 0
-        confirm.andCallFake(() => {
+        confirm.andCallFake((options, callback) => {
           confirmations++
           if (confirmations < 3) {
-            return 0 // save, save as, save as
+            callback(0) // save, save as, save as
+          } else {
+            callback(2) // don't save
           }
-          return 2
-        }) // don't save
+        })
 
-        showSaveDialog.andReturn('new/path')
+        showSaveDialog.andCallFake((options, callback) => callback('new/path'))
 
         await pane.close()
         expect(atom.applicationDelegate.confirm).toHaveBeenCalled()
         expect(confirmations).toBe(3)
-        expect(atom.applicationDelegate.showSaveDialog).toHaveBeenCalledWith({})
+        expect(
+          atom.applicationDelegate.showSaveDialog.mostRecentCall.args[0]
+        ).toEqual({})
         expect(item1.save).toHaveBeenCalled()
         expect(item1.saveAs).toHaveBeenCalled()
         expect(pane.isDestroyed()).toBe(true)
@@ -1340,7 +1495,7 @@ describe('Pane', () => {
     let container, pane1, pane2
 
     beforeEach(() => {
-      container = new PaneContainer({config: atom.config, confirm})
+      container = new PaneContainer({ config: atom.config, confirm })
       pane1 = container.root
       pane1.addItems([new Item('A'), new Item('B')])
       pane2 = pane1.splitRight()
@@ -1349,7 +1504,7 @@ describe('Pane', () => {
     it('invokes ::onWillDestroy observers before destroying items', () => {
       let itemsDestroyed = null
       pane1.onWillDestroy(() => {
-        itemsDestroyed = (pane1.getItems().map((item) => item.isDestroyed()))
+        itemsDestroyed = pane1.getItems().map(item => item.isDestroyed())
       })
       pane1.destroy()
       expect(itemsDestroyed).toEqual([false, false])
@@ -1398,7 +1553,7 @@ describe('Pane', () => {
     let editor1, pane, eventCount
 
     beforeEach(async () => {
-      editor1 = await atom.workspace.open('sample.txt', {pending: true})
+      editor1 = await atom.workspace.open('sample.txt', { pending: true })
       pane = atom.workspace.getActivePane()
       eventCount = 0
       editor1.onDidTerminatePendingState(() => eventCount++)
@@ -1421,7 +1576,7 @@ describe('Pane', () => {
     })
 
     it('terminates pending state when buffer is changed', () => {
-      editor1.insertText('I\'ll be back!')
+      editor1.insertText("I'll be back!")
       advanceClock(editor1.getBuffer().stoppedChangingDelay)
 
       expect(pane.getPendingItem()).toBeNull()
@@ -1461,10 +1616,12 @@ describe('Pane', () => {
     let pane = null
 
     beforeEach(() => {
-      pane = new Pane(paneParams({
-        items: [new Item('A', 'a'), new Item('B', 'b'), new Item('C', 'c')],
-        flexScale: 2
-      }))
+      pane = new Pane(
+        paneParams({
+          items: [new Item('A', 'a'), new Item('B', 'b'), new Item('C', 'c')],
+          flexScale: 2
+        })
+      )
     })
 
     it('can serialize and deserialize the pane and all its items', () => {
@@ -1487,7 +1644,7 @@ describe('Pane', () => {
 
     it("restores the correct item when it doesn't implement getURI() and some items weren't deserialized", () => {
       const unserializable = {}
-      pane.addItem(unserializable, {index: 0})
+      pane.addItem(unserializable, { index: 0 })
       pane.items[2].getURI = null
       pane.activateItemAtIndex(2)
       const newPane = Pane.deserialize(pane.serialize(), atom)

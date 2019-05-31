@@ -1,0 +1,9 @@
+'menu': [
+  'label': 'Packages'
+  'submenu': [
+    'label': 'Dev Live Reload'
+    'submenu': [
+      { 'label': 'Reload All Styles', 'command': 'dev-live-reload:reload-all' }
+    ]
+  ]
+]

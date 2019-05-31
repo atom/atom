@@ -79,8 +79,8 @@
   'ctrl-shift-tab ^ctrl': 'pane:move-active-item-to-top-of-stack'
   'cmd-=': 'window:increase-font-size'
   'cmd-+': 'window:increase-font-size'
-  'cmd--': 'window:decrease-font-size'
   'cmd-_': 'window:decrease-font-size'
+  'cmd--': 'window:decrease-font-size'
   'cmd-0': 'window:reset-font-size'
 
   'cmd-k up': 'pane:split-up-and-copy-active-item' # Atom Specific

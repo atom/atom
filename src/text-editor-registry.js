@@ -1,3 +1,4 @@
+const _ = require('underscore-plus')
 const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
 const TextEditor = require('./text-editor')
 const ScopeDescriptor = require('./scope-descriptor')
@@ -38,19 +39,10 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
 module.exports =
 class TextEditorRegistry {
   constructor ({config, assert, packageManager}) {
-    this.assert = assert
     this.config = config
+    this.assert = assert
+    this.packageManager = packageManager
     this.clear()
-
-    this.initialPackageActivationPromise = new Promise((resolve) => {
-      // TODO: Remove this usage of a private property of PackageManager.
-      // Should PackageManager just expose a promise-based API like this?
-      if (packageManager.deferredActivationHooks) {
-        packageManager.onDidActivateInitialPackages(resolve)
-      } else {
-        resolve()
-      }
-    })
   }
 
   deserialize (state) {
@@ -148,11 +140,11 @@ class TextEditorRegistry {
     }
     this.editorsWithMaintainedConfig.add(editor)
 
-    this.subscribeToSettingsForEditorScope(editor)
-    const grammarChangeSubscription = editor.onDidChangeGrammar(() => {
-      this.subscribeToSettingsForEditorScope(editor)
+    this.updateAndMonitorEditorSettings(editor)
+    const languageChangeSubscription = editor.buffer.onDidChangeLanguageMode((newLanguageMode, oldLanguageMode) => {
+      this.updateAndMonitorEditorSettings(editor, oldLanguageMode)
     })
-    this.subscriptions.add(grammarChangeSubscription)
+    this.subscriptions.add(languageChangeSubscription)
 
     const updateTabTypes = () => {
       const configOptions = {scope: editor.getRootScopeDescriptor()}
@@ -170,8 +162,8 @@ class TextEditorRegistry {
     return new Disposable(() => {
       this.editorsWithMaintainedConfig.delete(editor)
       tokenizeSubscription.dispose()
-      grammarChangeSubscription.dispose()
-      this.subscriptions.remove(grammarChangeSubscription)
+      languageChangeSubscription.dispose()
+      this.subscriptions.remove(languageChangeSubscription)
       this.subscriptions.remove(tokenizeSubscription)
     })
   }
@@ -185,7 +177,7 @@ class TextEditorRegistry {
   // Returns a {Disposable} that can be used to stop updating the editor's
   // grammar.
   maintainGrammar (editor) {
-    atom.grammars.maintainGrammar(editor.getBuffer())
+    atom.grammars.maintainLanguageMode(editor.getBuffer())
   }
 
   // Deprecated: Force a {TextEditor} to use a different grammar than the
@@ -205,7 +197,7 @@ class TextEditorRegistry {
   // Returns a {String} scope name, or `null` if no override has been set
   // for the given editor.
   getGrammarOverride (editor) {
-    return editor.getBuffer().getLanguageMode().grammar.scopeName
+    return atom.grammars.getAssignedLanguageId(editor.getBuffer())
   }
 
   // Deprecated: Remove any grammar override that has been set for the given {TextEditor}.
@@ -215,13 +207,42 @@ class TextEditorRegistry {
     atom.grammars.autoAssignLanguageMode(editor.getBuffer())
   }
 
-  async subscribeToSettingsForEditorScope (editor) {
-    await this.initialPackageActivationPromise
+  async updateAndMonitorEditorSettings (editor, oldLanguageMode) {
+    await this.packageManager.getActivatePromise()
+    this.updateEditorSettingsForLanguageMode(editor, oldLanguageMode)
+    this.subscribeToSettingsForEditorScope(editor)
+  }
+
+  updateEditorSettingsForLanguageMode (editor, oldLanguageMode) {
+    const newLanguageMode = editor.buffer.getLanguageMode()
+
+    if (oldLanguageMode) {
+      const newSettings = this.textEditorParamsForScope(newLanguageMode.rootScopeDescriptor)
+      const oldSettings = this.textEditorParamsForScope(oldLanguageMode.rootScopeDescriptor)
+
+      const updatedSettings = {}
+      for (const [, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
+        // Update the setting only if it has changed between the two language
+        // modes.  This prevents user-modified settings in an editor (like
+        // 'softWrapped') from being reset when the language mode changes.
+        if (!_.isEqual(newSettings[paramName], oldSettings[paramName])) {
+          updatedSettings[paramName] = newSettings[paramName]
+        }
+      }
+
+      if (_.size(updatedSettings) > 0) {
+        editor.update(updatedSettings)
+      }
+    } else {
+      editor.update(this.textEditorParamsForScope(newLanguageMode.rootScopeDescriptor))
+    }
+  }
+
+  subscribeToSettingsForEditorScope (editor) {
+    if (!this.editorsWithMaintainedConfig) return
 
     const scopeDescriptor = editor.getRootScopeDescriptor()
     const scopeChain = scopeDescriptor.getScopeChain()
-
-    editor.update(this.textEditorParamsForScope(scopeDescriptor))
 
     if (!this.scopesWithConfigSubscriptions.has(scopeChain)) {
       this.scopesWithConfigSubscriptions.add(scopeChain)

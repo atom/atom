@@ -10,9 +10,9 @@ const CONFIG = require('../config')
 
 module.exports = function (packagedAppPath) {
   console.log(`Creating rpm package for "${packagedAppPath}"`)
-  const atomExecutableName = CONFIG.channel === 'beta' ? 'atom-beta' : 'atom'
-  const apmExecutableName = CONFIG.channel === 'beta' ? 'apm-beta' : 'apm'
-  const appName = CONFIG.channel === 'beta' ? 'Atom Beta' : 'Atom'
+  const atomExecutableName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
+  const apmExecutableName = CONFIG.channel === 'stable' ? 'apm' : `apm-${CONFIG.channel}`
+  const appName = CONFIG.appName
   const appDescription = CONFIG.appMetadata.description
   // RPM versions can't have dashes or tildes in them.
   // (Ref.: https://twiki.cern.ch/twiki/bin/view/Main/RPMAndDebVersioning)
@@ -74,6 +74,12 @@ module.exports = function (packagedAppPath) {
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'atom.sh'),
     path.join(rpmPackageBuildDirPath, 'atom.sh')
+  )
+
+  console.log(`Copying atom.policy into "${rpmPackageBuildDirPath}"`)
+  fs.copySync(
+    path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
+    path.join(rpmPackageBuildDirPath, 'atom.policy')
   )
 
   console.log(`Generating .rpm package from "${rpmPackageDirPath}"`)

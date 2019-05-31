@@ -1,8 +1,7 @@
-'use babel'
+const {Emitter, CompositeDisposable} = require('event-kit')
 
-import {Emitter, CompositeDisposable} from 'event-kit'
-
-export default class AutoUpdateManager {
+module.exports =
+class AutoUpdateManager {
   constructor ({applicationDelegate}) {
     this.applicationDelegate = applicationDelegate
     this.subscriptions = new CompositeDisposable()

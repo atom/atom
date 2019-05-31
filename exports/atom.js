@@ -1,13 +1,12 @@
-/** @babel */
-
-import TextBuffer, {Point, Range} from 'text-buffer'
-import {File, Directory} from 'pathwatcher'
-import {Emitter, Disposable, CompositeDisposable} from 'event-kit'
-import BufferedNodeProcess from '../src/buffered-node-process'
-import BufferedProcess from '../src/buffered-process'
-import GitRepository from '../src/git-repository'
-import Notification from '../src/notification'
-import {watchPath} from '../src/path-watcher'
+const TextBuffer = require('text-buffer')
+const {Point, Range} = TextBuffer
+const {File, Directory} = require('pathwatcher')
+const {Emitter, Disposable, CompositeDisposable} = require('event-kit')
+const BufferedNodeProcess = require('../src/buffered-node-process')
+const BufferedProcess = require('../src/buffered-process')
+const GitRepository = require('../src/git-repository')
+const Notification = require('../src/notification')
+const {watchPath} = require('../src/path-watcher')
 
 const atomExport = {
   BufferedNodeProcess,
@@ -42,4 +41,4 @@ if (process.type === 'renderer') {
   atomExport.TextEditor = require('../src/text-editor')
 }
 
-export default atomExport
+module.exports = atomExport

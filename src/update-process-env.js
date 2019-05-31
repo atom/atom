@@ -1,7 +1,5 @@
-/** @babel */
-
-import fs from 'fs'
-import childProcess from 'child_process'
+const fs = require('fs')
+const childProcess = require('child_process')
 
 const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
@@ -20,7 +18,7 @@ async function updateProcessEnv (launchEnv) {
   if (launchEnv) {
     if (shouldGetEnvFromShell(launchEnv)) {
       envToAssign = await getEnvFromShell(launchEnv)
-    } else if (launchEnv.PWD) {
+    } else if (launchEnv.PWD || launchEnv.PROMPT || launchEnv.PSModulePath) {
       envToAssign = launchEnv
     }
   }
@@ -53,7 +51,9 @@ function shouldGetEnvFromShell (env) {
     return false
   }
 
-  if (env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT || process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT) {
+  const disableSellingOut = env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT || process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+
+  if (disableSellingOut === 'true') {
     return false
   }
 
@@ -120,4 +120,4 @@ async function getEnvFromShell (env) {
   return result
 }
 
-export default { updateProcessEnv, shouldGetEnvFromShell }
+module.exports = {updateProcessEnv, shouldGetEnvFromShell}

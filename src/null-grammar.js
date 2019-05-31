@@ -1,8 +1,6 @@
-/** @babel */
+const {Disposable} = require('event-kit')
 
-import {Disposable} from 'event-kit'
-
-export default {
+module.exports = {
   name: 'Null Grammar',
   scopeName: 'text.plain.null-grammar',
   scopeForId (id) {

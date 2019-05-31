@@ -1,15 +1,19 @@
-const _ = require('underscore-plus')
 const {Emitter} = require('event-kit')
 
 let idCounter = 0
 const nextId = () => idCounter++
 
-// Applies changes to a decorationsParam {Object} to make it possible to
-// differentiate decorations on custom gutters versus the line-number gutter.
-const translateDecorationParamsOldToNew = function (decorationParams) {
-  if (decorationParams.type === 'line-number') {
+const normalizeDecorationProperties = function (decoration, decorationParams) {
+  decorationParams.id = decoration.id
+
+  if (decorationParams.type === 'line-number' && decorationParams.gutterName == null) {
     decorationParams.gutterName = 'line-number'
   }
+
+  if (decorationParams.order == null) {
+    decorationParams.order = Infinity
+  }
+
   return decorationParams
 }
 
@@ -49,7 +53,7 @@ class Decoration {
   // 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
   static isType (decorationProperties, type) {
     // 'line-number' is a special case of 'gutter'.
-    if (_.isArray(decorationProperties.type)) {
+    if (Array.isArray(decorationProperties.type)) {
       if (decorationProperties.type.includes(type)) {
         return true
       }
@@ -158,14 +162,14 @@ class Decoration {
   // ## Examples
   //
   // ```coffee
-  // decoration.update({type: 'line-number', class: 'my-new-class'})
+  // decoration.setProperties({type: 'line-number', class: 'my-new-class'})
   // ```
   //
   // * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
   setProperties (newProperties) {
     if (this.destroyed) { return }
     const oldProperties = this.properties
-    this.properties = translateDecorationParamsOldToNew(newProperties)
+    this.properties = normalizeDecorationProperties(this, newProperties)
     if (newProperties.type != null) {
       this.decorationManager.decorationDidChangeType(this)
     }

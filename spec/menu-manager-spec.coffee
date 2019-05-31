@@ -58,10 +58,8 @@ describe "MenuManager", ->
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       menu.update()
-
-      waits 50
-
-      runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toEqual ['ctrl-b']
+      advanceClock(1)
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toEqual ['ctrl-b']
 
     it "omits key bindings that are mapped to unset! in any context", ->
       # it would be nice to be smarter about omitting, but that would require a much
@@ -69,10 +67,8 @@ describe "MenuManager", ->
       menu.add [{label: "A", submenu: [{label: "B", command: "b"}]}]
       atom.keymaps.add 'test', 'atom-workspace': 'ctrl-b': 'b'
       atom.keymaps.add 'test', 'atom-text-editor': 'ctrl-b': 'unset!'
-
-      waits 50
-
-      runs -> expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+      advanceClock(1)
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
 
     it "omits key bindings that could conflict with AltGraph characters on macOS", ->
       Object.defineProperty process, 'platform', value: 'darwin'
@@ -87,12 +83,10 @@ describe "MenuManager", ->
         'alt-shift-C': 'c'
         'alt-cmd-d': 'd'
 
-      waits 50
-
-      runs ->
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['alt-cmd-d'])
+      advanceClock(1)
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['alt-cmd-d'])
 
     it "omits key bindings that could conflict with AltGraph characters on Windows", ->
       Object.defineProperty process, 'platform', value: 'win32'
@@ -107,12 +101,10 @@ describe "MenuManager", ->
         'ctrl-alt-shift-C': 'c'
         'ctrl-alt-cmd-d': 'd'
 
-      waits 50
-
-      runs ->
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
-        expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['ctrl-alt-cmd-d'])
+      advanceClock(1)
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['b']).toBeUndefined()
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['c']).toBeUndefined()
+      expect(menu.sendToBrowserProcess.argsForCall[0][1]['d']).toEqual(['ctrl-alt-cmd-d'])
 
   it "updates the application menu when a keymap is reloaded", ->
     spyOn(menu, 'update')

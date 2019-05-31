@@ -1,0 +1,7 @@
+'menu': [
+  'label': 'Edit'
+  'submenu': [
+    'label': 'Go to Line'
+    'command': 'go-to-line:toggle'
+  ]
+]

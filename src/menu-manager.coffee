@@ -149,9 +149,9 @@ class MenuManager
   update: ->
     return unless @initialized
 
-    clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
+    clearTimeout(@pendingUpdateOperation) if @pendingUpdateOperation?
 
-    @pendingUpdateOperation = setImmediate =>
+    @pendingUpdateOperation = setTimeout(=>
       unsetKeystrokes = new Set
       for binding in @keymapManager.getKeyBindings()
         if binding.command is 'unset!'
@@ -168,6 +168,7 @@ class MenuManager
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
       @sendToBrowserProcess(@template, keystrokesByCommand)
+    , 1)
 
   loadPlatformItems: ->
     if platformMenu?

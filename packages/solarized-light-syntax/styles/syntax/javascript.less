@@ -1,0 +1,128 @@
+.syntax--source.syntax--js {
+  .syntax--comma {
+    color: @syntax-text-color;
+  }
+
+  .syntax--support.syntax--class {
+    color: @green;
+  }
+
+  .syntax--entity {
+    &.syntax--name.syntax--type {
+      color: @yellow;
+    }
+    &.syntax--name {
+      color: @syntax-text-color;
+
+      &.syntax--function {
+        color: @blue;
+      }
+    }
+
+    &.syntax--name.syntax--tag {
+      color: @blue;
+    }
+
+    &.syntax--other.syntax--attribute-name {
+      color: @yellow;
+    }
+  }
+
+
+  .syntax--meta.syntax--brace {
+    color: @syntax-text-color;
+  }
+
+  .syntax--keyword {
+    color: @syntax-text-color;
+  }
+  .syntax--keyword.syntax--operator.syntax--new {
+    color: @green;
+  }
+  .syntax--keyword.syntax--control {
+    color: @orange;
+  }
+  .syntax--keyword.syntax--control.syntax--regexp {
+    color: @cyan;
+  }
+
+  .syntax--variable {
+    color: @syntax-text-color;
+  }
+  .syntax--variable.syntax--dom {
+    color: @green;
+  }
+  .syntax--delimiter + .syntax--dom {
+    color: @syntax-text-color;
+  }
+  .syntax--name {
+    color: @syntax-text-color;
+  }
+  .syntax--variable.syntax--language {
+    color: @blue;
+  }
+  .syntax--variable.syntax--parameter {
+    color: @syntax-text-color;
+  }
+
+  .syntax--regexp {
+    color: @cyan;
+  }
+
+  .syntax--support.syntax--function {
+    color: @syntax-text-color;
+  }
+  .syntax--support.syntax--constant {
+    color: @syntax-text-color;
+  }
+
+  .syntax--storage.syntax--modifier {
+    color: @yellow;
+  }
+
+  .syntax--punctuation.syntax--terminator.syntax--statement {
+    color: @syntax-text-color;
+  }
+
+  .syntax--meta.syntax--delimiter.syntax--method.syntax--period {
+    color: @syntax-text-color;
+  }
+  .syntax--meta.syntax--brace.syntax--square {
+    color: @blue;
+  }
+  .syntax--meta.syntax--brace.syntax--curly {
+    color: @blue;
+  }
+
+  .syntax--string.syntax--quoted.syntax--template {
+    .syntax--embedded.syntax--source {
+      color: @syntax-text-color;
+      & > .syntax--embedded.syntax--punctuation {
+        color: @red;
+      }
+    }
+  }
+
+  &.syntax--embedded .syntax--entity.syntax--name.syntax--tag {
+    color: @blue;
+  }
+
+  .syntax--import {
+    .syntax--control {
+      color: @orange;
+    }
+  }
+}
+
+
+// JavaScript (Rails) language-ruby-on-rails
+
+.syntax--source.syntax--js.syntax--rails {
+  .syntax--instance {
+    color: @blue;
+  }
+
+  .syntax--class {
+    color: @yellow;
+  }
+}

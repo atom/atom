@@ -42,6 +42,11 @@ describe "Babel transpiler support", ->
       transpiled = require('./fixtures/babel/flow-comment.js')
       expect(transpiled(3)).toBe 4
 
+  describe 'when a .js file starts with // @flow', ->
+    it "transpiles it using babel", ->
+      transpiled = require('./fixtures/babel/flow-slash-comment.js')
+      expect(transpiled(3)).toBe 4
+
   describe "when a .js file does not start with 'use babel';", ->
     it "does not transpile it using babel", ->
       spyOn(console, 'error')

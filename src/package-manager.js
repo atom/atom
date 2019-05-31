@@ -9,7 +9,7 @@ const CSON = require('season')
 const ServiceHub = require('service-hub')
 const Package = require('./package')
 const ThemePackage = require('./theme-package')
-const {isDeprecatedPackage, getDeprecatedPackageMetadata} = require('./deprecated-packages')
+const ModuleCache = require('./module-cache')
 const packageJSON = require('../package.json')
 
 // Extended: Package manager for coordinating the lifecycle of Atom packages.
@@ -42,6 +42,8 @@ module.exports = class PackageManager {
     this.triggeredActivationHooks = new Set()
     this.packagesCache = packageJSON._atomPackages != null ? packageJSON._atomPackages : {}
     this.packageDependencies = packageJSON.packageDependencies != null ? packageJSON.packageDependencies : {}
+    this.deprecatedPackages = packageJSON._deprecatedPackages || {}
+    this.deprecatedPackageRanges = {}
     this.initialPackagesLoaded = false
     this.initialPackagesActivated = false
     this.preloadedPackages = {}
@@ -61,6 +63,7 @@ module.exports = class PackageManager {
     if (params.configDirPath != null && !params.safeMode) {
       if (this.devMode) {
         this.packageDirPaths.push(path.join(params.configDirPath, 'dev', 'packages'))
+        this.packageDirPaths.push(path.join(this.resourcePath, 'packages'))
       }
       this.packageDirPaths.push(path.join(params.configDirPath, 'packages'))
     }
@@ -87,6 +90,7 @@ module.exports = class PackageManager {
     this.packagesCache = packageJSON._atomPackages != null ? packageJSON._atomPackages : {}
     this.packageDependencies = packageJSON.packageDependencies != null ? packageJSON.packageDependencies : {}
     this.triggeredActivationHooks.clear()
+    this.activatePromise = null
   }
 
   /*
@@ -109,6 +113,14 @@ module.exports = class PackageManager {
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidActivateInitialPackages (callback) {
     return this.emitter.on('did-activate-initial-packages', callback)
+  }
+
+  getActivatePromise() {
+    if (this.activatePromise) {
+      return this.activatePromise
+    } else {
+      return Promise.resolve()
+    }
   }
 
   // Public: Invoke the given callback when a package is activated.
@@ -219,11 +231,26 @@ module.exports = class PackageManager {
   }
 
   isDeprecatedPackage (name, version) {
-    return isDeprecatedPackage(name, version)
+    const metadata = this.deprecatedPackages[name]
+    if (!metadata) return false
+    if (!metadata.version) return true
+
+    let range = this.deprecatedPackageRanges[metadata.version]
+    if (!range) {
+      try {
+        range = new ModuleCache.Range(metadata.version)
+      } catch (error) {
+        range = NullVersionRange
+      }
+      this.deprecatedPackageRanges[metadata.version] = range
+    }
+    return range.test(version)
   }
 
   getDeprecatedPackageMetadata (name) {
-    return getDeprecatedPackageMetadata(name)
+    const metadata = this.deprecatedPackages[name]
+    if (metadata) Object.freeze(metadata)
+    return metadata
   }
 
   /*
@@ -641,11 +668,13 @@ module.exports = class PackageManager {
       const packages = this.getLoadedPackagesForTypes(types)
       promises = promises.concat(activator.activatePackages(packages))
     }
-    return Promise.all(promises).then(() => {
+    this.activatePromise = Promise.all(promises).then(() => {
       this.triggerDeferredActivationHooks()
       this.initialPackagesActivated = true
       this.emitter.emit('did-activate-initial-packages')
+      this.activatePromise = null
     })
+    return this.activatePromise
   }
 
   registerURIHandlerForPackage (packageName, handler) {
@@ -869,4 +898,8 @@ module.exports = class PackageManager {
       normalizePackageData(metadata)
     }
   }
+}
+
+const NullVersionRange = {
+  test () { return false }
 }

@@ -1,11 +1,9 @@
-'use babel'
-
-import Registry from 'winreg'
-import Path from 'path'
+const Registry = require('winreg')
+const Path = require('path')
 
 let exeName = Path.basename(process.execPath)
-let appPath = `\"${process.execPath}\"`
-let fileIconPath = `\"${Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}\"`
+let appPath = `"${process.execPath}"`
+let fileIconPath = `"${Path.join(process.execPath, '..', 'resources', 'cli', 'file.ico')}"`
 let isBeta = appPath.includes(' Beta')
 let appName = exeName.replace('atom', isBeta ? 'Atom Beta' : 'Atom').replace('.exe', '')
 
@@ -58,14 +56,14 @@ exports.appName = appName
 
 exports.fileHandler = new ShellOption(`\\Software\\Classes\\Applications\\${exeName}`,
   [
-    {key: 'shell\\open\\command', name: '', value: `${appPath} \"%1\"`},
+    {key: 'shell\\open\\command', name: '', value: `${appPath} "%1"`},
     {key: 'shell\\open', name: 'FriendlyAppName', value: `${appName}`},
     {key: 'DefaultIcon', name: '', value: `${fileIconPath}`}
   ]
 )
 
 let contextParts = [
-    {key: 'command', name: '', value: `${appPath} \"%1\"`},
+    {key: 'command', name: '', value: `${appPath} "%1"`},
     {name: '', value: `Open with ${appName}`},
     {name: 'Icon', value: `${appPath}`}
 ]

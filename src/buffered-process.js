@@ -1,9 +1,7 @@
-/** @babel */
-
-import _ from 'underscore-plus'
-import ChildProcess from 'child_process'
-import {Emitter} from 'event-kit'
-import path from 'path'
+const _ = require('underscore-plus')
+const ChildProcess = require('child_process')
+const {Emitter} = require('event-kit')
+const path = require('path')
 
 // Extended: A wrapper which provides standard error/output line buffering for
 // Node's ChildProcess.
@@ -19,7 +17,8 @@ import path from 'path'
 // const exit = (code) => console.log("ps -ef exited with #{code}")
 // const process = new BufferedProcess({command, args, stdout, exit})
 // ```
-export default class BufferedProcess {
+module.exports =
+class BufferedProcess {
   /*
   Section: Construction
   */
@@ -89,18 +88,18 @@ export default class BufferedProcess {
             return arg
           } else {
             // Escape double quotes by putting a backslash in front of them
-            return `\"${arg.toString().replace(/"/g, '\\"')}\"`
+            return `"${arg.toString().replace(/"/g, '\\"')}"`
           }
         })
     }
 
     // The command itself is quoted if it contains spaces, &, ^, | or # chars
-    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `\"${command}\"` : command)
+    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `"${command}"` : command)
 
     const cmdOptions = _.clone(options)
     cmdOptions.windowsVerbatimArguments = true
 
-    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `\"${cmdArgs.join(' ')}\"`], cmdOptions)
+    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `"${cmdArgs.join(' ')}"`], cmdOptions)
   }
 
   /*
@@ -190,12 +189,12 @@ export default class BufferedProcess {
       output += data
     })
     wmicProcess.stdout.on('close', () => {
-      const pidsToKill = output.split(/\s+/)
-        .filter((pid) => /^\d+$/.test(pid))
-        .map((pid) => parseInt(pid))
-        .filter((pid) => pid !== parentPid && pid > 0 && pid < Infinity)
+      for (let pid of output.split(/\s+/)) {
+        if (!/^\d{1,10}$/.test(pid)) continue
+        pid = parseInt(pid, 10)
 
-      for (let pid of pidsToKill) {
+        if (!pid || pid === parentPid) continue
+
         try {
           process.kill(pid)
         } catch (error) {}

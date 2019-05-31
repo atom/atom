@@ -10,14 +10,13 @@ branches:
   only:
   - master
   - /^[0-9.]+-releases$/
+  - /.*-test-travis$/
 
 matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=6.9.4 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
-
-sudo: required
+      env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 ATOM_JASMINE_REPORTER=list
 
 before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
@@ -27,12 +26,13 @@ install:
   - source /tmp/.nvm/nvm.sh
   - nvm install $NODE_VERSION
   - nvm use --delete-prefix $NODE_VERSION
-  - npm install -g npm@5.3.0
-  - script/build --create-debian-package --create-rpm-package --compress-artifacts
+  - npm install --global npm@6.2.0
+  - script/bootstrap
 
-script:
-  - script/lint
-  - script/test
+script: >
+  script/lint &&
+  script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts &&
+  script/test
 
 cache:
   directories:

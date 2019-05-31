@@ -6,7 +6,6 @@ const fs = require('fs-plus')
 const normalizePackageData = require('normalize-package-data')
 const path = require('path')
 const semver = require('semver')
-const spawnSync = require('./spawn-sync')
 
 const CONFIG = require('../config')
 
@@ -16,7 +15,7 @@ module.exports = function () {
   CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
   CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
   CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
-  CONFIG.appMetadata.version = computeAppVersion()
+  CONFIG.appMetadata.version = CONFIG.computedAppVersion
   checkDeprecatedPackagesMetadata()
   fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
 }
@@ -28,7 +27,9 @@ function buildBundledPackagesMetadata () {
     const packageMetadataPath = path.join(packagePath, 'package.json')
     const packageMetadata = JSON.parse(fs.readFileSync(packageMetadataPath, 'utf8'))
     normalizePackageData(packageMetadata, (msg) => {
-      console.warn(`Invalid package metadata. ${packageMetadata.name}: ${msg}`)
+      if (!msg.match(/No README data$/)) {
+        console.warn(`Invalid package metadata. ${packageMetadata.name}: ${msg}`)
+      }
     }, true)
     if (packageMetadata.repository && packageMetadata.repository.url && packageMetadata.repository.type === 'git') {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(/^git\+/, '')
@@ -161,14 +162,4 @@ function checkDeprecatedPackagesMetadata () {
       throw new Error(`Invalid range: ${packageMetadata.version} (${packageName}).`)
     }
   }
-}
-
-function computeAppVersion () {
-  let version = CONFIG.appMetadata.version
-  if (CONFIG.channel === 'dev') {
-    const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {cwd: CONFIG.repositoryRootPath})
-    const commitHash = result.stdout.toString().trim()
-    version += '-' + commitHash
-  }
-  return version
 }

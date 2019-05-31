@@ -1,0 +1,13 @@
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Git Diff'
+      'submenu': [
+        { 'label': 'Move to Next Diff', 'command': 'git-diff:move-to-next-diff' }
+        { 'label': 'Move to Previous Diff', 'command': 'git-diff:move-to-previous-diff' }
+        { 'label': 'Toggle Diff List', 'command': 'git-diff:toggle-diff-list' }
+      ]
+    ]
+  }
+]

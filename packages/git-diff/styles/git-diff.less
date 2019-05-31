@@ -1,0 +1,78 @@
+@import "syntax-variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+atom-text-editor {
+  .gutter .line-number {
+    &.git-line-modified {
+      border-left: 2px solid @syntax-color-modified;
+      padding-left: ~"calc(0.5em - 2px)";
+    }
+
+    &.git-line-added {
+      border-left: 2px solid @syntax-color-added;
+      padding-left: ~"calc(0.5em - 2px)";
+    }
+
+    @size: 4px;
+    &.git-line-removed:before,
+    &.git-previous-line-removed:before {
+      position: absolute;
+      left: 0;
+      height: 0;
+      width: 0;
+      content: "";
+      border: solid transparent;
+      border-left-color: @syntax-color-removed;
+      border-width: @size;
+      margin-top: -@size;
+      pointer-events: none;
+    }
+    &.git-line-removed:before {
+      bottom: -@size;
+    }
+    &.git-previous-line-removed:before {
+      top: 0;
+    }
+  }
+
+  .gutter.git-diff-icon .line-number {
+    border-left-width: 0;
+    padding-left: 1.4em; // space for diff icon
+
+    &:before {
+      .octicon-font();
+      content: "";
+      display: inline-block;
+      position: absolute;
+      top: .2em;
+      left: .4em;
+      height: 0px; // make sure it doesnt affect the gutter line height.
+      width: 1em;
+      font-size: .75em;
+    }
+
+    &.git-line-modified:before {
+      content: @primitive-dot;
+      color: @syntax-color-modified;
+    }
+
+    &.git-line-added:before {
+      content: @plus;
+      color: @syntax-color-added;
+    }
+
+    &.git-line-removed:before,
+    &.git-previous-line-removed:before {
+      border: none; // reset triangle
+      content: @dash;
+      color: @syntax-color-removed;
+    }
+    &.git-line-removed:before {
+      top: 1em;
+    }
+    &.git-previous-line-removed:before {
+      top: 0;
+    }
+  }
+}
