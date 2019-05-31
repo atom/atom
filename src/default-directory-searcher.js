@@ -98,7 +98,7 @@ module.exports = class DefaultDirectorySearcher {
         if (isCancelled) {
           resolve()
         } else {
-          reject()
+          reject() // eslint-disable-line prefer-promise-reject-errors
         }
       })
     })

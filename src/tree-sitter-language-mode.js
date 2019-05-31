@@ -197,7 +197,7 @@ class TreeSitterLanguageMode {
     )
   }
 
-  indentLevelForLine (line, tabLength = tabLength) {
+  indentLevelForLine (line, tabLength) {
     let indentLength = 0
     for (let i = 0, {length} = line; i < length; i++) {
       const char = line[i]
