@@ -1,9 +1,9 @@
-const Task = require('./task')
+const Task = require('./task');
 
 // Searches local files for lines matching a specified regex. Implements `.then()`
 // so that it can be used with `Promise.all()`.
 class DirectorySearch {
-  constructor (rootPaths, regex, options) {
+  constructor(rootPaths, regex, options) {
     const scanHandlerOptions = {
       ignoreCase: regex.ignoreCase,
       inclusions: options.inclusions,
@@ -11,37 +11,37 @@ class DirectorySearch {
       excludeVcsIgnores: options.excludeVcsIgnores,
       globalExclusions: options.exclusions,
       follow: options.follow
-    }
+    };
     const searchOptions = {
       leadingContextLineCount: options.leadingContextLineCount,
       trailingContextLineCount: options.trailingContextLineCount
-    }
-    this.task = new Task(require.resolve('./scan-handler'))
-    this.task.on('scan:result-found', options.didMatch)
-    this.task.on('scan:file-error', options.didError)
-    this.task.on('scan:paths-searched', options.didSearchPaths)
+    };
+    this.task = new Task(require.resolve('./scan-handler'));
+    this.task.on('scan:result-found', options.didMatch);
+    this.task.on('scan:file-error', options.didError);
+    this.task.on('scan:paths-searched', options.didSearchPaths);
     this.promise = new Promise((resolve, reject) => {
-      this.task.on('task:cancelled', reject)
+      this.task.on('task:cancelled', reject);
       this.task.start(
         rootPaths,
         regex.source,
         scanHandlerOptions,
         searchOptions,
         () => {
-          this.task.terminate()
-          resolve()
+          this.task.terminate();
+          resolve();
         }
-      )
-    })
+      );
+    });
   }
 
-  then (...args) {
-    return this.promise.then.apply(this.promise, args)
+  then(...args) {
+    return this.promise.then.apply(this.promise, args);
   }
 
-  cancel () {
+  cancel() {
     // This will cause @promise to reject.
-    this.task.cancel()
+    this.task.cancel();
   }
 }
 
@@ -52,8 +52,8 @@ module.exports = class DefaultDirectorySearcher {
   // * `directory` {Directory} whose search needs might be supported by this object.
   //
   // Returns a `boolean` indicating whether this object can search this `Directory`.
-  canSearchDirectory (directory) {
-    return true
+  canSearchDirectory(directory) {
+    return true;
   }
 
   // Performs a text search for files in the specified `Directory`, subject to the
@@ -89,26 +89,26 @@ module.exports = class DefaultDirectorySearcher {
   //
   // Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   // invoked before the `DirectorySearch` is determined, it will resolve the `DirectorySearch`.
-  search (directories, regex, options) {
-    const rootPaths = directories.map(directory => directory.getPath())
-    let isCancelled = false
-    const directorySearch = new DirectorySearch(rootPaths, regex, options)
-    const promise = new Promise(function (resolve, reject) {
-      directorySearch.then(resolve, function () {
+  search(directories, regex, options) {
+    const rootPaths = directories.map(directory => directory.getPath());
+    let isCancelled = false;
+    const directorySearch = new DirectorySearch(rootPaths, regex, options);
+    const promise = new Promise(function(resolve, reject) {
+      directorySearch.then(resolve, function() {
         if (isCancelled) {
-          resolve()
+          resolve();
         } else {
-          reject()
+          reject(); // eslint-disable-line prefer-promise-reject-errors
         }
-      })
-    })
+      });
+    });
     return {
       then: promise.then.bind(promise),
       catch: promise.catch.bind(promise),
-      cancel () {
-        isCancelled = true
-        directorySearch.cancel()
+      cancel() {
+        isCancelled = true;
+        directorySearch.cancel();
       }
-    }
+    };
   }
-}
+};

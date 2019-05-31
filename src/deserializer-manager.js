@@ -1,4 +1,4 @@
-const {Disposable} = require('event-kit')
+const { Disposable } = require('event-kit');
 
 // Extended: Manages the deserializers used for serialized state
 //
@@ -19,11 +19,10 @@ const {Disposable} = require('event-kit')
 //   serialize: ->
 //     @state
 // ```
-module.exports =
-class DeserializerManager {
-  constructor (atomEnvironment) {
-    this.atomEnvironment = atomEnvironment
-    this.deserializers = {}
+module.exports = class DeserializerManager {
+  constructor(atomEnvironment) {
+    this.atomEnvironment = atomEnvironment;
+    this.deserializers = {};
   }
 
   // Public: Register the given class(es) as deserializers.
@@ -35,65 +34,66 @@ class DeserializerManager {
   //   called, it will be passed serialized state as the first argument and the
   //   {AtomEnvironment} object as the second argument, which is useful if you
   //   wish to avoid referencing the `atom` global.
-  add (...deserializers) {
+  add(...deserializers) {
     for (let i = 0; i < deserializers.length; i++) {
-      let deserializer = deserializers[i]
-      this.deserializers[deserializer.name] = deserializer
+      let deserializer = deserializers[i];
+      this.deserializers[deserializer.name] = deserializer;
     }
 
     return new Disposable(() => {
       for (let j = 0; j < deserializers.length; j++) {
-        let deserializer = deserializers[j]
-        delete this.deserializers[deserializer.name]
+        let deserializer = deserializers[j];
+        delete this.deserializers[deserializer.name];
       }
-    })
+    });
   }
 
-  getDeserializerCount () {
-    return Object.keys(this.deserializers).length
+  getDeserializerCount() {
+    return Object.keys(this.deserializers).length;
   }
 
   // Public: Deserialize the state and params.
   //
   // * `state` The state {Object} to deserialize.
-  deserialize (state) {
+  deserialize(state) {
     if (state == null) {
-      return
+      return;
     }
 
-    const deserializer = this.get(state)
+    const deserializer = this.get(state);
     if (deserializer) {
-      let stateVersion = (
-        (typeof state.get === 'function') && state.get('version') ||
-        state.version
-      )
+      let stateVersion =
+        (typeof state.get === 'function' && state.get('version')) ||
+        state.version;
 
-      if ((deserializer.version != null) && deserializer.version !== stateVersion) {
-        return
+      if (
+        deserializer.version != null &&
+        deserializer.version !== stateVersion
+      ) {
+        return;
       }
-      return deserializer.deserialize(state, this.atomEnvironment)
+      return deserializer.deserialize(state, this.atomEnvironment);
     } else {
-      return console.warn('No deserializer found for', state)
+      return console.warn('No deserializer found for', state);
     }
   }
 
   // Get the deserializer for the state.
   //
   // * `state` The state {Object} being deserialized.
-  get (state) {
+  get(state) {
     if (state == null) {
-      return
+      return;
     }
 
-    let stateDeserializer = (
-      (typeof state.get === 'function') && state.get('deserializer') ||
-      state.deserializer
-    )
+    let stateDeserializer =
+      (typeof state.get === 'function' && state.get('deserializer')) ||
+      state.deserializer;
 
-    return this.deserializers[stateDeserializer]
+    return this.deserializers[stateDeserializer];
   }
 
-  clear () {
-    this.deserializers = {}
+  clear() {
+    this.deserializers = {};
   }
-}
+};

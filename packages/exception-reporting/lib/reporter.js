@@ -1,31 +1,31 @@
 /** @babel */
 
-import os from 'os'
-import stackTrace from 'stack-trace'
-import fs from 'fs-plus'
-import path from 'path'
+import os from 'os';
+import stackTrace from 'stack-trace';
+import fs from 'fs-plus';
+import path from 'path';
 
-const API_KEY = '7ddca14cb60cbd1cd12d1b252473b076'
-const LIB_VERSION = require('../package.json')['version']
-const StackTraceCache = new WeakMap()
+const API_KEY = '7ddca14cb60cbd1cd12d1b252473b076';
+const LIB_VERSION = require('../package.json')['version'];
+const StackTraceCache = new WeakMap();
 
 export default class Reporter {
-  constructor (params = {}) {
-    this.request = params.request || window.fetch
+  constructor(params = {}) {
+    this.request = params.request || window.fetch;
     this.alwaysReport = params.hasOwnProperty('alwaysReport')
       ? params.alwaysReport
-      : false
+      : false;
     this.reportPreviousErrors = params.hasOwnProperty('reportPreviousErrors')
       ? params.reportPreviousErrors
-      : true
+      : true;
     this.resourcePath = this.normalizePath(
       params.resourcePath || process.resourcesPath
-    )
-    this.reportedErrors = []
-    this.reportedAssertionFailures = []
+    );
+    this.reportedErrors = [];
+    this.reportedAssertionFailures = [];
   }
 
-  buildNotificationJSON (error, params) {
+  buildNotificationJSON(error, params) {
     return {
       apiKey: API_KEY,
       notifier: {
@@ -51,18 +51,18 @@ export default class Reporter {
           metaData: error.metadata
         }
       ]
-    }
+    };
   }
 
-  buildExceptionJSON (error, projectRoot) {
+  buildExceptionJSON(error, projectRoot) {
     return {
       errorClass: error.constructor.name,
       message: error.message,
       stacktrace: this.buildStackTraceJSON(error, projectRoot)
-    }
+    };
   }
 
-  buildStackTraceJSON (error, projectRoot) {
+  buildStackTraceJSON(error, projectRoot) {
     return this.parseStackTrace(error).map(callSite => {
       return {
         file: this.scrubPath(callSite.getFileName()),
@@ -71,110 +71,110 @@ export default class Reporter {
         lineNumber: callSite.getLineNumber(),
         columnNumber: callSite.getColumnNumber(),
         inProject: !/node_modules/.test(callSite.getFileName())
-      }
-    })
+      };
+    });
   }
 
-  normalizePath (pathToNormalize) {
+  normalizePath(pathToNormalize) {
     return pathToNormalize
       .replace('file:///', '') // Sometimes it's a uri
-      .replace(/\\/g, '/') // Unify path separators across Win/macOS/Linux
+      .replace(/\\/g, '/'); // Unify path separators across Win/macOS/Linux
   }
 
-  scrubPath (pathToScrub) {
-    const absolutePath = this.normalizePath(pathToScrub)
+  scrubPath(pathToScrub) {
+    const absolutePath = this.normalizePath(pathToScrub);
 
     if (this.isBundledFile(absolutePath)) {
-      return this.normalizePath(path.relative(this.resourcePath, absolutePath))
+      return this.normalizePath(path.relative(this.resourcePath, absolutePath));
     } else {
       return absolutePath
         .replace(this.normalizePath(fs.getHomeDirectory()), '~') // Remove users home dir
-        .replace(/.*(\/packages\/.*)/, '$1') // Remove everything before app.asar or packages
+        .replace(/.*(\/packages\/.*)/, '$1'); // Remove everything before app.asar or packages
     }
   }
 
-  getDefaultNotificationParams () {
+  getDefaultNotificationParams() {
     return {
       userId: atom.config.get('exception-reporting.userId'),
       appVersion: atom.getVersion(),
       releaseStage: this.getReleaseChannel(atom.getVersion()),
       projectRoot: atom.getLoadSettings().resourcePath,
       osVersion: `${os.platform()}-${os.arch()}-${os.release()}`
-    }
+    };
   }
 
-  getReleaseChannel (version) {
+  getReleaseChannel(version) {
     return version.indexOf('beta') > -1
       ? 'beta'
       : version.indexOf('dev') > -1
       ? 'dev'
-      : 'stable'
+      : 'stable';
   }
 
-  performRequest (json) {
+  performRequest(json) {
     this.request.call(null, 'https://notify.bugsnag.com', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(json)
-    })
+    });
   }
 
-  shouldReport (error) {
-    if (this.alwaysReport) return true // Used in specs
-    if (atom.config.get('core.telemetryConsent') !== 'limited') return false
-    if (atom.inDevMode()) return false
+  shouldReport(error) {
+    if (this.alwaysReport) return true; // Used in specs
+    if (atom.config.get('core.telemetryConsent') !== 'limited') return false;
+    if (atom.inDevMode()) return false;
 
-    const topFrame = this.parseStackTrace(error)[0]
-    const fileName = topFrame ? topFrame.getFileName() : null
+    const topFrame = this.parseStackTrace(error)[0];
+    const fileName = topFrame ? topFrame.getFileName() : null;
     return (
       fileName &&
       (this.isBundledFile(fileName) || this.isTeletypeFile(fileName))
-    )
+    );
   }
 
-  parseStackTrace (error) {
-    let callSites = StackTraceCache.get(error)
+  parseStackTrace(error) {
+    let callSites = StackTraceCache.get(error);
     if (callSites) {
-      return callSites
+      return callSites;
     } else {
-      callSites = stackTrace.parse(error)
-      StackTraceCache.set(error, callSites)
-      return callSites
+      callSites = stackTrace.parse(error);
+      StackTraceCache.set(error, callSites);
+      return callSites;
     }
   }
 
-  requestPrivateMetadataConsent (error, message, reportFn) {
-    let notification, dismissSubscription
+  requestPrivateMetadataConsent(error, message, reportFn) {
+    let notification, dismissSubscription;
 
-    function reportWithoutPrivateMetadata () {
+    function reportWithoutPrivateMetadata() {
       if (dismissSubscription) {
-        dismissSubscription.dispose()
+        dismissSubscription.dispose();
       }
-      delete error.privateMetadata
-      delete error.privateMetadataDescription
-      reportFn(error)
+      delete error.privateMetadata;
+      delete error.privateMetadataDescription;
+      reportFn(error);
       if (notification) {
-        notification.dismiss()
+        notification.dismiss();
       }
     }
 
-    function reportWithPrivateMetadata () {
+    function reportWithPrivateMetadata() {
       if (error.metadata == null) {
-        error.metadata = {}
+        error.metadata = {};
       }
       for (let key in error.privateMetadata) {
-        let value = error.privateMetadata[key]
-        error.metadata[key] = value
+        let value = error.privateMetadata[key];
+        error.metadata[key] = value;
       }
-      reportWithoutPrivateMetadata()
+      reportWithoutPrivateMetadata();
     }
 
-    const name = error.privateMetadataRequestName
+    const name = error.privateMetadataRequestName;
     if (name != null) {
       if (localStorage.getItem(`private-metadata-request:${name}`)) {
-        return reportWithoutPrivateMetadata(error)
+        return reportWithoutPrivateMetadata(error);
       } else {
-        localStorage.setItem(`private-metadata-request:${name}`, true)
+        localStorage.setItem(`private-metadata-request:${name}`, true);
       }
     }
 
@@ -193,51 +193,51 @@ export default class Reporter {
           onDidClick: reportWithPrivateMetadata
         }
       ]
-    })
+    });
 
     dismissSubscription = notification.onDidDismiss(
       reportWithoutPrivateMetadata
-    )
+    );
   }
 
-  addPackageMetadata (error) {
-    let activePackages = atom.packages.getActivePackages()
-    const availablePackagePaths = atom.packages.getPackageDirPaths()
+  addPackageMetadata(error) {
+    let activePackages = atom.packages.getActivePackages();
+    const availablePackagePaths = atom.packages.getPackageDirPaths();
     if (activePackages.length > 0) {
-      let userPackages = {}
-      let bundledPackages = {}
+      let userPackages = {};
+      let bundledPackages = {};
       for (let pack of atom.packages.getActivePackages()) {
         if (availablePackagePaths.includes(path.dirname(pack.path))) {
-          userPackages[pack.name] = pack.metadata.version
+          userPackages[pack.name] = pack.metadata.version;
         } else {
-          bundledPackages[pack.name] = pack.metadata.version
+          bundledPackages[pack.name] = pack.metadata.version;
         }
       }
 
       if (error.metadata == null) {
-        error.metadata = {}
+        error.metadata = {};
       }
-      error.metadata.bundledPackages = bundledPackages
-      error.metadata.userPackages = userPackages
+      error.metadata.bundledPackages = bundledPackages;
+      error.metadata.userPackages = userPackages;
     }
   }
 
-  addPreviousErrorsMetadata (error) {
-    if (!this.reportPreviousErrors) return
-    if (!error.metadata) error.metadata = {}
+  addPreviousErrorsMetadata(error) {
+    if (!this.reportPreviousErrors) return;
+    if (!error.metadata) error.metadata = {};
     error.metadata.previousErrors = this.reportedErrors.map(
       error => error.message
-    )
+    );
     error.metadata.previousAssertionFailures = this.reportedAssertionFailures.map(
       error => error.message
-    )
+    );
   }
 
-  reportUncaughtException (error) {
-    if (!this.shouldReport(error)) return
+  reportUncaughtException(error) {
+    if (!this.shouldReport(error)) return;
 
-    this.addPackageMetadata(error)
-    this.addPreviousErrorsMetadata(error)
+    this.addPackageMetadata(error);
+    this.addPreviousErrorsMetadata(error);
 
     if (
       error.privateMetadata != null &&
@@ -247,21 +247,21 @@ export default class Reporter {
         error,
         'The Atom team would like to collect the following information to resolve this error:',
         error => this.reportUncaughtException(error)
-      )
-      return
+      );
+      return;
     }
 
-    let params = this.getDefaultNotificationParams()
-    params.severity = 'error'
-    this.performRequest(this.buildNotificationJSON(error, params))
-    this.reportedErrors.push(error)
+    let params = this.getDefaultNotificationParams();
+    params.severity = 'error';
+    this.performRequest(this.buildNotificationJSON(error, params));
+    this.reportedErrors.push(error);
   }
 
-  reportFailedAssertion (error) {
-    if (!this.shouldReport(error)) return
+  reportFailedAssertion(error) {
+    if (!this.shouldReport(error)) return;
 
-    this.addPackageMetadata(error)
-    this.addPreviousErrorsMetadata(error)
+    this.addPackageMetadata(error);
+    this.addPreviousErrorsMetadata(error);
 
     if (
       error.privateMetadata != null &&
@@ -271,32 +271,32 @@ export default class Reporter {
         error,
         'The Atom team would like to collect some information to resolve an unexpected condition:',
         error => this.reportFailedAssertion(error)
-      )
-      return
+      );
+      return;
     }
 
-    let params = this.getDefaultNotificationParams()
-    params.severity = 'warning'
-    this.performRequest(this.buildNotificationJSON(error, params))
-    this.reportedAssertionFailures.push(error)
+    let params = this.getDefaultNotificationParams();
+    params.severity = 'warning';
+    this.performRequest(this.buildNotificationJSON(error, params));
+    this.reportedAssertionFailures.push(error);
   }
 
   // Used in specs
-  setRequestFunction (requestFunction) {
-    this.request = requestFunction
+  setRequestFunction(requestFunction) {
+    this.request = requestFunction;
   }
 
-  isBundledFile (fileName) {
-    return this.normalizePath(fileName).indexOf(this.resourcePath) === 0
+  isBundledFile(fileName) {
+    return this.normalizePath(fileName).indexOf(this.resourcePath) === 0;
   }
 
-  isTeletypeFile (fileName) {
-    const teletypePath = atom.packages.resolvePackagePath('teletype')
+  isTeletypeFile(fileName) {
+    const teletypePath = atom.packages.resolvePackagePath('teletype');
     return (
       teletypePath && this.normalizePath(fileName).indexOf(teletypePath) === 0
-    )
+    );
   }
 }
 
-Reporter.API_KEY = API_KEY
-Reporter.LIB_VERSION = LIB_VERSION
+Reporter.API_KEY = API_KEY;
+Reporter.LIB_VERSION = LIB_VERSION;
