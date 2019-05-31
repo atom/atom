@@ -295,7 +295,8 @@ const configSchema = {
         ]
       },
       fileEncodingAutoDetect: {
-        description: 'Auto detect character set encoding when reading files. If detection fails, the default encoding above will be used.',
+        description:
+          'Auto detect character set encoding when reading files. If detection fails, the default encoding above will be used.',
         type: 'boolean',
         default: true
       },
