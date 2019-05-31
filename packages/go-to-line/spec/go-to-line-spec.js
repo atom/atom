@@ -1,38 +1,38 @@
-'use babel'
+'use babel';
 
 /* eslint-env jasmine */
 
-import GoToLineView from '../lib/go-to-line-view'
+import GoToLineView from '../lib/go-to-line-view';
 
 describe('GoToLine', () => {
-  let editor = null
-  let editorView = null
-  let goToLine = null
+  let editor = null;
+  let editorView = null;
+  let goToLine = null;
 
   beforeEach(() => {
     waitsForPromise(() => {
-      return atom.workspace.open('sample.js')
-    })
+      return atom.workspace.open('sample.js');
+    });
 
     runs(() => {
-      const workspaceElement = atom.views.getView(atom.workspace)
-      workspaceElement.style.height = '200px'
-      workspaceElement.style.width = '1000px'
-      jasmine.attachToDOM(workspaceElement)
-      editor = atom.workspace.getActiveTextEditor()
-      editorView = atom.views.getView(editor)
-      goToLine = GoToLineView.activate()
-      editor.setCursorBufferPosition([1, 0])
-    })
-  })
+      const workspaceElement = atom.views.getView(atom.workspace);
+      workspaceElement.style.height = '200px';
+      workspaceElement.style.width = '1000px';
+      jasmine.attachToDOM(workspaceElement);
+      editor = atom.workspace.getActiveTextEditor();
+      editorView = atom.views.getView(editor);
+      goToLine = GoToLineView.activate();
+      editor.setCursorBufferPosition([1, 0]);
+    });
+  });
 
   describe('when go-to-line:toggle is triggered', () => {
     it('adds a modal panel', () => {
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-    })
-  })
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+    });
+  });
 
   describe('when entering a line number', () => {
     it('only allows 0-9, +, -, or colon character to be entered in the mini editor', () => {
@@ -123,11 +123,11 @@ describe('GoToLine', () => {
 
   describe('when entering a line number and column number', () => {
     it('moves the cursor to the column number of the line specified', () => {
-      expect(goToLine.miniEditor.getText()).toBe('')
-      goToLine.miniEditor.insertText('3:14')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(editor.getCursorBufferPosition()).toEqual([2, 13])
-    })
+      expect(goToLine.miniEditor.getText()).toBe('');
+      goToLine.miniEditor.insertText('3:14');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(editor.getCursorBufferPosition()).toEqual([2, 13]);
+    });
 
     it('centers the selected line', () => {
       goToLine.miniEditor.insertText('45:4')
@@ -188,11 +188,11 @@ describe('GoToLine', () => {
   describe('when core:confirm is triggered', () => {
     describe('when a line number has been entered', () => {
       it('moves the cursor to the first character of the line', () => {
-        goToLine.miniEditor.insertText('3')
-        atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-        expect(editor.getCursorBufferPosition()).toEqual([2, 4])
-      })
-    })
+        goToLine.miniEditor.insertText('3');
+        atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+        expect(editor.getCursorBufferPosition()).toEqual([2, 4]);
+      });
+    });
 
     describe('when the line number entered is nested within foldes', () => {
       it('unfolds all folds containing the given row', () => {
@@ -208,38 +208,38 @@ describe('GoToLine', () => {
 
   describe('when no line number has been entered', () => {
     it('closes the view and does not update the cursor position', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([1, 0])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([1, 0]);
+    });
+  });
 
   describe('when no line number has been entered, but a column number has been entered', () => {
     it('navigates to the column of the current line', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      goToLine.miniEditor.insertText('4:1')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([3, 0])
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      goToLine.miniEditor.insertText(':19')
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([3, 18])
-    })
-  })
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      goToLine.miniEditor.insertText('4:1');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([3, 0]);
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      goToLine.miniEditor.insertText(':19');
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([3, 18]);
+    });
+  });
 
   describe('when core:cancel is triggered', () => {
     it('closes the view and does not update the cursor position', () => {
-      atom.commands.dispatch(editorView, 'go-to-line:toggle')
-      expect(goToLine.panel.isVisible()).toBeTruthy()
-      atom.commands.dispatch(goToLine.miniEditor.element, 'core:cancel')
-      expect(goToLine.panel.isVisible()).toBeFalsy()
-      expect(editor.getCursorBufferPosition()).toEqual([1, 0])
-    })
-  })
-})
+      atom.commands.dispatch(editorView, 'go-to-line:toggle');
+      expect(goToLine.panel.isVisible()).toBeTruthy();
+      atom.commands.dispatch(goToLine.miniEditor.element, 'core:cancel');
+      expect(goToLine.panel.isVisible()).toBeFalsy();
+      expect(editor.getCursorBufferPosition()).toEqual([1, 0]);
+    });
+  });
+});

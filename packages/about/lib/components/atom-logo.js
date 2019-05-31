@@ -1,10 +1,10 @@
-const etch = require('etch')
-const EtchComponent = require('../etch-component')
+const etch = require('etch');
+const EtchComponent = require('../etch-component');
 
-const $ = etch.dom
+const $ = etch.dom;
 
 module.exports = class AtomLogo extends EtchComponent {
-  render () {
+  render() {
     return $.svg(
       {
         className: 'about-logo',
@@ -74,6 +74,6 @@ module.exports = class AtomLogo extends EtchComponent {
           )
         )
       )
-    )
+    );
   }
-}
+};

@@ -1,31 +1,31 @@
-'use babel'
+'use babel';
 
-import { Point, TextEditor } from 'atom'
+import { Point, TextEditor } from 'atom';
 
 class GoToLineView {
-  constructor () {
-    this.miniEditor = new TextEditor({ mini: true })
-    this.miniEditor.element.addEventListener('blur', this.close.bind(this))
+  constructor() {
+    this.miniEditor = new TextEditor({ mini: true });
+    this.miniEditor.element.addEventListener('blur', this.close.bind(this));
 
-    this.message = document.createElement('div')
-    this.message.classList.add('message')
+    this.message = document.createElement('div');
+    this.message.classList.add('message');
 
-    this.element = document.createElement('div')
-    this.element.classList.add('go-to-line')
-    this.element.appendChild(this.miniEditor.element)
-    this.element.appendChild(this.message)
+    this.element = document.createElement('div');
+    this.element.classList.add('go-to-line');
+    this.element.appendChild(this.miniEditor.element);
+    this.element.appendChild(this.message);
 
     this.panel = atom.workspace.addModalPanel({
       item: this,
       visible: false
-    })
+    });
     atom.commands.add('atom-text-editor', 'go-to-line:toggle', () => {
-      this.toggle()
-      return false
-    })
+      this.toggle();
+      return false;
+    });
     atom.commands.add(this.miniEditor.element, 'core:confirm', () => {
-      this.navigate()
-    })
+      this.navigate();
+    });
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
       this.close()
     })
@@ -37,24 +37,24 @@ class GoToLineView {
     })
   }
 
-  toggle () {
-    this.panel.isVisible() ? this.close() : this.open()
+  toggle() {
+    this.panel.isVisible() ? this.close() : this.open();
   }
 
-  close () {
-    if (!this.panel.isVisible()) return
-    this.miniEditor.setText('')
-    this.panel.hide()
+  close() {
+    if (!this.panel.isVisible()) return;
+    this.miniEditor.setText('');
+    this.panel.hide();
     if (this.miniEditor.element.hasFocus()) {
-      this.restoreFocus()
+      this.restoreFocus();
     }
   }
 
-  navigate (options = {}) {
-    const lineNumber = this.miniEditor.getText()
-    const editor = atom.workspace.getActiveTextEditor()
+  navigate(options = {}) {
+    const lineNumber = this.miniEditor.getText();
+    const editor = atom.workspace.getActiveTextEditor();
     if (!options.keepOpen) {
-      this.close()
+      this.close();
     }
     if (!editor || !lineNumber.length) return
     const currentRow = editor.getCursorBufferPosition().row
@@ -71,26 +71,26 @@ class GoToLineView {
     editor.setCursorBufferPosition(position)
     editor.unfoldBufferRow(row)
     if (column < 0) {
-      editor.moveToFirstCharacterOfLine()
+      editor.moveToFirstCharacterOfLine();
     }
     editor.scrollToBufferPosition(position, {
       center: true
-    })
+    });
   }
 
-  storeFocusedElement () {
-    this.previouslyFocusedElement = document.activeElement
-    return this.previouslyFocusedElement
+  storeFocusedElement() {
+    this.previouslyFocusedElement = document.activeElement;
+    return this.previouslyFocusedElement;
   }
 
-  restoreFocus () {
+  restoreFocus() {
     if (
       this.previouslyFocusedElement &&
       this.previouslyFocusedElement.parentElement
     ) {
-      return this.previouslyFocusedElement.focus()
+      return this.previouslyFocusedElement.focus();
     }
-    atom.views.getView(atom.workspace).focus()
+    atom.views.getView(atom.workspace).focus();
   }
 
   open () {
@@ -103,7 +103,7 @@ class GoToLineView {
 }
 
 export default {
-  activate () {
-    return new GoToLineView()
+  activate() {
+    return new GoToLineView();
   }
-}
+};
