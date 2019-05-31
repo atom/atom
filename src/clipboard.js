@@ -42,12 +42,12 @@ module.exports = class Clipboard {
   //
   // * `text` The {String} to store.
   // * `metadata` (optional) The additional info to associate with the text.
-  write (text, metadata) {
-    text = text.replace(/\r?\n/g, process.platform === 'win32' ? '\r\n' : '\n')
+  write(text, metadata) {
+    text = text.replace(/\r?\n/g, process.platform === 'win32' ? '\r\n' : '\n');
 
-    this.signatureForMetadata = this.md5(text)
-    this.metadata = metadata
-    clipboard.writeText(text)
+    this.signatureForMetadata = this.md5(text);
+    this.metadata = metadata;
+    clipboard.writeText(text);
   }
 
   // Public: Read the text from the clipboard.
