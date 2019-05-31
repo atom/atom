@@ -199,7 +199,18 @@ class ApplicationMenu {
     template.forEach(item => {
       if (item.metadata == null) item.metadata = {}
       if (item.command) {
-        item.accelerator = this.acceleratorForCommand(item.command, keystrokesByCommand)
+        const keystrokes = keystrokesByCommand[item.command]
+        if (keystrokes && keystrokes.length > 0) {
+          const keystroke = keystrokes[0]
+          // Electron does not support multi-keystroke accelerators. Therefore,
+          // when the command maps to a multi-stroke key binding, show the
+          // keystrokes next to the item's label.
+          if (keystroke.includes(' ')) {
+            item.label += ` [${_.humanizeKeystroke(keystroke)}]`
+          } else {
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystroke)
+          }
+        }
         item.click = () => global.atomApplication.sendCommand(item.command, item.commandDetail)
         if (!/^application:/.test(item.command)) {
           item.metadata.windowSpecific = true
@@ -208,18 +219,5 @@ class ApplicationMenu {
       if (item.submenu) this.translateTemplate(item.submenu, keystrokesByCommand)
     })
     return template
-  }
-
-  // Determine the accelerator for a given command.
-  //
-  // command - The name of the command.
-  // keystrokesByCommand - An Object where the keys are commands and the values
-  //                       are Arrays containing the keystroke.
-  //
-  // Returns a String containing the keystroke in a format that can be interpreted
-  //   by Electron to provide nice icons where available.
-  acceleratorForCommand (command, keystrokesByCommand) {
-    const firstKeystroke = keystrokesByCommand[command] && keystrokesByCommand[command][0]
-    return MenuHelpers.acceleratorForKeystroke(firstKeystroke)
   }
 }
