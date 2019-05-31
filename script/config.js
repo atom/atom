@@ -19,12 +19,14 @@ const homeDirPath = process.env.HOME || process.env.USERPROFILE;
 const atomHomeDirPath =
   process.env.ATOM_HOME || path.join(homeDirPath, '.atom');
 
-const appMetadata = require(path.join(repositoryRootPath, 'package.json'))
-const apmMetadata = require(path.join(apmRootPath, 'package.json'))
-const computedAppVersion = computeAppVersion(process.env.ATOM_RELEASE_VERSION || appMetadata.version)
-const channel = getChannel(computedAppVersion)
-const appName = getAppName(channel)
-const executableName = getExecutableName(channel, appName)
+const appMetadata = require(path.join(repositoryRootPath, 'package.json'));
+const apmMetadata = require(path.join(apmRootPath, 'package.json'));
+const computedAppVersion = computeAppVersion(
+  process.env.ATOM_RELEASE_VERSION || appMetadata.version
+);
+const channel = getChannel(computedAppVersion);
+const appName = getAppName(channel);
+const executableName = getExecutableName(channel, appName);
 
 module.exports = {
   appMetadata,
@@ -66,17 +68,17 @@ function getAppName(channel) {
         channel.charAt(0).toUpperCase() + channel.slice(1)}`;
 }
 
-function getExecutableName (channel, appName) {
+function getExecutableName(channel, appName) {
   if (process.platform === 'darwin') {
-    return appName
+    return appName;
   } else if (process.platform === 'win32') {
-    return channel === 'stable' ? 'atom.exe' : `atom-${channel}.exe`
+    return channel === 'stable' ? 'atom.exe' : `atom-${channel}.exe`;
   } else {
-    return 'atom'
+    return 'atom';
   }
 }
 
-function computeAppVersion (version) {
+function computeAppVersion(version) {
   if (version.match(/-dev$/)) {
     const result = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {
       cwd: repositoryRootPath

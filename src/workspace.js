@@ -678,12 +678,12 @@ module.exports = class Workspace extends Model {
 
   // Updates the application's title and proxy icon based on whichever file is
   // open.
-  updateWindowTitle () {
-    let itemPath, itemTitle, projectPath, representedPath
-    const appName = atom.getAppName()
-    const left = this.project.getPaths()
-    const projectPaths = left != null ? left : []
-    const item = this.getActivePaneItem()
+  updateWindowTitle() {
+    let itemPath, itemTitle, projectPath, representedPath;
+    const appName = atom.getAppName();
+    const left = this.project.getPaths();
+    const projectPaths = left != null ? left : [];
+    const item = this.getActivePaneItem();
     if (item) {
       itemPath =
         typeof item.getPath === 'function' ? item.getPath() : undefined;

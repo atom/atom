@@ -258,9 +258,17 @@ module.exports = function(packagedAppPath) {
     );
     let nodeBundledInElectronPath;
     if (process.platform === 'darwin') {
-      nodeBundledInElectronPath = path.join(packagedAppPath, 'Contents', 'MacOS', CONFIG.executableName)
+      nodeBundledInElectronPath = path.join(
+        packagedAppPath,
+        'Contents',
+        'MacOS',
+        CONFIG.executableName
+      );
     } else {
-      nodeBundledInElectronPath = path.join(packagedAppPath, CONFIG.executableName)
+      nodeBundledInElectronPath = path.join(
+        packagedAppPath,
+        CONFIG.executableName
+      );
     }
     childProcess.execFileSync(
       nodeBundledInElectronPath,

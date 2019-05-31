@@ -1,4 +1,4 @@
-const {EventEmitter} = require('events');
+const { EventEmitter } = require('events');
 const fs = require('fs-plus');
 const path = require('path');
 const temp = require('temp').track();
@@ -10,7 +10,7 @@ const WinShell = require('../src/main-process/win-shell');
 const invokeCallback = function(callback) {
   const error = null;
   const stdout = '';
-  return (typeof callback === 'function' ? callback(error, stdout) : undefined);
+  return typeof callback === 'function' ? callback(error, stdout) : undefined;
 };
 
 const createFakeApp = function() {
@@ -19,11 +19,11 @@ const createFakeApp = function() {
     getName: () => AtomTestAppName,
     getPath: () => 'atom-test.exe'
   };
-}
+};
 
-const AtomTestAppName = 'Atom Testing'
+const AtomTestAppName = 'Atom Testing';
 
-describe("Windows Squirrel Update", function() {
+describe('Windows Squirrel Update', function() {
   let tempHomeDirectory = null;
 
   beforeEach(function() {
@@ -38,9 +38,15 @@ describe("Windows Squirrel Update", function() {
     );
 
     // Prevent any actual change to Windows Shell
-    spyOn(WinShell, 'registerShellIntegration').andCallFake((appName, callback) => callback())
-    spyOn(WinShell, 'updateShellIntegration').andCallFake((appName, callback) => callback())
-    spyOn(WinShell, 'deregisterShellIntegration').andCallFake((appName, callback) => callback())
+    spyOn(WinShell, 'registerShellIntegration').andCallFake(
+      (appName, callback) => callback()
+    );
+    spyOn(WinShell, 'updateShellIntegration').andCallFake((appName, callback) =>
+      callback()
+    );
+    spyOn(WinShell, 'deregisterShellIntegration').andCallFake(
+      (appName, callback) => callback()
+    );
   });
 
   afterEach(function() {
@@ -49,96 +55,120 @@ describe("Windows Squirrel Update", function() {
     } catch (error) {}
   });
 
-  it("quits the app on all squirrel events", function() {
-    const app = createFakeApp()
+  it('quits the app on all squirrel events', function() {
+    const app = createFakeApp();
 
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe(true);
+    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe(
+      true
+    );
 
     waitsFor(() => app.quit.callCount === 1);
 
     runs(function() {
       app.quit.reset();
-      return expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')).toBe(true);
+      return expect(
+        SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+      ).toBe(true);
     });
 
     waitsFor(() => app.quit.callCount === 1);
 
     runs(function() {
       app.quit.reset();
-      return expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-uninstall')).toBe(true);
+      return expect(
+        SquirrelUpdate.handleStartupEvent(app, '--squirrel-uninstall')
+      ).toBe(true);
     });
 
     waitsFor(() => app.quit.callCount === 1);
 
     runs(function() {
       app.quit.reset();
-      return expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-obsolete')).toBe(true);
+      return expect(
+        SquirrelUpdate.handleStartupEvent(app, '--squirrel-obsolete')
+      ).toBe(true);
     });
 
     waitsFor(() => app.quit.callCount === 1);
 
-    return runs(() => expect(SquirrelUpdate.handleStartupEvent(app, '--not-squirrel')).toBe(false));
+    return runs(() =>
+      expect(SquirrelUpdate.handleStartupEvent(app, '--not-squirrel')).toBe(
+        false
+      )
+    );
   });
 
-  describe("Desktop shortcut", function() {
+  describe('Desktop shortcut', function() {
     let desktopShortcutPath = '/non/existing/path';
 
     beforeEach(function() {
       desktopShortcutPath = path.join(tempHomeDirectory, 'Desktop', 'Atom.lnk');
 
       jasmine.unspy(Spawner, 'spawn');
-      return spyOn(Spawner, 'spawn').andCallFake(function(command, args, callback) {
-        if ((path.basename(command) === 'Update.exe') && ((args != null ? args[0] : undefined) === '--createShortcut') && (args != null ? args[3].match(/Desktop/i) : undefined)) {
+      return spyOn(Spawner, 'spawn').andCallFake(function(
+        command,
+        args,
+        callback
+      ) {
+        if (
+          path.basename(command) === 'Update.exe' &&
+          (args != null ? args[0] : undefined) === '--createShortcut' &&
+          (args != null ? args[3].match(/Desktop/i) : undefined)
+        ) {
           fs.writeFileSync(desktopShortcutPath, '');
+        } else {
         }
-        else {}
-          // simply ignore other commands
+        // simply ignore other commands
 
         return invokeCallback(callback);
       });
     });
 
-    it("does not exist before install", () => expect(fs.existsSync(desktopShortcutPath)).toBe(false));
+    it('does not exist before install', () =>
+      expect(fs.existsSync(desktopShortcutPath)).toBe(false));
 
-    return describe("on install", function() {
+    return describe('on install', function() {
       beforeEach(function() {
-        const app = createFakeApp()
+        const app = createFakeApp();
         SquirrelUpdate.handleStartupEvent(app, '--squirrel-install');
         return waitsFor(() => app.quit.callCount === 1);
       });
 
-      it("creates desktop shortcut", () => expect(fs.existsSync(desktopShortcutPath)).toBe(true));
+      it('creates desktop shortcut', () =>
+        expect(fs.existsSync(desktopShortcutPath)).toBe(true));
 
-      describe("when shortcut is deleted and then app is updated", function() {
+      describe('when shortcut is deleted and then app is updated', function() {
         beforeEach(function() {
           fs.removeSync(desktopShortcutPath);
           expect(fs.existsSync(desktopShortcutPath)).toBe(false);
 
-          const app = createFakeApp()
+          const app = createFakeApp();
           SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated');
           return waitsFor(() => app.quit.callCount === 1);
         });
 
-        return it("does not recreate shortcut", () => expect(fs.existsSync(desktopShortcutPath)).toBe(false));
+        return it('does not recreate shortcut', () =>
+          expect(fs.existsSync(desktopShortcutPath)).toBe(false));
       });
 
-      return describe("when shortcut is kept and app is updated", function() {
+      return describe('when shortcut is kept and app is updated', function() {
         beforeEach(function() {
-          const app = createFakeApp()
+          const app = createFakeApp();
           SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated');
           return waitsFor(() => app.quit.callCount === 1);
         });
 
-        return it("still has desktop shortcut", () => expect(fs.existsSync(desktopShortcutPath)).toBe(true));
+        return it('still has desktop shortcut', () =>
+          expect(fs.existsSync(desktopShortcutPath)).toBe(true));
       });
     });
   });
 
-  return describe(".restartAtom", () =>
-    it("quits the app and spawns a new one", function() {
+  return describe('.restartAtom', () =>
+    it('quits the app and spawns a new one', function() {
       const app = new EventEmitter();
       app.quit = jasmine.createSpy('quit');
-      app.getPath = () => 'atom-test.exe'
+      app.getPath = () => 'atom-test.exe';
 
       SquirrelUpdate.restartAtom(app);
       expect(app.quit.callCount).toBe(1);
@@ -146,7 +176,8 @@ describe("Windows Squirrel Update", function() {
       expect(Spawner.spawn.callCount).toBe(0);
       app.emit('will-quit');
       expect(Spawner.spawn.callCount).toBe(1);
-      return expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe('atom-test.cmd');
-    })
-  );
+      return expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe(
+        'atom-test.cmd'
+      );
+    }));
 });

@@ -1,33 +1,41 @@
-'use strict'
+'use strict';
 
-const CSON = require('season')
-const deprecatedPackagesMetadata = require('../deprecated-packages')
-const fs = require('fs-plus')
-const normalizePackageData = require('normalize-package-data')
-const path = require('path')
-const semver = require('semver')
+const CSON = require('season');
+const deprecatedPackagesMetadata = require('../deprecated-packages');
+const fs = require('fs-plus');
+const normalizePackageData = require('normalize-package-data');
+const path = require('path');
+const semver = require('semver');
 
-const CONFIG = require('../config')
+const CONFIG = require('../config');
 
-let appName = CONFIG.appMetadata.name
+let appName = CONFIG.appMetadata.name;
 if (process.platform === 'win32') {
   // Use the channel name in the app name on Windows so that the installer will
   // place it in a different folder in AppData\Local
-  appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`
+  appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
 }
 
-module.exports = function () {
-  console.log(`Generating metadata for ${path.join(CONFIG.intermediateAppPath, 'package.json')}`)
-  CONFIG.appMetadata._atomPackages = buildBundledPackagesMetadata()
-  CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata()
-  CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata()
-  CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata
-  CONFIG.appMetadata.version = CONFIG.computedAppVersion
-  CONFIG.appMetadata.name = appName
-  CONFIG.appMetadata.productName = CONFIG.appName
-  checkDeprecatedPackagesMetadata()
-  fs.writeFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'), JSON.stringify(CONFIG.appMetadata))
-}
+module.exports = function() {
+  console.log(
+    `Generating metadata for ${path.join(
+      CONFIG.intermediateAppPath,
+      'package.json'
+    )}`
+  );
+  CONFIG.appMetadata._atomPackages = buildBundledPackagesMetadata();
+  CONFIG.appMetadata._atomMenu = buildPlatformMenuMetadata();
+  CONFIG.appMetadata._atomKeymaps = buildPlatformKeymapsMetadata();
+  CONFIG.appMetadata._deprecatedPackages = deprecatedPackagesMetadata;
+  CONFIG.appMetadata.version = CONFIG.computedAppVersion;
+  CONFIG.appMetadata.name = appName;
+  CONFIG.appMetadata.productName = CONFIG.appName;
+  checkDeprecatedPackagesMetadata();
+  fs.writeFileSync(
+    path.join(CONFIG.intermediateAppPath, 'package.json'),
+    JSON.stringify(CONFIG.appMetadata)
+  );
+};
 
 module.exports = function() {
   console.log(

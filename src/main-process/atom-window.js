@@ -63,31 +63,39 @@ module.exports = class AtomWindow extends EventEmitter {
     this.browserWindow = new BrowserWindowConstructor(options);
 
     Object.defineProperty(this.browserWindow, 'loadSettingsJSON', {
-      get: () => JSON.stringify(Object.assign({
-        userSettings: !this.isSpec
-          ? this.atomApplication.configFile.get()
-          : null
-      }, this.loadSettings))
-    })
+      get: () =>
+        JSON.stringify(
+          Object.assign(
+            {
+              userSettings: !this.isSpec
+                ? this.atomApplication.configFile.get()
+                : null
+            },
+            this.loadSettings
+          )
+        )
+    });
 
-    this.handleEvents()
+    this.handleEvents();
 
-    this.loadSettings = Object.assign({}, settings)
-    this.loadSettings.appVersion = app.getVersion()
-    this.loadSettings.appName = app.getName()
-    this.loadSettings.resourcePath = this.resourcePath
-    this.loadSettings.atomHome = process.env.ATOM_HOME
-    if (this.loadSettings.devMode == null) this.loadSettings.devMode = false
-    if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false
-    if (this.loadSettings.clearWindowState == null) this.loadSettings.clearWindowState = false
+    this.loadSettings = Object.assign({}, settings);
+    this.loadSettings.appVersion = app.getVersion();
+    this.loadSettings.appName = app.getName();
+    this.loadSettings.resourcePath = this.resourcePath;
+    this.loadSettings.atomHome = process.env.ATOM_HOME;
+    if (this.loadSettings.devMode == null) this.loadSettings.devMode = false;
+    if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false;
+    if (this.loadSettings.clearWindowState == null)
+      this.loadSettings.clearWindowState = false;
 
-    this.addLocationsToOpen(locationsToOpen)
+    this.addLocationsToOpen(locationsToOpen);
 
-    this.loadSettings.hasOpenFiles = locationsToOpen
-      .some(location => location.pathToOpen && !location.isDirectory)
-    this.loadSettings.initialProjectRoots = this.projectRoots
+    this.loadSettings.hasOpenFiles = locationsToOpen.some(
+      location => location.pathToOpen && !location.isDirectory
+    );
+    this.loadSettings.initialProjectRoots = this.projectRoots;
 
-    StartupTime.addMarker('main-process:atom-window:end')
+    StartupTime.addMarker('main-process:atom-window:end');
 
     // Expose the startup markers to the renderer process, so we can have unified
     // measures about startup time between the main process and the renderer process.
