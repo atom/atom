@@ -1,5 +1,5 @@
-const url = require('url')
-const {Emitter, Disposable} = require('event-kit')
+const url = require('url');
+const { Emitter, Disposable } = require('event-kit');
 
 // Private: Associates listener functions with URIs from outside the application.
 //
@@ -62,68 +62,73 @@ const {Emitter, Disposable} = require('event-kit')
 //   }
 // }
 // ```
-module.exports =
-class URIHandlerRegistry {
-  constructor (maxHistoryLength = 50) {
-    this.registrations = new Map()
-    this.history = []
-    this.maxHistoryLength = maxHistoryLength
-    this._id = 0
+module.exports = class URIHandlerRegistry {
+  constructor(maxHistoryLength = 50) {
+    this.registrations = new Map();
+    this.history = [];
+    this.maxHistoryLength = maxHistoryLength;
+    this._id = 0;
 
-    this.emitter = new Emitter()
+    this.emitter = new Emitter();
   }
 
-  registerHostHandler (host, callback) {
+  registerHostHandler(host, callback) {
     if (typeof callback !== 'function') {
-      throw new Error('Cannot register a URI host handler with a non-function callback')
+      throw new Error(
+        'Cannot register a URI host handler with a non-function callback'
+      );
     }
 
     if (this.registrations.has(host)) {
-      throw new Error(`There is already a URI host handler for the host ${host}`)
+      throw new Error(
+        `There is already a URI host handler for the host ${host}`
+      );
     } else {
-      this.registrations.set(host, callback)
+      this.registrations.set(host, callback);
     }
 
     return new Disposable(() => {
-      this.registrations.delete(host)
-    })
+      this.registrations.delete(host);
+    });
   }
 
-  async handleURI (uri) {
-    const parsed = url.parse(uri, true)
-    const {protocol, slashes, auth, port, host} = parsed
+  async handleURI(uri) {
+    const parsed = url.parse(uri, true);
+    const { protocol, slashes, auth, port, host } = parsed;
     if (protocol !== 'atom:' || slashes !== true || auth || port) {
-      throw new Error(`URIHandlerRegistry#handleURI asked to handle an invalid URI: ${uri}`)
+      throw new Error(
+        `URIHandlerRegistry#handleURI asked to handle an invalid URI: ${uri}`
+      );
     }
 
-    const registration = this.registrations.get(host)
-    const historyEntry = {id: ++this._id, uri: uri, handled: false, host}
+    const registration = this.registrations.get(host);
+    const historyEntry = { id: ++this._id, uri: uri, handled: false, host };
     try {
       if (registration) {
-        historyEntry.handled = true
-        await registration(parsed, uri)
+        historyEntry.handled = true;
+        await registration(parsed, uri);
       }
     } finally {
-      this.history.unshift(historyEntry)
+      this.history.unshift(historyEntry);
       if (this.history.length > this.maxHistoryLength) {
-        this.history.length = this.maxHistoryLength
+        this.history.length = this.maxHistoryLength;
       }
-      this.emitter.emit('history-change')
+      this.emitter.emit('history-change');
     }
   }
 
-  getRecentlyHandledURIs () {
-    return this.history
+  getRecentlyHandledURIs() {
+    return this.history;
   }
 
-  onHistoryChange (cb) {
-    return this.emitter.on('history-change', cb)
+  onHistoryChange(cb) {
+    return this.emitter.on('history-change', cb);
   }
 
-  destroy () {
-    this.emitter.dispose()
-    this.registrations = new Map()
-    this.history = []
-    this._id = 0
+  destroy() {
+    this.emitter.dispose();
+    this.registrations = new Map();
+    this.history = [];
+    this._id = 0;
   }
-}
+};

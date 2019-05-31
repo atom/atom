@@ -1,126 +1,130 @@
-'use strict'
+'use strict';
 
-module.exports =
-class StateStore {
-  constructor (databaseName, version) {
-    this.connected = false
-    this.databaseName = databaseName
-    this.version = version
+module.exports = class StateStore {
+  constructor(databaseName, version) {
+    this.connected = false;
+    this.databaseName = databaseName;
+    this.version = version;
   }
 
-  get dbPromise () {
+  get dbPromise() {
     if (!this._dbPromise) {
-      this._dbPromise = new Promise((resolve) => {
-        const dbOpenRequest = indexedDB.open(this.databaseName, this.version)
-        dbOpenRequest.onupgradeneeded = (event) => {
-          let db = event.target.result
-          db.createObjectStore('states')
-        }
+      this._dbPromise = new Promise(resolve => {
+        const dbOpenRequest = indexedDB.open(this.databaseName, this.version);
+        dbOpenRequest.onupgradeneeded = event => {
+          let db = event.target.result;
+          db.createObjectStore('states');
+        };
         dbOpenRequest.onsuccess = () => {
-          this.connected = true
-          resolve(dbOpenRequest.result)
-        }
-        dbOpenRequest.onerror = (error) => {
-          console.error('Could not connect to indexedDB', error)
-          this.connected = false
-          resolve(null)
-        }
-      })
+          this.connected = true;
+          resolve(dbOpenRequest.result);
+        };
+        dbOpenRequest.onerror = error => {
+          console.error('Could not connect to indexedDB', error);
+          this.connected = false;
+          resolve(null);
+        };
+      });
     }
 
-    return this._dbPromise
+    return this._dbPromise;
   }
 
-  isConnected () {
-    return this.connected
+  isConnected() {
+    return this.connected;
   }
 
-  connect () {
-    return this.dbPromise.then((db) => !!db)
+  connect() {
+    return this.dbPromise.then(db => !!db);
   }
 
-  save (key, value) {
+  save(key, value) {
     return new Promise((resolve, reject) => {
-      this.dbPromise.then((db) => {
-        if (db == null) return resolve()
+      this.dbPromise.then(db => {
+        if (db == null) return resolve();
 
-        var request = db.transaction(['states'], 'readwrite')
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .put({value: value, storedAt: new Date().toString()}, key)
+          .put({ value: value, storedAt: new Date().toString() }, key);
 
-        request.onsuccess = resolve
-        request.onerror = reject
-      })
-    })
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
   }
 
-  load (key) {
-    return this.dbPromise.then((db) => {
-      if (!db) return
+  load(key) {
+    return this.dbPromise.then(db => {
+      if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'])
+        var request = db
+          .transaction(['states'])
           .objectStore('states')
-          .get(key)
+          .get(key);
 
-        request.onsuccess = (event) => {
-          let result = event.target.result
+        request.onsuccess = event => {
+          let result = event.target.result;
           if (result && !result.isJSON) {
-            resolve(result.value)
+            resolve(result.value);
           } else {
-            resolve(null)
+            resolve(null);
           }
-        }
+        };
 
-        request.onerror = (event) => reject(event)
-      })
-    })
+        request.onerror = event => reject(event);
+      });
+    });
   }
 
-  delete (key) {
+  delete(key) {
     return new Promise((resolve, reject) => {
-      this.dbPromise.then((db) => {
-        if (db == null) return resolve()
+      this.dbPromise.then(db => {
+        if (db == null) return resolve();
 
-        var request = db.transaction(['states'], 'readwrite')
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .delete(key)
+          .delete(key);
 
-        request.onsuccess = resolve
-        request.onerror = reject
-      })
-    })
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
   }
 
-  clear () {
-    return this.dbPromise.then((db) => {
-      if (!db) return
+  clear() {
+    return this.dbPromise.then(db => {
+      if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'], 'readwrite')
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .clear()
+          .clear();
 
-        request.onsuccess = resolve
-        request.onerror = reject
-      })
-    })
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
   }
 
-  count () {
-    return this.dbPromise.then((db) => {
-      if (!db) return
+  count() {
+    return this.dbPromise.then(db => {
+      if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'])
+        var request = db
+          .transaction(['states'])
           .objectStore('states')
-          .count()
+          .count();
 
         request.onsuccess = () => {
-          resolve(request.result)
-        }
-        request.onerror = reject
-      })
-    })
+          resolve(request.result);
+        };
+        request.onerror = reject;
+      });
+    });
   }
-}
+};
