@@ -161,15 +161,15 @@ module.exports = class Package {
     );
   }
 
-  reset () {
-    this.stylesheets = []
-    this.keymaps = []
-    this.menus = []
-    this.grammars = []
-    this.settings = []
-    this.mainInitialized = false
-    this.mainActivated = false
-    this.deserialized = false
+  reset() {
+    this.stylesheets = [];
+    this.keymaps = [];
+    this.menus = [];
+    this.grammars = [];
+    this.settings = [];
+    this.mainInitialized = false;
+    this.mainActivated = false;
+    this.deserialized = false;
   }
 
   initializeIfNeeded() {
@@ -245,9 +245,12 @@ module.exports = class Package {
         this.mainActivated = true;
         this.activateServices();
       }
-      if (this.activationCommandSubscriptions) this.activationCommandSubscriptions.dispose()
-      if (this.activationHookSubscriptions) this.activationHookSubscriptions.dispose()
-      if (this.workspaceOpenerSubscriptions) this.workspaceOpenerSubscriptions.dispose()
+      if (this.activationCommandSubscriptions)
+        this.activationCommandSubscriptions.dispose();
+      if (this.activationHookSubscriptions)
+        this.activationHookSubscriptions.dispose();
+      if (this.workspaceOpenerSubscriptions)
+        this.workspaceOpenerSubscriptions.dispose();
     } catch (error) {
       this.handleError(`Failed to activate the ${this.name} package`, error);
     }
@@ -556,9 +559,9 @@ module.exports = class Package {
         this.deserializerManager.add({
           name: deserializerName,
           deserialize: (state, atomEnvironment) => {
-            this.registerViewProviders()
-            this.requireMainModule()
-            this.initializeIfNeeded()
+            this.registerViewProviders();
+            this.requireMainModule();
+            this.initializeIfNeeded();
             if (atomEnvironment.packages.hasActivatedInitialPackages()) {
               // Only explicitly activate the package if initial packages
               // have finished activating. This is because deserialization
@@ -569,10 +572,10 @@ module.exports = class Package {
               // always have access to the workspace element.
               // Otherwise, we just set the deserialized flag and package-manager
               // will activate this package as normal during initial package activation.
-              this.activateNow()
+              this.activateNow();
             }
-            this.deserialized = true
-            return this.mainModule[methodName](state, atomEnvironment)
+            this.deserialized = true;
+            return this.mainModule[methodName](state, atomEnvironment);
           }
         });
       });
@@ -944,13 +947,14 @@ module.exports = class Package {
     return this.mainModulePath;
   }
 
-  activationShouldBeDeferred () {
-    return !this.deserialized && (
-      this.hasActivationCommands() ||
-      this.hasActivationHooks() ||
-      this.hasWorkspaceOpeners() ||
-      this.hasDeferredURIHandler()
-    )
+  activationShouldBeDeferred() {
+    return (
+      !this.deserialized &&
+      (this.hasActivationCommands() ||
+        this.hasActivationHooks() ||
+        this.hasWorkspaceOpeners() ||
+        this.hasDeferredURIHandler())
+    );
   }
 
   hasActivationHooks() {
@@ -958,13 +962,13 @@ module.exports = class Package {
     return hooks && hooks.length > 0;
   }
 
-  hasWorkspaceOpeners () {
-    const openers = this.getWorkspaceOpeners()
-    return openers && openers.length > 0
+  hasWorkspaceOpeners() {
+    const openers = this.getWorkspaceOpeners();
+    return openers && openers.length > 0;
   }
 
-  hasActivationCommands () {
-    const object = this.getActivationCommands()
+  hasActivationCommands() {
+    const object = this.getActivationCommands();
     for (let selector in object) {
       const commands = object[selector];
       if (commands.length > 0) return true;
@@ -977,10 +981,10 @@ module.exports = class Package {
     return handler && handler.deferActivation !== false;
   }
 
-  subscribeToDeferredActivation () {
-    this.subscribeToActivationCommands()
-    this.subscribeToActivationHooks()
-    this.subscribeToWorkspaceOpeners()
+  subscribeToDeferredActivation() {
+    this.subscribeToActivationCommands();
+    this.subscribeToActivationHooks();
+    this.subscribeToWorkspaceOpeners();
   }
 
   subscribeToActivationCommands() {
@@ -1078,39 +1082,43 @@ module.exports = class Package {
     return this.activationHooks;
   }
 
-  subscribeToWorkspaceOpeners () {
-    this.workspaceOpenerSubscriptions = new CompositeDisposable()
+  subscribeToWorkspaceOpeners() {
+    this.workspaceOpenerSubscriptions = new CompositeDisposable();
     for (let opener of this.getWorkspaceOpeners()) {
-      this.workspaceOpenerSubscriptions.add(atom.workspace.addOpener(filePath => {
-        if (filePath === opener) {
-          this.activateNow()
-          this.workspaceOpenerSubscriptions.dispose()
-          return atom.workspace.createItemForURI(opener)
-        }
-      }))
+      this.workspaceOpenerSubscriptions.add(
+        atom.workspace.addOpener(filePath => {
+          if (filePath === opener) {
+            this.activateNow();
+            this.workspaceOpenerSubscriptions.dispose();
+            return atom.workspace.createItemForURI(opener);
+          }
+        })
+      );
     }
   }
 
-  getWorkspaceOpeners () {
-    if (this.workspaceOpeners) return this.workspaceOpeners
+  getWorkspaceOpeners() {
+    if (this.workspaceOpeners) return this.workspaceOpeners;
 
     if (this.metadata.workspaceOpeners) {
       if (Array.isArray(this.metadata.workspaceOpeners)) {
-        this.workspaceOpeners = Array.from(new Set(this.metadata.workspaceOpeners))
+        this.workspaceOpeners = Array.from(
+          new Set(this.metadata.workspaceOpeners)
+        );
       } else if (typeof this.metadata.workspaceOpeners === 'string') {
-        this.workspaceOpeners = [this.metadata.workspaceOpeners]
+        this.workspaceOpeners = [this.metadata.workspaceOpeners];
       } else {
-        this.workspaceOpeners = []
+        this.workspaceOpeners = [];
       }
     } else {
-      this.workspaceOpeners = []
+      this.workspaceOpeners = [];
     }
 
-    return this.workspaceOpeners
+    return this.workspaceOpeners;
   }
 
-  getURIHandler () {
-    return this.metadata && this.metadata.uriHandler
+  getURIHandler() {
+    return this.metadata && this.metadata.uriHandler;
   }
 
   // Does the given module path contain native code?

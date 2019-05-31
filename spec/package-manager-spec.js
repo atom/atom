@@ -626,8 +626,8 @@ describe('PackageManager', () => {
 
     describe('when the package has a main module', () => {
       beforeEach(() => {
-        spyOn(Package.prototype, 'requireMainModule').andCallThrough()
-      })
+        spyOn(Package.prototype, 'requireMainModule').andCallThrough();
+      });
 
       describe('when the metadata specifies a main module path˜', () => {
         it('requires the module at the specified path', async () => {
@@ -680,10 +680,10 @@ describe('PackageManager', () => {
         let mainModule, promise, workspaceCommandListener, registration;
 
         beforeEach(() => {
-          jasmine.attachToDOM(atom.workspace.getElement())
-          mainModule = require('./fixtures/packages/package-with-activation-commands/index')
-          mainModule.activationCommandCallCount = 0
-          spyOn(mainModule, 'activate').andCallThrough()
+          jasmine.attachToDOM(atom.workspace.getElement());
+          mainModule = require('./fixtures/packages/package-with-activation-commands/index');
+          mainModule.activationCommandCallCount = 0;
+          spyOn(mainModule, 'activate').andCallThrough();
 
           workspaceCommandListener = jasmine.createSpy(
             'workspaceCommandListener'
@@ -835,146 +835,176 @@ describe('PackageManager', () => {
           );
           expect(notificationEvent.options.packageName).toEqual(
             'package-with-invalid-settings'
-          )
-        })
-      })
+          );
+        });
+      });
 
       describe('when the package metadata includes both activation commands and deserializers', () => {
-        let mainModule, promise, workspaceCommandListener, registration
+        let mainModule, promise, workspaceCommandListener, registration;
 
         beforeEach(() => {
-          jasmine.attachToDOM(atom.workspace.getElement())
-          spyOn(atom.packages, 'hasActivatedInitialPackages').andReturn(true)
-          mainModule = require('./fixtures/packages/package-with-activation-commands-and-deserializers/index')
-          mainModule.activationCommandCallCount = 0
-          spyOn(mainModule, 'activate').andCallThrough()
-          workspaceCommandListener = jasmine.createSpy('workspaceCommandListener')
-          registration = atom.commands.add('.workspace', 'activation-command-2', workspaceCommandListener)
+          jasmine.attachToDOM(atom.workspace.getElement());
+          spyOn(atom.packages, 'hasActivatedInitialPackages').andReturn(true);
+          mainModule = require('./fixtures/packages/package-with-activation-commands-and-deserializers/index');
+          mainModule.activationCommandCallCount = 0;
+          spyOn(mainModule, 'activate').andCallThrough();
+          workspaceCommandListener = jasmine.createSpy(
+            'workspaceCommandListener'
+          );
+          registration = atom.commands.add(
+            '.workspace',
+            'activation-command-2',
+            workspaceCommandListener
+          );
 
-          promise = atom.packages.activatePackage('package-with-activation-commands-and-deserializers')
-        })
+          promise = atom.packages.activatePackage(
+            'package-with-activation-commands-and-deserializers'
+          );
+        });
 
         afterEach(() => {
           if (registration) {
-            registration.dispose()
+            registration.dispose();
           }
-          mainModule = null
-        })
+          mainModule = null;
+        });
 
         it('activates the package when a deserializer is called', async () => {
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
 
-          const state1 = {deserializer: 'Deserializer1', a: 'b'}
+          const state1 = { deserializer: 'Deserializer1', a: 'b' };
           expect(atom.deserializers.deserialize(state1, atom)).toEqual({
             wasDeserializedBy: 'deserializeMethod1',
             state: state1
-          })
+          });
 
-          await promise
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
+          await promise;
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+        });
 
         it('defers requiring/activating the main module until an activation event bubbles to the root view', async () => {
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
 
-          atom.workspace.getElement().dispatchEvent(new CustomEvent('activation-command-2', {bubbles: true}))
+          atom.workspace
+            .getElement()
+            .dispatchEvent(
+              new CustomEvent('activation-command-2', { bubbles: true })
+            );
 
-          await promise
-          expect(mainModule.activate.callCount).toBe(1)
-          expect(mainModule.activationCommandCallCount).toBe(1)
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
-      })
+          await promise;
+          expect(mainModule.activate.callCount).toBe(1);
+          expect(mainModule.activationCommandCallCount).toBe(1);
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+        });
+      });
 
       describe('when the package metadata includes `activationHooks`', () => {
-        let mainModule, promise
+        let mainModule, promise;
 
         beforeEach(() => {
-          mainModule = require('./fixtures/packages/package-with-activation-hooks/index')
-          spyOn(mainModule, 'activate').andCallThrough()
-        })
+          mainModule = require('./fixtures/packages/package-with-activation-hooks/index');
+          spyOn(mainModule, 'activate').andCallThrough();
+        });
 
         it('defers requiring/activating the main module until an triggering of an activation hook occurs', async () => {
-          promise = atom.packages.activatePackage('package-with-activation-hooks')
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
-          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
-          atom.packages.triggerDeferredActivationHooks()
+          promise = atom.packages.activatePackage(
+            'package-with-activation-hooks'
+          );
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
+          atom.packages.triggerActivationHook(
+            'language-fictitious:grammar-used'
+          );
+          atom.packages.triggerDeferredActivationHooks();
 
-          await promise
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
+          await promise;
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+        });
 
         it('does not double register activation hooks when deactivating and reactivating', async () => {
-          promise = atom.packages.activatePackage('package-with-activation-hooks')
-          expect(mainModule.activate.callCount).toBe(0)
-          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
-          atom.packages.triggerDeferredActivationHooks()
+          promise = atom.packages.activatePackage(
+            'package-with-activation-hooks'
+          );
+          expect(mainModule.activate.callCount).toBe(0);
+          atom.packages.triggerActivationHook(
+            'language-fictitious:grammar-used'
+          );
+          atom.packages.triggerDeferredActivationHooks();
 
-          await promise
-          expect(mainModule.activate.callCount).toBe(1)
+          await promise;
+          expect(mainModule.activate.callCount).toBe(1);
 
-          await atom.packages.deactivatePackage('package-with-activation-hooks')
+          await atom.packages.deactivatePackage(
+            'package-with-activation-hooks'
+          );
 
-          promise = atom.packages.activatePackage('package-with-activation-hooks')
-          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
-          atom.packages.triggerDeferredActivationHooks()
+          promise = atom.packages.activatePackage(
+            'package-with-activation-hooks'
+          );
+          atom.packages.triggerActivationHook(
+            'language-fictitious:grammar-used'
+          );
+          atom.packages.triggerDeferredActivationHooks();
 
-          await promise
-          expect(mainModule.activate.callCount).toBe(2)
-        })
+          await promise;
+          expect(mainModule.activate.callCount).toBe(2);
+        });
 
         it('activates the package immediately when activationHooks is empty', async () => {
-          mainModule = require('./fixtures/packages/package-with-empty-activation-hooks/index')
-          spyOn(mainModule, 'activate').andCallThrough()
+          mainModule = require('./fixtures/packages/package-with-empty-activation-hooks/index');
+          spyOn(mainModule, 'activate').andCallThrough();
 
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
-
-          await atom.packages.activatePackage('package-with-empty-activation-hooks')
-          expect(mainModule.activate.callCount).toBe(1)
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
-
-        it('activates the package immediately if the activation hook had already been triggered', async () => {
-          atom.packages.triggerActivationHook('language-fictitious:grammar-used')
-          atom.packages.triggerDeferredActivationHooks()
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
 
           await atom.packages.activatePackage(
-            'package-with-activation-hooks'
-          )
-          expect(mainModule.activate.callCount).toBe(1)
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-        })
-      })
+            'package-with-empty-activation-hooks'
+          );
+          expect(mainModule.activate.callCount).toBe(1);
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+        });
+
+        it('activates the package immediately if the activation hook had already been triggered', async () => {
+          atom.packages.triggerActivationHook(
+            'language-fictitious:grammar-used'
+          );
+          atom.packages.triggerDeferredActivationHooks();
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
+
+          await atom.packages.activatePackage('package-with-activation-hooks');
+          expect(mainModule.activate.callCount).toBe(1);
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+        });
+      });
 
       describe('when the package metadata includes `workspaceOpeners`', () => {
-        let mainModule, promise
+        let mainModule, promise;
 
         beforeEach(() => {
-          mainModule = require('./fixtures/packages/package-with-workspace-openers/index')
-          spyOn(mainModule, 'activate').andCallThrough()
-        })
+          mainModule = require('./fixtures/packages/package-with-workspace-openers/index');
+          spyOn(mainModule, 'activate').andCallThrough();
+        });
 
         it('defers requiring/activating the main module until a registered opener is called', async () => {
-          promise = atom.packages.activatePackage('package-with-workspace-openers')
-          expect(Package.prototype.requireMainModule.callCount).toBe(0)
-          atom.workspace.open('atom://fictitious')
+          promise = atom.packages.activatePackage(
+            'package-with-workspace-openers'
+          );
+          expect(Package.prototype.requireMainModule.callCount).toBe(0);
+          atom.workspace.open('atom://fictitious');
 
-          await promise
-          expect(Package.prototype.requireMainModule.callCount).toBe(1)
-          expect(mainModule.openerCount).toBe(1)
-        })
+          await promise;
+          expect(Package.prototype.requireMainModule.callCount).toBe(1);
+          expect(mainModule.openerCount).toBe(1);
+        });
 
         it('activates the package immediately when the events are empty', async () => {
-          mainModule = require('./fixtures/packages/package-with-empty-workspace-openers/index')
-          spyOn(mainModule, 'activate').andCallThrough()
+          mainModule = require('./fixtures/packages/package-with-empty-workspace-openers/index');
+          spyOn(mainModule, 'activate').andCallThrough();
 
-          atom.packages.activatePackage('package-with-empty-workspace-openers')
+          atom.packages.activatePackage('package-with-empty-workspace-openers');
 
-          expect(mainModule.activate.callCount).toBe(1)
-        })
-      })
-    })
+          expect(mainModule.activate.callCount).toBe(1);
+        });
+      });
+    });
 
     describe('when the package has no main module', () => {
       it('does not throw an exception', () => {
