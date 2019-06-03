@@ -167,8 +167,7 @@ class ContextMenuManager
           if keystrokes.includes(' ')
             item.label += " [#{_.humanizeKeystroke(keystrokes)}]"
           else
-            accelerator = MenuHelpers.acceleratorForKeystroke(keystrokes)
-            item.accelerator = accelerator
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystrokes)
       if Array.isArray(item.submenu)
         @addAccelerators(item.submenu)
 
