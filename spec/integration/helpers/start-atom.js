@@ -119,6 +119,8 @@ module.exports = function(args, env, fn) {
           errorCode = code;
         }
       });
+      chromedriver.stdout.on('data', log => console.log(log.toString()));
+      chromedriver.stderr.on('data', log => console.log(log.toString()));
       chromedriver.stderr.on('data', log =>
         chromedriverLogs.push(log.toString())
       );
