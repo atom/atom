@@ -202,11 +202,11 @@ function testSuitesForPlatform (platform) {
   switch (platform) {
     case 'darwin':
       if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests]
+        suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
       } else if (process.env.ATOM_RUN_PACKAGE_TESTS === 'true') {
         suites = packageTestSuites
       } else {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+        suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
       }
       break
     case 'win32':
