@@ -2810,6 +2810,50 @@ describe('Workspace', () => {
           });
         });
 
+        describe('when there are hidden files', () => {
+          let projectPath;
+
+          beforeEach(async () => {
+            const sourceProjectPath = path.join(
+              __dirname,
+              'fixtures',
+              'dir',
+              'a-dir'
+            );
+            projectPath = path.join(temp.mkdirSync('atom'));
+
+            const writerStream = fstream.Writer(projectPath);
+            fstream.Reader(sourceProjectPath).pipe(writerStream);
+
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
+            });
+
+            // Note: This won't create a hidden file on Windows, in order to more
+            // accurately test this behaviour there, we should either use a package
+            // like `fswin` or manually spawn an `ATTRIB` command.
+            fs.writeFileSync(path.join(projectPath, '.hidden'), 'ccc');
+          });
+
+          afterEach(() => {
+            if (fs.existsSync(projectPath)) {
+              fs.removeSync(projectPath);
+            }
+          });
+
+          it('searches on hidden files', async () => {
+            atom.project.setPaths([projectPath]);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, '.hidden')
+            );
+          });
+        });
+
         it('includes only files when a directory filter is specified', async () => {
           const projectPath = path.join(
             path.join(__dirname, 'fixtures', 'dir')
