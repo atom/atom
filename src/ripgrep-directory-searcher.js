@@ -257,6 +257,10 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--multiline');
     }
 
+    if (!options.excludeVcsIgnores) {
+      args.push('--no-ignore-vcs');
+    }
+
     args.push(directoryPath);
 
     const child = spawn(this.rgPath, args, {

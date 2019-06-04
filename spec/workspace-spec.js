@@ -2697,7 +2697,7 @@ describe('Workspace', () => {
           });
         });
 
-        describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
+        describe('when the core.excludeVcsIgnoredPaths config is used', () => {
           let projectPath;
           let ignoredPath;
 
@@ -2737,14 +2737,26 @@ describe('Workspace', () => {
             }
           });
 
-          it('excludes ignored files', async () => {
+          it('excludes ignored files when core.excludeVcsIgnoredPaths is true', async () => {
             atom.project.setPaths([projectPath]);
             atom.config.set('core.excludeVcsIgnoredPaths', true);
             const resultHandler = jasmine.createSpy('result found');
 
-            await scan(/match/, {}, () => resultHandler());
+            await scan(/match/, {}, ({ filePath }) => resultHandler(filePath));
 
             expect(resultHandler).not.toHaveBeenCalled();
+          });
+
+          it('does not excludes ignored files when core.excludeVcsIgnoredPaths is false', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.excludeVcsIgnoredPaths', false);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/match/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, 'ignored.txt')
+            );
           });
         });
 
