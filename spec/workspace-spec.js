@@ -2701,7 +2701,7 @@ describe('Workspace', () => {
           let projectPath;
           let ignoredPath;
 
-          beforeEach(() => {
+          beforeEach(async () => {
             const sourceProjectPath = path.join(
               __dirname,
               'fixtures',
@@ -2713,22 +2713,17 @@ describe('Workspace', () => {
             const writerStream = fstream.Writer(projectPath);
             fstream.Reader(sourceProjectPath).pipe(writerStream);
 
-            waitsFor(done => {
-              writerStream.on('close', done);
-              writerStream.on('error', done);
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
             });
 
-            runs(() => {
-              fs.renameSync(
-                path.join(projectPath, 'git.git'),
-                path.join(projectPath, '.git')
-              );
-              ignoredPath = path.join(projectPath, 'ignored.txt');
-              fs.writeFileSync(
-                ignoredPath,
-                'this match should not be included'
-              );
-            });
+            fs.renameSync(
+              path.join(projectPath, 'git.git'),
+              path.join(projectPath, '.git')
+            );
+            ignoredPath = path.join(projectPath, 'ignored.txt');
+            fs.writeFileSync(ignoredPath, 'this match should not be included');
           });
 
           afterEach(() => {
