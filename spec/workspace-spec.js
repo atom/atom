@@ -2755,6 +2755,61 @@ describe('Workspace', () => {
           });
         });
 
+        describe('when the core.followSymlinks config is used', () => {
+          let projectPath;
+
+          beforeEach(async () => {
+            const sourceProjectPath = path.join(
+              __dirname,
+              'fixtures',
+              'dir',
+              'a-dir'
+            );
+            projectPath = path.join(temp.mkdirSync('atom'));
+
+            const writerStream = fstream.Writer(projectPath);
+            fstream.Reader(sourceProjectPath).pipe(writerStream);
+
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
+            });
+
+            fs.symlinkSync(
+              path.join(__dirname, 'fixtures', 'dir', 'b'),
+              path.join(projectPath, 'symlink')
+            );
+          });
+
+          afterEach(() => {
+            if (fs.existsSync(projectPath)) {
+              fs.removeSync(projectPath);
+            }
+          });
+
+          it('follows symlinks when core.followSymlinks is true', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.followSymlinks', true);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, 'symlink')
+            );
+          });
+
+          it('does not follow symlinks when core.followSymlinks is false', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.followSymlinks', false);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).not.toHaveBeenCalled();
+          });
+        });
+
         it('includes only files when a directory filter is specified', async () => {
           const projectPath = path.join(
             path.join(__dirname, 'fixtures', 'dir')

@@ -257,6 +257,10 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--multiline');
     }
 
+    if (options.follow) {
+      args.push('--follow');
+    }
+
     if (!options.excludeVcsIgnores) {
       args.push('--no-ignore-vcs');
     }
