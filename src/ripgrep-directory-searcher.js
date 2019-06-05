@@ -269,10 +269,8 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--no-ignore-vcs');
     }
 
-    args.push(directoryPath);
-
     const child = spawn(this.rgPath, args, {
-      cwd: directory.getPath(),
+      cwd: directoryPath,
       stdio: ['pipe', 'pipe', 'pipe']
     });
 
@@ -313,7 +311,7 @@ module.exports = class RipgrepDirectorySearcher {
 
           if (message.type === 'begin') {
             pendingEvent = {
-              filePath: getText(message.data.path),
+              filePath: path.join(directoryPath, getText(message.data.path)),
               matches: []
             };
             pendingLeadingContext = [];
@@ -390,8 +388,6 @@ module.exports = class RipgrepDirectorySearcher {
       if (pattern.endsWith('/')) {
         pattern = pattern.slice(0, -1);
       }
-
-      pattern = pattern.startsWith('**/') ? pattern : `**/${pattern}`;
 
       output.push(pattern);
       output.push(pattern.endsWith('/**') ? pattern : `${pattern}/**`);
