@@ -269,6 +269,8 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--no-ignore-vcs');
     }
 
+    args.push('.');
+
     const child = spawn(this.rgPath, args, {
       cwd: directoryPath,
       stdio: ['pipe', 'pipe', 'pipe']
