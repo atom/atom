@@ -21,6 +21,7 @@ describe('watchPath', function() {
   let subs;
 
   beforeEach(function() {
+    jasmine.useRealClock();
     subs = new CompositeDisposable();
   });
 
@@ -44,8 +45,11 @@ describe('watchPath', function() {
 
         if (!fired && waiting.size === 0) {
           fired = true;
-          resolve(relevantEvents);
-          sub.dispose();
+
+          sub.then(s => {
+            s.dispose();
+            resolve(relevantEvents);
+          });
         }
       });
     });

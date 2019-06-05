@@ -444,7 +444,7 @@ class PathWatcher {
   // * `callback` {Function} to be called with each batch of filesystem events.
   //
   // Returns a {Disposable} that will stop the underlying watcher when all callbacks mapped to it have been disposed.
-  onDidChange(callback) {
+  async onDidChange(callback) {
     if (this.native) {
       const sub = this.native.onDidChange(events =>
         this.onNativeEvents(events, callback)
@@ -454,9 +454,8 @@ class PathWatcher {
       this.native.start();
     } else {
       // Attach to a new native listener and retry
-      this.nativeWatcherRegistry.attach(this).then(() => {
-        this.onDidChange(callback);
-      });
+      await this.nativeWatcherRegistry.attach(this);
+      await this.onDidChange(callback, this.watchedPath);
     }
 
     return new Disposable(() => {
@@ -696,7 +695,7 @@ class PathWatcherManager {
     }
 
     const w = new PathWatcher(this.nativeRegistry, rootPath, options);
-    w.onDidChange(eventCallback);
+    await w.onDidChange(eventCallback);
     await w.getStartPromise();
     return w;
   }
