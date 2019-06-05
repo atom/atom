@@ -97,14 +97,17 @@ jobs:
   pool:
     vmImage: macos-10.13
   strategy:
-    maxParallel: 2
+    maxParallel: 3
     matrix:
       core:
         RunCoreTests: true
         RunPackageTests: false
-      packages:
+      packages-1:
         RunCoreTests: false
-        RunPackageTests: true
+        RunPackageTests: 1
+      packages-2:
+        RunCoreTests: false
+        RunPackageTests: 2
 
   steps:
   - task: NodeTool@0

@@ -203,8 +203,10 @@ function testSuitesForPlatform (platform) {
     case 'darwin':
       if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
         suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
-      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === 'true') {
-        suites = packageTestSuites
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
+        suites = packageTestSuites.slice(0, Math.floor(packageTestSuites.length / 2))
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
+        suites = packageTestSuites.slice(Math.floor(packageTestSuites.length / 2))
       } else {
         suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
       }
