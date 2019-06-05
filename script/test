@@ -200,8 +200,10 @@ function testSuitesForPlatform (platform) {
     case 'darwin':
       const PACKAGES_TO_TEST_IN_PARALLEL = 23
 
-      if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
+      if (process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true') {
+        suites = [runCoreMainProcessTests]
+      } else if (process.env.ATOM_RUN_CORE_RENDERER_TESTS === 'true') {
+        suites = [runCoreRenderProcessTests]
       } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
         suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
       } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
