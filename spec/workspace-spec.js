@@ -2771,33 +2771,6 @@ describe('Workspace', () => {
 
             expect(resultHandler).toHaveBeenCalledWith(ignoredPath);
           });
-
-          // This is a current limitation of the ripgrep scanner: whenever it finds a folder
-          // ignored by the vcs, it stops there and it does not try to traverse their subfolders.
-          if (!ripgrep) {
-            it('does not exclude files when searching on an ignored subfolder even when core.excludeVcsIgnoredPaths is true', async () => {
-              fs.mkdirSync(path.join(projectPath, 'poop'));
-              fs.mkdirSync(path.join(projectPath, 'poop', 'subfolder'));
-              ignoredPath = path.join(
-                path.join(projectPath, 'poop', 'subfolder', 'whatever.txt')
-              );
-              fs.writeFileSync(ignoredPath, 'this match should be included');
-
-              atom.project.setPaths([projectPath]);
-              atom.config.set('core.excludeVcsIgnoredPaths', true);
-              const resultHandler = jasmine.createSpy('result found');
-
-              await scan(
-                /match/,
-                {
-                  paths: ['poop/subfolder']
-                },
-                ({ filePath }) => resultHandler(filePath)
-              );
-
-              expect(resultHandler).toHaveBeenCalledWith(ignoredPath);
-            });
-          }
         });
 
         describe('when the core.followSymlinks config is used', () => {
