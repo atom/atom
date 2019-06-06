@@ -283,7 +283,12 @@ module.exports = class AtomApplication extends EventEmitter {
     // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
     // which is really slow on Windows machines.
     // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
-    const socketServerPromise = this.listenForArgumentsFromNewProcess(options);
+    let socketServerPromise
+    if (options.test || options.benchmark || options.benchmarkTest) {
+      socketServerPromise = Promise.resolve()
+    } else {
+      socketServerPromise = this.listenForArgumentsFromNewProcess()
+    }
 
     this.setupDockMenu();
 
@@ -505,12 +510,10 @@ module.exports = class AtomApplication extends EventEmitter {
   // You can run the atom command multiple times, but after the first launch
   // the other launches will just pass their information to this server and then
   // close immediately.
-  async listenForArgumentsFromNewProcess(options) {
-    if (!options.test && !options.benchmark && !options.benchmarkTest) {
-      this.socketSecretPromise = createSocketSecret(this.version);
-      this.socketSecret = await this.socketSecretPromise;
-      this.socketPath = getSocketPath(this.socketSecret);
-    }
+  async listenForArgumentsFromNewProcess() {
+    this.socketSecretPromise = createSocketSecret(this.version);
+    this.socketSecret = await this.socketSecretPromise;
+    this.socketPath = getSocketPath(this.socketSecret);
 
     await this.deleteSocketFile();
 
