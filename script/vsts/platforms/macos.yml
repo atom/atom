@@ -1,5 +1,6 @@
 jobs:
-- job: macOS
+- job: macOS_build
+  displayName: macOS build
   dependsOn: GetReleaseVersion
   timeoutInMinutes: 180
 
@@ -69,6 +70,126 @@ jobs:
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+      ATOM_RUN_CORE_MAIN_TESTS: true
+    displayName: Run main process tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  - script: script/postprocess-junit-results --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)/junit
+      testResultsFiles: "**/*.xml"
+      mergeTestResults: true
+      testRunTitle: MacOS
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  - script: |
+      mkdir -p $(Build.ArtifactStagingDirectory)/crash-reports
+      cp ${HOME}/Library/Logs/DiagnosticReports/*.crash $(Build.ArtifactStagingDirectory)/crash-reports
+    displayName: Stage Crash Reports
+    condition: failed()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
+      ArtifactName: crash-reports.zip
+    displayName: Upload Crash Reports
+    condition: failed()
+
+  - script: |
+      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
+      ArtifactName: atom-mac.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac.zip
+    condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
+      ArtifactName: atom-mac-symbols.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac-symbols.zip
+    condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
+      ArtifactName: atom-api.json
+      ArtifactType: Container
+    displayName: Upload atom-api.json
+    condition: succeeded()
+
+- job: macOS_tests
+  displayName: macOS test
+  dependsOn: macOS_build
+  timeoutInMinutes: 180
+  pool:
+    vmImage: macos-10.13
+  strategy:
+    maxParallel: 3
+    matrix:
+      core:
+        RunCoreRendererTests: true
+        RunPackageTests: false
+      packages-1:
+        RunCoreRendererTests: false
+        RunPackageTests: 1
+      packages-2:
+        RunCoreRendererTests: false
+        RunPackageTests: 2
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8.9.3
+    displayName: Install Node.js 8.9.3
+
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
+    displayName: Restore node_modules cache
+    inputs:
+      keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
+      targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+      vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+
+  - task: DownloadBuildArtifacts@0
+    displayName: Download atom-mac.zip
+    inputs:
+      artifactName: 'atom-mac.zip'
+      downloadPath: $(Build.SourcesDirectory)
+
+  - script: unzip atom-mac.zip/atom-mac.zip -d out
+    displayName: Unzip atom-mac.zip
+
+  - task: DownloadBuildArtifacts@0
+    displayName: Download atom-mac-symbols.zip
+    inputs:
+      artifactName: 'atom-mac-symbols.zip'
+      downloadPath: $(Build.SourcesDirectory)
+
+  - script: unzip atom-mac-symbols.zip/atom-mac-symbols.zip -d out
+    displayName: Unzip atom-mac-symbols.zip
+
+  - script: |
+      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+      caffeinate -s script/test # Run with caffeinate to prevent screen saver
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+      ATOM_RUN_CORE_RENDERER_TESTS: $(RunCoreRendererTests)
+      ATOM_RUN_PACKAGE_TESTS: $(RunPackageTests)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
@@ -88,38 +209,10 @@ jobs:
     condition: ne(variables['Atom.SkipTests'], 'true')
 
   - script: |
-      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
-    displayName: Stage Artifacts
-
-  - script: |
       mkdir -p $(Build.ArtifactStagingDirectory)/crash-reports
       cp ${HOME}/Library/Logs/DiagnosticReports/*.crash $(Build.ArtifactStagingDirectory)/crash-reports
     displayName: Stage Crash Reports
     condition: failed()
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
-      ArtifactName: atom-mac.zip
-      ArtifactType: Container
-    displayName: Upload atom-mac.zip
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
-      ArtifactName: atom-mac-symbols.zip
-      ArtifactType: Container
-    displayName: Upload atom-mac-symbols.zip
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
-      ArtifactName: atom-api.json
-      ArtifactType: Container
-    displayName: Upload atom-api.json
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
   - task: PublishBuildArtifacts@1
     inputs:

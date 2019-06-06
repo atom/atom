@@ -116,10 +116,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
 
   if (!testSubdir) {
-    packageTestSuites.push(function (callback) {
-      console.log(`Skipping tests for ${packageName} because no test folder was found`.bold.yellow)
-      callback(null, {exitCode: 0, step: `package-${packageName}`})
-    })
+    console.log(`No test folder found for package: ${packageName}`.yellow)
     continue
   }
 
@@ -201,7 +198,19 @@ function testSuitesForPlatform (platform) {
   let suites = []
   switch (platform) {
     case 'darwin':
-      suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      const PACKAGES_TO_TEST_IN_PARALLEL = 23
+
+      if (process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true') {
+        suites = [runCoreMainProcessTests]
+      } else if (process.env.ATOM_RUN_CORE_RENDERER_TESTS === 'true') {
+        suites = [runCoreRenderProcessTests]
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
+        suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
+        suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
+      } else {
+        suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+      }
       break
     case 'win32':
       suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
