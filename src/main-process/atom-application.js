@@ -283,11 +283,11 @@ module.exports = class AtomApplication extends EventEmitter {
     // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
     // which is really slow on Windows machines.
     // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
-    let socketServerPromise
+    let socketServerPromise;
     if (options.test || options.benchmark || options.benchmarkTest) {
-      socketServerPromise = Promise.resolve()
+      socketServerPromise = Promise.resolve();
     } else {
-      socketServerPromise = this.listenForArgumentsFromNewProcess()
+      socketServerPromise = this.listenForArgumentsFromNewProcess();
     }
 
     this.setupDockMenu();
