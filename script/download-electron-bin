@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+const CONFIG = require('./config');
+const { electronVersion } = require('../package.json');
+const { spawnSync } = require('child_process');
+
+spawnSync('npm', ['install', '--no-save', `electron@${electronVersion}`], {
+  cwd: CONFIG.repositoryRootPath,
+  stdio: 'inherit'
+});
