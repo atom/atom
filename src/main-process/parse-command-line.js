@@ -135,6 +135,12 @@ module.exports = function parseCommandLine(processArgs) {
       'Enable low-level logging messages from Electron.'
     );
   options.boolean('uri-handler');
+  options
+    .boolean('ignore-first-path')
+    .describe(
+      'ignore-first-path',
+      'Skip the first argument when opening paths and running tests/benchmarks'
+    );
 
   let args = options.argv;
 
@@ -216,6 +222,10 @@ module.exports = function parseCommandLine(processArgs) {
     // On Yosemite the $PATH is not inherited by the "open" command, so we have to
     // explicitly pass it by command line, see http://git.io/YC8_Ew.
     process.env.PATH = args['path-environment'];
+  }
+
+  if (args['ignore-first-path']) {
+    pathsToOpen.shift();
   }
 
   return {

@@ -30,6 +30,11 @@ const argv = require('yargs')
     boolean: true,
     default: false
   })
+  .option('with-electron', {
+    describe: 'Run tests using a standard Electron app',
+    boolean: true,
+    default: false,
+  })
   .help()
   .argv
 
@@ -46,8 +51,17 @@ const backupNodeModules = require('./lib/backup-node-modules')
 const runApmInstall = require('./lib/run-apm-install')
 
 const resourcePath = CONFIG.repositoryRootPath
+const defaultTestArguments = [
+  '--resource-path', resourcePath,
+  '--test'
+]
 let executablePath
-if (process.platform === 'darwin') {
+
+if (argv["with-electron"]) {
+  executablePath = path.join(CONFIG.repositoryRootPath, 'node_modules', '.bin', 'electron')
+  assert(fs.existsSync(executablePath), `${executablePath} must exist to use --with-electron flag`)
+  defaultTestArguments.unshift(CONFIG.repositoryRootPath, '--ignore-first-path')
+} else if (process.platform === 'darwin') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
@@ -80,10 +94,7 @@ function prepareEnv (suiteName) {
 
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
-  const testArguments = [
-    '--resource-path', resourcePath,
-    '--test', '--main-process', testPath
-  ]
+  const testArguments = defaultTestArguments.concat(['--main-process', testPath])
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('Executing core main process tests'.bold.green)
@@ -94,10 +105,7 @@ function runCoreMainProcessTests (callback) {
 
 function runCoreRenderProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
-  const testArguments = [
-    '--resource-path', resourcePath,
-    '--test', testPath
-  ]
+  const testArguments = defaultTestArguments.concat([testPath])
   const testEnv = prepareEnv('core-render-process')
 
   console.log('Executing core render process tests'.bold.green)
@@ -125,10 +133,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   const testFolder = path.join(repositoryPackagePath, testSubdir)
 
   packageTestSuites.push(function (callback) {
-    const testArguments = [
-      '--resource-path', resourcePath,
-      '--test', testFolder
-    ]
+    const testArguments = defaultTestArguments.concat([testFolder])
     const testEnv = prepareEnv(`bundled-package-${packageName}`)
 
     const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
