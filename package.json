@@ -125,7 +125,7 @@
     "mock-spawn": "^0.2.6",
     "normalize-package-data": "^2.0.0",
     "notifications": "https://www.atom.io/api/packages/notifications/versions/0.70.6/tarball",
-    "nslog": "^3",
+    "nslog": "^3.0.0",
     "one-dark-syntax": "file:packages/one-dark-syntax",
     "one-dark-ui": "file:packages/one-dark-ui",
     "one-light-syntax": "file:packages/one-light-syntax",
