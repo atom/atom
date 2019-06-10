@@ -32,7 +32,7 @@ The following is a set of guidelines for contributing to Atom and its packages, 
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Atom Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
+This project and everyone participating in it are governed by the [Atom Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [atom@github.com](mailto:atom@github.com).
 
 ## I don't want to read this whole thing I just have a question!!!
 
@@ -77,7 +77,7 @@ Here's a list of the big ones:
 * [status-bar](https://github.com/atom/status-bar) - the status bar at the bottom of the UI.
 * [markdown-preview](https://github.com/atom/markdown-preview) - the rendered markdown pane item.
 * [settings-view](https://github.com/atom/settings-view) - the settings UI pane item.
-* [autocomplete-plus](https://github.com/atom/autocomplete-plus) - autocompletions shown while typing. Some languages have additional packages for autocompletion functionality, such as [autocomplete-html](https://github.com/atom/autocomplete-html).
+* [autocomplete-plus](https://github.com/atom/autocomplete-plus) - auto-completions shown while typing. Some languages have additional packages for autocompletion functionality, such as [autocomplete-html](https://github.com/atom/autocomplete-html).
 * [git-diff](https://github.com/atom/git-diff) - Git change indicators shown in the editor's gutter.
 * [language-javascript](https://github.com/atom/language-javascript) - all bundled languages are packages too, and each one has a separate package `language-[name]`. Use these for feedback on syntax highlighting issues that only appear for a specific language.
 * [one-dark-ui](https://github.com/atom/one-dark-ui) - the default UI styling for anything but the text editor. UI theme packages (i.e. packages with a `-ui` suffix) provide only styling and it's possible that a bundled package is responsible for a UI issue. There are other bundled UI themes, such as [one-light-ui](https://github.com/atom/one-light-ui).
@@ -131,7 +131,7 @@ Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Atom, e.g. which command exactly you used in the terminal, or how you started Atom otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Atom command, and if so which one?
+* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Atom, e.g. which command exactly you used in the terminal, or how you started Atom otherwise. When listing steps, **don't just say what you did but explain how you did it**. For example, if you moved the cursor to the end of a line, explain if you used the mouse, or a keyboard shortcut or an Atom command, and if so which one?
 * **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
@@ -193,7 +193,7 @@ Unsure where to begin contributing to Atom? You can start by looking through the
 * [Beginner issues][beginner] - issues which should only require a few lines of code, and a test or two.
 * [Help wanted issues][help-wanted] - issues which should be a bit more involved than `beginner` issues.
 
-Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
+Both issue lists are sorted by the total number of comments. While not perfect, the number of comments is a reasonable proxy for the impact a given change will have.
 
 If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
@@ -219,7 +219,7 @@ Please follow these steps to have your contribution considered by the maintainer
 2. Follow the [styleguides](#styleguides)
 3. After you submit your pull request, verify that all [status checks](https://help.github.com/articles/about-status-checks/) are passing <details><summary>What if the status checks are failing?</summary>If a status check is failing, and you believe that the failure is unrelated to your change, please leave a comment on the pull request explaining why you believe the failure is unrelated. A maintainer will re-run the status check for you. If we conclude that the failure was a false positive, then we will open an issue to track that problem with our status check suite.</details>
 
-While the prerequisites above must be satisfied prior to having your pull request reviewed, the reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted.
+While the prerequisites above must be satisfied prior to have your pull request reviewed, the reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull request can be ultimately accepted.
 
 ## Styleguides
 
@@ -266,8 +266,8 @@ All JavaScript must adhere to [JavaScript Standard Style](https://standardjs.com
   export default ClassName
   ```
 * Place requires in the following order:
-    * Built in Node Modules (such as `path`)
-    * Built in Atom and Electron Modules (such as `atom`, `remote`)
+    * Built-in Node Modules (such as `path`)
+    * Built-in Atom and Electron Modules (such as `atom`, `remote`)
     * Local Modules (using relative paths)
 * Place class properties in the following order:
     * Class methods and properties (methods starting with `static`)
@@ -297,8 +297,8 @@ All JavaScript must adhere to [JavaScript Standard Style](https://standardjs.com
 * Use `this` instead of a standalone `@`
   * `return this` instead of `return @`
 * Place requires in the following order:
-    * Built in Node Modules (such as `path`)
-    * Built in Atom and Electron Modules (such as `atom`, `remote`)
+    * Built-in Node Modules (such as `path`)
+    * Built-in Atom and Electron Modules (such as `atom`, `remote`)
     * Local Modules (using relative paths)
 * Place class properties in the following order:
     * Class methods and properties (methods starting with a `@`)
@@ -309,7 +309,7 @@ All JavaScript must adhere to [JavaScript Standard Style](https://standardjs.com
 
 - Include thoughtfully-worded, well-structured [Jasmine](https://jasmine.github.io/) specs in the `./spec` folder.
 - Treat `describe` as a noun or situation.
-- Treat `it` as a statement about state or how an operation changes state.
+- Treat `it` as a statement about the state or how an operation changes state.
 
 #### Example
 
@@ -352,7 +352,7 @@ disablePackage: (name, options, callback) ->
 
 This section lists the labels we use to help us track and manage issues and pull requests. Most labels are used across all Atom repositories, but some are specific to `atom/atom`.
 
-[GitHub search](https://help.github.com/articles/searching-issues/) makes it easy to use labels for finding groups of issues or pull requests you're interested in. For example, you might be interested in [open issues across `atom/atom` and all Atom-owned packages which are labeled as bugs, but still need to be reliably reproduced](https://github.com/search?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Abug+label%3Aneeds-reproduction) or perhaps [open pull requests in `atom/atom` which haven't been reviewed yet](https://github.com/search?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+comments%3A0). To help you find issues and pull requests, each label is listed with search links for finding open items with that label in `atom/atom` only and also across all Atom repositories. We  encourage you to read about [other search filters](https://help.github.com/articles/searching-issues/) which will help you write more focused queries.
+[GitHub search](https://help.github.com/articles/searching-issues/) makes it easy to use labels for finding groups of issues or pull requests you're interested in. For example, you might be interested in [open issues across `atom/atom` and all Atom-owned packages which are labeled as bugs, but still need to be reliably reproduced](https://github.com/search?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+user%3Aatom+label%3Abug+label%3Aneeds-reproduction) or perhaps [open pull requests in `atom/atom` which haven't been reviewed yet](https://github.com/search?utf8=%E2%9C%93&q=is%3Aopen+is%3Apr+repo%3Aatom%2Fatom+comments%3A0). To help you find issues and pull requests, each label is listed with search links for finding open items with that label in `atom/atom` only and also across all Atom repositories. We encourage you to read about [other search filters](https://help.github.com/articles/searching-issues/) which will help you write more focused queries.
 
 The labels are loosely grouped by their purpose, but it's not required that every issue have a label from every group or that an issue can't have more than one label from the same group.
 
