@@ -43,7 +43,7 @@ class NativeCompileCache {
     const script = new vm.Script(code, { filename, produceCachedData: true });
     return {
       result: script.runInThisContext(),
-      cacheBuffer: script.cachedData
+      cacheBuffer: script.cachedDataProduced ? script.cachedData : null
     };
   }
 
@@ -102,7 +102,7 @@ class NativeCompileCache {
           console.error(`Error running script ${filename}`);
           throw err;
         }
-        if (compilationResult.cacheBuffer !== null) {
+        if (compilationResult.cacheBuffer) {
           self.cacheStore.set(cacheKey, compilationResult.cacheBuffer);
         }
         compiledWrapper = compilationResult.result;
