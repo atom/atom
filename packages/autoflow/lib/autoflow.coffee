@@ -60,14 +60,24 @@ module.exports =
       latexTagRegex = /^\s*\\\w+(\[.*\])?\{\w+\}(\[.*\])?\s*$/g    # e.g. \begin{verbatim}
       latexTagStartRegex = /^\s*\\\w+\s*\{\s*$/g                   # e.g. \item{
       latexTagEndRegex = /^\s*\}\s*$/g                             # e.g. }
-      while blockLines[0].match(latexTagRegex) or
-            blockLines[0].match(latexTagStartRegex)
+      while blockLines.length > 0 and (
+            blockLines[0].match(latexTagRegex) or
+            blockLines[0].match(latexTagStartRegex))
         beginningLinesToIgnore.push(blockLines[0])
         blockLines.shift()
-      while blockLines[blockLines.length - 1].match(latexTagRegex) or
-            blockLines[blockLines.length - 1].match(latexTagEndRegex)
+      while blockLines.length > 0 and (
+            blockLines[blockLines.length - 1].match(latexTagRegex) or
+            blockLines[blockLines.length - 1].match(latexTagEndRegex))
         endingLinesToIgnore.unshift(blockLines[blockLines.length - 1])
         blockLines.pop()
+
+      # The paragraph might be a LaTeX section with no text, only tags:
+      # \documentclass{article}
+      # In that case, we have nothing to reflow.
+      # Push the tags verbatim and continue to the next paragraph.
+      unless blockLines.length > 0
+        paragraphs.push(block)
+        continue
 
       # TODO: this could be more language specific. Use the actual comment char.
       # Remember that `-` has to be the last character in the character class.
@@ -112,7 +122,7 @@ module.exports =
       wrappedLines = beginningLinesToIgnore.concat(lines.concat(endingLinesToIgnore))
       paragraphs.push(wrappedLines.join('\n').replace(/\s+\n/g, '\n'))
 
-    leadingVerticalSpace + paragraphs.join('\n\n') + trailingVerticalSpace
+    return leadingVerticalSpace + paragraphs.join('\n\n') + trailingVerticalSpace
 
   getTabLength: (editor) ->
     atom.config.get('editor.tabLength', scope: editor.getRootScopeDescriptor()) ? 2

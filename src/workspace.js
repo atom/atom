@@ -1518,6 +1518,10 @@ module.exports = class Workspace extends Model {
   // that is already open in a text editor view. You could signal this by calling
   // {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener
   // can check the protocol for quux-preview and only handle those URIs that match.
+  //
+  // To defer your package's activation until a specific URL is opened, add a
+  // `workspaceOpeners` field to your `package.json` containing an array of URL
+  // strings.
   addOpener(opener) {
     this.openers.push(opener);
     return new Disposable(() => {

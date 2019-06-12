@@ -39,6 +39,22 @@ jobs:
       npm install
     displayName: Install Windows build dependencies
 
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
+    displayName: Restore node_modules cache (x64)
+    inputs:
+      keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+      targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+      vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+    condition: eq(variables['buildArch'], 'x64')
+
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
+    displayName: Restore node_modules cache (x86)
+    inputs:
+      keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+      targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+      vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+    condition: eq(variables['buildArch'], 'x86')
+
   - script: |
       node script\vsts\windows-run.js script\bootstrap.cmd
     env:
@@ -47,6 +63,23 @@ jobs:
       CI_PROVIDER: VSTS
       NPM_BIN_PATH: "D:\\a\\_tool\\node\\8.9.3\\x64\\npm.cmd"
     displayName: Bootstrap build environment
+    condition: ne(variables['CacheRestored'], 'true')
+
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
+    displayName: Save node_modules cache (x64)
+    inputs:
+      keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+      targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+      vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+    condition: eq(variables['buildArch'], 'x64')
+
+  - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
+    displayName: Save node_modules cache (x86)
+    inputs:
+      keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+      targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+      vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+    condition: eq(variables['buildArch'], 'x86')
 
   - script: node script\vsts\windows-run.js script\lint.cmd
     env:
@@ -58,14 +91,14 @@ jobs:
       SET SQUIRREL_TEMP=C:\tmp
       IF [%IS_RELEASE_BRANCH%]==[true] (
         ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-        node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts --create-windows-installer
+        node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
       ) ELSE (
         IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
           ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-          node script\vsts\windows-run.js script\build.cmd --code-sign --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
         ) ELSE (
           ECHO Pull request build, no code signing will be performed
-          node script\vsts\windows-run.js script\build.cmd --compress-artifacts
+          node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
         )
       )
     env:
