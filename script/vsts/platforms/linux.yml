@@ -12,6 +12,14 @@ jobs:
     container: atom-linux-ci
 
     steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 10.2.1
+        displayName: Install Node.js 10.2.1
+
+      - script: npm install --global npm@6.2.0
+        displayName: Update npm
+
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache
         inputs:
