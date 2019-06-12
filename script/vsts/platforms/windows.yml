@@ -21,8 +21,8 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 8.9.3
-        displayName: Install Node.js 8.9.3
+          versionSpec: 10.2.1
+        displayName: Install Node.js 10.2.1
 
       - script: |
           ECHO Installing npm-windows-upgrade
@@ -42,7 +42,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache (x64)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x64')
@@ -50,7 +50,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache (x86)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')
@@ -61,14 +61,14 @@ jobs:
           BUILD_ARCH: $(buildArch)
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "D:\\a\\_tool\\node\\8.9.3\\x64\\npm.cmd"
+          NPM_BIN_PATH: "D:\\a\\_tool\\node\\10.2.1\\x64\\npm.cmd"
         displayName: Bootstrap build environment
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache (x64)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x64')
@@ -76,7 +76,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache (x86)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')

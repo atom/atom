@@ -21,7 +21,7 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     ATOM_JASMINE_REPORTER: list
     CI: true
-    NODE_VERSION: 8.9.3
+    NODE_VERSION: 10.2.1
 
   matrix:
     - TASK: test
