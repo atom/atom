@@ -8,9 +8,7 @@ clone_depth: 10
 
 branches:
   only:
-    - master
     - /^[0-9.]+-releases$/
-    - /^electron-[0-9.]+$/
 
 platform:
   - x64
