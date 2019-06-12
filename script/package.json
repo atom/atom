@@ -23,7 +23,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-promise": "^4.1.1",
     "eslint-plugin-standard": "^4.0.0",
-    "fs-admin": "^0.1.5",
+    "fs-admin": "^0.5.0",
     "fs-extra": "0.30.0",
     "glob": "7.0.3",
     "joanna": "0.0.10",
