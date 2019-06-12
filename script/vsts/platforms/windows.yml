@@ -42,7 +42,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache (x64)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x64')
@@ -50,7 +50,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache (x86)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')
@@ -68,7 +68,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache (x64)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x64')
@@ -76,7 +76,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache (x86)
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
+          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')
