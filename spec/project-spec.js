@@ -1042,11 +1042,12 @@ describe('Project', () => {
   });
 
   describe('.onDidChangeFiles()', () => {
-    let sub = [];
-    const events = [];
+    let sub;
+    let events;
     let checkCallback = () => {};
 
     beforeEach(() => {
+      events = []
       sub = atom.project.onDidChangeFiles(incoming => {
         events.push(...incoming);
         checkCallback();
