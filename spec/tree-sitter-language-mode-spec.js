@@ -1811,7 +1811,7 @@ describe('TreeSitterLanguageMode', () => {
           [0, 5],
           [0, 8]
         ]);
-        expect(editor.bufferRangeForScopeAtPosition(null, [0, 9])).toEqual([
+        expect(editor.bufferRangeForScopeAtPosition(null, [0, 8])).toEqual([
           [0, 8],
           [0, 9]
         ]);
