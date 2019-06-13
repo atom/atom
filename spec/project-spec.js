@@ -1059,11 +1059,13 @@ describe('Project', () => {
     const waitForEvents = paths => {
       const remaining = new Set(paths.map(p => fs.realpathSync(p)));
       return new Promise((resolve, reject) => {
+        let expireTimeoutId;
         checkCallback = () => {
           for (let event of events) {
             remaining.delete(event.path);
           }
           if (remaining.size === 0) {
+            clearTimeout(expireTimeoutId)
             resolve();
           }
         };
@@ -1076,8 +1078,8 @@ describe('Project', () => {
           );
         };
 
+        expireTimeoutId = setTimeout(expire, 2000);
         checkCallback();
-        setTimeout(expire, 2000);
       });
     };
 
