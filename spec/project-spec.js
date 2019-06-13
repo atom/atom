@@ -1081,6 +1081,7 @@ describe('Project', () => {
     };
 
     it('reports filesystem changes within project paths', () => {
+      jasmine.useRealClock();
       const dirOne = temp.mkdirSync('atom-spec-project-one');
       const fileOne = path.join(dirOne, 'file-one.txt');
       const fileTwo = path.join(dirOne, 'file-two.txt');
