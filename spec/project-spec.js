@@ -1047,7 +1047,7 @@ describe('Project', () => {
     let checkCallback = () => {};
 
     beforeEach(() => {
-      events = []
+      events = [];
       sub = atom.project.onDidChangeFiles(incoming => {
         events.push(...incoming);
         checkCallback();
@@ -1065,7 +1065,7 @@ describe('Project', () => {
             remaining.delete(event.path);
           }
           if (remaining.size === 0) {
-            clearTimeout(expireTimeoutId)
+            clearTimeout(expireTimeoutId);
             resolve();
           }
         };
@@ -1102,7 +1102,7 @@ describe('Project', () => {
       fs.writeFileSync(fileTwo, 'two\n');
       fs.writeFileSync(fileOne, 'one\n');
       await waitForEvents([fileOne, fileTwo]);
-      expect(events.some(event => event.path === fileThree)).toBeFalsy()
+      expect(events.some(event => event.path === fileThree)).toBeFalsy();
     });
   });
 
