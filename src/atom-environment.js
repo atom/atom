@@ -267,6 +267,8 @@ class AtomEnvironment {
     this.attachSaveStateListeners()
     this.windowEventHandler.initialize(this.window, this.document)
 
+    this.workspace.initialize()
+
     const didChangeStyles = this.didChangeStyles.bind(this)
     this.disposables.add(this.styles.onDidAddStyleElement(didChangeStyles))
     this.disposables.add(this.styles.onDidUpdateStyleElement(didChangeStyles))
@@ -370,7 +372,7 @@ class AtomEnvironment {
     this.workspace.reset(this.packages)
     this.registerDefaultOpeners()
     this.project.reset(this.packages)
-    this.workspace.subscribeToEvents()
+    this.workspace.initialize()
     this.grammars.clear()
     this.textEditors.clear()
     this.views.clear()
