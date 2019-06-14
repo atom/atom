@@ -83,14 +83,27 @@
 }
 
 .syntax--variable {
-  color: @hue-5;
+  color: @mono-1;
+
+  &.syntax--object.syntax--property {
+    color: @hue-5;
+  }
+
+  &.syntax--member {
+    color: @hue-5;
+  }
+
+  &.syntax--support {
+    color: @mono-2;
+  }
 
   &.syntax--interpolation {
     color: @hue-5-2;
   }
 
-  &.syntax--parameter {
-    color: @mono-1;
+  &.syntax--language {
+    color: @mono-2;
+    font-weight: bold;
   }
 }
 
