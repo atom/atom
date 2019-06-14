@@ -1084,8 +1084,6 @@ describe('Project', () => {
     };
 
     it('reports filesystem changes within project paths', async () => {
-      if (process.platform === 'win32') return; // Flaky results on Windows: https://github.com/atom/atom/issues/19507
-
       jasmine.useRealClock();
       const dirOne = temp.mkdirSync('atom-spec-project-one');
       const fileOne = path.join(dirOne, 'file-one.txt');
