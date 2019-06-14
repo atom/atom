@@ -511,7 +511,8 @@ class TreeSitterLanguageMode {
       }
 
       if (end.column < lineText.length) {
-        for (const _ of iterator.getCloseScopeIds()) {
+        const closeScopeCount = iterator.getCloseScopeIds().length;
+        for (let i = 0; i < closeScopeCount; i++) {
           scopes.pop();
         }
         scopes.push(...iterator.getOpenScopeIds());
