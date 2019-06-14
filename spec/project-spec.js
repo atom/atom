@@ -1042,11 +1042,12 @@ describe('Project', () => {
   });
 
   describe('.onDidChangeFiles()', () => {
-    let sub = [];
-    const events = [];
+    let sub;
+    let events;
     let checkCallback = () => {};
 
     beforeEach(() => {
+      events = [];
       sub = atom.project.onDidChangeFiles(incoming => {
         events.push(...incoming);
         checkCallback();
@@ -1058,11 +1059,13 @@ describe('Project', () => {
     const waitForEvents = paths => {
       const remaining = new Set(paths.map(p => fs.realpathSync(p)));
       return new Promise((resolve, reject) => {
+        let expireTimeoutId;
         checkCallback = () => {
           for (let event of events) {
             remaining.delete(event.path);
           }
           if (remaining.size === 0) {
+            clearTimeout(expireTimeoutId);
             resolve();
           }
         };
@@ -1075,12 +1078,13 @@ describe('Project', () => {
           );
         };
 
+        expireTimeoutId = setTimeout(expire, 2000);
         checkCallback();
-        setTimeout(expire, 2000);
       });
     };
 
-    it('reports filesystem changes within project paths', () => {
+    it('reports filesystem changes within project paths', async () => {
+      jasmine.useRealClock();
       const dirOne = temp.mkdirSync('atom-spec-project-one');
       const fileOne = path.join(dirOne, 'file-one.txt');
       const fileTwo = path.join(dirOne, 'file-two.txt');
@@ -1088,24 +1092,17 @@ describe('Project', () => {
       const fileThree = path.join(dirTwo, 'file-three.txt');
 
       // Ensure that all preexisting watchers are stopped
-      waitsForPromise(() => stopAllWatchers());
+      await stopAllWatchers();
 
-      runs(() => atom.project.setPaths([dirOne]));
-      waitsForPromise(() => atom.project.getWatcherPromise(dirOne));
+      atom.project.setPaths([dirOne]);
+      await atom.project.getWatcherPromise(dirOne);
 
-      runs(() => {
-        expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined);
-
-        fs.writeFileSync(fileThree, 'three\n');
-        fs.writeFileSync(fileTwo, 'two\n');
-        fs.writeFileSync(fileOne, 'one\n');
-      });
-
-      waitsForPromise(() => waitForEvents([fileOne, fileTwo]));
-
-      runs(() =>
-        expect(events.some(event => event.path === fileThree)).toBeFalsy()
-      );
+      expect(atom.project.watcherPromisesByPath[dirTwo]).toEqual(undefined);
+      fs.writeFileSync(fileThree, 'three\n');
+      fs.writeFileSync(fileTwo, 'two\n');
+      fs.writeFileSync(fileOne, 'one\n');
+      await waitForEvents([fileOne, fileTwo]);
+      expect(events.some(event => event.path === fileThree)).toBeFalsy();
     });
   });
 
