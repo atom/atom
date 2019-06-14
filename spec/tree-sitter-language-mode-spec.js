@@ -2210,6 +2210,47 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.getSelectedText()).toBe('html ` <b>c${def()}e${f}g</b> `');
     });
   });
+
+  describe('.tokenizedLineForRow(row)', () => {
+    it('returns a shimmed TokenizedLine with tokens', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source',
+          'call_expression > identifier': 'function',
+          property_identifier: 'property',
+          'call_expression > member_expression > property_identifier': 'method',
+          identifier: 'variable'
+        }
+      });
+
+      buffer.setText('aa.bbb = cc(d.eee());\n\n    \n  b');
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expect(languageMode.tokenizedLineForRow(0).tokens).toEqual([
+        { value: 'aa', scopes: ['source', 'variable'] },
+        { value: '.', scopes: ['source'] },
+        { value: 'bbb', scopes: ['source', 'property'] },
+        { value: ' = ', scopes: ['source'] },
+        { value: 'cc', scopes: ['source', 'function'] },
+        { value: '(', scopes: ['source'] },
+        { value: 'd', scopes: ['source', 'variable'] },
+        { value: '.', scopes: ['source'] },
+        { value: 'eee', scopes: ['source', 'method'] },
+        { value: '());', scopes: ['source'] }
+      ]);
+      expect(languageMode.tokenizedLineForRow(1).tokens).toEqual([]);
+      expect(languageMode.tokenizedLineForRow(2).tokens).toEqual([
+        { value: '    ', scopes: ['source'] }
+      ]);
+      expect(languageMode.tokenizedLineForRow(3).tokens).toEqual([
+        { value: '  ', scopes: ['source'] },
+        { value: 'b', scopes: ['source', 'variable'] }
+      ]);
+    });
+  });
 });
 
 function nextHighlightingUpdate(languageMode) {

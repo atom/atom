@@ -488,9 +488,44 @@ class TreeSitterLanguageMode {
   */
 
   tokenizedLineForRow(row) {
+    const lineText = this.buffer.lineForRow(row);
+    const tokens = [];
+
+    const iterator = this.buildHighlightIterator();
+    let start = { row, column: 0 };
+    const scopes = iterator.seek(start, row);
+    while (true) {
+      const end = iterator.getPosition();
+      if (end.row > row) {
+        end.row = row;
+        end.column = lineText.length;
+      }
+
+      if (end.column > start.column) {
+        tokens.push(
+          new Token({
+            value: lineText.substring(start.column, end.column),
+            scopes: scopes.map(s => this.grammar.scopeNameForScopeId(s))
+          })
+        );
+      }
+
+      if (end.column < lineText.length) {
+        for (const _ of iterator.getCloseScopeIds()) {
+          scopes.pop();
+        }
+        scopes.push(...iterator.getOpenScopeIds());
+        start = end;
+        iterator.moveToSuccessor();
+      } else {
+        break;
+      }
+    }
+
     return new TokenizedLine({
       openScopes: [],
-      text: this.buffer.lineForRow(row),
+      text: lineText,
+      tokens,
       tags: [],
       ruleStack: [],
       lineEnding: this.buffer.lineEndingForRow(row),
