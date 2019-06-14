@@ -38,7 +38,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 //
 // #### `getTitle()`
 //
-// Returns a {String} containing the title of the item to display on its
+// Will return a {String} containing the title of the item to display on its
 // associated tab.
 //
 // ### Optional Methods
@@ -69,11 +69,11 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 //
 // #### `getURI()`
 //
-// Returns the URI associated with the item.
+// Will return the URI associated with the item.
 //
 // #### `getLongTitle()`
 //
-// Returns a {String} containing a longer version of the title to display in
+// Will return a {String} containing a longer version of the title to display in
 // places like the window title or on tabs their short titles are ambiguous.
 //
 // #### `onDidChangeTitle`
@@ -83,7 +83,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 //
 // #### `getIconName()`
 //
-// Return a {String} with the name of an icon. If this method is defined and
+// Will return a {String} with the name of an icon. If this method is defined and
 // returns a string, the item's tab element will be rendered with the `icon` and
 // `icon-${iconName}` CSS classes.
 //
@@ -98,13 +98,13 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // override. Items can appear in the center or in a dock on the left, right, or
 // bottom of the workspace.
 //
-// Returns a {String} with one of the following values: `'center'`, `'left'`,
+// Will return a {String} with one of the following values: `'center'`, `'left'`,
 // `'right'`, `'bottom'`. If this method is not defined, `'center'` is the
 // default.
 //
 // #### `getAllowedLocations()`
 //
-// Tells the workspace where this item can be moved. Returns an {Array} of one
+// Tells the workspace where this item can be moved. Will return an {Array} of one
 // or more of the following values: `'center'`, `'left'`, `'right'`, or
 // `'bottom'`.
 //
@@ -129,12 +129,12 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 //
 // #### `getPath()`
 //
-// Returns the local path associated with this item. This is only used to set
+// Will return the local path associated with this item. This is only used to set
 // the initial location of the "save as" dialog.
 //
 // #### `isModified()`
 //
-// Returns whether or not the item is modified to reflect modification in the
+// Will return whether or not the item is modified to reflect modification in the
 // UI.
 //
 // #### `onDidChangeModified()`
@@ -153,7 +153,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // initially displaying the dock to set its height. Once the dock has been
 // resized by the user, their height will override this value.
 //
-// Returns a {Number}.
+// Will return a {Number}.
 //
 // #### `getPreferredWidth()`
 //
@@ -161,7 +161,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // workspace when initially displaying the dock to set its width. Once the dock
 // has been resized by the user, their width will override this value.
 //
-// Returns a {Number}.
+// Will return a {Number}.
 //
 // #### `onDidTerminatePendingState(callback)`
 //
@@ -172,7 +172,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // #### `shouldPromptToSave()`
 //
 // This method indicates whether Atom should prompt the user to save this item
-// when the user closes or reloads the window. Returns a boolean.
+// when the user closes or reloads the window. Will return a boolean.
 module.exports = class Workspace extends Model {
   constructor(params) {
     super(...arguments);
