@@ -99,11 +99,9 @@ module.exports = class GrammarListView {
         this.currentGrammar = this.autoDetect;
       }
 
-      let grammars = atom.grammars
-        .getGrammars()
-        .filter(grammar => {
-          return grammar !== atom.grammars.nullGrammar && grammar.name;
-        });
+      let grammars = atom.grammars.getGrammars().filter(grammar => {
+        return grammar !== atom.grammars.nullGrammar && grammar.name;
+      });
 
       if (atom.config.get('grammar-selector.hideDuplicateTextMateGrammars')) {
         const oldGrammars = grammars;
@@ -115,17 +113,15 @@ module.exports = class GrammarListView {
             grammars.push(grammar);
           }
         }
-        atom.grammars
-          .getGrammars({ textMateOnly: true })
-          .forEach(grammar => {
-            if (
-              grammar !== atom.grammars.nullGrammar &&
-              grammar.name &&
-              !blacklist.has(grammar.name)
-            ) {
-              grammars.push(grammar);
-            }
-          });
+        atom.grammars.getGrammars({ textMateOnly: true }).forEach(grammar => {
+          if (
+            grammar !== atom.grammars.nullGrammar &&
+            grammar.name &&
+            !blacklist.has(grammar.name)
+          ) {
+            grammars.push(grammar);
+          }
+        });
       }
 
       grammars.sort((a, b) => {
