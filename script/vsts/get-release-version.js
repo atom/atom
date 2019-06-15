@@ -65,6 +65,7 @@ async function getReleaseVersion() {
     !isReleaseBranch &&
     (process.env.IS_SIGNED_ZIP_BRANCH ||
       buildBranch.startsWith('electron-') ||
+      buildBranch === 'upgrade-electron-winstaller' ||
       (buildBranch === 'master' &&
         !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER));
   console.log(
