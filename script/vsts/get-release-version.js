@@ -59,6 +59,7 @@ async function getReleaseVersion() {
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME;
   const isReleaseBranch =
     process.env.IS_RELEASE_BRANCH ||
+    buildBranch === 'upgrade-electron-winstaller' ||
     argv.nightly ||
     buildBranch.match(/\d\.\d+-releases/) !== null;
   const isSignedZipBranch =
