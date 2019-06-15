@@ -165,7 +165,6 @@ class MenuManager
       for binding in @keymapManager.getKeyBindings()
         continue unless @includeSelector(binding.selector)
         continue if unsetKeystrokes.has(binding.keystrokes)
-        continue if binding.keystrokes.includes(' ')
         continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
         continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []

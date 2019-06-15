@@ -47,6 +47,10 @@ const {
 describe('AtomApplication', function() {
   let scenario, sinon;
 
+  if (process.env.CI) {
+    this.timeout(10 * 1000);
+  }
+
   beforeEach(async function() {
     sinon = sandbox.create();
     scenario = await LaunchScenario.create(sinon);

@@ -4,9 +4,9 @@ ThemePackage = require '../src/theme-package'
 {mockLocalStorage} = require './spec-helper'
 
 describe "Package", ->
-  build = (constructor, path) ->
+  build = (constructor, packagePath) ->
     new constructor(
-      path: path, packageManager: atom.packages, config: atom.config,
+      path: packagePath, packageManager: atom.packages, config: atom.config,
       styleManager: atom.styles, notificationManager: atom.notifications,
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,

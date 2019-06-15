@@ -169,6 +169,7 @@ module.exports = class Package {
     this.settings = [];
     this.mainInitialized = false;
     this.mainActivated = false;
+    this.deserialized = false;
   }
 
   initializeIfNeeded() {
@@ -248,6 +249,8 @@ module.exports = class Package {
         this.activationCommandSubscriptions.dispose();
       if (this.activationHookSubscriptions)
         this.activationHookSubscriptions.dispose();
+      if (this.workspaceOpenerSubscriptions)
+        this.workspaceOpenerSubscriptions.dispose();
     } catch (error) {
       this.handleError(`Failed to activate the ${this.name} package`, error);
     }
@@ -559,6 +562,19 @@ module.exports = class Package {
             this.registerViewProviders();
             this.requireMainModule();
             this.initializeIfNeeded();
+            if (atomEnvironment.packages.hasActivatedInitialPackages()) {
+              // Only explicitly activate the package if initial packages
+              // have finished activating. This is because deserialization
+              // generally occurs at Atom startup, which happens before the
+              // workspace element is added to the DOM and is inconsistent with
+              // with when initial package activation occurs. Triggering activation
+              // immediately may cause problems with packages that expect to
+              // always have access to the workspace element.
+              // Otherwise, we just set the deserialized flag and package-manager
+              // will activate this package as normal during initial package activation.
+              this.activateNow();
+            }
+            this.deserialized = true;
             return this.mainModule[methodName](state, atomEnvironment);
           }
         });
@@ -933,15 +949,22 @@ module.exports = class Package {
 
   activationShouldBeDeferred() {
     return (
-      this.hasActivationCommands() ||
-      this.hasActivationHooks() ||
-      this.hasDeferredURIHandler()
+      !this.deserialized &&
+      (this.hasActivationCommands() ||
+        this.hasActivationHooks() ||
+        this.hasWorkspaceOpeners() ||
+        this.hasDeferredURIHandler())
     );
   }
 
   hasActivationHooks() {
     const hooks = this.getActivationHooks();
     return hooks && hooks.length > 0;
+  }
+
+  hasWorkspaceOpeners() {
+    const openers = this.getWorkspaceOpeners();
+    return openers && openers.length > 0;
   }
 
   hasActivationCommands() {
@@ -961,6 +984,7 @@ module.exports = class Package {
   subscribeToDeferredActivation() {
     this.subscribeToActivationCommands();
     this.subscribeToActivationHooks();
+    this.subscribeToWorkspaceOpeners();
   }
 
   subscribeToActivationCommands() {
@@ -1056,6 +1080,41 @@ module.exports = class Package {
     }
 
     return this.activationHooks;
+  }
+
+  subscribeToWorkspaceOpeners() {
+    this.workspaceOpenerSubscriptions = new CompositeDisposable();
+    for (let opener of this.getWorkspaceOpeners()) {
+      this.workspaceOpenerSubscriptions.add(
+        atom.workspace.addOpener(filePath => {
+          if (filePath === opener) {
+            this.activateNow();
+            this.workspaceOpenerSubscriptions.dispose();
+            return atom.workspace.createItemForURI(opener);
+          }
+        })
+      );
+    }
+  }
+
+  getWorkspaceOpeners() {
+    if (this.workspaceOpeners) return this.workspaceOpeners;
+
+    if (this.metadata.workspaceOpeners) {
+      if (Array.isArray(this.metadata.workspaceOpeners)) {
+        this.workspaceOpeners = Array.from(
+          new Set(this.metadata.workspaceOpeners)
+        );
+      } else if (typeof this.metadata.workspaceOpeners === 'string') {
+        this.workspaceOpeners = [this.metadata.workspaceOpeners];
+      } else {
+        this.workspaceOpeners = [];
+      }
+    } else {
+      this.workspaceOpeners = [];
+    }
+
+    return this.workspaceOpeners;
   }
 
   getURIHandler() {

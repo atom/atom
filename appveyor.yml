@@ -1,6 +1,6 @@
 image: Visual Studio 2015
 
-version: "{build}"
+version: '{build}'
 
 skip_tags: true
 clone_folder: c:\projects\atom
@@ -8,9 +8,7 @@ clone_depth: 10
 
 branches:
   only:
-  - master
-  - /^[0-9.]+-releases$/
-  - /^electron-[0-9.]+$/
+    - /^[0-9.]+-releases$/
 
 platform:
   - x64
@@ -21,11 +19,11 @@ environment:
     ATOM_DEV_RESOURCE_PATH: c:\projects\atom
     ATOM_JASMINE_REPORTER: list
     CI: true
-    NODE_VERSION: 8.9.3
+    NODE_VERSION: 10.2.1
 
   matrix:
-  - TASK: test
-  - TASK: installer
+    - TASK: test
+    - TASK: installer
 
 matrix:
   fast_finish: true
@@ -46,28 +44,28 @@ build_script:
   - IF [%APPVEYOR_REPO_BRANCH%]==[master] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER SET IS_SIGNED_ZIP_BRANCH=true
   - IF [%APPVEYOR_REPO_BRANCH:~0,9%]==[electron-] IF NOT DEFINED APPVEYOR_PULL_REQUEST_NUMBER SET IS_SIGNED_ZIP_BRANCH=true
   - IF [%TASK%]==[installer] (
-      IF [%IS_RELEASE_BRANCH%]==[true] (
-        ECHO Building on release branch - Creating production artifacts &&
-        script\build.cmd --code-sign --compress-artifacts --create-windows-installer
-      ) ELSE (
-        IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
-          ECHO Building on %APPVEYOR_REPO_BRANCH% branch - Creating signed zips &&
-          script\build.cmd --code-sign --compress-artifacts
-        ) ELSE (
-          ECHO Skipping installer build for non-release/non-master branch
-        )
-      )
+    IF [%IS_RELEASE_BRANCH%]==[true] (
+    ECHO Building on release branch - Creating production artifacts &&
+    script\build.cmd --code-sign --compress-artifacts --create-windows-installer
     ) ELSE (
-      ECHO Test build only - Not creating artifacts &&
-      script\build.cmd
+    IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
+    ECHO Building on %APPVEYOR_REPO_BRANCH% branch - Creating signed zips &&
+    script\build.cmd --code-sign --compress-artifacts
+    ) ELSE (
+    ECHO Skipping installer build for non-release/non-master branch
+    )
+    )
+    ) ELSE (
+    ECHO Test build only - Not creating artifacts &&
+    script\build.cmd
     )
 
 test_script:
   - IF [%TASK%]==[test] (
-      script\lint.cmd &&
-      script\test.cmd
+    script\lint.cmd &&
+    script\test.cmd
     ) ELSE (
-      ECHO Skipping tests on installer build matrix row
+    ECHO Skipping tests on installer build matrix row
     )
 
 deploy: off
