@@ -100,7 +100,7 @@ module.exports = class GrammarListView {
       }
 
       let grammars = atom.grammars
-        .getGrammars({ includeTreeSitter: true })
+        .getGrammars()
         .filter(grammar => {
           return grammar !== atom.grammars.nullGrammar && grammar.name;
         });
@@ -116,7 +116,7 @@ module.exports = class GrammarListView {
           }
         }
         atom.grammars
-          .getGrammars({ includeTreeSitter: false })
+          .getGrammars({ textMateOnly: true })
           .forEach(grammar => {
             if (
               grammar !== atom.grammars.nullGrammar &&
