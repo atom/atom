@@ -12,10 +12,18 @@ jobs:
     container: atom-linux-ci
 
     steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 10.2.1
+        displayName: Install Node.js 10.2.1
+
+      - script: npm install --global npm@6.2.0
+        displayName: Update npm
+
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache
         inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
+          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
 
@@ -29,7 +37,7 @@ jobs:
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache
         inputs:
-          keyfile: 'package.json, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
+          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
 
