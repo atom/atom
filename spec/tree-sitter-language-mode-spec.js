@@ -27,6 +27,9 @@ const ejsGrammarPath = require.resolve(
 const rubyGrammarPath = require.resolve(
   'language-ruby/grammars/tree-sitter-ruby.cson'
 );
+const rustGrammarPath = require.resolve(
+  'language-rust-bundled/grammars/tree-sitter-rust.cson'
+);
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer;
@@ -827,6 +830,81 @@ describe('TreeSitterLanguageMode', () => {
             { text: 'b', scopes: ['function'] },
             { text: '() ', scopes: [] },
             { text: '%>', scopes: ['directive'] }
+          ]
+        ]);
+      });
+
+      it('respects the `includeChildren` property of injection points', async () => {
+        const rustGrammar = new TreeSitterGrammar(
+          atom.grammars,
+          rustGrammarPath,
+          {
+            scopeName: 'rust',
+            parser: 'tree-sitter-rust',
+            scopes: {
+              identifier: 'variable',
+              field_identifier: 'property',
+              'call_expression > field_expression > field_identifier':
+                'function',
+              'macro_invocation > identifier': 'macro'
+            },
+            injectionRegExp: 'rust',
+            injectionPoints: [
+              {
+                type: 'macro_invocation',
+                language() {
+                  return 'rust';
+                },
+                content(node) {
+                  return node.lastChild;
+                },
+
+                // The tokens within a `token_tree` are all parsed as separate
+                // children of the `token_tree`. By default, when adding a language
+                // injection for a node, the node's children's ranges would be
+                // excluded from the injection. But for this injection point
+                // (parsing token trees as rust code), we want to reparse all of the
+                // content of the token tree.
+                includeChildren: true
+              }
+            ]
+          }
+        );
+
+        atom.grammars.addGrammar(rustGrammar);
+
+        // Macro call within another macro call.
+        buffer.setText('assert_eq!(a.b.c(), vec![d.e()]); f.g();');
+
+        const languageMode = new TreeSitterLanguageMode({
+          buffer,
+          grammar: rustGrammar,
+          grammars: atom.grammars
+        });
+        buffer.setLanguageMode(languageMode);
+
+        // There should not be duplicate scopes due to the root layer
+        // and for the injected rust layer.
+        expectTokensToEqual(editor, [
+          [
+            { text: 'assert_eq', scopes: ['macro'] },
+            { text: '!(', scopes: [] },
+            { text: 'a', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'b', scopes: ['property'] },
+            { text: '.', scopes: [] },
+            { text: 'c', scopes: ['function'] },
+            { text: '(), ', scopes: [] },
+            { text: 'vec', scopes: ['macro'] },
+            { text: '![', scopes: [] },
+            { text: 'd', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'e', scopes: ['function'] },
+            { text: '()]); ', scopes: [] },
+            { text: 'f', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'g', scopes: ['function'] },
+            { text: '();', scopes: [] }
           ]
         ]);
       });
