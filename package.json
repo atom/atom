@@ -64,7 +64,7 @@
     "fuzzaldrin": "^2.1",
     "fuzzy-finder": "https://www.atom.io/api/packages/fuzzy-finder/versions/1.13.7/tarball",
     "git-diff": "file:packages/git-diff",
-    "git-utils": "5.5.0",
+    "git-utils": "5.6.0",
     "github": "https://www.atom.io/api/packages/github/versions/0.29.0/tarball",
     "glob": "^7.1.1",
     "go-to-line": "file:packages/go-to-line",
