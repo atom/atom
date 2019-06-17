@@ -59,14 +59,14 @@ async function getReleaseVersion() {
   const buildBranch = process.env.BUILD_SOURCEBRANCHNAME;
   const isReleaseBranch =
     process.env.IS_RELEASE_BRANCH ||
-    buildBranch === 'upgrade-electron-winstaller' ||
+    buildBranch === 'upgrade-electron-winstaller-2' ||
     argv.nightly ||
     buildBranch.match(/\d\.\d+-releases/) !== null;
   const isSignedZipBranch =
     !isReleaseBranch &&
     (process.env.IS_SIGNED_ZIP_BRANCH ||
       buildBranch.startsWith('electron-') ||
-      buildBranch === 'upgrade-electron-winstaller' ||
+      buildBranch === 'upgrade-electron-winstaller-2' ||
       (buildBranch === 'master' &&
         !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER));
   console.log(
