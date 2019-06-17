@@ -7,6 +7,7 @@
     "grammar",
     "rust"
   ],
+  "main": "lib/main.js",
   "repository": "https://github.com/atom/atom",
   "license": "MIT",
   "dependencies": {
