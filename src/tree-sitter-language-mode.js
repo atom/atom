@@ -32,7 +32,7 @@ class TreeSitterLanguageMode {
     this.config = config;
     this.grammarRegistry = grammars;
     this.parser = new Parser();
-    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0, true);
+    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
     if (syncTimeoutMicros != null) {
@@ -637,14 +637,13 @@ class TreeSitterLanguageMode {
 }
 
 class LanguageLayer {
-  constructor(languageMode, grammar, depth, isOpaque) {
+  constructor(languageMode, grammar, depth) {
     this.languageMode = languageMode;
     this.grammar = grammar;
     this.tree = null;
     this.currentParsePromise = null;
     this.patchSinceCurrentParseStarted = null;
     this.depth = depth;
-    this.isOpaque = isOpaque;
   }
 
   buildHighlightIterator() {
@@ -886,8 +885,7 @@ class LanguageLayer {
           marker.languageLayer = new LanguageLayer(
             this.languageMode,
             grammar,
-            this.depth + 1,
-            injectionPoint.includeChildren
+            this.depth + 1
           );
           marker.parentLanguageLayer = this;
         }
@@ -940,7 +938,6 @@ class HighlightIterator {
   constructor(languageMode) {
     this.languageMode = languageMode;
     this.iterators = null;
-    this.opaqueLayerDepth = 0;
   }
 
   seek(targetPosition, endRow) {
@@ -961,6 +958,9 @@ class HighlightIterator {
     if (iterator.seek(targetIndex, containingTags, containingTagStartIndices)) {
       this.iterators.push(iterator);
     }
+
+    // Populate the iterators array with all of the iterators whose syntax
+    // trees span the given position.
     for (const marker of injectionMarkers) {
       const iterator = marker.languageLayer.buildHighlightIterator();
       if (
@@ -969,46 +969,54 @@ class HighlightIterator {
         this.iterators.push(iterator);
       }
     }
+
+    // Sort the iterators so that the last one in the array is the earliest
+    // in the document, and represents the current position.
     this.iterators.sort((a, b) => b.compare(a));
+    this.detectCoveredScope();
+
     return containingTags;
   }
 
   moveToSuccessor() {
+    // Advance the earliest layer iterator to its next scope boundary.
     let leader = last(this.iterators);
+
+    // Maintain the sorting of the iterators by their position in the document.
     if (leader.moveToSuccessor()) {
       const leaderIndex = this.iterators.length - 1;
       let i = leaderIndex;
       while (i > 0 && this.iterators[i - 1].compare(leader) < 0) i--;
       if (i < leaderIndex) {
         this.iterators.splice(i, 0, this.iterators.pop());
-        this.trackLayerDepth();
       }
     } else {
+      // If the layer iterator was at the end of its syntax tree, then remove
+      // it from the array.
       this.iterators.pop();
-      this.trackLayerDepth();
     }
+
+    this.detectCoveredScope();
   }
 
-  trackLayerDepth() {
-    let i = this.iterators.length - 1;
-    let iterator = this.iterators[i];
-    if (!iterator) return;
-    const offset = iterator.getOffset();
-    if (iterator.languageLayer.isOpaque) {
-      this.opaqueLayerDepth = iterator.languageLayer.depth;
-    }
-
-    while (i > 0) {
-      i--;
-      iterator = this.iterators[i];
-      if (iterator.startOffset > offset) break;
-      if (iterator.languageLayer.isOpaque) {
-        const { depth } = iterator.languageLayer;
-        if (depth > this.opaqueLayerDepth) {
-          this.opaqueLayerDepth = depth;
-        }
+  // Detect whether or not another more deeply-nested language layer has a
+  // scope boundary at this same position. If so, the current language layer's
+  // scope boundary should not be reported.
+  detectCoveredScope() {
+    const layerCount = this.iterators.length;
+    if (layerCount > 1) {
+      const first = this.iterators[layerCount - 1];
+      const next = this.iterators[layerCount - 2];
+      if (
+        next.offset === first.offset &&
+        next.atEnd === first.atEnd &&
+        next.languageLayer.depth > first.languageLayer.depth
+      ) {
+        this.currentScopeIsCovered = true;
+        return;
       }
     }
+    this.currentScopeIsCovered = false;
   }
 
   getPosition() {
@@ -1022,20 +1030,18 @@ class HighlightIterator {
 
   getCloseScopeIds() {
     const iterator = last(this.iterators);
-    if (iterator && iterator.languageLayer.depth >= this.opaqueLayerDepth) {
+    if (iterator && !this.currentScopeIsCovered) {
       return iterator.getCloseScopeIds();
-    } else {
-      return [];
     }
+    return [];
   }
 
   getOpenScopeIds() {
     const iterator = last(this.iterators);
-    if (iterator && iterator.languageLayer.depth >= this.opaqueLayerDepth) {
+    if (iterator && !this.currentScopeIsCovered) {
       return iterator.getOpenScopeIds();
-    } else {
-      return [];
     }
+    return [];
   }
 
   logState() {
@@ -1044,23 +1050,28 @@ class HighlightIterator {
       console.log(
         iterator.getPosition(),
         iterator.treeCursor.nodeType,
+        `depth=${iterator.languageLayer.depth}`,
         new Range(
           iterator.languageLayer.tree.rootNode.startPosition,
           iterator.languageLayer.tree.rootNode.endPosition
         ).toString()
       );
-      console.log(
-        'close',
-        iterator.closeTags.map(id =>
-          this.languageMode.grammar.scopeNameForScopeId(id)
-        )
-      );
-      console.log(
-        'open',
-        iterator.openTags.map(id =>
-          this.languageMode.grammar.scopeNameForScopeId(id)
-        )
-      );
+      if (this.currentScopeIsCovered) {
+        console.log('covered');
+      } else {
+        console.log(
+          'close',
+          iterator.closeTags.map(id =>
+            this.languageMode.grammar.scopeNameForScopeId(id)
+          )
+        );
+        console.log(
+          'open',
+          iterator.openTags.map(id =>
+            this.languageMode.grammar.scopeNameForScopeId(id)
+          )
+        );
+      }
     }
   }
 }
@@ -1073,8 +1084,7 @@ class LayerHighlightIterator {
     // in the syntax tree.
     this.atEnd = false;
     this.treeCursor = treeCursor;
-
-    this.startOffset = this.treeCursor.startIndex;
+    this.offset = 0;
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
@@ -1136,12 +1146,14 @@ class LayerHighlightIterator {
     }
 
     if (this.atEnd) {
-      const currentIndex = this.treeCursor.endIndex;
+      this.offset = this.treeCursor.endIndex;
       for (let i = 0, { length } = containingTags; i < length; i++) {
-        if (containingTagEndIndices[i] === currentIndex) {
+        if (containingTagEndIndices[i] === this.offset) {
           this.closeTags.push(containingTags[i]);
         }
       }
+    } else {
+      this.offset = this.treeCursor.startIndex;
     }
 
     return true;
@@ -1171,6 +1183,12 @@ class LayerHighlightIterator {
       }
     }
 
+    if (this.atEnd) {
+      this.offset = this.treeCursor.endIndex;
+    } else {
+      this.offset = this.treeCursor.startIndex;
+    }
+
     return true;
   }
 
@@ -1182,20 +1200,12 @@ class LayerHighlightIterator {
     }
   }
 
-  getOffset() {
-    if (this.atEnd) {
-      return this.treeCursor.endIndex;
-    } else {
-      return this.treeCursor.startIndex;
-    }
-  }
-
   compare(other) {
-    let result = this.getOffset() - other.getOffset();
+    const result = this.offset - other.offset;
     if (result !== 0) return result;
     if (this.atEnd && !other.atEnd) return -1;
     if (other.atEnd && !this.atEnd) return 1;
-    return this.depth - other.depth;
+    return this.languageLayer.depth - other.languageLayer.depth;
   }
 
   getCloseScopeIds() {
@@ -1319,9 +1329,6 @@ class NullHighlightIterator {
     return 1;
   }
   moveToSuccessor() {}
-  getOffset() {
-    return Infinity;
-  }
   getPosition() {
     return Point.INFINITY;
   }
