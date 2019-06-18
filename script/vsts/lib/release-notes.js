@@ -97,32 +97,60 @@ module.exports.generateForNightly = async function(
   releaseVersion,
   githubToken
 ) {
-  const releases = await octokit.repos.getReleases({
-    owner: 'atom',
-    repo: 'atom-nightly-releases'
-  });
-  const previousRelease = getPreviousRelease(releaseVersion, releases.data);
-  const oldReleaseNotes = previousRelease ? previousRelease.body : undefined;
-
   const latestCommitResult = childProcess.spawnSync('git', [
     'rev-parse',
     '--short',
     'HEAD'
   ]);
+  if (!latestCommitResult) {
+    console.log("Couldn't get the current commmit from git.");
 
-  if (latestCommitResult && oldReleaseNotes) {
-    const latestCommit = latestCommitResult.stdout.toString().trim();
-    const extractMatch = oldReleaseNotes.match(
-      /atom\/atom\/compare\/([0-9a-f]{5,40})\.\.\.([0-9a-f]{5,40})/
-    );
-    if (extractMatch) {
-      return `### Click [here](https://github.com/atom/atom/compare/${
-        extractMatch[2]
-      }...${latestCommit}) to see the changes included with this release! :atom: :night_with_stars:`;
-    }
+    return undefined;
   }
 
-  return undefined;
+  const latestCommit = latestCommitResult.stdout.toString().trim();
+  const output = [
+    `### This nightly release is based on https://github.com/atom/atom/commit/${latestCommit} :atom: :night_with_stars:`
+  ];
+
+  try {
+    const releases = await octokit.repos.getReleases({
+      owner: 'atom',
+      repo: 'atom-nightly-releases'
+    });
+
+    const previousRelease = getPreviousRelease(releaseVersion, releases.data);
+    const oldReleaseNotes = previousRelease ? previousRelease.body : undefined;
+
+    if (oldReleaseNotes) {
+      const extractMatch = oldReleaseNotes.match(
+        /atom\/atom\/commit\/([0-9a-f]{5,40})/
+      );
+      if (extractMatch.length > 1 && extractMatch[1]) {
+        output.push('', '---', '');
+        const previousCommit = extractMatch[1];
+
+        if (
+          previousCommit === latestCommit ||
+          previousCommit.startsWith(latestCommit) ||
+          latestCommit.startsWith(previousCommit)
+        ) {
+          // TODO: Maybe we can bail out and not publish a release if it contains no commits?
+          output.push('No changes have been included in this release');
+        } else {
+          output.push(
+            `Click [here](https://github.com/atom/atom/compare/${previousCommit}...${latestCommit}) to see the changes included with this release!`
+          );
+        }
+      }
+    }
+  } catch (e) {
+    console.log(
+      'Error when trying to find the previous nightly release: ' + e.message
+    );
+  }
+
+  return output;
 };
 
 function extractWrittenReleaseNotes(oldReleaseNotes) {
