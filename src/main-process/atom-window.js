@@ -1,4 +1,5 @@
 const { BrowserWindow, app, dialog, ipcMain } = require('electron');
+const crypto = require('crypto');
 const path = require('path');
 const url = require('url');
 const { EventEmitter } = require('events');
@@ -23,6 +24,7 @@ module.exports = class AtomWindow extends EventEmitter {
     this.safeMode = settings.safeMode;
     this.devMode = settings.devMode;
     this.resourcePath = settings.resourcePath;
+    this.windowId = settings.windowId || crypto.randomBytes(8).toString('hex');
 
     const locationsToOpen = settings.locationsToOpen || [];
 
@@ -80,6 +82,7 @@ module.exports = class AtomWindow extends EventEmitter {
 
     this.loadSettings = Object.assign({}, settings);
     this.loadSettings.appVersion = app.getVersion();
+    this.loadSettings.windowId = this.windowId;
     this.loadSettings.resourcePath = this.resourcePath;
     this.loadSettings.atomHome = process.env.ATOM_HOME;
     if (this.loadSettings.devMode == null) this.loadSettings.devMode = false;

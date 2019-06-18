@@ -384,6 +384,7 @@ module.exports = class AtomApplication extends EventEmitter {
       clearWindowState,
       addToLastWindow,
       preserveFocus,
+      windowId,
       env
     } = options;
 
@@ -427,12 +428,13 @@ module.exports = class AtomApplication extends EventEmitter {
         profileStartup,
         clearWindowState,
         addToLastWindow,
+        windowId,
         env
       });
     } else if (urlsToOpen && urlsToOpen.length > 0) {
       return Promise.all(
         urlsToOpen.map(urlToOpen =>
-          this.openUrl({ urlToOpen, devMode, safeMode, env })
+          this.openUrl({ urlToOpen, devMode, safeMode, env, windowId })
         )
       );
     } else {
@@ -446,7 +448,8 @@ module.exports = class AtomApplication extends EventEmitter {
         profileStartup,
         clearWindowState,
         addToLastWindow,
-        env
+        env,
+        windowId
       });
     }
   }
@@ -1235,6 +1238,7 @@ module.exports = class AtomApplication extends EventEmitter {
   //   :profileStartup - Boolean to control creating a profile of the startup time.
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
+  //   :windowId - Identifier used to retrieve the window state (if the window has no projects).
   openPath({
     pathToOpen,
     pidToKillWhenClosed,
@@ -1245,7 +1249,8 @@ module.exports = class AtomApplication extends EventEmitter {
     window,
     clearWindowState,
     addToLastWindow,
-    env
+    env,
+    windowId
   } = {}) {
     return this.openPaths({
       pathsToOpen: [pathToOpen],
@@ -1257,7 +1262,8 @@ module.exports = class AtomApplication extends EventEmitter {
       window,
       clearWindowState,
       addToLastWindow,
-      env
+      env,
+      windowId
     });
   }
 
@@ -1273,6 +1279,7 @@ module.exports = class AtomApplication extends EventEmitter {
   //   :windowDimensions - Object with height and width keys.
   //   :window - {AtomWindow} to open file paths in.
   //   :addToLastWindow - Boolean of whether this should be opened in last focused window.
+  //   :windowId - Identifier used to retrieve the window state (if the window has no projects).
   async openPaths({
     pathsToOpen,
     foldersToOpen,
@@ -1286,7 +1293,8 @@ module.exports = class AtomApplication extends EventEmitter {
     window,
     clearWindowState,
     addToLastWindow,
-    env
+    env,
+    windowId
   } = {}) {
     if (!env) env = process.env;
     if (!pathsToOpen) pathsToOpen = [];
@@ -1419,7 +1427,8 @@ module.exports = class AtomApplication extends EventEmitter {
         windowDimensions,
         profileStartup,
         clearWindowState,
-        env
+        env,
+        windowId
       });
       this.addWindow(openedWindow);
       openedWindow.focus();
@@ -1495,7 +1504,10 @@ module.exports = class AtomApplication extends EventEmitter {
       version: APPLICATION_STATE_VERSION,
       windows: this.getAllWindows()
         .filter(window => !window.isSpec)
-        .map(window => ({ projectRoots: window.projectRoots }))
+        .map(window => ({
+          projectRoots: window.projectRoots,
+          windowId: window.windowId
+        }))
     };
     state.windows.reverse();
 
@@ -1518,7 +1530,8 @@ module.exports = class AtomApplication extends EventEmitter {
         foldersToOpen: each.projectRoots,
         devMode: this.devMode,
         safeMode: this.safeMode,
-        newWindow: true
+        newWindow: true,
+        windowId: each.windowId
       }));
     } else if (state.version === undefined) {
       // Atom <= 1.36.0

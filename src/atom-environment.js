@@ -1499,7 +1499,18 @@ or use Pane::saveItemAs for programmatic saving.`);
   }
 
   getStateKey(paths) {
-    if (paths && paths.length > 0) {
+    if (!paths) {
+      return null;
+    }
+
+    if (paths.length === 0) {
+      // If the current window does not have any project opened, use the
+      // windowId to retrieve its state. Maybe we could do that for all
+      // the windows.
+      paths = [this.getLoadSettings().windowId];
+    }
+
+    if (paths.length > 0) {
       const sha1 = crypto
         .createHash('sha1')
         .update(
