@@ -41,6 +41,7 @@ if (global.isGeneratingSnapshot) {
   require('language-html');
   require('language-javascript');
   require('language-ruby');
+  require('language-rust-bundled');
   require('language-typescript');
   require('line-ending-selector');
   require('link');
