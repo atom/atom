@@ -1315,6 +1315,9 @@ class NullHighlightIterator {
   seek() {
     return [];
   }
+  compare() {
+    return 1;
+  }
   moveToSuccessor() {}
   getOffset() {
     return Infinity;
