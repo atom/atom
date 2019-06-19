@@ -1010,7 +1010,7 @@ class HighlightIterator {
       if (
         next.offset === first.offset &&
         next.atEnd === first.atEnd &&
-        next.languageLayer.depth > first.languageLayer.depth
+        next.depth > first.depth
       ) {
         this.currentScopeIsCovered = true;
         return;
@@ -1079,6 +1079,7 @@ class HighlightIterator {
 class LayerHighlightIterator {
   constructor(languageLayer, treeCursor) {
     this.languageLayer = languageLayer;
+    this.depth = this.languageLayer.depth;
 
     // The iterator is always positioned at either the start or the end of some node
     // in the syntax tree.
