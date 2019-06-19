@@ -150,7 +150,7 @@ module.exports.generateForNightly = async function(
     );
   }
 
-  return output;
+  return output.join('\n');
 };
 
 function extractWrittenReleaseNotes(oldReleaseNotes) {
