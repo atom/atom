@@ -25,7 +25,6 @@ module.exports = packagedAppPath => {
     ),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
-    noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
     remoteReleases: `${updateUrlPrefix}/api/updates${archSuffix}?version=${
       CONFIG.computedAppVersion
     }`,
