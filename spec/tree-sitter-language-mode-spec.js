@@ -1555,7 +1555,7 @@ describe('TreeSitterLanguageMode', () => {
           scopes: {},
           folds: [
             {
-              type: ['element', 'raw_element'],
+              type: ['element', 'script_element'],
               start: { index: 0 },
               end: { index: -1 }
             }
@@ -1696,7 +1696,7 @@ describe('TreeSitterLanguageMode', () => {
           parser: 'tree-sitter-html',
           scopes: {
             fragment: 'text.html',
-            raw_element: 'script.tag'
+            script_element: 'script.tag'
           },
           injectionRegExp: 'html',
           injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
@@ -1859,7 +1859,7 @@ describe('TreeSitterLanguageMode', () => {
         'text.html',
         'fragment',
         'element',
-        'raw_element',
+        'script_element',
         'raw_text',
         'program',
         'expression_statement',
@@ -2409,7 +2409,7 @@ const HTML_TEMPLATE_LITERAL_INJECTION_POINT = {
 };
 
 const SCRIPT_TAG_INJECTION_POINT = {
-  type: 'raw_element',
+  type: 'script_element',
   language() {
     return 'javascript';
   },
