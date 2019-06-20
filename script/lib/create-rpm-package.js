@@ -81,7 +81,8 @@ module.exports = function(packagedAppPath) {
     apmFileName: apmExecutableName,
     description: appDescription,
     installDir: '/usr',
-    version: appVersion
+    version: appVersion,
+    policyFileName
   });
   fs.writeFileSync(rpmPackageSpecFilePath, rpmPackageSpecsContents);
 
