@@ -104,24 +104,13 @@ module.exports = class GrammarListView {
       });
 
       if (atom.config.get('grammar-selector.hideDuplicateTextMateGrammars')) {
-        const oldGrammars = grammars;
-        grammars = [];
         const blacklist = new Set();
-        for (const grammar of oldGrammars) {
+        grammars.forEach(grammar => {
           if (isTreeSitter(grammar)) {
             blacklist.add(grammar.name);
-            grammars.push(grammar);
-          }
-        }
-        atom.grammars.getGrammars({ textMateOnly: true }).forEach(grammar => {
-          if (
-            grammar !== atom.grammars.nullGrammar &&
-            grammar.name &&
-            !blacklist.has(grammar.name)
-          ) {
-            grammars.push(grammar);
           }
         });
+        grammars = grammars.filter(grammar => isTreeSitter(grammar) || !blacklist.has(grammar.name));
       }
 
       grammars.sort((a, b) => {
