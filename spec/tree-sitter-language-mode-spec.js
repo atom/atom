@@ -27,6 +27,9 @@ const ejsGrammarPath = require.resolve(
 const rubyGrammarPath = require.resolve(
   'language-ruby/grammars/tree-sitter-ruby.cson'
 );
+const rustGrammarPath = require.resolve(
+  'language-rust-bundled/grammars/tree-sitter-rust.cson'
+);
 
 describe('TreeSitterLanguageMode', () => {
   let editor, buffer;
@@ -831,6 +834,81 @@ describe('TreeSitterLanguageMode', () => {
         ]);
       });
 
+      it('respects the `includeChildren` property of injection points', async () => {
+        const rustGrammar = new TreeSitterGrammar(
+          atom.grammars,
+          rustGrammarPath,
+          {
+            scopeName: 'rust',
+            parser: 'tree-sitter-rust',
+            scopes: {
+              identifier: 'variable',
+              field_identifier: 'property',
+              'call_expression > field_expression > field_identifier':
+                'function',
+              'macro_invocation > identifier': 'macro'
+            },
+            injectionRegExp: 'rust',
+            injectionPoints: [
+              {
+                type: 'macro_invocation',
+                language() {
+                  return 'rust';
+                },
+                content(node) {
+                  return node.lastChild;
+                },
+
+                // The tokens within a `token_tree` are all parsed as separate
+                // children of the `token_tree`. By default, when adding a language
+                // injection for a node, the node's children's ranges would be
+                // excluded from the injection. But for this injection point
+                // (parsing token trees as rust code), we want to reparse all of the
+                // content of the token tree.
+                includeChildren: true
+              }
+            ]
+          }
+        );
+
+        atom.grammars.addGrammar(rustGrammar);
+
+        // Macro call within another macro call.
+        buffer.setText('assert_eq!(a.b.c(), vec![d.e()]); f.g();');
+
+        const languageMode = new TreeSitterLanguageMode({
+          buffer,
+          grammar: rustGrammar,
+          grammars: atom.grammars
+        });
+        buffer.setLanguageMode(languageMode);
+
+        // There should not be duplicate scopes due to the root layer
+        // and for the injected rust layer.
+        expectTokensToEqual(editor, [
+          [
+            { text: 'assert_eq', scopes: ['macro'] },
+            { text: '!(', scopes: [] },
+            { text: 'a', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'b', scopes: ['property'] },
+            { text: '.', scopes: [] },
+            { text: 'c', scopes: ['function'] },
+            { text: '(), ', scopes: [] },
+            { text: 'vec', scopes: ['macro'] },
+            { text: '![', scopes: [] },
+            { text: 'd', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'e', scopes: ['function'] },
+            { text: '()]); ', scopes: [] },
+            { text: 'f', scopes: ['variable'] },
+            { text: '.', scopes: [] },
+            { text: 'g', scopes: ['function'] },
+            { text: '();', scopes: [] }
+          ]
+        ]);
+      });
+
       it('notifies onDidTokenize listeners the first time all syntax highlighting is done', async () => {
         const promise = new Promise(resolve => {
           editor.onDidTokenize(event => {
@@ -1477,7 +1555,7 @@ describe('TreeSitterLanguageMode', () => {
           scopes: {},
           folds: [
             {
-              type: ['element', 'raw_element'],
+              type: ['element', 'script_element'],
               start: { index: 0 },
               end: { index: -1 }
             }
@@ -1618,7 +1696,7 @@ describe('TreeSitterLanguageMode', () => {
           parser: 'tree-sitter-html',
           scopes: {
             fragment: 'text.html',
-            raw_element: 'script.tag'
+            script_element: 'script.tag'
           },
           injectionRegExp: 'html',
           injectionPoints: [SCRIPT_TAG_INJECTION_POINT]
@@ -1781,7 +1859,7 @@ describe('TreeSitterLanguageMode', () => {
         'text.html',
         'fragment',
         'element',
-        'raw_element',
+        'script_element',
         'raw_text',
         'program',
         'expression_statement',
@@ -1811,7 +1889,7 @@ describe('TreeSitterLanguageMode', () => {
           [0, 5],
           [0, 8]
         ]);
-        expect(editor.bufferRangeForScopeAtPosition(null, [0, 9])).toEqual([
+        expect(editor.bufferRangeForScopeAtPosition(null, [0, 8])).toEqual([
           [0, 8],
           [0, 9]
         ]);
@@ -2210,6 +2288,47 @@ describe('TreeSitterLanguageMode', () => {
       expect(editor.getSelectedText()).toBe('html ` <b>c${def()}e${f}g</b> `');
     });
   });
+
+  describe('.tokenizedLineForRow(row)', () => {
+    it('returns a shimmed TokenizedLine with tokens', () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source',
+          'call_expression > identifier': 'function',
+          property_identifier: 'property',
+          'call_expression > member_expression > property_identifier': 'method',
+          identifier: 'variable'
+        }
+      });
+
+      buffer.setText('aa.bbb = cc(d.eee());\n\n    \n  b');
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expect(languageMode.tokenizedLineForRow(0).tokens).toEqual([
+        { value: 'aa', scopes: ['source', 'variable'] },
+        { value: '.', scopes: ['source'] },
+        { value: 'bbb', scopes: ['source', 'property'] },
+        { value: ' = ', scopes: ['source'] },
+        { value: 'cc', scopes: ['source', 'function'] },
+        { value: '(', scopes: ['source'] },
+        { value: 'd', scopes: ['source', 'variable'] },
+        { value: '.', scopes: ['source'] },
+        { value: 'eee', scopes: ['source', 'method'] },
+        { value: '());', scopes: ['source'] }
+      ]);
+      expect(languageMode.tokenizedLineForRow(1).tokens).toEqual([]);
+      expect(languageMode.tokenizedLineForRow(2).tokens).toEqual([
+        { value: '    ', scopes: ['source'] }
+      ]);
+      expect(languageMode.tokenizedLineForRow(3).tokens).toEqual([
+        { value: '  ', scopes: ['source'] },
+        { value: 'b', scopes: ['source', 'variable'] }
+      ]);
+    });
+  });
 });
 
 function nextHighlightingUpdate(languageMode) {
@@ -2290,7 +2409,7 @@ const HTML_TEMPLATE_LITERAL_INJECTION_POINT = {
 };
 
 const SCRIPT_TAG_INJECTION_POINT = {
-  type: 'raw_element',
+  type: 'script_element',
   language() {
     return 'javascript';
   },

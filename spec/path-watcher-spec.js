@@ -7,7 +7,6 @@ import { promisify } from 'util';
 
 import { CompositeDisposable } from 'event-kit';
 import { watchPath, stopAllWatchers } from '../src/path-watcher';
-import { timeoutPromise } from './async-spec-helpers';
 
 temp.track();
 
@@ -22,7 +21,6 @@ describe('watchPath', function() {
   let subs;
 
   beforeEach(function() {
-    jasmine.useRealClock();
     subs = new CompositeDisposable();
   });
 
@@ -111,12 +109,6 @@ describe('watchPath', function() {
         waitForChanges(rootWatcher, subFile),
         waitForChanges(childWatcher, subFile)
       ]);
-
-      // In Windows64, in some situations nsfw (the currently default watcher)
-      // does not trigger the change events if they happen just after start watching,
-      // so we need to wait some time. More info: https://github.com/atom/atom/issues/19442
-      await timeoutPromise(300);
-
       await writeFile(subFile, 'subfile\n', { encoding: 'utf8' });
       await firstChanges;
 
@@ -163,11 +155,6 @@ describe('watchPath', function() {
 
       expect(subWatcher0.native).toBe(parentWatcher.native);
       expect(subWatcher1.native).toBe(parentWatcher.native);
-
-      // In Windows64, in some situations nsfw (the currently default watcher)
-      // does not trigger the change events if they happen just after start watching,
-      // so we need to wait some time. More info: https://github.com/atom/atom/issues/19442
-      await timeoutPromise(300);
 
       // Ensure events are filtered correctly
       await Promise.all([
