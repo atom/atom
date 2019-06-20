@@ -129,9 +129,7 @@ module.exports = class TreeSitterGrammar {
   }
 
   tokenizeLines(text, compatibilityMode = true) {
-    return text
-      .split('\n')
-      .map(line => this.tokenizeLine(line, null, false));
+    return text.split('\n').map(line => this.tokenizeLine(line, null, false));
   }
 
   tokenizeLine(line, ruleStack, firstLine) {
