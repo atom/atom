@@ -209,7 +209,12 @@ module.exports = function(packagedAppPath) {
   );
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
-    path.join(debianPackageShareDirPath, 'polkit-1', 'actions', 'atom.policy')
+    path.join(
+      debianPackageShareDirPath,
+      'polkit-1',
+      'actions',
+      `atom-${CONFIG.channel}.policy`
+    )
   );
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`);
