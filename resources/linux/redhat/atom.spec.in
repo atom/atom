@@ -26,7 +26,7 @@ chmod 755 "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
 mkdir -p "%{buildroot}/<%= installDir %>/share/applications/"
 cp "<%= appFileName %>.desktop" "%{buildroot}/<%= installDir %>/share/applications/"
 mkdir -p "%{buildroot}/<%= installDir %>/share/polkit-1/actions/"
-cp "atom.policy" "%{buildroot}/<%= installDir %>/share/polkit-1/actions/atom.policy"
+cp "<%= policyFileName %>" "%{buildroot}/<%= installDir %>/share/polkit-1/actions/<%= policyFileName %>"
 
 mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps"
 cp "icons/1024.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps/<%= appFileName %>.png"
