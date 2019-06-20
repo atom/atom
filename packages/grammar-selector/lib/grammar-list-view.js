@@ -110,7 +110,9 @@ module.exports = class GrammarListView {
             blacklist.add(grammar.name);
           }
         });
-        grammars = grammars.filter(grammar => isTreeSitter(grammar) || !blacklist.has(grammar.name));
+        grammars = grammars.filter(
+          grammar => isTreeSitter(grammar) || !blacklist.has(grammar.name)
+        );
       }
 
       grammars.sort((a, b) => {
