@@ -122,6 +122,16 @@ jobs:
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
 
+      # The artifact caching task does not work on forks, so we need to
+      # bootstrap again for pull requests coming from forked repositories.
+      - script: script/bootstrap
+        displayName: Bootstrap build environment
+        env:
+          CI: true
+          CI_PROVIDER: VSTS
+          NPM_BIN_PATH: /usr/local/bin/npm
+        condition: ne(variables['CacheRestored'], 'true')
+
       - task: DownloadBuildArtifacts@0
         displayName: Download atom-mac.zip
         inputs:
