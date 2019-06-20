@@ -52,5 +52,5 @@ cp "icons/16.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/16x16/apps
 <%= installDir %>/bin/<%= apmFileName %>
 <%= installDir %>/share/<%= appFileName %>/
 <%= installDir %>/share/applications/<%= appFileName %>.desktop
-<%= installDir %>/share/polkit-1/actions/atom.policy
+<%= installDir %>/share/polkit-1/actions/<%= policyFileName %>
 <%= installDir %>/share/icons/hicolor/

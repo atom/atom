@@ -19,6 +19,7 @@ module.exports = function(packagedAppPath) {
   // RPM versions can't have dashes or tildes in them.
   // (Ref.: https://twiki.cern.ch/twiki/bin/view/Main/RPMAndDebVersioning)
   const appVersion = CONFIG.appMetadata.version.replace(/-/g, '.');
+  const policyFileName = `atom-${CONFIG.channel}.policy`;
 
   const rpmPackageDirPath = path.join(CONFIG.homeDirPath, 'rpmbuild');
   const rpmPackageBuildDirPath = path.join(rpmPackageDirPath, 'BUILD');
@@ -114,7 +115,7 @@ module.exports = function(packagedAppPath) {
   console.log(`Copying atom.policy into "${rpmPackageBuildDirPath}"`);
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
-    path.join(rpmPackageBuildDirPath, 'atom.policy')
+    path.join(rpmPackageBuildDirPath, policyFileName)
   );
 
   console.log(`Generating .rpm package from "${rpmPackageDirPath}"`);
