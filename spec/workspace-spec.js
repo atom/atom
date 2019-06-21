@@ -1994,7 +1994,7 @@ describe('Workspace', () => {
 
       expect(
         atom2.grammars
-          .getGrammars()
+          .getGrammars({ includeTreeSitter: true })
           .map(grammar => grammar.scopeName)
           .sort()
       ).toEqual([
