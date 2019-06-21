@@ -350,7 +350,7 @@ module.exports = class GrammarRegistry {
   }
 
   forEachGrammar(callback) {
-    this.grammars.forEach(callback);
+    this.getGrammars({ includeTreeSitter: true }).forEach(callback);
   }
 
   grammarForId(languageId) {
