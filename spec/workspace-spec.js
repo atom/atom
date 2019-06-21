@@ -1994,14 +1994,17 @@ describe('Workspace', () => {
 
       expect(
         atom2.grammars
-          .getGrammars()
+          .getGrammars({ includeTreeSitter: true })
           .map(grammar => grammar.scopeName)
           .sort()
       ).toEqual([
         'source.coffee',
+        'source.js', // Tree-sitter grammars also load
         'source.js',
         'source.js.regexp',
+        'source.js.regexp',
         'source.js.regexp.replacement',
+        'source.jsdoc',
         'source.jsdoc',
         'source.litcoffee',
         'text.plain.null-grammar',
