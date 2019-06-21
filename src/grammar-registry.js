@@ -618,13 +618,13 @@ module.exports = class GrammarRegistry {
   // Extended: Get all the grammars in this registry.
   //
   // * `options` (optional) {Object}
-  //   * `textMateOnly` (optional) {Boolean} Set to ignore
+  //   * `includeTreeSitter` (optional) {Boolean} Set to include
   //     [Tree-sitter](https://github.blog/2018-10-31-atoms-new-parsing-system/) grammars
   //
   // Returns a non-empty {Array} of {Grammar} instances.
   getGrammars(params) {
     let tmGrammars = this.textmateRegistry.getGrammars();
-    if (params && params.textMateOnly) return tmGrammars;
+    if (!(params && params.includeTreeSitter)) return tmGrammars;
 
     const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(
       g => g.scopeName

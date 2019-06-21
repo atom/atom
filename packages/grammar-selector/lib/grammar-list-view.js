@@ -99,9 +99,11 @@ module.exports = class GrammarListView {
         this.currentGrammar = this.autoDetect;
       }
 
-      let grammars = atom.grammars.getGrammars().filter(grammar => {
-        return grammar !== atom.grammars.nullGrammar && grammar.name;
-      });
+      let grammars = atom.grammars
+        .getGrammars({ includeTreeSitter: true })
+        .filter(grammar => {
+          return grammar !== atom.grammars.nullGrammar && grammar.name;
+        });
 
       if (atom.config.get('grammar-selector.hideDuplicateTextMateGrammars')) {
         const blacklist = new Set();
