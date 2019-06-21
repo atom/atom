@@ -33,7 +33,9 @@ describe('GrammarSelector', () => {
       // -1 for removing nullGrammar, +1 for adding "Auto Detect"
       // Tree-sitter names the regex and JSDoc grammars
       expect(grammarView.querySelectorAll('li').length).toBe(
-        atom.grammars.grammars.filter(g => g.name).length
+        atom.grammars
+          .getGrammars({ includeTreeSitter: true })
+          .filter(g => g.name).length
       );
       expect(grammarView.querySelectorAll('li')[0].textContent).toBe(
         'Auto Detect'
