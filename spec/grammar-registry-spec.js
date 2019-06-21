@@ -884,12 +884,16 @@ describe('GrammarRegistry', () => {
 
     it('returns only Tree-sitter grammars by default', async () => {
       const tmGrammars = atom.grammars.getGrammars();
-      const allGrammars = atom.grammars.getGrammars({ includeTreeSitter: true });
+      const allGrammars = atom.grammars.getGrammars({
+        includeTreeSitter: true
+      });
       expect(allGrammars.length).toBeGreaterThan(tmGrammars.length);
     });
 
     it('executes the foreach callback on both Tree-sitter and TextMate grammars', async () => {
-      const numAllGrammars = atom.grammars.getGrammars({ includeTreeSitter: true }).length;
+      const numAllGrammars = atom.grammars.getGrammars({
+        includeTreeSitter: true
+      }).length;
       let i = 0;
       atom.grammars.forEachGrammar(() => i++);
       expect(i).toBe(numAllGrammars);
