@@ -143,7 +143,18 @@
     const startCrashReporter = useSnapshot
       ? snapshotResult.customRequire('../src/crash-reporter-start.js')
       : require('../src/crash-reporter-start');
-    startCrashReporter({ _version: getWindowLoadSettings().appVersion });
+
+    console.log(getWindowLoadSettings())
+    const { userSettings, appVersion } = getWindowLoadSettings();
+    const uploadToServer =
+      userSettings &&
+      userSettings.core &&
+      userSettings.core.telemetryConsent === 'limited';
+
+    startCrashReporter({
+      uploadToServer,
+      appVersion
+    });
 
     const CSON = useSnapshot
       ? snapshotResult.customRequire('../node_modules/season/lib/cson.js')

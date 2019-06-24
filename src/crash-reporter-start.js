@@ -1,10 +1,14 @@
-module.exports = function(extra) {
+module.exports = function(params) {
   const { crashReporter } = require('electron');
+  const { uploadToServer, appVersion } = params;
+
   crashReporter.start({
     productName: 'Atom',
     companyName: 'GitHub',
-    submitURL: 'https://crashreporter.atom.io',
-    uploadToServer: false,
-    extra: extra
+    submitURL: 'https://atom.io/crash_reports',
+    uploadToServer,
+    extra: {
+      appVersion
+    }
   });
 };
