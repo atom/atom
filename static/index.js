@@ -7,6 +7,7 @@
   const path = require('path');
   const Module = require('module');
   const getWindowLoadSettings = require('../src/get-window-load-settings');
+  const getReleaseChannel = require('../src/get-release-channel');
   const StartupTime = require('../src/startup-time');
   const entryPointDirPath = __dirname;
   let blobStore = null;
@@ -144,16 +145,16 @@
       ? snapshotResult.customRequire('../src/crash-reporter-start.js')
       : require('../src/crash-reporter-start');
 
-    console.log(getWindowLoadSettings())
-    const { userSettings } = getWindowLoadSettings();
+    const { userSettings, appVersion } = getWindowLoadSettings();
     const uploadToServer =
       userSettings &&
       userSettings.core &&
       userSettings.core.telemetryConsent === 'limited';
+    const releaseChannel = getReleaseChannel(appVersion);
 
     startCrashReporter({
       uploadToServer,
-      process: 'renderer'
+      releaseChannel
     });
 
     const CSON = useSnapshot

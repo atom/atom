@@ -45,6 +45,7 @@ const TextBuffer = require('text-buffer');
 const TextEditorRegistry = require('./text-editor-registry');
 const AutoUpdateManager = require('./auto-update-manager');
 const StartupTime = require('./startup-time');
+const getReleaseChannel = require('./get-release-channel');
 
 const stat = util.promisify(fs.stat);
 
@@ -565,18 +566,7 @@ class AtomEnvironment {
   // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
   // otherwise.
   getReleaseChannel() {
-    // This matches stable, dev (with or without commit hash) and any other
-    // release channel following the pattern '1.00.0-channel0'
-    const match = this.getVersion().match(
-      /\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/
-    );
-    if (!match) {
-      return 'unrecognized';
-    } else if (match[2]) {
-      return match[2];
-    }
-
-    return 'stable';
+    return getReleaseChannel(this.getVersion());
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
