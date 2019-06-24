@@ -88,8 +88,7 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
   app.on('open-file', addPathToOpen);
   app.on('open-url', addUrlToOpen);
   app.on('will-finish-launching', () => startCrashReporter({
-    uploadToServer: config.get('core.telemetryConsent') === 'limited',
-    appVersion: app.getVersion()
+    uploadToServer: config.get('core.telemetryConsent') === 'limited'
   }));
 
   if (args.userDataDir != null) {

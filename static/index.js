@@ -145,7 +145,7 @@
       : require('../src/crash-reporter-start');
 
     console.log(getWindowLoadSettings())
-    const { userSettings, appVersion } = getWindowLoadSettings();
+    const { userSettings } = getWindowLoadSettings();
     const uploadToServer =
       userSettings &&
       userSettings.core &&
@@ -153,7 +153,7 @@
 
     startCrashReporter({
       uploadToServer,
-      appVersion
+      process: 'renderer'
     });
 
     const CSON = useSnapshot
