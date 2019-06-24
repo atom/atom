@@ -32,7 +32,7 @@ class TreeSitterLanguageMode {
     this.config = config;
     this.grammarRegistry = grammars;
     this.parser = new Parser();
-    this.rootLanguageLayer = new LanguageLayer(this, grammar);
+    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
     if (syncTimeoutMicros != null) {
@@ -637,13 +637,13 @@ class TreeSitterLanguageMode {
 }
 
 class LanguageLayer {
-  constructor(languageMode, grammar, contentChildTypes) {
+  constructor(languageMode, grammar, depth) {
     this.languageMode = languageMode;
     this.grammar = grammar;
     this.tree = null;
     this.currentParsePromise = null;
     this.patchSinceCurrentParseStarted = null;
-    this.contentChildTypes = contentChildTypes;
+    this.depth = depth;
   }
 
   buildHighlightIterator() {
@@ -885,7 +885,7 @@ class LanguageLayer {
           marker.languageLayer = new LanguageLayer(
             this.languageMode,
             grammar,
-            injectionPoint.contentChildTypes
+            this.depth + 1
           );
           marker.parentLanguageLayer = this;
         }
@@ -895,7 +895,8 @@ class LanguageLayer {
           new NodeRangeSet(
             nodeRangeSet,
             injectionNodes,
-            injectionPoint.newlinesBetween
+            injectionPoint.newlinesBetween,
+            injectionPoint.includeChildren
           )
         );
       }
@@ -910,7 +911,6 @@ class LanguageLayer {
     }
 
     if (markersToUpdate.size > 0) {
-      this.lastUpdateWasAsync = true;
       const promises = [];
       for (const [marker, nodeRangeSet] of markersToUpdate) {
         promises.push(marker.languageLayer.update(nodeRangeSet));
@@ -947,75 +947,131 @@ class HighlightIterator {
       }
     );
 
-    this.iterators = [
-      this.languageMode.rootLanguageLayer.buildHighlightIterator()
-    ];
-    for (const marker of injectionMarkers) {
-      this.iterators.push(marker.languageLayer.buildHighlightIterator());
-    }
-    this.iterators.sort((a, b) => b.getIndex() - a.getIndex());
-
     const containingTags = [];
     const containingTagStartIndices = [];
     const targetIndex = this.languageMode.buffer.characterIndexForPosition(
       targetPosition
     );
-    for (let i = this.iterators.length - 1; i >= 0; i--) {
-      this.iterators[i].seek(
-        targetIndex,
-        containingTags,
-        containingTagStartIndices
-      );
+
+    this.iterators = [];
+    const iterator = this.languageMode.rootLanguageLayer.buildHighlightIterator();
+    if (iterator.seek(targetIndex, containingTags, containingTagStartIndices)) {
+      this.iterators.push(iterator);
     }
-    this.iterators.sort((a, b) => b.getIndex() - a.getIndex());
+
+    // Populate the iterators array with all of the iterators whose syntax
+    // trees span the given position.
+    for (const marker of injectionMarkers) {
+      const iterator = marker.languageLayer.buildHighlightIterator();
+      if (
+        iterator.seek(targetIndex, containingTags, containingTagStartIndices)
+      ) {
+        this.iterators.push(iterator);
+      }
+    }
+
+    // Sort the iterators so that the last one in the array is the earliest
+    // in the document, and represents the current position.
+    this.iterators.sort((a, b) => b.compare(a));
+    this.detectCoveredScope();
+
     return containingTags;
   }
 
   moveToSuccessor() {
-    const lastIndex = this.iterators.length - 1;
-    const leader = this.iterators[lastIndex];
-    leader.moveToSuccessor();
-    const leaderCharIndex = leader.getIndex();
-    let i = lastIndex;
-    while (i > 0 && this.iterators[i - 1].getIndex() < leaderCharIndex) i--;
-    if (i < lastIndex) this.iterators.splice(i, 0, this.iterators.pop());
+    // Advance the earliest layer iterator to its next scope boundary.
+    let leader = last(this.iterators);
+
+    // Maintain the sorting of the iterators by their position in the document.
+    if (leader.moveToSuccessor()) {
+      const leaderIndex = this.iterators.length - 1;
+      let i = leaderIndex;
+      while (i > 0 && this.iterators[i - 1].compare(leader) < 0) i--;
+      if (i < leaderIndex) {
+        this.iterators.splice(i, 0, this.iterators.pop());
+      }
+    } else {
+      // If the layer iterator was at the end of its syntax tree, then remove
+      // it from the array.
+      this.iterators.pop();
+    }
+
+    this.detectCoveredScope();
+  }
+
+  // Detect whether or not another more deeply-nested language layer has a
+  // scope boundary at this same position. If so, the current language layer's
+  // scope boundary should not be reported.
+  detectCoveredScope() {
+    const layerCount = this.iterators.length;
+    if (layerCount > 1) {
+      const first = this.iterators[layerCount - 1];
+      const next = this.iterators[layerCount - 2];
+      if (
+        next.offset === first.offset &&
+        next.atEnd === first.atEnd &&
+        next.depth > first.depth
+      ) {
+        this.currentScopeIsCovered = true;
+        return;
+      }
+    }
+    this.currentScopeIsCovered = false;
   }
 
   getPosition() {
-    return last(this.iterators).getPosition();
+    const iterator = last(this.iterators);
+    if (iterator) {
+      return iterator.getPosition();
+    } else {
+      return Point.INFINITY;
+    }
   }
 
   getCloseScopeIds() {
-    return last(this.iterators).getCloseScopeIds();
+    const iterator = last(this.iterators);
+    if (iterator && !this.currentScopeIsCovered) {
+      return iterator.getCloseScopeIds();
+    }
+    return [];
   }
 
   getOpenScopeIds() {
-    return last(this.iterators).getOpenScopeIds();
+    const iterator = last(this.iterators);
+    if (iterator && !this.currentScopeIsCovered) {
+      return iterator.getOpenScopeIds();
+    }
+    return [];
   }
 
   logState() {
     const iterator = last(this.iterators);
-    if (iterator.treeCursor) {
+    if (iterator && iterator.treeCursor) {
       console.log(
         iterator.getPosition(),
         iterator.treeCursor.nodeType,
+        `depth=${iterator.languageLayer.depth}`,
         new Range(
           iterator.languageLayer.tree.rootNode.startPosition,
           iterator.languageLayer.tree.rootNode.endPosition
         ).toString()
       );
-      console.log(
-        'close',
-        iterator.closeTags.map(id =>
-          this.languageMode.grammar.scopeNameForScopeId(id)
-        )
-      );
-      console.log(
-        'open',
-        iterator.openTags.map(id =>
-          this.languageMode.grammar.scopeNameForScopeId(id)
-        )
-      );
+      if (this.currentScopeIsCovered) {
+        console.log('covered');
+      } else {
+        console.log(
+          'close',
+          iterator.closeTags.map(id =>
+            this.languageMode.grammar.scopeNameForScopeId(id)
+          )
+        );
+        console.log(
+          'open',
+          iterator.openTags.map(id =>
+            this.languageMode.grammar.scopeNameForScopeId(id)
+          )
+        );
+      }
     }
   }
 }
@@ -1023,11 +1079,13 @@ class HighlightIterator {
 class LayerHighlightIterator {
   constructor(languageLayer, treeCursor) {
     this.languageLayer = languageLayer;
+    this.depth = this.languageLayer.depth;
 
     // The iterator is always positioned at either the start or the end of some node
     // in the syntax tree.
     this.atEnd = false;
     this.treeCursor = treeCursor;
+    this.offset = 0;
 
     // In order to determine which selectors match its current node, the iterator maintains
     // a list of the current node's ancestors. Because the selectors can use the `:nth-child`
@@ -1046,7 +1104,6 @@ class LayerHighlightIterator {
   seek(targetIndex, containingTags, containingTagStartIndices) {
     while (this.treeCursor.gotoParent()) {}
 
-    this.done = false;
     this.atEnd = true;
     this.closeTags.length = 0;
     this.openTags.length = 0;
@@ -1057,8 +1114,7 @@ class LayerHighlightIterator {
     const containingTagEndIndices = [];
 
     if (targetIndex >= this.treeCursor.endIndex) {
-      this.done = true;
-      return;
+      return false;
     }
 
     let childIndex = -1;
@@ -1091,22 +1147,24 @@ class LayerHighlightIterator {
     }
 
     if (this.atEnd) {
-      const currentIndex = this.treeCursor.endIndex;
+      this.offset = this.treeCursor.endIndex;
       for (let i = 0, { length } = containingTags; i < length; i++) {
-        if (containingTagEndIndices[i] === currentIndex) {
+        if (containingTagEndIndices[i] === this.offset) {
           this.closeTags.push(containingTags[i]);
         }
       }
+    } else {
+      this.offset = this.treeCursor.startIndex;
     }
 
-    return containingTags;
+    return true;
   }
 
   moveToSuccessor() {
     this.closeTags.length = 0;
     this.openTags.length = 0;
 
-    while (!this.done && !this.closeTags.length && !this.openTags.length) {
+    while (!this.closeTags.length && !this.openTags.length) {
       if (this.atEnd) {
         if (this._moveRight()) {
           const scopeId = this._currentScopeId();
@@ -1116,7 +1174,7 @@ class LayerHighlightIterator {
         } else if (this._moveUp(true)) {
           this.atEnd = true;
         } else {
-          this.done = true;
+          return false;
         }
       } else if (!this._moveDown()) {
         const scopeId = this._currentScopeId();
@@ -1125,26 +1183,30 @@ class LayerHighlightIterator {
         this._moveUp(false);
       }
     }
+
+    if (this.atEnd) {
+      this.offset = this.treeCursor.endIndex;
+    } else {
+      this.offset = this.treeCursor.startIndex;
+    }
+
+    return true;
   }
 
   getPosition() {
-    if (this.done) {
-      return Point.INFINITY;
-    } else if (this.atEnd) {
+    if (this.atEnd) {
       return this.treeCursor.endPosition;
     } else {
       return this.treeCursor.startPosition;
     }
   }
 
-  getIndex() {
-    if (this.done) {
-      return Infinity;
-    } else if (this.atEnd) {
-      return this.treeCursor.endIndex;
-    } else {
-      return this.treeCursor.startIndex;
-    }
+  compare(other) {
+    const result = this.offset - other.offset;
+    if (result !== 0) return result;
+    if (this.atEnd && !other.atEnd) return -1;
+    if (other.atEnd && !this.atEnd) return 1;
+    return this.languageLayer.depth - other.languageLayer.depth;
   }
 
   getCloseScopeIds() {
@@ -1156,6 +1218,7 @@ class LayerHighlightIterator {
   }
 
   // Private methods
+
   _moveUp(atLastChild) {
     let result = false;
     const { endIndex } = this.treeCursor;
@@ -1263,10 +1326,10 @@ class NullHighlightIterator {
   seek() {
     return [];
   }
-  moveToSuccessor() {}
-  getIndex() {
-    return Infinity;
+  compare() {
+    return 1;
   }
+  moveToSuccessor() {}
   getPosition() {
     return Point.INFINITY;
   }
@@ -1279,10 +1342,11 @@ class NullHighlightIterator {
 }
 
 class NodeRangeSet {
-  constructor(previous, nodes, newlinesBetween) {
+  constructor(previous, nodes, newlinesBetween, includeChildren) {
     this.previous = previous;
     this.nodes = nodes;
     this.newlinesBetween = newlinesBetween;
+    this.includeChildren = includeChildren;
   }
 
   getRanges(buffer) {
@@ -1293,18 +1357,20 @@ class NodeRangeSet {
       let position = node.startPosition;
       let index = node.startIndex;
 
-      for (const child of node.children) {
-        const nextIndex = child.startIndex;
-        if (nextIndex > index) {
-          this._pushRange(buffer, previousRanges, result, {
-            startIndex: index,
-            endIndex: nextIndex,
-            startPosition: position,
-            endPosition: child.startPosition
-          });
+      if (!this.includeChildren) {
+        for (const child of node.children) {
+          const nextIndex = child.startIndex;
+          if (nextIndex > index) {
+            this._pushRange(buffer, previousRanges, result, {
+              startIndex: index,
+              endIndex: nextIndex,
+              startPosition: position,
+              endPosition: child.startPosition
+            });
+          }
+          position = child.endPosition;
+          index = child.endIndex;
         }
-        position = child.endPosition;
-        index = child.endIndex;
       }
 
       if (node.endIndex > index) {

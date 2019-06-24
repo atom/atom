@@ -148,6 +148,26 @@ module.exports = class GrammarRegistry {
     return true;
   }
 
+  // Extended: Force a {TextBuffer} to use a different grammar than the
+  // one that would otherwise be selected for it.
+  //
+  // * `buffer` The {TextBuffer} whose grammar will be set.
+  // * `grammar` The desired {Grammar}.
+  //
+  // Returns a {Boolean} that indicates whether the assignment was sucessful
+  assignGrammar(buffer, grammar) {
+    if (!grammar) return false;
+    if (buffer.getBuffer) buffer = buffer.getBuffer();
+    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null);
+    this.grammarScoresByBuffer.set(buffer, null);
+    if (grammar !== buffer.getLanguageMode().grammar) {
+      buffer.setLanguageMode(
+        this.languageModeForGrammarAndBuffer(grammar, buffer)
+      );
+    }
+    return true;
+  }
+
   // Extended: Get the `languageId` that has been explicitly assigned to
   // to the given buffer, if any.
   //
@@ -330,11 +350,7 @@ module.exports = class GrammarRegistry {
   }
 
   forEachGrammar(callback) {
-    this.textmateRegistry.grammars.forEach(callback);
-    for (const grammarId in this.treeSitterGrammarsById) {
-      const grammar = this.treeSitterGrammarsById[grammarId];
-      if (grammar.scopeName) callback(grammar);
-    }
+    this.getGrammars({ includeTreeSitter: true }).forEach(callback);
   }
 
   grammarForId(languageId) {
@@ -482,7 +498,7 @@ module.exports = class GrammarRegistry {
   }
 
   get grammars() {
-    return this.textmateRegistry.grammars;
+    return this.getGrammars();
   }
 
   decodeTokens() {
@@ -601,9 +617,19 @@ module.exports = class GrammarRegistry {
 
   // Extended: Get all the grammars in this registry.
   //
+  // * `options` (optional) {Object}
+  //   * `includeTreeSitter` (optional) {Boolean} Set to include
+  //     [Tree-sitter](https://github.blog/2018-10-31-atoms-new-parsing-system/) grammars
+  //
   // Returns a non-empty {Array} of {Grammar} instances.
-  getGrammars() {
-    return this.textmateRegistry.getGrammars();
+  getGrammars(params) {
+    let tmGrammars = this.textmateRegistry.getGrammars();
+    if (!(params && params.includeTreeSitter)) return tmGrammars;
+
+    const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(
+      g => g.scopeName
+    );
+    return tmGrammars.concat(tsGrammars); // NullGrammar is expected to be first
   }
 
   scopeForId(id) {

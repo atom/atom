@@ -119,6 +119,25 @@ module.exports = class TreeSitterGrammar {
       }
     }
   }
+
+  /*
+  Section - Backward compatibility shims
+  */
+
+  onDidUpdate(callback) {
+    // do nothing
+  }
+
+  tokenizeLines(text, compatibilityMode = true) {
+    return text.split('\n').map(line => this.tokenizeLine(line, null, false));
+  }
+
+  tokenizeLine(line, ruleStack, firstLine) {
+    return {
+      value: line,
+      scopes: [this.scopeName]
+    };
+  }
 };
 
 const preprocessScopes = value =>

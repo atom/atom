@@ -18,9 +18,25 @@ module.exports = class GrammarListView {
 
         const div = document.createElement('div');
         div.classList.add('pull-right');
+
+        if (isTreeSitter(grammar)) {
+          const parser = document.createElement('span');
+          parser.classList.add(
+            'grammar-selector-parser',
+            'badge',
+            'badge-success'
+          );
+          parser.textContent = 'Tree-sitter';
+          parser.setAttribute(
+            'title',
+            '(Recommended) A faster parser with improved syntax highlighting & code navigation support.'
+          );
+          div.appendChild(parser);
+        }
+
         if (grammar.scopeName) {
           const scopeName = document.createElement('scopeName');
-          scopeName.classList.add('key-binding'); // It will be styled the same as the keybindings in the command palette
+          scopeName.classList.add('badge', 'badge-info');
           scopeName.textContent = grammar.scopeName;
           div.appendChild(scopeName);
           element.appendChild(div);
@@ -33,7 +49,7 @@ module.exports = class GrammarListView {
         if (grammar === this.autoDetect) {
           atom.textEditors.clearGrammarOverride(this.editor);
         } else {
-          atom.textEditors.setGrammarOverride(this.editor, grammar.scopeName);
+          atom.grammars.assignGrammar(this.editor, grammar);
         }
       },
       didCancelSelection: () => {
@@ -72,28 +88,44 @@ module.exports = class GrammarListView {
   async toggle() {
     if (this.panel != null) {
       this.cancel();
-    } else if (atom.workspace.getActiveTextEditor()) {
-      this.editor = atom.workspace.getActiveTextEditor();
+      return;
+    }
+
+    const editor = atom.workspace.getActiveTextEditor();
+    if (editor) {
+      this.editor = editor;
       this.currentGrammar = this.editor.getGrammar();
       if (this.currentGrammar === atom.grammars.nullGrammar) {
         this.currentGrammar = this.autoDetect;
       }
 
-      const grammars = atom.grammars.getGrammars().filter(grammar => {
-        return grammar !== atom.grammars.nullGrammar && grammar.name;
-      });
+      let grammars = atom.grammars
+        .getGrammars({ includeTreeSitter: true })
+        .filter(grammar => {
+          return grammar !== atom.grammars.nullGrammar && grammar.name;
+        });
+
+      if (atom.config.get('grammar-selector.hideDuplicateTextMateGrammars')) {
+        const blacklist = new Set();
+        grammars.forEach(grammar => {
+          if (isTreeSitter(grammar)) {
+            blacklist.add(grammar.name);
+          }
+        });
+        grammars = grammars.filter(
+          grammar => isTreeSitter(grammar) || !blacklist.has(grammar.name)
+        );
+      }
+
       grammars.sort((a, b) => {
         if (a.scopeName === 'text.plain') {
           return -1;
         } else if (b.scopeName === 'text.plain') {
           return 1;
-        } else if (a.name) {
-          return a.name.localeCompare(b.name);
-        } else if (a.scopeName) {
-          return a.scopeName.localeCompare(b.scopeName);
-        } else {
-          return 1;
+        } else if (a.name === b.name) {
+          return compareGrammarType(a, b);
         }
+        return a.name.localeCompare(b.name);
       });
       grammars.unshift(this.autoDetect);
       await this.selectListView.update({ items: grammars });
@@ -101,3 +133,16 @@ module.exports = class GrammarListView {
     }
   }
 };
+
+function isTreeSitter(grammar) {
+  return grammar.constructor.name === 'TreeSitterGrammar';
+}
+
+function compareGrammarType(a, b) {
+  if (isTreeSitter(a)) {
+    return -1;
+  } else if (isTreeSitter(b)) {
+    return 1;
+  }
+  return 0;
+}
