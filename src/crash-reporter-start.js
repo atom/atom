@@ -1,6 +1,8 @@
 module.exports = function(params) {
   const { crashReporter } = require('electron');
-  const platformRelease = require('os').release();
+  const os = require('os');
+  const platformRelease = os.release();
+  const arch = os.arch();
   const { uploadToServer } = params;
 
   crashReporter.start({
@@ -8,6 +10,6 @@ module.exports = function(params) {
     companyName: 'GitHub',
     submitURL: 'https://atom.io/crash_reports',
     uploadToServer,
-    extra: { platformRelease }
+    extra: { platformRelease, arch }
   });
 };
