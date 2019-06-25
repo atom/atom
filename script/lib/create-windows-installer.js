@@ -13,6 +13,7 @@ module.exports = packagedAppPath => {
     process.env.ATOM_UPDATE_URL_PREFIX || 'https://atom.io';
   const options = {
     title: CONFIG.appName,
+    exe: CONFIG.executableName,
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
     iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${
