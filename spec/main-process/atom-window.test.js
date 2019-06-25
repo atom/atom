@@ -77,21 +77,6 @@ describe('AtomWindow', function() {
         );
       });
 
-      await new Promise((resolve, reject) => {
-        fs.symlink(
-          path.join(original.ATOM_HOME, 'compile-cache'),
-          path.join(atomHome, 'compile-cache'),
-          'junction',
-          err => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-          }
-        );
-      });
-
       process.env.ATOM_HOME = atomHome;
       process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = 'true';
     });

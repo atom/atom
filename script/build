@@ -109,7 +109,7 @@ if (!argv.generateApiDocs) {
           if (argv.codeSign) {
             const executablesToSign = [ path.join(packagedAppPath, 'Atom.exe') ]
             if (argv.createWindowsInstaller) {
-              executablesToSign.push(path.join(__dirname, 'node_modules', 'electron-winstaller', 'vendor', 'Update.exe'))
+              executablesToSign.push(path.join(__dirname, 'node_modules', '@atom', 'electron-winstaller', 'vendor', 'Squirrel.exe'))
             }
             codeSignOnWindows(executablesToSign)
           } else {

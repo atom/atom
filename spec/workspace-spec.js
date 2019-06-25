@@ -1994,14 +1994,17 @@ describe('Workspace', () => {
 
       expect(
         atom2.grammars
-          .getGrammars()
+          .getGrammars({ includeTreeSitter: true })
           .map(grammar => grammar.scopeName)
           .sort()
       ).toEqual([
         'source.coffee',
+        'source.js', // Tree-sitter grammars also load
         'source.js',
         'source.js.regexp',
+        'source.js.regexp',
         'source.js.regexp.replacement',
+        'source.jsdoc',
         'source.jsdoc',
         'source.litcoffee',
         'text.plain.null-grammar',
@@ -2697,11 +2700,11 @@ describe('Workspace', () => {
           });
         });
 
-        describe('when the core.excludeVcsIgnoredPaths config is truthy', () => {
+        describe('when the core.excludeVcsIgnoredPaths config is used', () => {
           let projectPath;
           let ignoredPath;
 
-          beforeEach(() => {
+          beforeEach(async () => {
             const sourceProjectPath = path.join(
               __dirname,
               'fixtures',
@@ -2713,22 +2716,17 @@ describe('Workspace', () => {
             const writerStream = fstream.Writer(projectPath);
             fstream.Reader(sourceProjectPath).pipe(writerStream);
 
-            waitsFor(done => {
-              writerStream.on('close', done);
-              writerStream.on('error', done);
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
             });
 
-            runs(() => {
-              fs.renameSync(
-                path.join(projectPath, 'git.git'),
-                path.join(projectPath, '.git')
-              );
-              ignoredPath = path.join(projectPath, 'ignored.txt');
-              fs.writeFileSync(
-                ignoredPath,
-                'this match should not be included'
-              );
-            });
+            fs.renameSync(
+              path.join(projectPath, 'git.git'),
+              path.join(projectPath, '.git')
+            );
+            ignoredPath = path.join(projectPath, 'ignored.txt');
+            fs.writeFileSync(ignoredPath, 'this match should not be included');
           });
 
           afterEach(() => {
@@ -2737,14 +2735,143 @@ describe('Workspace', () => {
             }
           });
 
-          it('excludes ignored files', async () => {
+          it('excludes ignored files when core.excludeVcsIgnoredPaths is true', async () => {
             atom.project.setPaths([projectPath]);
             atom.config.set('core.excludeVcsIgnoredPaths', true);
             const resultHandler = jasmine.createSpy('result found');
 
-            await scan(/match/, {}, () => resultHandler());
+            await scan(/match/, {}, ({ filePath }) => resultHandler(filePath));
 
             expect(resultHandler).not.toHaveBeenCalled();
+          });
+
+          it('does not exclude ignored files when core.excludeVcsIgnoredPaths is false', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.excludeVcsIgnoredPaths', false);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/match/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, 'ignored.txt')
+            );
+          });
+
+          it('does not exclude files when searching on an ignored folder even when core.excludeVcsIgnoredPaths is true', async () => {
+            fs.mkdirSync(path.join(projectPath, 'poop'));
+            ignoredPath = path.join(
+              path.join(projectPath, 'poop', 'whatever.txt')
+            );
+            fs.writeFileSync(ignoredPath, 'this match should be included');
+
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.excludeVcsIgnoredPaths', true);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/match/, { paths: ['poop'] }, ({ filePath }) =>
+              resultHandler(filePath)
+            );
+
+            expect(resultHandler).toHaveBeenCalledWith(ignoredPath);
+          });
+        });
+
+        describe('when the core.followSymlinks config is used', () => {
+          let projectPath;
+
+          beforeEach(async () => {
+            const sourceProjectPath = path.join(
+              __dirname,
+              'fixtures',
+              'dir',
+              'a-dir'
+            );
+            projectPath = path.join(temp.mkdirSync('atom'));
+
+            const writerStream = fstream.Writer(projectPath);
+            fstream.Reader(sourceProjectPath).pipe(writerStream);
+
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
+            });
+
+            fs.symlinkSync(
+              path.join(__dirname, 'fixtures', 'dir', 'b'),
+              path.join(projectPath, 'symlink')
+            );
+          });
+
+          afterEach(() => {
+            if (fs.existsSync(projectPath)) {
+              fs.removeSync(projectPath);
+            }
+          });
+
+          it('follows symlinks when core.followSymlinks is true', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.followSymlinks', true);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, 'symlink')
+            );
+          });
+
+          it('does not follow symlinks when core.followSymlinks is false', async () => {
+            atom.project.setPaths([projectPath]);
+            atom.config.set('core.followSymlinks', false);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).not.toHaveBeenCalled();
+          });
+        });
+
+        describe('when there are hidden files', () => {
+          let projectPath;
+
+          beforeEach(async () => {
+            const sourceProjectPath = path.join(
+              __dirname,
+              'fixtures',
+              'dir',
+              'a-dir'
+            );
+            projectPath = path.join(temp.mkdirSync('atom'));
+
+            const writerStream = fstream.Writer(projectPath);
+            fstream.Reader(sourceProjectPath).pipe(writerStream);
+
+            await new Promise(resolve => {
+              writerStream.on('close', resolve);
+              writerStream.on('error', resolve);
+            });
+
+            // Note: This won't create a hidden file on Windows, in order to more
+            // accurately test this behaviour there, we should either use a package
+            // like `fswin` or manually spawn an `ATTRIB` command.
+            fs.writeFileSync(path.join(projectPath, '.hidden'), 'ccc');
+          });
+
+          afterEach(() => {
+            if (fs.existsSync(projectPath)) {
+              fs.removeSync(projectPath);
+            }
+          });
+
+          it('searches on hidden files', async () => {
+            atom.project.setPaths([projectPath]);
+            const resultHandler = jasmine.createSpy('result found');
+
+            await scan(/ccc/, {}, ({ filePath }) => resultHandler(filePath));
+
+            expect(resultHandler).toHaveBeenCalledWith(
+              path.join(projectPath, '.hidden')
+            );
           });
         });
 

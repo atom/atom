@@ -334,6 +334,30 @@ describe "ContextMenuManager", ->
           ]
         ])
 
+    it "does not add accelerators for multi-keystroke key bindings", ->
+      atom.keymaps.add('source', {
+        '.child': {
+          'ctrl-a ctrl-b': 'test:multi-keystroke-command'
+        }
+      })
+      contextMenu.clear()
+      contextMenu.add('.parent': [{
+        label: 'Multi-keystroke command',
+        command: 'test:multi-keystroke-command',
+      }])
+
+      child.focus()
+
+      label =
+        if process.platform is 'darwin'
+          '⌃A ⌃B'
+        else
+          'Ctrl+A Ctrl+B'
+      expect(contextMenu.templateForEvent({target: child})).toEqual([{
+        label: "Multi-keystroke command [#{label}]",
+        command: 'test:multi-keystroke-command',
+      }])
+
   describe "::templateForEvent(target) (sorting)", ->
     it "applies simple sorting rules", ->
       contextMenu.add('.parent': [{

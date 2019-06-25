@@ -3297,9 +3297,12 @@ describe('TextEditorComponent', () => {
       // make the editor taller and wider and the same time, ensuring the number
       // of rendered lines is correct.
       setEditorHeightInLines(component, 13);
-      await setEditorWidthInCharacters(component, 50);
-      expect(component.getRenderedStartRow()).toBe(0);
-      expect(component.getRenderedEndRow()).toBe(13);
+      setEditorWidthInCharacters(component, 50);
+      await conditionPromise(
+        () =>
+          component.getRenderedStartRow() === 0 &&
+          component.getRenderedEndRow() === 13
+      );
       expect(component.getScrollHeight()).toBe(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +

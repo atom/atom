@@ -16,7 +16,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp('.npmignore'),
   escapeRegExp('.pairs'),
   escapeRegExp('.travis.yml'),
-  escapeRegExp('appveyor.yml'),
   escapeRegExp('.idea'),
   escapeRegExp('.editorconfig'),
   escapeRegExp('.lint'),

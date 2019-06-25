@@ -1,6 +1,6 @@
 'use strict';
 
-const electronInstaller = require('electron-winstaller');
+const electronInstaller = require('@atom/electron-winstaller');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
@@ -26,7 +26,6 @@ module.exports = packagedAppPath => {
     ),
     outputDirectory: CONFIG.buildOutputPath,
     noMsi: true,
-    noDelta: CONFIG.channel === 'nightly', // Delta packages are broken for nightly versions past nightly9 due to Squirrel/NuGet limitations
     remoteReleases: `${updateUrlPrefix}/api/updates${archSuffix}?version=${
       CONFIG.computedAppVersion
     }`,

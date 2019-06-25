@@ -1,25 +1,25 @@
 language: python
 
 python:
-  - "2.7.13"
+  - '2.7.13'
 
 git:
   depth: 10
 
 branches:
   only:
-  - master
-  - /^[0-9.]+-releases$/
-  - /.*-test-travis$/
+    - master
+    - /^[0-9.]+-releases$/
+    - /.*-test-travis$/
 
 matrix:
   include:
     - os: linux
       dist: trusty
-      env: NODE_VERSION=8.9.3 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 ATOM_JASMINE_REPORTER=list
+      env: NODE_VERSION=10.2.1 DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 ATOM_JASMINE_REPORTER=list
 
 before_install:
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - '/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16'
 
 install:
   - git clone https://github.com/creationix/nvm.git /tmp/.nvm
@@ -57,11 +57,11 @@ addons:
     target_paths: travis-artifacts/$TRAVIS_BUILD_ID
   apt:
     packages:
-    - build-essential
-    - clang-3.3
-    - fakeroot
-    - git
-    - libsecret-1-dev
-    - rpm
-    - libx11-dev
-    - libxkbfile-dev
+      - build-essential
+      - clang-3.3
+      - fakeroot
+      - git
+      - libsecret-1-dev
+      - rpm
+      - libx11-dev
+      - libxkbfile-dev

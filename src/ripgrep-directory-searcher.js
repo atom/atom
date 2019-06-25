@@ -193,7 +193,7 @@ module.exports = class RipgrepDirectorySearcher {
   //   Each item in the array is a file/directory pattern, e.g., `src` to search in the "src"
   //   directory or `*.js` to search all JavaScript files. In practice, this often comes from the
   //   comma-delimited list of patterns in the bottom text input of the ProjectFindView dialog.
-  //   * `ignoreHidden` {boolean} whether to ignore hidden files.
+  //   * `includeHidden` {boolean} whether to ignore hidden files.
   //   * `excludeVcsIgnores` {boolean} whether to exclude VCS ignored paths.
   //   * `exclusions` {Array} similar to inclusions
   //   * `follow` {boolean} whether symlinks should be followed.
@@ -230,7 +230,7 @@ module.exports = class RipgrepDirectorySearcher {
     const directoryPath = directory.getPath();
     const regexpStr = this.prepareRegexp(regexp.source);
 
-    const args = ['--hidden', '--json', '--regexp', regexpStr];
+    const args = ['--json', '--regexp', regexpStr];
     if (options.leadingContextLineCount) {
       args.push('--before-context', options.leadingContextLineCount);
     }
@@ -257,10 +257,22 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--multiline');
     }
 
-    args.push(directoryPath);
+    if (options.includeHidden) {
+      args.push('--hidden');
+    }
+
+    if (options.follow) {
+      args.push('--follow');
+    }
+
+    if (!options.excludeVcsIgnores) {
+      args.push('--no-ignore-vcs');
+    }
+
+    args.push('.');
 
     const child = spawn(this.rgPath, args, {
-      cwd: directory.getPath(),
+      cwd: directoryPath,
       stdio: ['pipe', 'pipe', 'pipe']
     });
 
@@ -301,7 +313,7 @@ module.exports = class RipgrepDirectorySearcher {
 
           if (message.type === 'begin') {
             pendingEvent = {
-              filePath: getText(message.data.path),
+              filePath: path.join(directoryPath, getText(message.data.path)),
               matches: []
             };
             pendingLeadingContext = [];
@@ -378,8 +390,6 @@ module.exports = class RipgrepDirectorySearcher {
       if (pattern.endsWith('/')) {
         pattern = pattern.slice(0, -1);
       }
-
-      pattern = pattern.startsWith('**/') ? pattern : `**/${pattern}`;
 
       output.push(pattern);
       output.push(pattern.endsWith('/**') ? pattern : `${pattern}/**`);

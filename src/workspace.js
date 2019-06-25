@@ -76,7 +76,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // Returns a {String} containing a longer version of the title to display in
 // places like the window title or on tabs their short titles are ambiguous.
 //
-// #### `onDidChangeTitle`
+// #### `onDidChangeTitle(callback)`
 //
 // Called by the workspace so it can be notified when the item's title changes.
 // Must return a {Disposable}.
@@ -256,8 +256,6 @@ module.exports = class Workspace extends Model {
     };
 
     this.incoming = new Map();
-
-    this.subscribeToEvents();
   }
 
   get paneContainer() {
@@ -375,9 +373,9 @@ module.exports = class Workspace extends Model {
     this.consumeServices(this.packageManager);
   }
 
-  subscribeToEvents() {
+  initialize() {
+    this.originalFontSize = this.config.get('editor.fontSize');
     this.project.onDidChangePaths(this.updateWindowTitle);
-    this.subscribeToFontSize();
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
     this.subscribeToDockToggling();
@@ -1518,6 +1516,10 @@ module.exports = class Workspace extends Model {
   // that is already open in a text editor view. You could signal this by calling
   // {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener
   // can check the protocol for quux-preview and only handle those URIs that match.
+  //
+  // To defer your package's activation until a specific URL is opened, add a
+  // `workspaceOpeners` field to your `package.json` containing an array of URL
+  // strings.
   addOpener(opener) {
     this.openers.push(opener);
     return new Disposable(() => {
@@ -1747,14 +1749,6 @@ module.exports = class Workspace extends Model {
     if (this.originalFontSize) {
       this.config.set('editor.fontSize', this.originalFontSize);
     }
-  }
-
-  subscribeToFontSize() {
-    return this.config.onDidChange('editor.fontSize', () => {
-      if (this.originalFontSize == null) {
-        this.originalFontSize = this.config.get('editor.fontSize');
-      }
-    });
   }
 
   // Removes the item's uri from the list of potential items to reopen.
