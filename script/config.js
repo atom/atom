@@ -27,11 +27,13 @@ const computedAppVersion = computeAppVersion(
 const channel = getChannel(computedAppVersion);
 const appName = getAppName(channel);
 const executableName = getExecutableName(channel, appName);
+const channelName = getChannelName(channel);
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
+  channelName,
   appName,
   executableName,
   computedAppVersion,
@@ -49,6 +51,12 @@ module.exports = {
   getNpmBinPath,
   snapshotAuxiliaryData: {}
 };
+
+function getChannelName(channel) {
+  return channel === 'stable'
+    ? 'atom'
+    : `atom-${channel}`;
+}
 
 function getChannel(version) {
   const match = version.match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/);

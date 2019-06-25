@@ -12,6 +12,7 @@ module.exports = packagedAppPath => {
   const updateUrlPrefix =
     process.env.ATOM_UPDATE_URL_PREFIX || 'https://atom.io';
   const options = {
+    name: CONFIG.channelName,
     title: CONFIG.appName,
     exe: CONFIG.executableName,
     appDirectory: packagedAppPath,
