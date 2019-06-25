@@ -122,16 +122,3 @@ describe "Windows Squirrel Update", ->
 
         it "still has desktop shortcut", ->
           expect(fs.existsSync(desktopShortcutPath)).toBe true
-
-  describe ".restartAtom", ->
-    it "quits the app and spawns a new one", ->
-      app = new EventEmitter()
-      app.quit = jasmine.createSpy('quit')
-
-      SquirrelUpdate.restartAtom(app)
-      expect(app.quit.callCount).toBe 1
-
-      expect(Spawner.spawn.callCount).toBe 0
-      app.emit('will-quit')
-      expect(Spawner.spawn.callCount).toBe 1
-      expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'
