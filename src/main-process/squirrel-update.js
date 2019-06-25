@@ -165,9 +165,7 @@ exports.restartAtom = app => {
     const { projectPath } = global.atomApplication.lastFocusedWindow;
     if (projectPath) args = [projectPath];
   }
-  app.once('will-quit', () =>
-    Spawner.spawn(path.join(binFolder, 'atom.cmd'), args)
-  );
+  Spawner.spawn(path.join(binFolder, 'atom.cmd'), args);
   app.quit();
 };
 
