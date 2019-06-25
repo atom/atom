@@ -76,7 +76,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // Returns a {String} containing a longer version of the title to display in
 // places like the window title or on tabs their short titles are ambiguous.
 //
-// #### `onDidChangeTitle`
+// #### `onDidChangeTitle(callback)`
 //
 // Called by the workspace so it can be notified when the item's title changes.
 // Must return a {Disposable}.
