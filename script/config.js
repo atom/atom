@@ -53,9 +53,7 @@ module.exports = {
 };
 
 function getChannelName(channel) {
-  return channel === 'stable'
-    ? 'atom'
-    : `atom-${channel}`;
+  return channel === 'stable' ? 'atom' : `atom-${channel}`;
 }
 
 function getChannel(version) {
