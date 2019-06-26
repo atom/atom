@@ -4,6 +4,7 @@ const path = require('path');
 const temp = require('temp').track();
 const parseCommandLine = require('./parse-command-line');
 const startCrashReporter = require('../crash-reporter-start');
+const getReleaseChannel = require('../get-release-channel');
 const atomPaths = require('../atom-paths');
 const fs = require('fs');
 const CSON = require('season');
@@ -87,7 +88,12 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
 
   app.on('open-file', addPathToOpen);
   app.on('open-url', addUrlToOpen);
-  app.on('will-finish-launching', startCrashReporter);
+  app.on('will-finish-launching', () =>
+    startCrashReporter({
+      uploadToServer: config.get('core.telemetryConsent') === 'limited',
+      releaseChannel: getReleaseChannel(app.getVersion())
+    })
+  );
 
   if (args.userDataDir != null) {
     app.setPath('userData', args.userDataDir);
