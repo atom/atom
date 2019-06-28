@@ -1,5 +1,6 @@
 const KeymapManager = require('atom-keymap');
 const WindowEventHandler = require('../src/window-event-handler');
+const { conditionPromise } = require('./async-spec-helpers');
 
 describe('WindowEventHandler', () => {
   let windowEventHandler;
@@ -50,10 +51,13 @@ describe('WindowEventHandler', () => {
   });
 
   describe('resize event', () =>
-    it('calls storeWindowDimensions', () => {
+    it('calls storeWindowDimensions', async () => {
+      jasmine.useRealClock();
+
       spyOn(atom, 'storeWindowDimensions');
       window.dispatchEvent(new CustomEvent('resize'));
-      expect(atom.storeWindowDimensions).toHaveBeenCalled();
+
+      await conditionPromise(() => atom.storeWindowDimensions.callCount > 0);
     }));
 
   describe('window:close event', () =>
