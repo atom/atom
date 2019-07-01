@@ -1,10 +1,5 @@
 trigger: none # No CI builds, only PR builds
 
-resources:
-  containers:
-    - container: atom-linux-ci
-      image: atomeditor/atom-linux-ci:latest
-
 jobs:
   - job: GetReleaseVersion
     steps:
@@ -18,6 +13,6 @@ jobs:
         name: Version
 
   # Import OS-specific build definitions
-  - template: platforms/windows.yml
-  - template: platforms/macos.yml
+  # - template: platforms/windows.yml
+  # - template: platforms/macos.yml
   - template: platforms/linux.yml
