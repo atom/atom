@@ -157,7 +157,7 @@ function processSubmatch(submatch, lineText, offsetRow) {
 }
 
 function getText(input) {
-  return input.text
+  return 'text' in input
     ? input.text
     : Buffer.from(input.bytes, 'base64').toString();
 }
