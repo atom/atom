@@ -269,6 +269,10 @@ module.exports = class RipgrepDirectorySearcher {
       args.push('--no-ignore-vcs');
     }
 
+    if (options.PCRE2) {
+      args.push('--pcre2');
+    }
+
     args.push('.');
 
     const child = spawn(this.rgPath, args, {
