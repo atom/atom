@@ -30,17 +30,17 @@ This is a fine design goal; I don’t think @maxbrunsfeld is wrong to argue for 
 
 This isn’t just a beard-stroking nitpick on my part. I can think of a handful of reasons why someone might want to be able to spot import names at a glance. It’s reasonable for someone to want `foo` in the example above to remain the same color throughout the file. It’s also reasonable, I think, to want `foo` to have a special color on the line where it’s introduced. Or to communicate that this token has special behavior — as it would if you have the [js-hyperclick](https://atom.io/packages/js-hyperclick) package installed and are in the habit of cmd-clicking package names to jump to the files where they’re defined.
 
-I don’t mind that the One Dark syntax theme doesn’t want to give `foo` a special color; I mind that its decision is also binding on _all possible_ syntax themes. If that scope name is present, and it’s undesirable to the a syntax theme, that theme can apply the overrides necessary to ignore it. But if that scope name is missing altogether, that constrains _all_ syntax themes, and I’m unable to write a syntax theme that behaves differently.
+I don’t mind that the One Dark syntax theme doesn’t want to give `foo` a special color; I mind that its decision is also binding on _all possible_ syntax themes. If that scope name is present, and it’s undesirable to a syntax theme, that theme can apply the overrides necessary to ignore it. But if that scope name is missing altogether, that constrains _all_ syntax themes, and I’m unable to write a syntax theme that behaves differently.
 
 Thus, here’s what I propose:
 
-If an issue or PR proposes adding a scope and can justify its presence somehow — including the goal of parity with its non-tree-sitter predecessor — An answer of “no, because the built-in syntax themes don’t want to highlight it that way” should become “OK, but only if someone does the associated work to ensure no visual regressions in the built-in syntax themes.” That someone could be the PR’s author or anyone else who has an interest in getting it landed.
+If an issue or PR proposes adding a scope and can justify its presence somehow — including the goal of parity with its non-tree-sitter predecessor — an answer of “no, because the built-in syntax themes don’t want to highlight it that way” should become “OK, but only if someone does the associated work to ensure no visual regressions in the built-in syntax themes.” That someone could be the PR’s author or anyone else who has an interest in getting it landed.
 
 This is tricky, of course — not only the coordination of PRs across packages, but also the need to apply overrides to all six (is it six? I think it’s six) of the built-in syntax themes. If all built-in themes are going to share an austere philosophy ([and it seems like that’s the plan](https://github.com/atom/atom/pull/18383#issuecomment-435460854)), then perhaps it makes sense for them to start sharing a core set of contextual rules. The only difference between them would be the specific color choices that they make.
 
 ## Drawbacks
 
-The drawback is that what I’m suggesting is a lot of work. I don’t propose it lightly; I propose it because it strikes me as the least bad of available choices.
+The drawback is that what I’m suggesting is a lot of work. I don’t propose it lightly; I propose it because it strikes me as the least bad of all available choices.
 
 ## Rationale and alternatives
 
