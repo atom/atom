@@ -1,4 +1,4 @@
-# Feature title
+# Semantic scope naming
 
 ## Status
 
