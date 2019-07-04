@@ -2104,6 +2104,7 @@ module.exports = class Workspace extends Model {
         follow: this.config.get('core.followSymlinks'),
         leadingContextLineCount: options.leadingContextLineCount || 0,
         trailingContextLineCount: options.trailingContextLineCount || 0,
+        PCRE2: options.PCRE2,
         didMatch: result => {
           if (!this.project.isPathModified(result.filePath)) {
             return iterator(result);

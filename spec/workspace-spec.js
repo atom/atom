@@ -2512,6 +2512,34 @@ describe('Workspace', () => {
         });
 
         if (ripgrep) {
+          it('returns empty text matches', async () => {
+            const results = [];
+            await scan(
+              /^\s{0}/,
+              {
+                paths: [`oh-git`]
+              },
+              result => results.push(result)
+            );
+
+            expect(results.length).toBe(1);
+            const { filePath, matches } = results[0];
+            expect(filePath).toBe(
+              atom.project
+                .getDirectories()[0]
+                .resolve(path.join('a-dir', 'oh-git'))
+            );
+            expect(matches).toHaveLength(1);
+            expect(matches[0]).toEqual({
+              matchText: '',
+              lineText: 'bbb aaaa',
+              lineTextOffset: 0,
+              range: [[0, 0], [0, 0]],
+              leadingContextLines: [],
+              trailingContextLines: []
+            });
+          });
+
           describe('newlines on regexps', async () => {
             it('returns multiline results from regexps', async () => {
               const results = [];
@@ -2647,6 +2675,30 @@ describe('Workspace', () => {
                 lineText: 'newline3',
                 lineTextOffset: 0,
                 range: [[2, 0], [3, 0]],
+                leadingContextLines: [],
+                trailingContextLines: []
+              });
+            });
+          });
+          describe('pcre2 enabled', async () => {
+            it('supports lookbehind searches', async () => {
+              const results = [];
+
+              await scan(/(?<!a)aa\b/, { PCRE2: true }, result =>
+                results.push(result)
+              );
+
+              expect(results.length).toBe(1);
+              const { filePath, matches } = results[0];
+              expect(filePath).toBe(
+                atom.project.getDirectories()[0].resolve('a')
+              );
+              expect(matches).toHaveLength(1);
+              expect(matches[0]).toEqual({
+                matchText: 'aa',
+                lineText: 'cc aa cc',
+                lineTextOffset: 0,
+                range: [[1, 3], [1, 5]],
                 leadingContextLines: [],
                 trailingContextLines: []
               });

@@ -15,7 +15,6 @@ const EXCLUDE_REGEXPS_SOURCES = [
   escapeRegExp('.jshintrc'),
   escapeRegExp('.npmignore'),
   escapeRegExp('.pairs'),
-  escapeRegExp('.travis.yml'),
   escapeRegExp('.idea'),
   escapeRegExp('.editorconfig'),
   escapeRegExp('.lint'),
