@@ -125,7 +125,7 @@ function handleStartupEventWithSquirrel() {
 
   const SquirrelUpdate = require('./squirrel-update');
   const squirrelCommand = process.argv[1];
-  return SquirrelUpdate.handleStartupEvent(app, squirrelCommand);
+  return SquirrelUpdate.handleStartupEvent(squirrelCommand);
 }
 
 function getConfig() {
