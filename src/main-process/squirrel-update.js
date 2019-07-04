@@ -1,4 +1,5 @@
 let setxPath;
+const { app } = require('electron');
 const fs = require('fs-plus');
 const getAppName = require('./get-app-name');
 const path = require('path');
@@ -10,6 +11,7 @@ const appFolder = path.resolve(process.execPath, '..');
 const rootAtomFolder = path.resolve(appFolder, '..');
 const binFolder = path.join(rootAtomFolder, 'bin');
 const updateDotExe = path.join(rootAtomFolder, 'Update.exe');
+const execName = path.basename(app.getPath('exe'));
 
 if (process.env.SystemRoot) {
   const system32Path = path.join(process.env.SystemRoot, 'System32');
@@ -31,8 +33,8 @@ const spawnUpdate = (args, callback) =>
 // This is done by adding .cmd shims to the root bin folder in the Atom
 // install directory that point to the newly installed versions inside
 // the versioned app directories.
-const addCommandsToPath = (exeName, callback) => {
-  const atomCmdName = exeName.replace('.exe', '.cmd');
+const addCommandsToPath = callback => {
+  const atomCmdName = execName.replace('.exe', '.cmd');
   const apmCmdName = atomCmdName.replace('atom', 'apm');
 
   const installCommands = callback => {
@@ -122,25 +124,23 @@ const removeCommandsFromPath = callback =>
     }
   });
 
-const getExeName = app => path.basename(app.getPath('exe'));
-
 // Create a desktop and start menu shortcut by using the command line API
 // provided by Squirrel's Update.exe
-const createShortcuts = (exeName, locations, callback) =>
+const createShortcuts = (locations, callback) =>
   spawnUpdate(
-    ['--createShortcut', exeName, '-l', locations.join(',')],
+    ['--createShortcut', execName, '-l', locations.join(',')],
     callback
   );
 
 // Update the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
-const updateShortcuts = (appName, exeName, callback) => {
+const updateShortcuts = callback => {
   const homeDirectory = fs.getHomeDirectory();
   if (homeDirectory) {
     const desktopShortcutPath = path.join(
       homeDirectory,
       'Desktop',
-      `${appName}.lnk`
+      `${getAppName()}.lnk`
     );
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
@@ -150,17 +150,17 @@ const updateShortcuts = (appName, exeName, callback) => {
         locations.push('Desktop');
       }
 
-      createShortcuts(exeName, locations, callback);
+      createShortcuts(locations, callback);
     });
   } else {
-    createShortcuts(exeName, ['Desktop', 'StartMenu'], callback);
+    createShortcuts(['Desktop', 'StartMenu'], callback);
   }
 };
 
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
-const removeShortcuts = (exeName, callback) =>
-  spawnUpdate(['--removeShortcut', exeName], callback);
+const removeShortcuts = callback =>
+  spawnUpdate(['--removeShortcut', execName], callback);
 
 exports.spawn = spawnUpdate;
 
@@ -168,10 +168,10 @@ exports.spawn = spawnUpdate;
 exports.existsSync = () => fs.existsSync(updateDotExe);
 
 // Restart Atom using the version pointed to by the atom.cmd shim
-exports.restartAtom = app => {
+exports.restartAtom = () => {
   let args;
-  const exeName = getExeName(app);
-  const atomCmdName = exeName.replace('.exe', '.cmd');
+  const atomCmdName = execName.replace('.exe', '.cmd');
+
   if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
     const { projectPath } = global.atomApplication.lastFocusedWindow;
     if (projectPath) args = [projectPath];
@@ -180,30 +180,46 @@ exports.restartAtom = app => {
   app.quit();
 };
 
-// Handle squirrel events denoted by --squirrel-* command line arguments.
-exports.handleStartupEvent = (app, squirrelCommand) => {
-  const exeName = getExeName(app);
-  const appName = getAppName();
+const updateContextMenus = callback =>
+  WinShell.fileContextMenu.update(() =>
+    WinShell.folderContextMenu.update(() =>
+      WinShell.folderBackgroundContextMenu.update(() => callback())
+    )
+  );
 
+// Handle squirrel events denoted by --squirrel-* command line arguments.
+exports.handleStartupEvent = squirrelCommand => {
   switch (squirrelCommand) {
     case '--squirrel-install':
-      createShortcuts(exeName, ['Desktop', 'StartMenu'], () =>
-        addCommandsToPath(exeName, () =>
-          WinShell.registerShellIntegration(appName, () => app.quit())
+      createShortcuts(['Desktop', 'StartMenu'], () =>
+        addCommandsToPath(() =>
+          WinShell.fileHandler.register(() =>
+            updateContextMenus(() => app.quit())
+          )
         )
       );
       return true;
     case '--squirrel-updated':
-      updateShortcuts(appName, exeName, () =>
-        addCommandsToPath(exeName, () =>
-          WinShell.updateShellIntegration(appName, () => app.quit())
+      updateShortcuts(() =>
+        addCommandsToPath(() =>
+          WinShell.fileHandler.update(() =>
+            updateContextMenus(() => app.quit())
+          )
         )
       );
       return true;
     case '--squirrel-uninstall':
-      removeShortcuts(exeName, () =>
+      removeShortcuts(() =>
         removeCommandsFromPath(() =>
-          WinShell.deregisterShellIntegration(appName, () => app.quit())
+          WinShell.fileHandler.deregister(() =>
+            WinShell.fileContextMenu.deregister(() =>
+              WinShell.folderContextMenu.deregister(() =>
+                WinShell.folderBackgroundContextMenu.deregister(() =>
+                  app.quit()
+                )
+              )
+            )
+          )
         )
       );
       return true;
