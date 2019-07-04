@@ -114,7 +114,7 @@ describe "Windows Squirrel Update", ->
 
           SquirrelUpdate.handleStartupEvent('--squirrel-updated')
           waitsFor ->
-            electron.app.quit.callCount is 1
+            electron.app.quit.callCount is 2
 
         it "does not recreate shortcut", ->
           expect(fs.existsSync(desktopShortcutPath)).toBe false
@@ -123,7 +123,7 @@ describe "Windows Squirrel Update", ->
         beforeEach ->
           SquirrelUpdate.handleStartupEvent('--squirrel-updated')
           waitsFor ->
-            electron.app.quit.callCount is 1
+            electron.app.quit.callCount is 2
 
         it "still has desktop shortcut", ->
           expect(fs.existsSync(desktopShortcutPath)).toBe true
