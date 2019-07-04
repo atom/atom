@@ -74,7 +74,7 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
   }
 
   // NB: This prevents Win10 from showing dupe items in the taskbar
-  app.setAppUserModelId('com.squirrel.atom.' + process.arch);
+  app.setAppUserModelId('com.squirrel.atom.' + process.arch + getReleaseChannel(app.getVersion()));
 
   function addPathToOpen(event, pathToOpen) {
     event.preventDefault();
