@@ -1,5 +1,6 @@
 const Registry = require('winreg');
 const Path = require('path');
+const getAppName = require('./get-app-name');
 
 let exeName = Path.basename(process.execPath);
 let appPath = `"${process.execPath}"`;
@@ -136,6 +137,7 @@ function deregisterShellIntegration(appName, callback) {
 }
 
 module.exports = {
+  appName: getAppName(),
   registerShellIntegration,
   updateShellIntegration,
   deregisterShellIntegration

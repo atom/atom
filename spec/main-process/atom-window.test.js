@@ -97,7 +97,7 @@ describe('AtomWindow', function() {
       const { browserWindow } = w;
 
       assert.isFalse(browserWindow.isVisible());
-      assert.strictEqual(browserWindow.getTitle(), 'Atom');
+      assert.isTrue(browserWindow.getTitle().startsWith('Atom'));
 
       const settings = JSON.parse(browserWindow.loadSettingsJSON);
       assert.strictEqual(settings.userSettings, 'stub-config');

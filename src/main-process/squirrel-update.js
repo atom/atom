@@ -1,5 +1,6 @@
 let setxPath;
 const fs = require('fs-plus');
+const getAppName = require('./get-app-name');
 const path = require('path');
 const Spawner = require('./spawner');
 const WinShell = require('./win-shell');
@@ -182,25 +183,27 @@ exports.restartAtom = app => {
 // Handle squirrel events denoted by --squirrel-* command line arguments.
 exports.handleStartupEvent = (app, squirrelCommand) => {
   const exeName = getExeName(app);
+  const appName = getAppName();
+
   switch (squirrelCommand) {
     case '--squirrel-install':
       createShortcuts(exeName, ['Desktop', 'StartMenu'], () =>
         addCommandsToPath(exeName, () =>
-          WinShell.registerShellIntegration(app.getName(), () => app.quit())
+          WinShell.registerShellIntegration(appName, () => app.quit())
         )
       );
       return true;
     case '--squirrel-updated':
-      updateShortcuts(app.getName(), exeName, () =>
+      updateShortcuts(appName, exeName, () =>
         addCommandsToPath(exeName, () =>
-          WinShell.updateShellIntegration(app.getName(), () => app.quit())
+          WinShell.updateShellIntegration(appName, () => app.quit())
         )
       );
       return true;
     case '--squirrel-uninstall':
       removeShortcuts(exeName, () =>
         removeCommandsFromPath(() =>
-          WinShell.deregisterShellIntegration(app.getName(), () => app.quit())
+          WinShell.deregisterShellIntegration(appName, () => app.quit())
         )
       );
       return true;
