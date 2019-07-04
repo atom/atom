@@ -1,7 +1,11 @@
 const { app } = require('electron');
-const getReleaseChannel = require('../get-release-channel');
+const getReleaseChannel = require('./get-release-channel');
 
 module.exports = function getAppName() {
+  if (process.type === 'renderer') {
+    return atom.getAppName();
+  }
+
   const releaseChannel = getReleaseChannel(app.getVersion());
   const appNameParts = [app.getName()];
 

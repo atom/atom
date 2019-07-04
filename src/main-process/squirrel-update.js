@@ -1,7 +1,7 @@
 let setxPath;
 const { app } = require('electron');
 const fs = require('fs-plus');
-const getAppName = require('./get-app-name');
+const getAppName = require('../get-app-name');
 const path = require('path');
 const Spawner = require('./spawner');
 const WinShell = require('./win-shell');
