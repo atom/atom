@@ -36,6 +36,8 @@ const spawnUpdate = (args, callback) =>
 const addCommandsToPath = callback => {
   const atomCmdName = execName.replace('.exe', '.cmd');
   const apmCmdName = atomCmdName.replace('atom', 'apm');
+  const atomShName = execName.replace('.exe', '');
+  const apmShName = atomShName.replace('atom', 'apm');
 
   const installCommands = callback => {
     const atomCommandPath = path.join(binFolder, atomCmdName);
@@ -45,7 +47,7 @@ const addCommandsToPath = callback => {
     );
     const atomCommand = `@echo off\r\n"%~dp0\\${relativeAtomPath}" %*`;
 
-    const atomShCommandPath = path.join(binFolder, 'atom');
+    const atomShCommandPath = path.join(binFolder, atomShName);
     const relativeAtomShPath = path.relative(
       binFolder,
       path.join(appFolder, 'resources', 'cli', 'atom.sh')
@@ -62,7 +64,7 @@ const addCommandsToPath = callback => {
     );
     const apmCommand = `@echo off\r\n"%~dp0\\${relativeApmPath}" %*`;
 
-    const apmShCommandPath = path.join(binFolder, 'apm');
+    const apmShCommandPath = path.join(binFolder, apmShName);
     const relativeApmShPath = path.relative(
       binFolder,
       path.join(appFolder, 'resources', 'cli', 'apm.sh')
