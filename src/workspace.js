@@ -256,6 +256,8 @@ module.exports = class Workspace extends Model {
     };
 
     this.incoming = new Map();
+
+    this.subscribeToEvents();
   }
 
   get paneContainer() {
@@ -373,9 +375,9 @@ module.exports = class Workspace extends Model {
     this.consumeServices(this.packageManager);
   }
 
-  initialize() {
-    this.originalFontSize = this.config.get('editor.fontSize');
+  subscribeToEvents() {
     this.project.onDidChangePaths(this.updateWindowTitle);
+    this.subscribeToFontSize();
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
     this.subscribeToDockToggling();
@@ -1749,6 +1751,14 @@ module.exports = class Workspace extends Model {
     if (this.originalFontSize) {
       this.config.set('editor.fontSize', this.originalFontSize);
     }
+  }
+
+  subscribeToFontSize() {
+    return this.config.onDidChange('editor.fontSize', () => {
+      if (this.originalFontSize == null) {
+        this.originalFontSize = this.config.get('editor.fontSize');
+      }
+    });
   }
 
   // Removes the item's uri from the list of potential items to reopen.
