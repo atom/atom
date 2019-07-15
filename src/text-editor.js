@@ -4084,7 +4084,9 @@ module.exports = class TextEditor {
   }
 
   // Returns an {Object} representing the current invisible character
-  // substitutions for this editor. See {::setInvisibles}.
+  // substitutions for this editor, whose keys are names of invisible characters
+  // and whose values are 1-character {Strings}s that are displayed in place of
+  // those invisible characters
   getInvisibles() {
     if (!this.mini && this.showInvisibles && this.invisibles != null) {
       return this.invisibles;
