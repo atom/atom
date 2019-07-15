@@ -73,10 +73,17 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
     return;
   }
 
-  // NB: This prevents Win10 from showing dupe items in the taskbar
-  app.setAppUserModelId(
-    'com.squirrel.atom.' + process.arch + getReleaseChannel(app.getVersion())
-  );
+  const releaseChannel = getReleaseChannel(app.getVersion());
+  let appUserModelId = 'com.squirrel.atom.' + process.arch;
+
+  // If the release channel is not stable, we append it to the app user model id.
+  // This allows having the different release channels as separate items in the taskbar.
+  if (releaseChannel !== 'stable') {
+    appUserModelId += `-${releaseChannel}`;
+  }
+
+  // NB: This prevents Win10 from showing dupe items in the taskbar.
+  app.setAppUserModelId(appUserModelId);
 
   function addPathToOpen(event, pathToOpen) {
     event.preventDefault();
@@ -93,7 +100,7 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
   app.on('will-finish-launching', () =>
     startCrashReporter({
       uploadToServer: config.get('core.telemetryConsent') === 'limited',
-      releaseChannel: getReleaseChannel(app.getVersion())
+      releaseChannel
     })
   );
 
