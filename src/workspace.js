@@ -678,7 +678,7 @@ module.exports = class Workspace extends Model {
   // open.
   updateWindowTitle() {
     let itemPath, itemTitle, projectPath, representedPath;
-    const appName = 'Atom';
+    const appName = atom.getAppName();
     const left = this.project.getPaths();
     const projectPaths = left != null ? left : [];
     const item = this.getActivePaneItem();

@@ -26,12 +26,16 @@ const computedAppVersion = computeAppVersion(
 );
 const channel = getChannel(computedAppVersion);
 const appName = getAppName(channel);
+const executableName = getExecutableName(channel, appName);
+const channelName = getChannelName(channel);
 
 module.exports = {
   appMetadata,
   apmMetadata,
   channel,
+  channelName,
   appName,
+  executableName,
   computedAppVersion,
   repositoryRootPath,
   apmRootPath,
@@ -47,6 +51,10 @@ module.exports = {
   getNpmBinPath,
   snapshotAuxiliaryData: {}
 };
+
+function getChannelName(channel) {
+  return channel === 'stable' ? 'atom' : `atom-${channel}`;
+}
 
 function getChannel(version) {
   const match = version.match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/);
@@ -64,6 +72,16 @@ function getAppName(channel) {
     ? 'Atom'
     : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME ||
         channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+}
+
+function getExecutableName(channel, appName) {
+  if (process.platform === 'darwin') {
+    return appName;
+  } else if (process.platform === 'win32') {
+    return channel === 'stable' ? 'atom.exe' : `atom-${channel}.exe`;
+  } else {
+    return 'atom';
+  }
 }
 
 function computeAppVersion(version) {

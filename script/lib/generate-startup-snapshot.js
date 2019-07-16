@@ -258,17 +258,17 @@ module.exports = function(packagedAppPath) {
     );
     let nodeBundledInElectronPath;
     if (process.platform === 'darwin') {
-      const executableName = CONFIG.appName;
       nodeBundledInElectronPath = path.join(
         packagedAppPath,
         'Contents',
         'MacOS',
-        executableName
+        CONFIG.executableName
       );
-    } else if (process.platform === 'win32') {
-      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom.exe');
     } else {
-      nodeBundledInElectronPath = path.join(packagedAppPath, 'atom');
+      nodeBundledInElectronPath = path.join(
+        packagedAppPath,
+        CONFIG.executableName
+      );
     }
     childProcess.execFileSync(
       nodeBundledInElectronPath,
