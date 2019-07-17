@@ -139,7 +139,7 @@ module.exports = class AutoUpdateManager extends EventEmitter {
     // and there is no existing scheduled update check.
     if (!/-dev/.test(this.version) && !this.checkForUpdatesIntervalID) {
       const checkForUpdates = () => this.check({ hidePopups: true });
-      const fourHours = 1000 * 60 * 60 * 4;
+      const fourHours = 14400000; // in MS
       this.checkForUpdatesIntervalID = setInterval(checkForUpdates, fourHours);
       checkForUpdates();
     }
