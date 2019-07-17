@@ -14,6 +14,7 @@ jobs:
       vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
 
     variables:
+      AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
       IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
@@ -184,18 +185,18 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-full.nupkg
-          ArtifactName: atom-x64-$(ReleaseVersion)-full.nupkg
+          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-x64-$(ReleaseVersion)-full.nupkg
+          ArtifactName: $(AppName)-x64-$(ReleaseVersion)-full.nupkg
           ArtifactType: Container
-        displayName: Upload atom-x64-$(ReleaseVersion)-full.nupkg
+        displayName: Upload $(AppName)-x64-$(ReleaseVersion)-full.nupkg
         condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-$(ReleaseVersion)-delta.nupkg
-          ArtifactName: atom-x64-$(ReleaseVersion)-delta.nupkg
+          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-x64-$(ReleaseVersion)-delta.nupkg
+          ArtifactName: $(AppName)-x64-$(ReleaseVersion)-delta.nupkg
           ArtifactType: Container
-        displayName: Upload atom-x64-$(ReleaseVersion)-delta.nupkg
+        displayName: Upload $(AppName)-x64-$(ReleaseVersion)-delta.nupkg
         condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
         continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
 
@@ -225,18 +226,18 @@ jobs:
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-full.nupkg
-          ArtifactName: atom-$(ReleaseVersion)-full.nupkg
+          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-$(ReleaseVersion)-full.nupkg
+          ArtifactName: $(AppName)-$(ReleaseVersion)-full.nupkg
           ArtifactType: Container
-        displayName: Upload atom-$(ReleaseVersion)-full.nupkg
+        displayName: Upload $(AppName)-$(ReleaseVersion)-full.nupkg
         condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
 
       - task: PublishBuildArtifacts@1
         inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-$(ReleaseVersion)-delta.nupkg
-          ArtifactName: atom-$(ReleaseVersion)-delta.nupkg
+          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-$(ReleaseVersion)-delta.nupkg
+          ArtifactName: $(AppName)-$(ReleaseVersion)-delta.nupkg
           ArtifactType: Container
-        displayName: Upload atom-$(ReleaseVersion)-delta.nupkg
+        displayName: Upload $(AppName)-$(ReleaseVersion)-delta.nupkg
         condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
         continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
 
