@@ -1,4 +1,5 @@
 const { BrowserWindow, app, dialog, ipcMain } = require('electron');
+const getAppName = require('../get-app-name');
 const path = require('path');
 const url = require('url');
 const { EventEmitter } = require('events');
@@ -35,7 +36,7 @@ module.exports = class AtomWindow extends EventEmitter {
 
     const options = {
       show: false,
-      title: 'Atom',
+      title: getAppName(),
       tabbingIdentifier: 'atom',
       webPreferences: {
         // Prevent specs from throttling when the window is in the background:
@@ -80,6 +81,7 @@ module.exports = class AtomWindow extends EventEmitter {
 
     this.loadSettings = Object.assign({}, settings);
     this.loadSettings.appVersion = app.getVersion();
+    this.loadSettings.appName = getAppName();
     this.loadSettings.resourcePath = this.resourcePath;
     this.loadSettings.atomHome = process.env.ATOM_HOME;
     if (this.loadSettings.devMode == null) this.loadSettings.devMode = false;

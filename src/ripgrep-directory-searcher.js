@@ -157,7 +157,7 @@ function processSubmatch(submatch, lineText, offsetRow) {
 }
 
 function getText(input) {
-  return input.text
+  return 'text' in input
     ? input.text
     : Buffer.from(input.bytes, 'base64').toString();
 }
@@ -267,6 +267,10 @@ module.exports = class RipgrepDirectorySearcher {
 
     if (!options.excludeVcsIgnores) {
       args.push('--no-ignore-vcs');
+    }
+
+    if (options.PCRE2) {
+      args.push('--pcre2');
     }
 
     args.push('.');

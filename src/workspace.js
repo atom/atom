@@ -76,7 +76,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // Returns a {String} containing a longer version of the title to display in
 // places like the window title or on tabs their short titles are ambiguous.
 //
-// #### `onDidChangeTitle`
+// #### `onDidChangeTitle(callback)`
 //
 // Called by the workspace so it can be notified when the item's title changes.
 // Must return a {Disposable}.
@@ -678,7 +678,7 @@ module.exports = class Workspace extends Model {
   // open.
   updateWindowTitle() {
     let itemPath, itemTitle, projectPath, representedPath;
-    const appName = 'Atom';
+    const appName = atom.getAppName();
     const left = this.project.getPaths();
     const projectPaths = left != null ? left : [];
     const item = this.getActivePaneItem();
@@ -2104,6 +2104,7 @@ module.exports = class Workspace extends Model {
         follow: this.config.get('core.followSymlinks'),
         leadingContextLineCount: options.leadingContextLineCount || 0,
         trailingContextLineCount: options.trailingContextLineCount || 0,
+        PCRE2: options.PCRE2,
         didMatch: result => {
           if (!this.project.isPathModified(result.filePath)) {
             return iterator(result);

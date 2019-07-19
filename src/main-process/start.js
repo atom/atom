@@ -4,6 +4,7 @@ const path = require('path');
 const temp = require('temp').track();
 const parseCommandLine = require('./parse-command-line');
 const startCrashReporter = require('../crash-reporter-start');
+const getReleaseChannel = require('../get-release-channel');
 const atomPaths = require('../atom-paths');
 const fs = require('fs');
 const CSON = require('season');
@@ -72,8 +73,17 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
     return;
   }
 
-  // NB: This prevents Win10 from showing dupe items in the taskbar
-  app.setAppUserModelId('com.squirrel.atom.' + process.arch);
+  const releaseChannel = getReleaseChannel(app.getVersion());
+  let appUserModelId = 'com.squirrel.atom.' + process.arch;
+
+  // If the release channel is not stable, we append it to the app user model id.
+  // This allows having the different release channels as separate items in the taskbar.
+  if (releaseChannel !== 'stable') {
+    appUserModelId += `-${releaseChannel}`;
+  }
+
+  // NB: This prevents Win10 from showing dupe items in the taskbar.
+  app.setAppUserModelId(appUserModelId);
 
   function addPathToOpen(event, pathToOpen) {
     event.preventDefault();
@@ -87,7 +97,12 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
 
   app.on('open-file', addPathToOpen);
   app.on('open-url', addUrlToOpen);
-  app.on('will-finish-launching', startCrashReporter);
+  app.on('will-finish-launching', () =>
+    startCrashReporter({
+      uploadToServer: config.get('core.telemetryConsent') === 'limited',
+      releaseChannel
+    })
+  );
 
   if (args.userDataDir != null) {
     app.setPath('userData', args.userDataDir);
@@ -117,7 +132,7 @@ function handleStartupEventWithSquirrel() {
 
   const SquirrelUpdate = require('./squirrel-update');
   const squirrelCommand = process.argv[1];
-  return SquirrelUpdate.handleStartupEvent(app, squirrelCommand);
+  return SquirrelUpdate.handleStartupEvent(squirrelCommand);
 }
 
 function getConfig() {

@@ -12,6 +12,9 @@ module.exports = packagedAppPath => {
   const updateUrlPrefix =
     process.env.ATOM_UPDATE_URL_PREFIX || 'https://atom.io';
   const options = {
+    name: CONFIG.channelName,
+    title: CONFIG.appName,
+    exe: CONFIG.executableName,
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
     iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${
@@ -44,7 +47,11 @@ module.exports = packagedAppPath => {
       fs.renameSync(releasesPath, `${releasesPath}-x64`);
     }
 
-    for (let nupkgPath of glob.sync(`${CONFIG.buildOutputPath}/atom-*.nupkg`)) {
+    let appName =
+      CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
+    for (let nupkgPath of glob.sync(
+      `${CONFIG.buildOutputPath}/${appName}-*.nupkg`
+    )) {
       if (!nupkgPath.includes(CONFIG.computedAppVersion)) {
         console.log(
           `Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`
@@ -53,7 +60,10 @@ module.exports = packagedAppPath => {
       } else {
         if (process.arch === 'x64') {
           // Use the original .nupkg filename to generate the `atom-x64` name by inserting `-x64` after `atom`
-          const newNupkgPath = nupkgPath.replace('atom-', 'atom-x64-');
+          const newNupkgPath = nupkgPath.replace(
+            `${appName}-`,
+            `${appName}-x64-`
+          );
           fs.renameSync(nupkgPath, newNupkgPath);
         }
       }

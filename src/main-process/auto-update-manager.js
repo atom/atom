@@ -1,4 +1,5 @@
 const { EventEmitter } = require('events');
+const os = require('os');
 const path = require('path');
 
 const IdleState = 'idle';
@@ -34,14 +35,16 @@ module.exports = class AutoUpdateManager extends EventEmitter {
   initialize() {
     if (process.platform === 'win32') {
       const archSuffix = process.arch === 'ia32' ? '' : `-${process.arch}`;
-      this.feedUrl = `${
-        this.updateUrlPrefix
-      }/api/updates${archSuffix}?version=${this.version}`;
+      this.feedUrl =
+        this.updateUrlPrefix +
+        `/api/updates${archSuffix}?version=${this.version}&os_version=${
+          os.release
+        }`;
       autoUpdater = require('./auto-updater-win32');
     } else {
-      this.feedUrl = `${this.updateUrlPrefix}/api/updates?version=${
-        this.version
-      }`;
+      this.feedUrl =
+        this.updateUrlPrefix +
+        `/api/updates?version=${this.version}&os_version=${os.release}`;
       ({ autoUpdater } = require('electron'));
     }
 
