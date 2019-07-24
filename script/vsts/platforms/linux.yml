@@ -97,7 +97,7 @@ jobs:
           ArtifactName: atom.x86_64.rpm
           ArtifactType: Container
         displayName: Upload atom.x84_64.rpm
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        # condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
       - task: PublishBuildArtifacts@1
         inputs:
@@ -105,7 +105,7 @@ jobs:
           ArtifactName: atom-amd64.deb
           ArtifactType: Container
         displayName: Upload atom-amd64.deb
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        # condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
       - task: PublishBuildArtifacts@1
         inputs:
@@ -113,4 +113,4 @@ jobs:
           ArtifactName: atom-amd64.tar.gz
           ArtifactType: Container
         displayName: Upload atom-amd64.tar.gz
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+        # condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
