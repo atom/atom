@@ -3,11 +3,6 @@ trigger:
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
 
-resources:
-  containers:
-    - container: atom-linux-ci
-      image: atomeditor/atom-linux-ci:latest
-
 jobs:
   - job: GetReleaseVersion
     steps:

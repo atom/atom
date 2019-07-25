@@ -2,16 +2,26 @@ jobs:
   - job: Linux
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
-
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     pool:
       # This image is used to host the Docker container that runs the build
       vmImage: ubuntu-16.04
-
-    container: atom-linux-ci
+    container: ubuntu:trusty
 
     steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y wget software-properties-common
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo apt-add-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main"
+          sudo apt-get update
+          sudo apt-get install -y build-essential ca-certificates clang-5.0 xvfb fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0 libasound2 libicu-dev
+        displayName: Install apt dependencies
+
+      - script: sudo /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+        displayName: Start Xvfb
+
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
@@ -32,6 +42,9 @@ jobs:
         env:
           CI: true
           CI_PROVIDER: VSTS
+          CC: clang-5.0
+          CXX: clang++-5.0
+          npm_config_clang: 1
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
@@ -48,6 +61,9 @@ jobs:
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
+          CC: clang-5.0
+          CXX: clang++-5.0
+          npm_config_clang: 1
         displayName: Build Atom
 
       - script: script/test
@@ -56,6 +72,7 @@ jobs:
           CI_PROVIDER: VSTS
           ATOM_JASMINE_REPORTER: list
           TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+          DISPLAY: :99.0
         displayName: Run tests
         condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
