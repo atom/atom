@@ -1,10 +1,5 @@
 trigger: none # No CI builds, only PR builds
 
-resources:
-  containers:
-    - container: atom-linux-ci
-      image: atomeditor/atom-linux-ci:latest
-
 jobs:
   - job: GetReleaseVersion
     steps:
