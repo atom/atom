@@ -574,26 +574,26 @@ describe('Pane', () => {
         config: atom.config,
         deserializerManager: atom.deserializers,
         applicationDelegate: atom.applicationDelegate
-      })
+      });
 
-      pane.setContainer(container)
-      container.onWillDestroyPaneItem(e => e.prevent())
-      pane.itemStack = [item2, item3, item1]
+      pane.setContainer(container);
+      container.onWillDestroyPaneItem(e => e.prevent());
+      pane.itemStack = [item2, item3, item1];
 
-      pane.activateItem(item1)
-      expect(pane.getActiveItem()).toBe(item1)
-      pane.destroyItem(item3)
-      expect(pane.itemStack).toEqual([item2, item3, item1])
-      expect(pane.getActiveItem()).toBe(item1)
+      pane.activateItem(item1);
+      expect(pane.getActiveItem()).toBe(item1);
+      pane.destroyItem(item3);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
 
-      pane.destroyItem(item1)
-      expect(pane.itemStack).toEqual([item2, item3, item1])
-      expect(pane.getActiveItem()).toBe(item1)
+      pane.destroyItem(item1);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
 
-      pane.destroyItem(item2)
-      expect(pane.itemStack).toEqual([item2, item3, item1])
-      expect(pane.getActiveItem()).toBe(item1)
-    })
+      pane.destroyItem(item2);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
+    });
 
     it('invokes ::onWillDestroyItem() and PaneContainer::onWillDestroyPaneItem observers before destroying the item', async () => {
       jasmine.useRealClock();
