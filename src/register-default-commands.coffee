@@ -36,13 +36,13 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
       'application:new-file': -> ipcRenderer.send('command', 'application:new-file')
       'application:open': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open', defaultPath)
+        ipcRenderer.send('open-chosen-any', defaultPath)
       'application:open-file': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open-file', defaultPath)
+        ipcRenderer.send('open-chosen-file', defaultPath)
       'application:open-folder': ->
         defaultPath = atom.workspace.getActiveTextEditor()?.getPath() ? atom.project.getPaths()?[0]
-        ipcRenderer.send('open-command', 'application:open-folder', defaultPath)
+        ipcRenderer.send('open-chosen-folder', defaultPath)
       'application:open-dev': -> ipcRenderer.send('command', 'application:open-dev')
       'application:open-safe': -> ipcRenderer.send('command', 'application:open-safe')
       'application:add-project-folder': -> atom.addProjectFolder()
@@ -273,6 +273,7 @@ module.exports = ({commandRegistry, commandInstaller, config, notificationManage
         @foldAllAtIndentLevel(8)
         @scrollToCursorPosition()
       'editor:log-cursor-scope': -> showCursorScope(@getCursorScope(), notificationManager)
+      'editor:log-cursor-syntax-tree-scope': -> showSyntaxTree(@getCursorSyntaxTreeScope(), notificationManager)
       'editor:copy-path': -> copyPathToClipboard(this, project, clipboard, false)
       'editor:copy-project-path': -> copyPathToClipboard(this, project, clipboard, true)
       'editor:toggle-indent-guide': -> config.set('editor.showIndentGuide', not config.get('editor.showIndentGuide'))
@@ -331,6 +332,13 @@ showCursorScope = (descriptor, notificationManager) ->
   list = descriptor.scopes.toString().split(',')
   list = list.map (item) -> "* #{item}"
   content = "Scopes at Cursor\n#{list.join('\n')}"
+
+  notificationManager.addInfo(content, dismissable: true)
+
+showSyntaxTree = (descriptor, notificationManager) ->
+  list = descriptor.scopes.toString().split(',')
+  list = list.map (item) -> "* #{item}"
+  content = "Syntax tree at Cursor\n#{list.join('\n')}"
 
   notificationManager.addInfo(content, dismissable: true)
 

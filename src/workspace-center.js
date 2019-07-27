@@ -1,45 +1,47 @@
-'use strict'
+'use strict';
 
-const TextEditor = require('./text-editor')
-const PaneContainer = require('./pane-container')
+const TextEditor = require('./text-editor');
+const PaneContainer = require('./pane-container');
 
 // Essential: Represents the workspace at the center of the entire window.
 module.exports = class WorkspaceCenter {
-  constructor (params) {
-    params.location = 'center'
-    this.paneContainer = new PaneContainer(params)
-    this.didActivate = params.didActivate
-    this.paneContainer.onDidActivatePane(() => this.didActivate(this))
-    this.paneContainer.onDidChangeActivePane((pane) => {
-      params.didChangeActivePane(this, pane)
-    })
-    this.paneContainer.onDidChangeActivePaneItem((item) => {
-      params.didChangeActivePaneItem(this, item)
-    })
-    this.paneContainer.onDidDestroyPaneItem((item) => params.didDestroyPaneItem(item))
+  constructor(params) {
+    params.location = 'center';
+    this.paneContainer = new PaneContainer(params);
+    this.didActivate = params.didActivate;
+    this.paneContainer.onDidActivatePane(() => this.didActivate(this));
+    this.paneContainer.onDidChangeActivePane(pane => {
+      params.didChangeActivePane(this, pane);
+    });
+    this.paneContainer.onDidChangeActivePaneItem(item => {
+      params.didChangeActivePaneItem(this, item);
+    });
+    this.paneContainer.onDidDestroyPaneItem(item =>
+      params.didDestroyPaneItem(item)
+    );
   }
 
-  destroy () {
-    this.paneContainer.destroy()
+  destroy() {
+    this.paneContainer.destroy();
   }
 
-  serialize () {
-    return this.paneContainer.serialize()
+  serialize() {
+    return this.paneContainer.serialize();
   }
 
-  deserialize (state, deserializerManager) {
-    this.paneContainer.deserialize(state, deserializerManager)
+  deserialize(state, deserializerManager) {
+    this.paneContainer.deserialize(state, deserializerManager);
   }
 
-  activate () {
-    this.getActivePane().activate()
+  activate() {
+    this.getActivePane().activate();
   }
 
-  getLocation () {
-    return 'center'
+  getLocation() {
+    return 'center';
   }
 
-  setDraggingItem () {
+  setDraggingItem() {
     // No-op
   }
 
@@ -55,9 +57,11 @@ module.exports = class WorkspaceCenter {
   //     of subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeTextEditors (callback) {
-    for (let textEditor of this.getTextEditors()) { callback(textEditor) }
-    return this.onDidAddTextEditor(({textEditor}) => callback(textEditor))
+  observeTextEditors(callback) {
+    for (let textEditor of this.getTextEditors()) {
+      callback(textEditor);
+    }
+    return this.onDidAddTextEditor(({ textEditor }) => callback(textEditor));
   }
 
   // Essential: Invoke the given callback with all current and future panes items
@@ -68,7 +72,9 @@ module.exports = class WorkspaceCenter {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePaneItems (callback) { return this.paneContainer.observePaneItems(callback) }
+  observePaneItems(callback) {
+    return this.paneContainer.observePaneItems(callback);
+  }
 
   // Essential: Invoke the given callback when the active pane item changes.
   //
@@ -81,8 +87,8 @@ module.exports = class WorkspaceCenter {
   //   * `item` The active pane item.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePaneItem (callback) {
-    return this.paneContainer.onDidChangeActivePaneItem(callback)
+  onDidChangeActivePaneItem(callback) {
+    return this.paneContainer.onDidChangeActivePaneItem(callback);
   }
 
   // Essential: Invoke the given callback when the active pane item stops
@@ -99,8 +105,8 @@ module.exports = class WorkspaceCenter {
   //   * `item` The active pane item.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidStopChangingActivePaneItem (callback) {
-    return this.paneContainer.onDidStopChangingActivePaneItem(callback)
+  onDidStopChangingActivePaneItem(callback) {
+    return this.paneContainer.onDidStopChangingActivePaneItem(callback);
   }
 
   // Essential: Invoke the given callback with the current active pane item and
@@ -110,8 +116,8 @@ module.exports = class WorkspaceCenter {
   //   * `item` The current active pane item.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePaneItem (callback) {
-    return this.paneContainer.observeActivePaneItem(callback)
+  observeActivePaneItem(callback) {
+    return this.paneContainer.observeActivePaneItem(callback);
   }
 
   // Extended: Invoke the given callback when a pane is added to the workspace
@@ -122,8 +128,8 @@ module.exports = class WorkspaceCenter {
   //     * `pane` The added pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPane (callback) {
-    return this.paneContainer.onDidAddPane(callback)
+  onDidAddPane(callback) {
+    return this.paneContainer.onDidAddPane(callback);
   }
 
   // Extended: Invoke the given callback before a pane is destroyed in the
@@ -134,8 +140,8 @@ module.exports = class WorkspaceCenter {
   //     * `pane` The pane to be destroyed.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onWillDestroyPane (callback) {
-    return this.paneContainer.onWillDestroyPane(callback)
+  onWillDestroyPane(callback) {
+    return this.paneContainer.onWillDestroyPane(callback);
   }
 
   // Extended: Invoke the given callback when a pane is destroyed in the
@@ -146,8 +152,8 @@ module.exports = class WorkspaceCenter {
   //     * `pane` The destroyed pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroyPane (callback) {
-    return this.paneContainer.onDidDestroyPane(callback)
+  onDidDestroyPane(callback) {
+    return this.paneContainer.onDidDestroyPane(callback);
   }
 
   // Extended: Invoke the given callback with all current and future panes in the
@@ -158,8 +164,8 @@ module.exports = class WorkspaceCenter {
   //      subscription or that is added at some later time.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observePanes (callback) {
-    return this.paneContainer.observePanes(callback)
+  observePanes(callback) {
+    return this.paneContainer.observePanes(callback);
   }
 
   // Extended: Invoke the given callback when the active pane changes.
@@ -168,8 +174,8 @@ module.exports = class WorkspaceCenter {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeActivePane (callback) {
-    return this.paneContainer.onDidChangeActivePane(callback)
+  onDidChangeActivePane(callback) {
+    return this.paneContainer.onDidChangeActivePane(callback);
   }
 
   // Extended: Invoke the given callback with the current active pane and when
@@ -180,8 +186,8 @@ module.exports = class WorkspaceCenter {
   //   * `pane` A {Pane} that is the current return value of {::getActivePane}.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  observeActivePane (callback) {
-    return this.paneContainer.observeActivePane(callback)
+  observeActivePane(callback) {
+    return this.paneContainer.observeActivePane(callback);
   }
 
   // Extended: Invoke the given callback when a pane item is added to the
@@ -194,8 +200,8 @@ module.exports = class WorkspaceCenter {
   //     * `index` {Number} indicating the index of the added item in its pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddPaneItem (callback) {
-    return this.paneContainer.onDidAddPaneItem(callback)
+  onDidAddPaneItem(callback) {
+    return this.paneContainer.onDidAddPaneItem(callback);
   }
 
   // Extended: Invoke the given callback when a pane item is about to be
@@ -209,8 +215,8 @@ module.exports = class WorkspaceCenter {
   //       its pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onWillDestroyPaneItem (callback) {
-    return this.paneContainer.onWillDestroyPaneItem(callback)
+  onWillDestroyPaneItem(callback) {
+    return this.paneContainer.onWillDestroyPaneItem(callback);
   }
 
   // Extended: Invoke the given callback when a pane item is destroyed.
@@ -223,8 +229,8 @@ module.exports = class WorkspaceCenter {
   //       pane.
   //
   // Returns a {Disposable} on which `.dispose` can be called to unsubscribe.
-  onDidDestroyPaneItem (callback) {
-    return this.paneContainer.onDidDestroyPaneItem(callback)
+  onDidDestroyPaneItem(callback) {
+    return this.paneContainer.onDidDestroyPaneItem(callback);
   }
 
   // Extended: Invoke the given callback when a text editor is added to the
@@ -238,12 +244,12 @@ module.exports = class WorkspaceCenter {
   //        pane.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddTextEditor (callback) {
-    return this.onDidAddPaneItem(({item, pane, index}) => {
+  onDidAddTextEditor(callback) {
+    return this.onDidAddPaneItem(({ item, pane, index }) => {
       if (item instanceof TextEditor) {
-        callback({textEditor: item, pane, index})
+        callback({ textEditor: item, pane, index });
       }
-    })
+    });
   }
 
   /*
@@ -253,40 +259,42 @@ module.exports = class WorkspaceCenter {
   // Essential: Get all pane items in the workspace center.
   //
   // Returns an {Array} of items.
-  getPaneItems () {
-    return this.paneContainer.getPaneItems()
+  getPaneItems() {
+    return this.paneContainer.getPaneItems();
   }
 
   // Essential: Get the active {Pane}'s active item.
   //
   // Returns an pane item {Object}.
-  getActivePaneItem () {
-    return this.paneContainer.getActivePaneItem()
+  getActivePaneItem() {
+    return this.paneContainer.getActivePaneItem();
   }
 
   // Essential: Get all text editors in the workspace center.
   //
   // Returns an {Array} of {TextEditor}s.
-  getTextEditors () {
-    return this.getPaneItems().filter(item => item instanceof TextEditor)
+  getTextEditors() {
+    return this.getPaneItems().filter(item => item instanceof TextEditor);
   }
 
   // Essential: Get the active item if it is an {TextEditor}.
   //
   // Returns an {TextEditor} or `undefined` if the current active item is not an
   // {TextEditor}.
-  getActiveTextEditor () {
-    const activeItem = this.getActivePaneItem()
-    if (activeItem instanceof TextEditor) { return activeItem }
+  getActiveTextEditor() {
+    const activeItem = this.getActivePaneItem();
+    if (activeItem instanceof TextEditor) {
+      return activeItem;
+    }
   }
 
   // Save all pane items.
-  saveAll () {
-    this.paneContainer.saveAll()
+  saveAll() {
+    this.paneContainer.saveAll();
   }
 
-  confirmClose (options) {
-    return this.paneContainer.confirmClose(options)
+  confirmClose(options) {
+    return this.paneContainer.confirmClose(options);
   }
 
   /*
@@ -296,40 +304,40 @@ module.exports = class WorkspaceCenter {
   // Extended: Get all panes in the workspace center.
   //
   // Returns an {Array} of {Pane}s.
-  getPanes () {
-    return this.paneContainer.getPanes()
+  getPanes() {
+    return this.paneContainer.getPanes();
   }
 
   // Extended: Get the active {Pane}.
   //
   // Returns a {Pane}.
-  getActivePane () {
-    return this.paneContainer.getActivePane()
+  getActivePane() {
+    return this.paneContainer.getActivePane();
   }
 
   // Extended: Make the next pane active.
-  activateNextPane () {
-    return this.paneContainer.activateNextPane()
+  activateNextPane() {
+    return this.paneContainer.activateNextPane();
   }
 
   // Extended: Make the previous pane active.
-  activatePreviousPane () {
-    return this.paneContainer.activatePreviousPane()
+  activatePreviousPane() {
+    return this.paneContainer.activatePreviousPane();
   }
 
-  paneForURI (uri) {
-    return this.paneContainer.paneForURI(uri)
+  paneForURI(uri) {
+    return this.paneContainer.paneForURI(uri);
   }
 
-  paneForItem (item) {
-    return this.paneContainer.paneForItem(item)
+  paneForItem(item) {
+    return this.paneContainer.paneForItem(item);
   }
 
   // Destroy (close) the active pane.
-  destroyActivePane () {
-    const activePane = this.getActivePane()
+  destroyActivePane() {
+    const activePane = this.getActivePane();
     if (activePane != null) {
-      activePane.destroy()
+      activePane.destroy();
     }
   }
-}
+};

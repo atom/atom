@@ -1,0 +1,55 @@
+{
+  "name": "line-ending-selector",
+  "version": "0.7.7",
+  "main": "./lib/main",
+  "description": "Select the line ending to use for the current editor.",
+  "license": "MIT",
+  "repository": "https://github.com/atom/atom",
+  "engines": {
+    "atom": "^1.0.0"
+  },
+  "dependencies": {
+    "atom-select-list": "^0.7.0",
+    "underscore-plus": "^1.7.0"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "devDependencies": {
+    "standard": "^5.1.0"
+  },
+  "configSchema": {
+    "defaultLineEnding": {
+      "title": "Default line ending",
+      "description": "Line ending to use for new files",
+      "type": "string",
+      "default": "OS Default",
+      "enum": [
+        "OS Default",
+        "LF",
+        "CRLF"
+      ]
+    }
+  },
+  "standard": {
+    "globals": [
+      "advanceClock",
+      "atom",
+      "beforeEach",
+      "expect",
+      "describe",
+      "it",
+      "jasmine",
+      "MouseEvent",
+      "runs",
+      "spyOn",
+      "waits",
+      "waitsFor",
+      "waitsForPromise"
+    ]
+  }
+}

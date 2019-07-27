@@ -9,13 +9,13 @@
     "ui"
   ],
   "license": "MIT",
-  "repository": "https://github.com/atom/one-light-ui",
+  "repository": "https://github.com/atom/atom",
   "main": "lib/main",
   "engines": {
     "atom": ">0.40.0"
   },
   "devDependencies": {
-    "coffeelint": "^1.9.7"
+    "standard": "^11.0.0"
   },
   "configSchema": {
     "fontSize": {

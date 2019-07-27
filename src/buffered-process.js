@@ -1,7 +1,7 @@
-const _ = require('underscore-plus')
-const ChildProcess = require('child_process')
-const {Emitter} = require('event-kit')
-const path = require('path')
+const _ = require('underscore-plus');
+const ChildProcess = require('child_process');
+const { Emitter } = require('event-kit');
+const path = require('path');
 
 // Extended: A wrapper which provides standard error/output line buffering for
 // Node's ChildProcess.
@@ -17,8 +17,7 @@ const path = require('path')
 // const exit = (code) => console.log("ps -ef exited with #{code}")
 // const process = new BufferedProcess({command, args, stdout, exit})
 // ```
-module.exports =
-class BufferedProcess {
+module.exports = class BufferedProcess {
   /*
   Section: Construction
   */
@@ -48,58 +47,73 @@ class BufferedProcess {
   //   * `autoStart` {Boolean} (optional) Whether the command will automatically start
   //     when this BufferedProcess is created. Defaults to true.  When set to false you
   //     must call the `start` method to start the process.
-  constructor ({command, args, options = {}, stdout, stderr, exit, autoStart = true} = {}) {
-    this.emitter = new Emitter()
-    this.command = command
-    this.args = args
-    this.options = options
-    this.stdout = stdout
-    this.stderr = stderr
-    this.exit = exit
+  constructor({
+    command,
+    args,
+    options = {},
+    stdout,
+    stderr,
+    exit,
+    autoStart = true
+  } = {}) {
+    this.emitter = new Emitter();
+    this.command = command;
+    this.args = args;
+    this.options = options;
+    this.stdout = stdout;
+    this.stderr = stderr;
+    this.exit = exit;
     if (autoStart === true) {
-      this.start()
+      this.start();
     }
-    this.killed = false
+    this.killed = false;
   }
 
-  start () {
-    if (this.started === true) return
+  start() {
+    if (this.started === true) return;
 
-    this.started = true
+    this.started = true;
     // Related to joyent/node#2318
     if (process.platform === 'win32' && this.options.shell === undefined) {
-      this.spawnWithEscapedWindowsArgs(this.command, this.args, this.options)
+      this.spawnWithEscapedWindowsArgs(this.command, this.args, this.options);
     } else {
-      this.spawn(this.command, this.args, this.options)
+      this.spawn(this.command, this.args, this.options);
     }
-    this.handleEvents(this.stdout, this.stderr, this.exit)
+    this.handleEvents(this.stdout, this.stderr, this.exit);
   }
 
   // Windows has a bunch of special rules that node still doesn't take care of for you
-  spawnWithEscapedWindowsArgs (command, args, options) {
-    let cmdArgs = []
+  spawnWithEscapedWindowsArgs(command, args, options) {
+    let cmdArgs = [];
     // Quote all arguments and escapes inner quotes
     if (args) {
-      cmdArgs = args.filter((arg) => arg != null)
-        .map((arg) => {
+      cmdArgs = args
+        .filter(arg => arg != null)
+        .map(arg => {
           if (this.isExplorerCommand(command) && /^\/[a-zA-Z]+,.*$/.test(arg)) {
             // Don't wrap /root,C:\folder style arguments to explorer calls in
             // quotes since they will not be interpreted correctly if they are
-            return arg
+            return arg;
           } else {
             // Escape double quotes by putting a backslash in front of them
-            return `\"${arg.toString().replace(/"/g, '\\"')}\"`
+            return `"${arg.toString().replace(/"/g, '\\"')}"`;
           }
-        })
+        });
     }
 
     // The command itself is quoted if it contains spaces, &, ^, | or # chars
-    cmdArgs.unshift(/\s|&|\^|\(|\)|\||#/.test(command) ? `\"${command}\"` : command)
+    cmdArgs.unshift(
+      /\s|&|\^|\(|\)|\||#/.test(command) ? `"${command}"` : command
+    );
 
-    const cmdOptions = _.clone(options)
-    cmdOptions.windowsVerbatimArguments = true
+    const cmdOptions = _.clone(options);
+    cmdOptions.windowsVerbatimArguments = true;
 
-    this.spawn(this.getCmdPath(), ['/s', '/d', '/c', `\"${cmdArgs.join(' ')}\"`], cmdOptions)
+    this.spawn(
+      this.getCmdPath(),
+      ['/s', '/d', '/c', `"${cmdArgs.join(' ')}"`],
+      cmdOptions
+    );
   }
 
   /*
@@ -118,8 +132,8 @@ class BufferedProcess {
   //       The error will not be thrown if this function is called.
   //
   // Returns a {Disposable}
-  onWillThrowError (callback) {
-    return this.emitter.on('will-throw-error', callback)
+  onWillThrowError(callback) {
+    return this.emitter.on('will-throw-error', callback);
   }
 
   /*
@@ -131,183 +145,196 @@ class BufferedProcess {
   // * `stream` The Stream to read from.
   // * `onLines` The callback to call with each line of data.
   // * `onDone` The callback to call when the stream has closed.
-  bufferStream (stream, onLines, onDone) {
-    stream.setEncoding('utf8')
-    let buffered = ''
+  bufferStream(stream, onLines, onDone) {
+    stream.setEncoding('utf8');
+    let buffered = '';
 
-    stream.on('data', (data) => {
-      if (this.killed) return
+    stream.on('data', data => {
+      if (this.killed) return;
 
-      let bufferedLength = buffered.length
-      buffered += data
-      let lastNewlineIndex = data.lastIndexOf('\n')
+      let bufferedLength = buffered.length;
+      buffered += data;
+      let lastNewlineIndex = data.lastIndexOf('\n');
 
       if (lastNewlineIndex !== -1) {
-        let lineLength = lastNewlineIndex + bufferedLength + 1
-        onLines(buffered.substring(0, lineLength))
-        buffered = buffered.substring(lineLength)
+        let lineLength = lastNewlineIndex + bufferedLength + 1;
+        onLines(buffered.substring(0, lineLength));
+        buffered = buffered.substring(lineLength);
       }
-    })
+    });
 
     stream.on('close', () => {
-      if (this.killed) return
-      if (buffered.length > 0) onLines(buffered)
-      onDone()
-    })
+      if (this.killed) return;
+      if (buffered.length > 0) onLines(buffered);
+      onDone();
+    });
   }
 
   // Kill all child processes of the spawned cmd.exe process on Windows.
   //
   // This is required since killing the cmd.exe does not terminate child
   // processes.
-  killOnWindows () {
-    if (!this.process) return
+  killOnWindows() {
+    if (!this.process) return;
 
-    const parentPid = this.process.pid
-    const cmd = 'wmic'
+    const parentPid = this.process.pid;
+    const cmd = 'wmic';
     const args = [
       'process',
       'where',
       `(ParentProcessId=${parentPid})`,
       'get',
       'processid'
-    ]
+    ];
 
-    let wmicProcess
+    let wmicProcess;
 
     try {
-      wmicProcess = ChildProcess.spawn(cmd, args)
+      wmicProcess = ChildProcess.spawn(cmd, args);
     } catch (spawnError) {
-      this.killProcess()
-      return
+      this.killProcess();
+      return;
     }
 
-    wmicProcess.on('error', () => {}) // ignore errors
+    wmicProcess.on('error', () => {}); // ignore errors
 
-    let output = ''
-    wmicProcess.stdout.on('data', (data) => {
-      output += data
-    })
+    let output = '';
+    wmicProcess.stdout.on('data', data => {
+      output += data;
+    });
     wmicProcess.stdout.on('close', () => {
       for (let pid of output.split(/\s+/)) {
-        if (!/^\d{1,10}$/.test(pid)) continue
-        pid = parseInt(pid, 10)
+        if (!/^\d{1,10}$/.test(pid)) continue;
+        pid = parseInt(pid, 10);
 
-        if (!pid || pid === parentPid) continue
+        if (!pid || pid === parentPid) continue;
 
         try {
-          process.kill(pid)
+          process.kill(pid);
         } catch (error) {}
       }
 
-      this.killProcess()
-    })
+      this.killProcess();
+    });
   }
 
-  killProcess () {
-    if (this.process) this.process.kill()
-    this.process = null
+  killProcess() {
+    if (this.process) this.process.kill();
+    this.process = null;
   }
 
-  isExplorerCommand (command) {
+  isExplorerCommand(command) {
     if (command === 'explorer.exe' || command === 'explorer') {
-      return true
+      return true;
     } else if (process.env.SystemRoot) {
-      return command === path.join(process.env.SystemRoot, 'explorer.exe') || command === path.join(process.env.SystemRoot, 'explorer')
+      return (
+        command === path.join(process.env.SystemRoot, 'explorer.exe') ||
+        command === path.join(process.env.SystemRoot, 'explorer')
+      );
     } else {
-      return false
+      return false;
     }
   }
 
-  getCmdPath () {
+  getCmdPath() {
     if (process.env.comspec) {
-      return process.env.comspec
+      return process.env.comspec;
     } else if (process.env.SystemRoot) {
-      return path.join(process.env.SystemRoot, 'System32', 'cmd.exe')
+      return path.join(process.env.SystemRoot, 'System32', 'cmd.exe');
     } else {
-      return 'cmd.exe'
+      return 'cmd.exe';
     }
   }
 
   // Public: Terminate the process.
-  kill () {
-    if (this.killed) return
+  kill() {
+    if (this.killed) return;
 
-    this.killed = true
+    this.killed = true;
     if (process.platform === 'win32') {
-      this.killOnWindows()
+      this.killOnWindows();
     } else {
-      this.killProcess()
+      this.killProcess();
     }
   }
 
-  spawn (command, args, options) {
+  spawn(command, args, options) {
     try {
-      this.process = ChildProcess.spawn(command, args, options)
+      this.process = ChildProcess.spawn(command, args, options);
     } catch (spawnError) {
-      process.nextTick(() => this.handleError(spawnError))
+      process.nextTick(() => this.handleError(spawnError));
     }
   }
 
-  handleEvents (stdout, stderr, exit) {
-    if (!this.process) return
+  handleEvents(stdout, stderr, exit) {
+    if (!this.process) return;
 
     const triggerExitCallback = () => {
-      if (this.killed) return
-      if (stdoutClosed && stderrClosed && processExited && typeof exit === 'function') {
-        exit(exitCode)
+      if (this.killed) return;
+      if (
+        stdoutClosed &&
+        stderrClosed &&
+        processExited &&
+        typeof exit === 'function'
+      ) {
+        exit(exitCode);
       }
-    }
+    };
 
-    let stdoutClosed = true
-    let stderrClosed = true
-    let processExited = true
-    let exitCode = 0
+    let stdoutClosed = true;
+    let stderrClosed = true;
+    let processExited = true;
+    let exitCode = 0;
 
     if (stdout) {
-      stdoutClosed = false
+      stdoutClosed = false;
       this.bufferStream(this.process.stdout, stdout, () => {
-        stdoutClosed = true
-        triggerExitCallback()
-      })
+        stdoutClosed = true;
+        triggerExitCallback();
+      });
     }
 
     if (stderr) {
-      stderrClosed = false
+      stderrClosed = false;
       this.bufferStream(this.process.stderr, stderr, () => {
-        stderrClosed = true
-        triggerExitCallback()
-      })
+        stderrClosed = true;
+        triggerExitCallback();
+      });
     }
 
     if (exit) {
-      processExited = false
-      this.process.on('exit', (code) => {
-        exitCode = code
-        processExited = true
-        triggerExitCallback()
-      })
+      processExited = false;
+      this.process.on('exit', code => {
+        exitCode = code;
+        processExited = true;
+        triggerExitCallback();
+      });
     }
 
-    this.process.on('error', (error) => {
-      this.handleError(error)
-    })
+    this.process.on('error', error => {
+      this.handleError(error);
+    });
   }
 
-  handleError (error) {
-    let handled = false
+  handleError(error) {
+    let handled = false;
 
     const handle = () => {
-      handled = true
-    }
+      handled = true;
+    };
 
-    this.emitter.emit('will-throw-error', {error, handle})
+    this.emitter.emit('will-throw-error', { error, handle });
 
     if (error.code === 'ENOENT' && error.syscall.indexOf('spawn') === 0) {
-      error = new Error(`Failed to spawn command \`${this.command}\`. Make sure \`${this.command}\` is installed and on your PATH`, error.path)
-      error.name = 'BufferedProcessError'
+      error = new Error(
+        `Failed to spawn command \`${this.command}\`. Make sure \`${
+          this.command
+        }\` is installed and on your PATH`,
+        error.path
+      );
+      error.name = 'BufferedProcessError';
     }
 
-    if (!handled) throw error
+    if (!handled) throw error;
   }
-}
+};

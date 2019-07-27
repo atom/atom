@@ -34,6 +34,8 @@
 	<string>AtomApplication</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
+	<key>NSRequiresAquaSystemAppearance</key>
+	<string>NO</string>
 	<key>SUScheduledCheckInterval</key>
 	<string>3600</string>
 	<key>CFBundleURLTypes</key>

@@ -1,7 +1,15 @@
 {EventEmitter} = require 'events'
+electron = require 'electron'
 fs = require 'fs-plus'
 path = require 'path'
 temp = require('temp').track()
+
+electron.app = {
+  getName: -> 'Atom',
+  getVersion: -> '1.0.0',
+  getPath: -> '/tmp/atom.exe'
+}
+
 SquirrelUpdate = require '../src/main-process/squirrel-update'
 Spawner = require '../src/main-process/spawner'
 WinShell = require '../src/main-process/win-shell'
@@ -35,42 +43,42 @@ describe "Windows Squirrel Update", ->
     WinShell.fileContextMenu = new FakeShellOption()
     WinShell.folderContextMenu = new FakeShellOption()
     WinShell.folderBackgroundContextMenu = new FakeShellOption()
+    electron.app.quit = jasmine.createSpy('quit')
 
   afterEach ->
+    electron.app.quit.reset()
     try
       temp.cleanupSync()
 
   it "quits the app on all squirrel events", ->
-    app = quit: jasmine.createSpy('quit')
-
-    expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')).toBe true
+    expect(SquirrelUpdate.handleStartupEvent('--squirrel-install')).toBe true
 
     waitsFor ->
-      app.quit.callCount is 1
+      electron.app.quit.callCount is 1
 
     runs ->
-      app.quit.reset()
-      expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')).toBe true
+      electron.app.quit.reset()
+      expect(SquirrelUpdate.handleStartupEvent('--squirrel-updated')).toBe true
 
     waitsFor ->
-      app.quit.callCount is 1
+      electron.app.quit.callCount is 1
 
     runs ->
-      app.quit.reset()
-      expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-uninstall')).toBe true
+      electron.app.quit.reset()
+      expect(SquirrelUpdate.handleStartupEvent( '--squirrel-uninstall')).toBe true
 
     waitsFor ->
-      app.quit.callCount is 1
+      electron.app.quit.callCount is 1
 
     runs ->
-      app.quit.reset()
-      expect(SquirrelUpdate.handleStartupEvent(app, '--squirrel-obsolete')).toBe true
+      electron.app.quit.reset()
+      expect(SquirrelUpdate.handleStartupEvent('--squirrel-obsolete')).toBe true
 
     waitsFor ->
-      app.quit.callCount is 1
+      electron.app.quit.callCount is 1
 
     runs ->
-      expect(SquirrelUpdate.handleStartupEvent(app, '--not-squirrel')).toBe false
+      expect(SquirrelUpdate.handleStartupEvent('--not-squirrel')).toBe false
 
   describe "Desktop shortcut", ->
     desktopShortcutPath = '/non/existing/path'
@@ -92,10 +100,9 @@ describe "Windows Squirrel Update", ->
 
     describe "on install", ->
       beforeEach ->
-        app = quit: jasmine.createSpy('quit')
-        SquirrelUpdate.handleStartupEvent(app, '--squirrel-install')
+        SquirrelUpdate.handleStartupEvent('--squirrel-install')
         waitsFor ->
-          app.quit.callCount is 1
+          electron.app.quit.callCount is 1
 
       it "creates desktop shortcut", ->
         expect(fs.existsSync(desktopShortcutPath)).toBe true
@@ -105,33 +112,18 @@ describe "Windows Squirrel Update", ->
           fs.removeSync(desktopShortcutPath)
           expect(fs.existsSync(desktopShortcutPath)).toBe false
 
-          app = quit: jasmine.createSpy('quit')
-          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          SquirrelUpdate.handleStartupEvent('--squirrel-updated')
           waitsFor ->
-            app.quit.callCount is 1
+            electron.app.quit.callCount is 2
 
         it "does not recreate shortcut", ->
           expect(fs.existsSync(desktopShortcutPath)).toBe false
 
       describe "when shortcut is kept and app is updated", ->
         beforeEach ->
-          app = quit: jasmine.createSpy('quit')
-          SquirrelUpdate.handleStartupEvent(app, '--squirrel-updated')
+          SquirrelUpdate.handleStartupEvent('--squirrel-updated')
           waitsFor ->
-            app.quit.callCount is 1
+            electron.app.quit.callCount is 2
 
         it "still has desktop shortcut", ->
           expect(fs.existsSync(desktopShortcutPath)).toBe true
-
-  describe ".restartAtom", ->
-    it "quits the app and spawns a new one", ->
-      app = new EventEmitter()
-      app.quit = jasmine.createSpy('quit')
-
-      SquirrelUpdate.restartAtom(app)
-      expect(app.quit.callCount).toBe 1
-
-      expect(Spawner.spawn.callCount).toBe 0
-      app.emit('will-quit')
-      expect(Spawner.spawn.callCount).toBe 1
-      expect(path.basename(Spawner.spawn.argsForCall[0][0])).toBe 'atom.cmd'

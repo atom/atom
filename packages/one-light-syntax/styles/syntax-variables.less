@@ -1,0 +1,56 @@
+@import "colors.less";
+
+// Official Syntax Variables -----------------------------------
+
+// General colors
+@syntax-text-color:            @syntax-fg;
+@syntax-cursor-color:          @syntax-accent;
+@syntax-selection-color:       darken(@syntax-bg, 8%);
+@syntax-selection-flash-color: @syntax-accent;
+@syntax-background-color:      @syntax-bg;
+
+// Guide colors
+@syntax-wrap-guide-color:          @syntax-guide;
+@syntax-indent-guide-color:        @syntax-guide;
+@syntax-invisible-character-color: @syntax-guide;
+
+// For find and replace markers
+@syntax-result-marker-color:          fade(@syntax-accent, 20%);
+@syntax-result-marker-color-selected: @syntax-accent;
+
+// Gutter colors -----------------------------------
+@syntax-gutter-text-color:                @syntax-gutter;
+@syntax-gutter-text-color-selected:       @syntax-fg;
+@syntax-gutter-background-color:          @syntax-bg; // unused
+@syntax-gutter-background-color-selected: darken(@syntax-bg, 8%);
+
+// Git colors - For git diff info. i.e. in the gutter
+@syntax-color-renamed:  hsl(208, 100%, 66%);
+@syntax-color-added:    hsl(132,  60%, 44%);
+@syntax-color-modified: hsl( 40,  90%, 50%);
+@syntax-color-removed:  hsl(  0, 100%, 54%);
+
+// For language entity colors
+@syntax-color-variable:   @hue-5;
+@syntax-color-constant:   @hue-6;
+@syntax-color-property:   @syntax-fg;
+@syntax-color-value:      @syntax-fg;
+@syntax-color-function:   @hue-2;
+@syntax-color-method:     @hue-2;
+@syntax-color-class:      @hue-6-2;
+@syntax-color-keyword:    @hue-3;
+@syntax-color-tag:        @hue-5;
+@syntax-color-attribute:  @hue-6;
+@syntax-color-import:     @hue-3;
+@syntax-color-snippet:    @hue-4;
+
+
+// Custom Syntax Variables -----------------------------------
+// Don't use in packages
+
+@syntax-cursor-line: fade(@syntax-fg, 5%); // needs to be semi-transparent to show search results
+
+@syntax-deprecated-fg: darken(@syntax-color-modified, 50%);
+@syntax-deprecated-bg: @syntax-color-modified;
+@syntax-illegal-fg:    white;
+@syntax-illegal-bg:    @syntax-color-removed;

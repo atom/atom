@@ -1,0 +1,22 @@
+{
+  "name": "autoflow",
+  "version": "0.29.4",
+  "main": "./lib/autoflow",
+  "description": "Format the current selection to have lines no longer than 80 characters.\n\nThis packages uses the config value of `editor.preferredLineLength` when set.",
+  "activationCommands": {
+    "atom-text-editor": [
+      "autoflow:reflow-selection"
+    ]
+  },
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "underscore-plus": "^1.7.0"
+  },
+  "devDependencies": {
+    "coffeelint": "^1.9.7"
+  }
+}

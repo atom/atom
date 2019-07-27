@@ -6,6 +6,7 @@ fs = require 'fs-plus'
 {remote} = require 'electron'
 MenuHelpers = require './menu-helpers'
 {sortMenuItems} = require './menu-sort-helpers'
+_ = require 'underscore-plus'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 
@@ -158,8 +159,15 @@ class ContextMenuManager
     for id, item of template
       if item.command
         keymaps = @keymapManager.findKeyBindings({command: item.command, target: document.activeElement})
-        accelerator = MenuHelpers.acceleratorForKeystroke(keymaps?[0]?.keystrokes)
-        item.accelerator = accelerator if accelerator
+        keystrokes = keymaps?[0]?.keystrokes
+        if keystrokes
+          # Electron does not support multi-keystroke accelerators. Therefore,
+          # when the command maps to a multi-stroke key binding, show the
+          # keystrokes next to the item's label.
+          if keystrokes.includes(' ')
+            item.label += " [#{_.humanizeKeystroke(keystrokes)}]"
+          else
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystrokes)
       if Array.isArray(item.submenu)
         @addAccelerators(item.submenu)
 

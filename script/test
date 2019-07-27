@@ -3,13 +3,43 @@
 'use strict'
 
 require('colors')
-const argv = require('yargs').argv
+const argv = require('yargs')
+  .option('core-main', {
+    describe: 'Run core main process tests',
+    boolean: true,
+    default: false
+  })
+  .option('skip-main', {
+    describe: 'Skip main process tests if they would otherwise run on your platform',
+    boolean: true,
+    default: false,
+    conflicts: 'core-main'
+  })
+  .option('core-renderer', {
+    describe: 'Run core renderer process tests',
+    boolean: true,
+    default: false
+  })
+  .option('core-benchmark', {
+    describe: 'Run core benchmarks',
+    boolean: true,
+    default: false
+  })
+  .option('package', {
+    describe: 'Run bundled package specs',
+    boolean: true,
+    default: false
+  })
+  .help()
+  .argv
+
 const assert = require('assert')
 const async = require('async')
 const childProcess = require('child_process')
 const fs = require('fs-extra')
 const glob = require('glob')
 const path = require('path')
+const temp = require('temp').track()
 
 const CONFIG = require('./config')
 const backupNodeModules = require('./lib/backup-node-modules')
@@ -26,7 +56,7 @@ if (process.platform === 'darwin') {
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
 } else if (process.platform === 'win32') {
-  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom.exe'))
+  const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom*.exe'))
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
 } else {
@@ -34,12 +64,14 @@ if (process.platform === 'darwin') {
 }
 
 function prepareEnv (suiteName) {
-  const env = Object.assign({}, process.env)
+  const atomHomeDirPath = temp.mkdirSync(suiteName)
+  const env = Object.assign({}, process.env, {ATOM_HOME: atomHomeDirPath})
 
   if (process.env.TEST_JUNIT_XML_ROOT) {
     // Tell Jasmine to output this suite's results as a JUnit XML file to a subdirectory of the root, so that a
     // CI system can interpret it.
-    const outputPath = path.join(process.env.TEST_JUNIT_XML_ROOT, suiteName, 'test-results.xml')
+    const fileName = suiteName + '.xml'
+    const outputPath = path.join(process.env.TEST_JUNIT_XML_ROOT, fileName)
     env.TEST_JUNIT_XML_PATH = outputPath
   }
 
@@ -57,7 +89,7 @@ function runCoreMainProcessTests (callback) {
   console.log('Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, exitCode) })
+  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process'}) })
 }
 
 function runCoreRenderProcessTests (callback) {
@@ -71,7 +103,7 @@ function runCoreRenderProcessTests (callback) {
   console.log('Executing core render process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, exitCode) })
+  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-render-process'}) })
 }
 
 // Build an array of functions, each running tests for a different bundled package
@@ -86,10 +118,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
 
   if (!testSubdir) {
-    packageTestSuites.push(function (callback) {
-      console.log(`Skipping tests for ${packageName} because no test folder was found`.bold.yellow)
-      callback(null, 0)
-    })
+    console.log(`No test folder found for package: ${packageName}`.yellow)
     continue
   }
 
@@ -132,7 +161,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
         console.log(stderrOutput)
       }
       finalize()
-      callback(null, exitCode)
+      callback(null, {exitCode, step: `package-${packageName}`})
     })
   })
 }
@@ -145,16 +174,43 @@ function runBenchmarkTests (callback) {
   console.log('Executing benchmark tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, exitCode) })
+  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks'}) })
 }
 
-let testSuitesToRun = testSuitesForPlatform(process.platform)
+let testSuitesToRun = requestedTestSuites() || testSuitesForPlatform(process.platform)
+
+function requestedTestSuites () {
+  const suites = []
+  if (argv.coreMain) {
+    suites.push(runCoreMainProcessTests)
+  }
+  if (argv.coreRenderer) {
+    suites.push(runCoreRenderProcessTests)
+  }
+  if (argv.coreBenchmark) {
+    suites.push(runBenchmarkTests)
+  }
+  if (argv.package) {
+    suites.push(...packageTestSuites)
+  }
+  return suites.length > 0 ? suites : null
+}
 
 function testSuitesForPlatform (platform) {
-  let suites = [];
+  let suites = []
   switch (platform) {
     case 'darwin':
-      suites = [runCoreMainProcessTests, runCoreRenderProcessTests, runBenchmarkTests].concat(packageTestSuites)
+      const PACKAGES_TO_TEST_IN_PARALLEL = 23
+
+      if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
+        suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
+        suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
+      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
+        suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
+      } else {
+        suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+      }
       break
     case 'win32':
       suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
@@ -167,18 +223,23 @@ function testSuitesForPlatform (platform) {
   }
 
   if (argv.skipMainProcessTests) {
-    suites = suites.filter(suite => suite !== runCoreMainProcessTests);
+    suites = suites.filter(suite => suite !== runCoreMainProcessTests)
   }
 
-  return suites;
+  return suites
 }
 
-async.series(testSuitesToRun, function (err, exitCodes) {
+async.series(testSuitesToRun, function (err, results) {
   if (err) {
     console.error(err)
     process.exit(1)
   } else {
-    const testsPassed = exitCodes.every(exitCode => exitCode === 0)
-    process.exit(testsPassed ? 0 : 1)
+    const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
+
+    for (const {step} of failedSteps) {
+      console.error(`Error! The '${step}' test step finished with a non-zero exit code`)
+    }
+
+    process.exit(failedSteps.length === 0 ? 0 : 1)
   }
 })
