@@ -1010,7 +1010,8 @@ class HighlightIterator {
       if (
         next.offset === first.offset &&
         next.atEnd === first.atEnd &&
-        next.depth > first.depth
+        next.depth > first.depth &&
+        next.openTags.length + next.closeTags.length > 0
       ) {
         this.currentScopeIsCovered = true;
         return;
