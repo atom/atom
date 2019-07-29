@@ -401,6 +401,35 @@ describe('TreeSitterLanguageMode', () => {
       ]);
     });
 
+    it('correctly closes the scopes of nodes that contain injected grammars', async () => {
+      await atom.packages.activatePackage('language-javascript');
+      editor.setGrammar(atom.grammars.grammarForScopeName('source.js'));
+      editor.setText('/**\n*/\n{\n}');
+
+      expectTokensToEqual(editor, [
+        [{ text: '/**', scopes: ['source js', 'comment block'] }],
+        [{ text: '*/', scopes: ['source js', 'comment block'] }],
+        [
+          {
+            text: '{',
+            scopes: [
+              'source js',
+              'punctuation definition function body begin bracket curly'
+            ]
+          }
+        ],
+        [
+          {
+            text: '}',
+            scopes: [
+              'source js',
+              'punctuation definition function body end bracket curly'
+            ]
+          }
+        ]
+      ]);
+    });
+
     describe('when the buffer changes during a parse', () => {
       it('immediately parses again when the current parse completes', async () => {
         const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
@@ -2375,6 +2404,7 @@ function expectTokensToEqual(editor, expectedTokenLines) {
     }
 
     for (let row = startRow; row <= lastRow; row++) {
+      console.log('Row', row);
       const tokenLine = tokenLines[row];
       const expectedTokenLine = expectedTokenLines[row];
 
