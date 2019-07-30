@@ -521,7 +521,10 @@ describe('TreeSitterLanguageMode', () => {
             'template_substitution > "}"': 'interpolation'
           },
           injectionRegExp: 'javascript',
-          injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT, JSDOC_INJECTION_POINT]
+          injectionPoints: [
+            HTML_TEMPLATE_LITERAL_INJECTION_POINT,
+            JSDOC_INJECTION_POINT
+          ]
         });
 
         htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
@@ -848,12 +851,10 @@ describe('TreeSitterLanguageMode', () => {
             injectionRegExp: 'jsdoc',
             injectionPoints: []
           }
-        )
-
+        );
         atom.grammars.addGrammar(jsGrammar);
         atom.grammars.addGrammar(jsdocGrammar);
 
-        // await atom.packages.activatePackage('language-javascript');
         editor.setGrammar(jsGrammar);
         editor.setText('/**\n*/\n{\n}');
 
@@ -2451,10 +2452,10 @@ const SCRIPT_TAG_INJECTION_POINT = {
 
 const JSDOC_INJECTION_POINT = {
   type: 'comment',
-  language (comment) {
-    if (comment.text.startsWith('/**')) return 'jsdoc'
+  language(comment) {
+    if (comment.text.startsWith('/**')) return 'jsdoc';
   },
-  content (comment) {
-    return comment
+  content(comment) {
+    return comment;
   }
-}
+};
