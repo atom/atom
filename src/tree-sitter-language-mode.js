@@ -32,7 +32,7 @@ class TreeSitterLanguageMode {
     this.config = config;
     this.grammarRegistry = grammars;
     this.parser = new Parser();
-    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0, buffer.getRange());
+    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
     if (syncTimeoutMicros != null) {
@@ -637,14 +637,13 @@ class TreeSitterLanguageMode {
 }
 
 class LanguageLayer {
-  constructor(languageMode, grammar, depth, range) {
+  constructor(languageMode, grammar, depth) {
     this.languageMode = languageMode;
     this.grammar = grammar;
     this.tree = null;
     this.currentParsePromise = null;
     this.patchSinceCurrentParseStarted = null;
     this.depth = depth;
-    this.range = range
   }
 
   buildHighlightIterator() {
@@ -886,8 +885,7 @@ class LanguageLayer {
           marker.languageLayer = new LanguageLayer(
             this.languageMode,
             grammar,
-            this.depth + 1,
-            injectionRange
+            this.depth + 1
           );
           marker.parentLanguageLayer = this;
         }
@@ -1013,7 +1011,7 @@ class HighlightIterator {
         next.offset === first.offset &&
         next.atEnd === first.atEnd &&
         next.depth > first.depth &&
-        next.languageLayer.range.containsPoint(first.getPosition(), true)
+        !next.isAtInjectionBoundary()
       ) {
         this.currentScopeIsCovered = true;
         return;
@@ -1218,6 +1216,10 @@ class LayerHighlightIterator {
 
   getOpenScopeIds() {
     return this.openTags.slice();
+  }
+
+  isAtInjectionBoundary() {
+    return this.containingNodeTypes.length === 1;
   }
 
   // Private methods
