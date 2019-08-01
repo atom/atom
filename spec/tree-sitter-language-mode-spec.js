@@ -866,6 +866,23 @@ describe('TreeSitterLanguageMode', () => {
         ]);
       });
 
+      it('reports scopes from shallower layers when they are at the start or end of an injection', async () => {
+        await atom.packages.activatePackage('language-javascript')
+
+        editor.setGrammar(atom.grammars.grammarForScopeName('source.js'))
+        editor.setText('/** @babel */\n{\n}')
+        expectTokensToEqual(editor, [
+          [
+            { text: '/** ', scopes: ['source js', 'comment block'] },
+            { text: '@babel', scopes: ['source js', 'comment block', 'keyword control'] },
+            { text: ' *', scopes: ['source js', 'comment block'] },
+            { text: '/', scopes: ['source js', 'comment block', 'meta delimiter slash'] }
+          ],
+          [{ text: '{', scopes: ['source js', 'punctuation definition function body begin bracket curly'] }],
+          [{ text: '}', scopes: ['source js', 'punctuation definition function body end bracket curly'] }]
+        ]);
+      })
+
       it('respects the `includeChildren` property of injection points', async () => {
         const rustGrammar = new TreeSitterGrammar(
           atom.grammars,
