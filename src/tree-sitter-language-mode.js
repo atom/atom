@@ -1011,7 +1011,7 @@ class HighlightIterator {
         next.offset === first.offset &&
         next.atEnd === first.atEnd &&
         next.depth > first.depth &&
-        next.openTags.length + next.closeTags.length > 0
+        !next.isAtInjectionBoundary()
       ) {
         this.currentScopeIsCovered = true;
         return;
@@ -1216,6 +1216,10 @@ class LayerHighlightIterator {
 
   getOpenScopeIds() {
     return this.openTags.slice();
+  }
+
+  isAtInjectionBoundary() {
+    return this.containingNodeTypes.length === 1;
   }
 
   // Private methods
