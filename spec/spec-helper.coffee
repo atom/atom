@@ -45,7 +45,7 @@ Set.prototype.isEqual = (other) ->
     false
 
 jasmine.getEnv().addEqualityTester (a, b) ->
-  # Match jamine.any's
+  # Match jasmine.any's equality matching logic
   return a.jasmineMatches(b) if a?.jasmineMatches?
   return b.jasmineMatches(a) if b?.jasmineMatches?
   
