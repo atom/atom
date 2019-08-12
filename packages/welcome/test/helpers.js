@@ -1,9 +1,9 @@
 /** @babel */
 
-export function conditionPromise (predicate) {
-  return new Promise((resolve) => {
+export function conditionPromise(predicate) {
+  return new Promise(resolve => {
     setInterval(() => {
-      if (predicate()) resolve()
-    }, 100)
-  })
+      if (predicate()) resolve();
+    }, 100);
+  });
 }

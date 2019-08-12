@@ -1,5 +1,5 @@
 /** @babel */
 
-import WelcomePackage from './welcome-package'
+import WelcomePackage from './welcome-package';
 
-export default new WelcomePackage()
+export default new WelcomePackage();
