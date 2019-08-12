@@ -2,14 +2,6 @@ const os = require('os');
 const path = require('path');
 const updatePackageDependencies = require('../lib/update-package-dependencies');
 
-const {
-  it,
-  fit,
-  ffit,
-  afterEach,
-  beforeEach
-} = require('./async-spec-helpers'); // eslint-disable-line no-unused-vars
-
 describe('Update Package Dependencies', () => {
   let projectPath = null;
 
