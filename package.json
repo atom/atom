@@ -60,7 +60,7 @@
     "focus-trap": "2.4.5",
     "fs-admin": "^0.5.0",
     "fs-plus": "^3.1.1",
-    "fstream": "0.1.24",
+    "fstream": "1.0.12",
     "fuzzaldrin": "^2.1",
     "fuzzy-finder": "https://www.atom.io/api/packages/fuzzy-finder/versions/1.14.0/tarball",
     "git-diff": "file:packages/git-diff",
