@@ -7,3 +7,5 @@
 [remote "origin"]
 	url = https://github.com/example-user/example-repo.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
+[gc]
+	worktreePruneExpire = never
