@@ -1,4 +1,0 @@
-**/spec/fixtures/**/*.js
-node_modules
-/vendor/
-/out/
