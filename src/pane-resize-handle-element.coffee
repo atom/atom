@@ -26,6 +26,7 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizeStarted: (e) ->
     e.stopPropagation()
+    if @over then @removeChild @over
     @over = document.createElement('div')
     @over.classList.add('atom-panels-cursor-overlay')
     @over.classList.add(if @isHorizontal then 'horizontal' else 'vertical')
