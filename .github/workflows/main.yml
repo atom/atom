@@ -1,0 +1,19 @@
+name: CI
++19
+on: [push]
+
+jobs:
+  build:
++19
+    runs-on: ubuntu-latest
+    0001
+    steps:
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: echo Hello, world!
+      0000
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+https://github.com/atom/atom/issues/19905#issue-493153525
