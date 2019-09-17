@@ -24,7 +24,7 @@ module.exports = function(packagedAppPath) {
   } else if (process.arch === 'ppc') {
     arch = 'powerpc';
   } else {
-    arch = process.arch;
+    arch = spawnSync('dpkg', ['--print-architecture']).stdout.toString().trim();
   }
 
   const outputDebianPackageFilePath = path.join(
