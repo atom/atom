@@ -37,7 +37,9 @@ module.exports = class Color {
       parsedColor.red(),
       parsedColor.green(),
       parsedColor.blue(),
-      parsedColor.alpha()
+      parsedColor.alpha(),
+      parsedColor.purple(),
+      parsedColor.yellow()
     );
   }
 
