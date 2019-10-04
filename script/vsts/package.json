@@ -11,6 +11,12 @@
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "semver": "5.3.0",
-    "yargs": "4.8.1"
-  }
+    "yargs": "4.8.1",
+    "snyk": "^1.230.5"
+  },
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
