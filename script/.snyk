@@ -1,0 +1,119 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.5
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:extend:20180424':
+    - electron-packager > electron-download > nugget > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - webdriverio > webdriver > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > node-gyp > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-registry-client > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - electron-chromedriver > electron-download > nugget > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-lifecycle > node-gyp > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - electron-mksnapshot > electron-download > nugget > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - electron-packager > asar > mksnapshot > request > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+    - stylelint > postcss-markdown > remark > unified > extend:
+        patched: '2019-10-08T22:24:07.177Z'
+  'npm:hoek:20180212':
+    - npm > npm-registry-client > request > hawk > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-registry-client > request > hawk > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > node-gyp > request > hawk > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > request > hawk > sntp > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > request > hawk > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-registry-client > request > hawk > sntp > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > node-gyp > request > hawk > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > request > hawk > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-registry-client > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > sntp > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > sntp > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > boom > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > node-gyp > request > hawk > sntp > hoek:
+        patched: '2019-10-08T22:24:07.177Z'
+  SNYK-JS-HTTPSPROXYAGENT-469131:
+    - npm > npm-registry-fetch > make-fetch-happen > https-proxy-agent:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > npm-profile > make-fetch-happen > https-proxy-agent:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libcipm > pacote > make-fetch-happen > https-proxy-agent:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > libnpmhook > npm-registry-fetch > make-fetch-happen > https-proxy-agent:
+        patched: '2019-10-08T22:24:07.177Z'
+    - npm > pacote > make-fetch-happen > https-proxy-agent:
+        patched: '2019-10-08T22:24:07.177Z'
+  SNYK-JS-LODASH-450202:
+    - babel-eslint > @babel/traverse > @babel/generator > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/helper-get-function-arity > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > @babel/generator > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/traverse > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - eslint > inquirer > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - eslint > table > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-eslint > @babel/types > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - eslint > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+    - eslint-plugin-import > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+  'npm:lodash:20180130':
+    - babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2019-10-08T22:24:07.177Z'
+  'npm:minimatch:20160620':
+    - glob > minimatch:
+        patched: '2019-10-08T22:24:07.177Z'
+    - babel-core > regenerator > commoner > glob > minimatch:
+        patched: '2019-10-08T22:24:07.177Z'
+    - legal-eagle > read-installed > read-package-json > glob > minimatch:
+        patched: '2019-10-08T22:24:07.177Z'
+    - stylelint > file-entry-cache > flat-cache > del > globby > glob > minimatch:
+        patched: '2019-10-08T22:24:07.177Z'
