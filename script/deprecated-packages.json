@@ -1275,6 +1275,11 @@
     "hasDeprecations": true,
     "latestHasDeprecations": true
   },
+  "remember-folds": {
+    "version": "<=1.32.0",
+    "hasAlternative": true,
+    "alternative": "core"
+  },
   "remember-session": {
     "hasAlternative": true,
     "alternative": "core"
