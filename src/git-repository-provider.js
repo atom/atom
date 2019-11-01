@@ -99,10 +99,22 @@ function isValidGitDirectorySync(directory) {
   // To decide whether a directory has a valid .git folder, we use
   // the heuristic adopted by the valid_repository_path() function defined in
   // node_modules/git-utils/deps/libgit2/src/repository.c.
+  const commonDirFile = directory.getSubdirectory('commondir');
+  let commonDir;
+  if (commonDirFile.existsSync()) {
+    const commonDirPathBuff = fs.readFileSync(commonDirFile.getPath());
+    const commonDirPathString = commonDirPathBuff.toString().trim();
+    commonDir = new Directory(directory.resolve(commonDirPathString));
+    if (!commonDir.existsSync()) {
+      return false;
+    }
+  } else {
+    commonDir = directory;
+  }
   return (
-    directory.getSubdirectory('objects').existsSync() &&
     directory.getFile('HEAD').existsSync() &&
-    directory.getSubdirectory('refs').existsSync()
+    commonDir.getSubdirectory('objects').existsSync() &&
+    commonDir.getSubdirectory('refs').existsSync()
   );
 }
 
@@ -114,10 +126,22 @@ async function isValidGitDirectory(directory) {
   // To decide whether a directory has a valid .git folder, we use
   // the heuristic adopted by the valid_repository_path() function defined in
   // node_modules/git-utils/deps/libgit2/src/repository.c.
+  const commonDirFile = directory.getSubdirectory('commondir');
+  let commonDir;
+  if (await commonDirFile.exists()) {
+    const commonDirPathBuff = await fs.readFile(commonDirFile.getPath());
+    const commonDirPathString = commonDirPathBuff.toString().trim();
+    commonDir = new Directory(directory.resolve(commonDirPathString));
+    if (!(await commonDir.exists())) {
+      return false;
+    }
+  } else {
+    commonDir = directory;
+  }
   return (
-    (await directory.getSubdirectory('objects').exists()) &&
     (await directory.getFile('HEAD').exists()) &&
-    directory.getSubdirectory('refs').exists()
+    (await commonDir.getSubdirectory('objects').exists()) &&
+    commonDir.getSubdirectory('refs').exists()
   );
 }
 
