@@ -7,7 +7,7 @@ function selectElement(el) {
 }
 
 describe('Spec suite window', () => {
-  it('CMD + C should copy selected text', async () => {
+  it('Ctrl + C should copy selected text', async () => {
       atom.clipboard.write('lorem ipsum');
 
       const element = atom.document.querySelectorAll('.symbol-header')[2];
