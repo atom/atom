@@ -5018,7 +5018,7 @@ describe('TextEditor', () => {
         });
       });
 
-      describe('when a single line has been selected from start to end'), () => {
+      describe('when a single line has been selected from start to end', () => {
         it('indents the selected line', () => {
           editor.setSelectedBufferRange([[0, 0], [0, 29]]);
           const selection = editor.getLastSelection();
