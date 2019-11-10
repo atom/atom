@@ -5032,7 +5032,9 @@ describe('TextEditor', () => {
         it('inserts a tab in place of the selection', () => {
           editor.setSelectedBufferRange([[0, 4], [0, 13]]);
           editor.indent();
-          expect(buffer.lineForRow(0)).toEqual(`var ${editor.getTabText()} = function () {`);
+          expect(buffer.lineForRow(0)).toEqual(
+            `var ${editor.getTabText()} = function () {`
+          );
         });
       });
 
@@ -5755,8 +5757,8 @@ describe('TextEditor', () => {
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {');
           expect(editor.getSelectedBufferRange()).toEqual([
             [1, 0],
-            [1, 30 - editor.getTabLength()]]
-          );
+            [1, 30 - editor.getTabLength()]
+          ]);
         });
       });
 
