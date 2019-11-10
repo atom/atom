@@ -1002,7 +1002,12 @@ module.exports = class Selection {
           { bypassReadOnly }
         );
       }
-    } else if (bufferRange.isSingleLine() && !bufferRange.isEqual(this.editor.bufferRangeForBufferRow(bufferRange.start.row))) {
+    } else if (
+      bufferRange.isSingleLine() &&
+      !bufferRange.isEqual(
+        this.editor.bufferRangeForBufferRow(bufferRange.start.row)
+      )
+    ) {
       this.insertText(this.editor.getTabText(), { bypassReadOnly });
     } else {
       this.indentSelectedRows({ bypassReadOnly });
