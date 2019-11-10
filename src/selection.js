@@ -972,8 +972,10 @@ module.exports = class Selection {
   // Indent the current line(s).
   //
   // If the selection is empty, indents the current line if the cursor precedes
-  // non-whitespace characters, and otherwise inserts a tab. If the selection is
-  // non empty, calls {::indentSelectedRows}.
+  // non-whitespace characters, and otherwise inserts a tab.
+  //
+  // If the selection is non empty, on single line and does not contain the
+  // whole line, inserts a tab. Otherwise calls {::indentSelectedRows}.
   //
   // * `options` (optional) {Object} with the keys:
   //   * `autoIndent` If `true`, the line is indented to an automatically-inferred
@@ -981,9 +983,10 @@ module.exports = class Selection {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
   indent({ autoIndent, bypassReadOnly } = {}) {
     if (!this.ensureWritable('indent', { bypassReadOnly })) return;
-    const { row } = this.cursor.getBufferPosition();
+    const bufferRange = this.getBufferRange();
 
-    if (this.isEmpty()) {
+    if (bufferRange.isEmpty()) {
+      const { row } = this.cursor.getBufferPosition();
       this.cursor.skipLeadingWhitespace();
       const desiredIndent = this.editor.suggestedIndentForBufferRow(row);
       let delta = desiredIndent - this.cursor.getIndentLevel();
@@ -999,12 +1002,14 @@ module.exports = class Selection {
           { bypassReadOnly }
         );
       }
+    } else if (bufferRange.isSingleLine() && !bufferRange.isEqual(this.editor.bufferRangeForBufferRow(bufferRange.start.row))) {
+      this.insertText(this.editor.getTabText(), { bypassReadOnly });
     } else {
       this.indentSelectedRows({ bypassReadOnly });
     }
   }
 
-  // Public: If the selection spans multiple rows, indent all of them.
+  // Public: Indents all selected rows by one level.
   //
   // * `options` (optional) {Object} with the keys:
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify text within a read-only editor. (default: false)
