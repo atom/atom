@@ -1,8 +1,14 @@
-const downloadFileFromGithub = require('./download-file-from-github');
 const fs = require('fs-extra');
 const os = require('os');
 const path = require('path');
 const spawnSync = require('./spawn-sync');
+const CONFIG = require('../config');
+const macEntitlementsPath = path.join(
+  CONFIG.repositoryRootPath,
+  'resources',
+  'mac',
+  'atom-Info.plist'
+);
 
 module.exports = function(packagedAppPath) {
   if (
@@ -127,6 +133,10 @@ module.exports = function(packagedAppPath) {
         '--force',
         '--verbose',
         '--keychain',
+        '--entitlements',
+        macEntitlementsPath,
+        '--options',
+        'runtime',
         process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         '--sign',
         'Developer ID Application: GitHub',
