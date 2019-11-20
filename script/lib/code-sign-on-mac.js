@@ -1,3 +1,4 @@
+const downloadFileFromGithub = require('./download-file-from-github');
 const fs = require('fs-extra');
 const os = require('os');
 const path = require('path');
