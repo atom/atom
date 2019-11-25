@@ -280,8 +280,5 @@
       "atom",
       "snapshotResult"
     ]
-  },
-  "devDependencies": {
-    "node-abi": "^2.12.0"
   }
 }
