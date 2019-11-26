@@ -71,6 +71,9 @@ module.exports = class TreeSitterGrammar {
   }
 
   idForScope(scopeName) {
+    if (!scopeName) {
+      return undefined;
+    }
     let id = this.idsByScope[scopeName];
     if (!id) {
       id = this.nextScopeId += 2;
