@@ -14,7 +14,7 @@
   "license": "MIT",
   "electronVersion": "4.2.7",
   "dependencies": {
-    "@atom/nsfw": "1.0.25",
+    "@atom/nsfw": "1.0.26",
     "@atom/source-map-support": "^0.3.4",
     "@atom/watcher": "1.3.1",
     "about": "file:packages/about",
@@ -108,7 +108,7 @@
     "language-text": "https://www.atom.io/api/packages/language-text/versions/0.7.4/tarball",
     "language-todo": "https://www.atom.io/api/packages/language-todo/versions/0.29.4/tarball",
     "language-toml": "https://www.atom.io/api/packages/language-toml/versions/0.20.0/tarball",
-    "language-typescript": "https://www.atom.io/api/packages/language-typescript/versions/0.5.3/tarball",
+    "language-typescript": "https://www.atom.io/api/packages/language-typescript/versions/0.6.0/tarball",
     "language-xml": "https://www.atom.io/api/packages/language-xml/versions/0.35.3/tarball",
     "language-yaml": "https://www.atom.io/api/packages/language-yaml/versions/0.32.0/tarball",
     "less-cache": "1.1.0",
@@ -259,7 +259,7 @@
     "language-text": "0.7.4",
     "language-todo": "0.29.4",
     "language-toml": "0.20.0",
-    "language-typescript": "0.5.3",
+    "language-typescript": "0.6.0",
     "language-xml": "0.35.3",
     "language-yaml": "0.32.0"
   },
