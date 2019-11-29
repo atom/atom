@@ -62,7 +62,7 @@ jobs:
           BUILD_ARCH: $(buildArch)
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "D:\\a\\_tool\\node\\10.2.1\\x64\\npm.cmd"
+          NPM_BIN_PATH: "D:\\a\\_tool\\node\\12.13.1\\x64\\npm.cmd"
         displayName: Bootstrap build environment
         condition: ne(variables['CacheRestored'], 'true')
 
