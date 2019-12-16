@@ -118,6 +118,9 @@ module.exports = function(packagedAppPath) {
         requiredModuleRelativePath.endsWith(
           path.join('node_modules', 'temp', 'lib', 'temp.js')
         ) ||
+        requiredModuleRelativePath.endsWith(
+          path.join('node_modules', 'parse5', 'lib', 'index.js')
+        ) ||
         requiredModuleRelativePath === path.join('..', 'exports', 'atom.js') ||
         requiredModuleRelativePath ===
           path.join('..', 'src', 'electron-shims.js') ||
