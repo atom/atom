@@ -34,10 +34,6 @@ if (dependenciesFingerprint.isOutdated()) {
 
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
-if(process.platform === 'linux') {
- childProcess.execSync('sysctl kernel.unprivileged_userns_clone=1')
-}
-
 installScriptDependencies(ci)
 installApm(ci)
 childProcess.execFileSync(
