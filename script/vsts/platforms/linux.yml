@@ -57,10 +57,8 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: |
-          sudo chown root chrome-sandbox
-          chmod 4755 chrome-sandbox
-          displayName: Tweaking chrome-sandbox binary
+      - script: sysctl kernel.unprivileged_userns_clone=1
+          displayName: Sandbox workaround
 
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
