@@ -57,11 +57,8 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: |
-          cat /proc/sys/kernel/userns_restrict
-          sysctl -w kernel.unprivileged_userns_clone=1
-          cat /proc/sys/kernel/userns_restrict
-          displayName: Sandbox workaround
+      - script: sysctl -w kernel.unprivileged_userns_clone=1
+        displayName: Sandbox workaround
 
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
