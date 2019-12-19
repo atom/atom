@@ -57,9 +57,6 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: sysctl kernel.unprivileged_userns_clone=1
-          displayName: Sandbox workaround
-
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
