@@ -57,11 +57,6 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: |
-          sudo chown root ./node_modules/electron/dist/chrome-sandbox
-          chmod 4755 ./node_modules/electron/dist/chrome-sandbox
-          displayName: Tweaking chrome-sandbox binary
-
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
@@ -70,6 +65,11 @@ jobs:
           CXX: clang++-5.0
           npm_config_clang: 1
         displayName: Build Atom
+        
+      - script: |
+          sudo chown root ./node_modules/electron/dist/chrome-sandbox
+          chmod 4755 ./node_modules/electron/dist/chrome-sandbox
+          displayName: Tweaking chrome-sandbox binary
 
       - script: script/test
         env:
