@@ -50,6 +50,7 @@
     "deprecation-cop": "file:packages/deprecation-cop",
     "dev-live-reload": "file:packages/dev-live-reload",
     "devtron": "1.3.0",
+    "electron-notarize": "^0.2.1",
     "encoding-selector": "https://www.atom.io/api/packages/encoding-selector/versions/0.23.9/tarball",
     "etch": "^0.12.6",
     "event-kit": "^2.5.3",

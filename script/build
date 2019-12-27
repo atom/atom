@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 'use strict'
+const notarize = require('electron-notarize');
 
 if (process.argv.includes('--no-bootstrap')) {
   console.log('Skipping bootstrap')
@@ -13,6 +14,7 @@ if (process.argv.includes('--no-bootstrap')) {
 // Needed so we can require src/module-cache.coffee during generateModuleCache
 require('coffee-script/register')
 require('colors')
+
 
 const path = require('path')
 const yargs = require('yargs')
@@ -94,6 +96,20 @@ if (!argv.generateApiDocs) {
         case 'darwin': {
           if (argv.codeSign) {
             codeSignOnMac(packagedAppPath)
+
+            try {
+              await notarize({
+                appBundleId: 'com.github.atom',
+                appPath: packagedAppPath,
+                appleId : process.env.APPLE_ID,
+                appleIdPassword: process.env.APPLE_PASS,
+              });
+            } catch (ex) {
+              console.log("---- Notarization Error ----");
+              console.log(ex);
+            }
+
+
           } else if (argv.testSign) {
             testSignOnMac(packagedAppPath)
           } else {
