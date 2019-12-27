@@ -4,6 +4,14 @@ const os = require('os');
 const path = require('path');
 const spawnSync = require('./spawn-sync');
 
+const CONFIG = require('../config');
+const macEntitlementsPath = path.join(
+   CONFIG.repositoryRootPath,
+   'resources',
+   'mac',
+   'atom-Info.plist'
+);
+
 module.exports = function(packagedAppPath) {
   if (
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL &&
@@ -126,6 +134,10 @@ module.exports = function(packagedAppPath) {
         '--deep',
         '--force',
         '--verbose',
+        '--entitlements',
+        macEntitlementsPath,
+        '--options',
+        'runtime',
         '--keychain',
         process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         '--sign',
