@@ -9,7 +9,7 @@ jobs:
       IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
     pool:
-      vmImage: macos-10.13
+      vmImage: macos-10.14
 
     steps:
       - task: NodeTool@0
