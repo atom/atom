@@ -6,10 +6,10 @@ const spawnSync = require('./spawn-sync');
 
 const CONFIG = require('../config');
 const macEntitlementsPath = path.join(
-   CONFIG.repositoryRootPath,
-   'resources',
-   'mac',
-   'atom-Info.plist'
+  CONFIG.repositoryRootPath,
+  'resources',
+  'mac',
+  'atom-Info.plist'
 );
 
 module.exports = function(packagedAppPath) {
