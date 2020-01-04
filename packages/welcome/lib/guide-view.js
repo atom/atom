@@ -100,7 +100,7 @@ export default class GuideView {
                 <p className="welcome-note">
                   <strong>Next time:</strong> You can toggle the Git tab by
                   clicking on the
-                  <span className="icon icon-diff" /> button in your status bar.
+                  <span className="icon icon-git-commit" /> button in your status bar.
                 </p>
               </div>
             </details>
