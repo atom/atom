@@ -67,8 +67,8 @@ jobs:
         displayName: Build Atom
 
       - script: |
-          sudo chown root /node_modules/electron/dist/chrome-sandbox
-          chmod 4755 node_modules/electron/dist/chrome-sandbox
+          sudo chown root **/node_modules/electron/dist/chrome-sandbox
+          chmod 4755 **/node_modules/electron/dist/chrome-sandbox
           displayName: Tweaking chrome-sandbox binary
 
       - script: script/test
