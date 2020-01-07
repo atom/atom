@@ -65,13 +65,8 @@ jobs:
           CXX: clang++-5.0
           npm_config_clang: 1
         displayName: Build Atom
-
-      - script: |
-          sudo chown root **/node_modules/electron/dist/chrome-sandbox
-          chmod 4755 **/node_modules/electron/dist/chrome-sandbox
-          displayName: Tweaking chrome-sandbox binary
-
-      - script: script/test
+        
+      - script: script/test --no-sandbox
         env:
           CI: true
           CI_PROVIDER: VSTS
