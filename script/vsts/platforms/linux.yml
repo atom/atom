@@ -71,7 +71,7 @@ jobs:
           sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
         displayName: Tweaking chrome-sandbox binary
 
-      - script: script/test --no-sandbox
+      - script: script/test
         env:
           CI: true
           CI_PROVIDER: VSTS
