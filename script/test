@@ -84,8 +84,8 @@ function runCoreMainProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
-  
-  if(process.env.CI){
+
+  if(process.env.CI && process.platform === 'linux') {
       testArguments.push('--no-sandbox')
   }
 
