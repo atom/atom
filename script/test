@@ -84,6 +84,11 @@ function runCoreMainProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
+  
+  if(process.env.CI){
+      testArguments.push('--no-sandbox')
+  }
+
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('Executing core main process tests'.bold.green)
