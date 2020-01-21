@@ -91,6 +91,18 @@ function runCoreMainProcessTests (callback) {
 
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
+  console.log('--------------------------------')
+  console.log('Main process test')
+  console.log('resourcePath')
+  console.log(resourcePath)
+  console.log('testPath')
+  console.log(testPath)
+  console.log('testEnv')
+  console.log(testEnv)
+  console.log('executablePath')
+  console.log(executablePath)
+  console.log('--------------------------------')
+
   console.log('Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
@@ -104,6 +116,18 @@ function runCoreRenderProcessTests (callback) {
     '--test', testPath
   ]
   const testEnv = prepareEnv('core-render-process')
+
+    console.log('--------------------------------')
+    console.log('Core renderer process test')
+    console.log('resourcePath')
+    console.log(resourcePath)
+    console.log('testPath')
+    console.log(testPath)
+    console.log('testEnv')
+    console.log(testEnv)
+    console.log('executablePath')
+    console.log(executablePath)
+    console.log('--------------------------------')
 
   console.log('Executing core render process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
