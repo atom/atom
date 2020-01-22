@@ -176,8 +176,9 @@ module.exports = class AtomApplication extends EventEmitter {
     ) {
       return createApplication(options);
     }
-
+    console.log('executed here before open promise');
     return new Promise(resolve => {
+      console.log('executed here after open promise');
       const client = net.connect({ path: socketPath }, () => {
         client.write(encryptOptions(options, socketSecret), () => {
           client.end();
@@ -238,11 +239,11 @@ module.exports = class AtomApplication extends EventEmitter {
       path.join(process.env.ATOM_HOME, 'recovery')
     );
     this.storageFolder = new StorageFolder(process.env.ATOM_HOME);
-    this.autoUpdateManager = new AutoUpdateManager(
-      this.version,
-      options.test || options.benchmark || options.benchmarkTest,
-      this.config
-    );
+    // this.autoUpdateManager = new AutoUpdateManager(
+    //   this.version,
+    //   options.test || options.benchmark || options.benchmarkTest,
+    //   this.config
+    // );
 
     this.disposable = new CompositeDisposable();
     this.handleEvents();
@@ -255,7 +256,8 @@ module.exports = class AtomApplication extends EventEmitter {
   // of these various sub-objects into the constructor, but you'll need to remove the side-effects they
   // perform during their construction, adding an initialize method that you call here.
   async initialize(options) {
-    StartupTime.addMarker('main-process:atom-application:initialize:start');
+    // StartupTime.addMarker('main-process:atom-application:initialize:start');
+    console.log('executed here initialize');
 
     global.atomApplication = this;
 
@@ -277,6 +279,7 @@ module.exports = class AtomApplication extends EventEmitter {
       this.resourcePath,
       this.safeMode
     );
+    console.log('executed here after menu creation in initialize');
 
     // Don't await for the following method to avoid delaying the opening of a new window.
     // (we await it just after opening it).
@@ -293,11 +296,12 @@ module.exports = class AtomApplication extends EventEmitter {
     this.setupDockMenu();
 
     const result = await this.launch(options);
-    this.autoUpdateManager.initialize();
+    // this.autoUpdateManager.initialize();
     await socketServerPromise;
 
-    StartupTime.addMarker('main-process:atom-application:initialize:end');
-
+    // StartupTime.addMarker('main-process:atom-application:initialize:end');
+    console.log('executed returned result in initialiaze');
+    console.log(result)
     return result;
   }
 
@@ -362,6 +366,8 @@ module.exports = class AtomApplication extends EventEmitter {
     for (const options of optionsForWindowsToOpen) {
       windows.push(await this.openWithOptions(options));
     }
+    console.log('executed lunch windows');
+
     return windows;
   }
 
@@ -477,10 +483,10 @@ module.exports = class AtomApplication extends EventEmitter {
     if (this.applicationMenu)
       this.applicationMenu.addWindow(window.browserWindow);
 
-    window.once('window:loaded', () => {
-      this.autoUpdateManager &&
-        this.autoUpdateManager.emitUpdateAvailableEvent(window);
-    });
+    // window.once('window:loaded', () => {
+    //   this.autoUpdateManager &&
+    //     this.autoUpdateManager.emitUpdateAvailableEvent(window);
+    // });
 
     if (!window.isSpec) {
       const focusHandler = () => this.windowStack.touch(window);
@@ -635,12 +641,12 @@ module.exports = class AtomApplication extends EventEmitter {
     this.on('application:install-update', () => {
       this.quitting = true;
       this.quittingForUpdate = true;
-      this.autoUpdateManager.install();
+      // this.autoUpdateManager.install();
     });
 
-    this.on('application:check-for-update', () =>
-      this.autoUpdateManager.check()
-    );
+    // this.on('application:check-for-update', () =>
+    //   // this.autoUpdateManager.check()
+    // );
 
     if (process.platform === 'darwin') {
       this.on('application:reopen-project', ({ paths }) => {
@@ -1045,17 +1051,17 @@ module.exports = class AtomApplication extends EventEmitter {
       )
     );
 
-    this.disposable.add(
-      ipcHelpers.on(ipcMain, 'get-auto-update-manager-state', event => {
-        event.returnValue = this.autoUpdateManager.getState();
-      })
-    );
+    // this.disposable.add(
+    //   ipcHelpers.on(ipcMain, 'get-auto-update-manager-state', event => {
+    //     event.returnValue = this.autoUpdateManager.getState();
+    //   })
+    // );
 
-    this.disposable.add(
-      ipcHelpers.on(ipcMain, 'get-auto-update-manager-error', event => {
-        event.returnValue = this.autoUpdateManager.getErrorMessage();
-      })
-    );
+    // this.disposable.add(
+    //   ipcHelpers.on(ipcMain, 'get-auto-update-manager-error', event => {
+    //     event.returnValue = this.autoUpdateManager.getErrorMessage();
+    //   })
+    // );
 
     this.disposable.add(
       ipcHelpers.respondTo('will-save-path', (window, path) =>
@@ -1074,6 +1080,8 @@ module.exports = class AtomApplication extends EventEmitter {
 
   setupDockMenu() {
     if (process.platform === 'darwin') {
+      console.log('executed here set up dock');
+
       return app.dock.setMenu(
         Menu.buildFromTemplate([
           {
