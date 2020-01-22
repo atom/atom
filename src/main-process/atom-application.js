@@ -1,7 +1,7 @@
 const AtomWindow = require('./atom-window');
 const ApplicationMenu = require('./application-menu');
 const AtomProtocolHandler = require('./atom-protocol-handler');
-const AutoUpdateManager = require('./auto-update-manager');
+// const AutoUpdateManager = require('./auto-update-manager');
 const StorageFolder = require('../storage-folder');
 const Config = require('../config');
 const ConfigFile = require('../config-file');
