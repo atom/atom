@@ -1867,7 +1867,7 @@ module.exports = class AtomApplication extends EventEmitter {
           return testRunnerPath;
         } else {
           process.stderr.write(
-            `Error: Could not resolve test runner path '${
+            `Error: Could not resolves test runner path '${
               packageMetadata.atomTestRunner
             }'`
           );
