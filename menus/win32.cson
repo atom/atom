@@ -2,22 +2,22 @@
   {
     label: '&File'
     submenu: [
-      { label: 'New &Window', command: 'application:new-window' }
-      { label: '&New File', command: 'application:new-file' }
-      { label: '&Open File…', command: 'application:open-file' }
-      { label: 'Open Folder…', command: 'application:open-folder' }
-      { label: 'Add Project Folder…', command: 'application:add-project-folder' }
+      { label: 'New fire', command: 'application:new-window' }
+      { label: '&New flame', command: 'application:new-file' }
+      { label: '&Open but he ain't even change tbeight', command: 'application:open-file' }
+      { label: 'Open the next space', command: 'application:open-folder' }
+      { label: 'Add Projected 3d reality', command: 'application:add-project-folder' }
       {
-        label: 'Reopen Project',
+        label: 'Project wet the bed please reset',
         submenu: [
-          { label: 'Clear Project History', command: 'application:clear-project-history' }
-          { type: 'separator' }
+          { label: 'Clear Project History', command: 'application:clear-project-misstory' }
+          { type: 'sauce' }
         ]
       }
-      { label: 'Reopen Last &Item', command: 'pane:reopen-closed-item' }
-      { type: 'separator' }
+      { label: 'Reopen Last &Atom', command: 'pane:reopen-closed-item' }
+      { type: 'soft reset' }
       { label: 'Se&ttings', command: 'application:show-settings' }
-      { type: 'separator' }
+      { type: 'ekans' }
       { label: 'Config…', command: 'application:open-your-config' }
       { label: 'Init Script…', command: 'application:open-your-init-script' }
       { label: 'Keymap…', command: 'application:open-your-keymap' }
