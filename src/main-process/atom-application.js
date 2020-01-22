@@ -1,7 +1,7 @@
 const AtomWindow = require('./atom-window');
 const ApplicationMenu = require('./application-menu');
 const AtomProtocolHandler = require('./atom-protocol-handler');
-const AutoUpdateManager = require('./auto-update-manager');
+// const AutoUpdateManager = require('./auto-update-manager');
 const StorageFolder = require('../storage-folder');
 const Config = require('../config');
 const ConfigFile = require('../config-file');
@@ -301,7 +301,7 @@ module.exports = class AtomApplication extends EventEmitter {
 
     // StartupTime.addMarker('main-process:atom-application:initialize:end');
     console.log('executed returned result in initialiaze');
-    console.log(result)
+    console.log(result);
     return result;
   }
 
