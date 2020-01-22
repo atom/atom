@@ -299,9 +299,8 @@ module.exports = class AtomApplication extends EventEmitter {
     // this.autoUpdateManager.initialize();
     await socketServerPromise;
 
-    // StartupTime.addMarker('main-process:atom-application:initialize:end');
+    StartupTime.addMarker('main-process:atom-application:initialize:end');
     console.log('executed returned result in initialiaze');
-    // result[0].atomWindow._events = {};
     console.log(result[0]);
     return result;
   }
