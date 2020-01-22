@@ -12,9 +12,9 @@ module.exports = class ApplicationMenu {
     this.autoUpdateManager = autoUpdateManager;
     this.windowTemplates = new WeakMap();
     this.setActiveTemplate(this.getDefaultTemplate());
-    this.autoUpdateManager.on('state-changed', state =>
-      this.showUpdateMenuItem(state)
-    );
+    // this.autoUpdateManager.on('state-changed', state =>
+    //   this.showUpdateMenuItem(state)
+    // );
   }
 
   // Public: Updates the entire menu with the given keybindings.
@@ -38,7 +38,7 @@ module.exports = class ApplicationMenu {
       Menu.setApplicationMenu(this.menu);
     }
 
-    return this.showUpdateMenuItem(this.autoUpdateManager.getState());
+    return this.menu;
   }
 
   // Register a BrowserWindow with this application menu.
