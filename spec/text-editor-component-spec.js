@@ -1681,7 +1681,7 @@ describe('TextEditorComponent', () => {
         scrollSensitivity
       });
       // stub in place for Event.preventDefault()
-      const eventPreventDefaultStub = function () {}
+      const eventPreventDefaultStub = function() {};
 
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
@@ -1753,6 +1753,8 @@ describe('TextEditorComponent', () => {
         width: 50,
         scrollSensitivity
       });
+      // stub in place for Event.preventDefault()
+      const eventPreventDefaultStub = function() {};
 
       component.props.platform = 'linux';
       {
