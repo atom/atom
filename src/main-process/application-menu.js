@@ -36,7 +36,7 @@ module.exports = class ApplicationMenu {
       this.activeTemplate = template;
       this.menu = Menu.buildFromTemplate(_.deepClone(template));
       Menu.setApplicationMenu(this.menu);
-      console.log(template)
+      console.log(template);
 
     }
 
