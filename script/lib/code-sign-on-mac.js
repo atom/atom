@@ -8,7 +8,7 @@ const macEntitlementsPath = path.join(
   CONFIG.repositoryRootPath,
   'resources',
   'mac',
-  'atom-Info.plist'
+  'entitlements.plist'
 );
 
 module.exports = function(packagedAppPath) {
