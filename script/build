@@ -36,6 +36,7 @@ const argv = yargs
 const checkChromedriverVersion = require('./lib/check-chromedriver-version')
 const cleanOutputDirectory = require('./lib/clean-output-directory')
 const codeSignOnMac = require('./lib/code-sign-on-mac')
+const notarizeOnMac = require('./lib/notarize-on-mac')
 const codeSignOnWindows = require('./lib/code-sign-on-windows')
 const compressArtifacts = require('./lib/compress-artifacts')
 const copyAssets = require('./lib/copy-assets')
@@ -89,11 +90,12 @@ if (!argv.generateApiDocs) {
   binariesPromise
     .then(packageApplication)
     .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(packagedAppPath => {
+    .then(async packagedAppPath => {
       switch (process.platform) {
         case 'darwin': {
           if (argv.codeSign) {
             codeSignOnMac(packagedAppPath)
+            await notarizeOnMac(packagedAppPath)
           } else if (argv.testSign) {
             testSignOnMac(packagedAppPath)
           } else {
