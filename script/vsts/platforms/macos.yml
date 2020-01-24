@@ -61,6 +61,8 @@ jobs:
           ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+          AC_USER: $(AC_USER)
+          AC_PASSWORD: $(AC_PASSWORD)
 
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
