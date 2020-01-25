@@ -40,7 +40,6 @@ module.exports = function(filesToSign) {
       __dirname,
       '..',
       'node_modules',
-      '@atom',
       'electron-winstaller',
       'vendor',
       'signtool.exe'
