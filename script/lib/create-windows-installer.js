@@ -1,6 +1,6 @@
 'use strict';
 
-const electronInstaller = require('@atom/electron-winstaller');
+const electronInstaller = require('electron-winstaller');
 const fs = require('fs');
 const glob = require('glob');
 const path = require('path');
