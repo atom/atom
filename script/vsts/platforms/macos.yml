@@ -33,6 +33,7 @@ jobs:
           CI: true
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
+          npm_config_build_from_source: true
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
@@ -61,7 +62,7 @@ jobs:
           ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
-
+          npm_config_build_from_source: true
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
         displayName: Stage Artifacts
@@ -133,6 +134,8 @@ jobs:
           CI: true
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
+          npm_config_build_from_source: true
+
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: DownloadBuildArtifacts@0
