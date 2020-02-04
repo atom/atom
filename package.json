@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "5.0.12",
+  "electronVersion": "5.0.13",
   "dependencies": {
     "@atom/nsfw": "1.0.25",
     "@atom/source-map-support": "^0.3.4",
