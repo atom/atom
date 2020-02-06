@@ -145,6 +145,12 @@ describe('TreeSitterLanguageMode', () => {
       const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
       buffer.setLanguageMode(languageMode);
 
+      console.log(
+        languageMode.tree.rootNode
+          .descendantForPosition(Point(1, 2), Point(1, 6))
+          .toString()
+      );
+
       expect(
         languageMode.tree.rootNode
           .descendantForPosition(Point(1, 2), Point(1, 6))
@@ -1511,7 +1517,10 @@ describe('TreeSitterLanguageMode', () => {
 
       const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
       buffer.setLanguageMode(languageMode);
-
+      console.log(
+        languageMode.tree.rootNode.toString(),
+        'named vs anonymous nodes'
+      );
       expect(languageMode.tree.rootNode.toString()).toBe(
         '(program (if (identifier) (then ' +
           '(identifier)) ' +
