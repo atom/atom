@@ -149,9 +149,10 @@ describe('TreeSitterLanguageMode', () => {
         languageMode.tree.rootNode
           .descendantForPosition(Point(1, 2), Point(1, 6))
           .toString()
-      ).toBe(`
-        (declaration type: (primitive_type) declarator: (identifier) (MISSING ";"))
-        `);
+      ).toBe(
+        '(declaration type: (primitive_type)' +
+          ' declarator: (identifier) (MISSING ";"))'
+      );
 
       expectTokensToEqual(editor, [
         [
