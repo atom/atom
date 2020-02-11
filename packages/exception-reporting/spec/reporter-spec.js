@@ -89,8 +89,8 @@ describe('Reporter', () => {
                 stacktrace: [
                   {
                     method: semver.gt(process.versions.electron, '1.6.0')
-                      ? 'Spec.it'
-                      : 'it',
+                      ? 'Spec.<anonymous>'
+                      : '<anonymous>',
                     file: 'spec/reporter-spec.js',
                     lineNumber: lineNumber,
                     columnNumber: columnNumber
@@ -150,8 +150,8 @@ describe('Reporter', () => {
                 stacktrace: [
                   {
                     method: semver.gt(process.versions.electron, '1.6.0')
-                      ? 'Spec.it'
-                      : 'it',
+                      ? 'Spec.<anonymous>'
+                      : '<anonymous>',
                     file: '~/exception-reporting/spec/reporter-spec.js',
                     lineNumber: lineNumber,
                     columnNumber: columnNumber
@@ -356,8 +356,8 @@ describe('Reporter', () => {
                 stacktrace: [
                   {
                     method: semver.gt(process.versions.electron, '1.6.0')
-                      ? 'Spec.it'
-                      : 'it',
+                      ? 'Spec.<anonymous>'
+                      : '<anonymous>',
                     file: '~/exception-reporting/spec/reporter-spec.js',
                     lineNumber: lineNumber,
                     columnNumber: columnNumber
