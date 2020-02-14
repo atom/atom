@@ -158,6 +158,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     cp.stderr.on('data', data => { stderrOutput += data })
     cp.stdout.on('data', data => { stderrOutput += data })
     cp.on('error', error => {
+      console.log(error, "error")
       finalize()
       callback(error)
     })
