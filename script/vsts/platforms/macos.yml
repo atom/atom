@@ -36,6 +36,9 @@ jobs:
           npm_config_build_from_source: true
         condition: ne(variables['CacheRestored'], 'true')
 
+      - script: apm ci build
+        displayName: Install Locked modules
+
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
         displayName: Save node_modules cache
         inputs:
