@@ -1,0 +1,127 @@
+@import "variables";
+
+// Recents commits
+// Shown under the commit message input
+
+@size: 16px; // make sure to double the size of the avatar in recent-commits-view.js to make it look crisp
+@show-max: 3; // how many commits should be shown
+
+.github-RecentCommits {
+  // Fit @show-max + 1px for the top border
+  max-height: @show-max * @size + @component-padding * @show-max + @component-padding + 1px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-top: 1px solid @base-border-color;
+
+  &-list {
+    margin: 0;
+    padding: @component-padding/2 0;
+    list-style: none;
+  }
+
+  &-message {
+    padding: @component-padding/2 @component-padding;
+    text-align: center;
+    color: @text-color-subtle;
+  }
+}
+
+.github-RecentCommit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 @component-padding;
+  line-height: @size + @component-padding;
+
+  &-authors {
+    position: absolute;
+    display: flex;
+  }
+
+  &-avatar {
+    position: relative;
+    margin-right: -@size + 3px;
+    width: @size;
+    height: @size;
+    border-radius: @component-border-radius;
+    color: transparent;
+    background-color: mix(@text-color, @base-background-color, 15%);
+    box-shadow: 1px 0 @base-background-color;
+    overflow: hidden;
+    transition: margin .12s cubic-bezier(.5,.1,0,1);
+
+    &:nth-child(1) { z-index: 3; }
+    &:nth-child(2) { z-index: 2; opacity: .7; }
+    &:nth-child(3) { z-index: 1; opacity: .4; }
+    &:nth-child(n+4) {
+      display: none;
+    }
+    &:only-child,
+    &:last-child {
+      box-shadow: none;
+    }
+  }
+
+  &-authors:hover .github-RecentCommit-avatar {
+    display: inline-block;
+    margin-right: 1px;
+    opacity: 1;
+  }
+
+  &-message {
+    flex: 1;
+    margin: 0 .5em;
+    margin-left: @size + @component-padding;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  &-undoButton.btn {
+    padding: 0 @component-padding/1.5;
+    margin-right: @component-padding/2;
+    height: @size * 1.25;
+    line-height: 1;
+    font-size: .9em;
+  }
+
+  &-time {
+    color: @text-color-subtle;
+  }
+
+  &:hover {
+    color: @text-color-highlight;
+    background: @background-color-highlight;
+  }
+
+  &.is-selected {
+    // is selected
+    color: @text-color-selected;
+    background: @background-color-selected;
+
+    // also has focus
+    .github-RecentCommits:focus & {
+      color: contrast(@button-background-color-selected);
+      background: @button-background-color-selected;
+    }
+  }
+
+}
+
+
+// Responsive
+// Show more commits if window height gets larger
+
+@media (min-height: 900px) {
+  .github-RecentCommits {
+    @show-max: 5;
+    max-height: @show-max * @size + @component-padding * @show-max + @component-padding + 1px;
+  }
+}
+
+@media (min-height: 1200px) {
+  .github-RecentCommits {
+    @show-max: 10;
+    max-height: @show-max * @size + @component-padding * @show-max + @component-padding + 1px;
+  }
+}

@@ -1,0 +1,9 @@
+<<<<<<< HEAD
+These are my changes
+||||||| merged common ancestors
+These are original texts
+=======
+These are your changes
+>>>>>>> master
+
+Past the end

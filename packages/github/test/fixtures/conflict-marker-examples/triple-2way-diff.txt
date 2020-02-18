@@ -1,0 +1,27 @@
+This is some text before the marking.
+
+More text.
+
+<<<<<<< HEAD
+My changes
+Multi-line even
+=======
+Your changes
+>>>>>>> other-branch
+
+Text in between 0 and 1.
+
+<<<<<<< HEAD
+My middle changes
+=======
+Your middle changes
+>>>>>>> other-branch
+
+Text in between 1 and 2.
+
+<<<<<<< HEAD
+More of my changes
+=======
+>>>>>>> other-branch
+
+Stuff at the very end.

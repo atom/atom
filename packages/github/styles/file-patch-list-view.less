@@ -1,0 +1,44 @@
+@import "variables";
+
+.github-FilePatchListView {
+  &:empty:before {
+    content:'No changes';
+    display: block;
+    padding: @component-padding;
+    text-align: center;
+    color: @text-color-subtle;
+    font-style: italic;
+  }
+
+  &-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    padding: @component-padding/2 @component-padding;
+    padding-left: @component-padding * 3.5;
+    overflow: hidden;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  &-icon {
+    text-align: right;
+    &:before {
+      margin-right: @component-padding / 1.2;
+    }
+  }
+
+  &-path {
+    flex: 1;
+    word-break: break-word;
+  }
+
+  &-resolutionItem {
+    padding-top: 0;
+    padding-bottom: @component-padding / 2;
+  }
+}
+
+.github-MergeConflictPaths .github-FilePatchListView-icon:last-child {
+  margin-left: @component-padding / 2;
+}

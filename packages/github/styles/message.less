@@ -1,0 +1,66 @@
+
+@import "variables";
+
+// Message
+// Use to show some sort of message, like an error or so
+
+/* Usage: ---------------------------------------------
+
+<div className="github-Message">
+  <div className="github-Message-wrapper">
+    <h1 className="github-Message-title">Whooops</h1>
+    <p className="github-Message-description">Bad things happened</p>
+    <p className="github-Message-action">
+      <button className="github-Message-button btn btn-primary">Get me out of here</button>
+    </p>
+  </div>
+</div>
+
+--------------------------------------------------- */
+
+
+.github-Message {
+  flex: 1;
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  &-wrapper {
+    margin: auto;
+    padding: @component-padding*2;
+    text-align: center;
+    width: 100%;
+  }
+
+  &-title {
+    color: @text-color-highlight;
+    font-size: 1.5em;
+    margin-bottom: .5em;
+  }
+
+  &-description {
+    font-size: 1.2em;
+    line-height: 1.4;
+    margin-bottom: 0;
+
+    pre& {
+      text-align: left;
+    }
+  }
+
+  &-longDescription {
+    font-size: 1.1em;
+    line-height: 1.4;
+    text-align: left;
+    margin-bottom: 0;
+  }
+
+  &-action {
+    margin-top: @component-padding* 2;
+  }
+
+  &-button {
+    margin: @component-padding/2;
+  }
+
+}

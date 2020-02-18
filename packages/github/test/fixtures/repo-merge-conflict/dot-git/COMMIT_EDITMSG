@@ -1,0 +1,53 @@
+change to master
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Thu Jul 14 19:18:45 2016 -0700
+#
+# On branch master
+# Changes to be committed:
+#	new file:   added-to-both.txt
+#	modified:   modified-on-both-ours.txt
+#	modified:   modified-on-both-theirs.txt
+#	modified:   removed-on-branch.txt
+#	deleted:    removed-on-master.txt
+#
+# ------------------------ >8 ------------------------
+# Do not touch the line above.
+# Everything below will be removed.
+diff --git a/added-to-both.txt b/added-to-both.txt
+new file mode 100644
+index 0000000..7b33a4a
+--- /dev/null
++++ b/added-to-both.txt
+@@ -0,0 +1 @@
++new stuff
+diff --git a/modified-on-both-ours.txt b/modified-on-both-ours.txt
+index 8e27be7..5b7855c 100644
+--- a/modified-on-both-ours.txt
++++ b/modified-on-both-ours.txt
+@@ -1 +1 @@
+-text
++master modification
+diff --git a/modified-on-both-theirs.txt b/modified-on-both-theirs.txt
+index 8e27be7..5b7855c 100644
+--- a/modified-on-both-theirs.txt
++++ b/modified-on-both-theirs.txt
+@@ -1 +1 @@
+-text
++master modification
+diff --git a/removed-on-branch.txt b/removed-on-branch.txt
+index 8e27be7..257cc56 100644
+--- a/removed-on-branch.txt
++++ b/removed-on-branch.txt
+@@ -1 +1 @@
+-text
++foo
+diff --git a/removed-on-master.txt b/removed-on-master.txt
+deleted file mode 100644
+index 8e27be7..0000000
+--- a/removed-on-master.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-text

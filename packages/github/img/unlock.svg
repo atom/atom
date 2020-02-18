@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0beta2 (2b71d25, 2019-12-03)"
+   sodipodi:docname="unlock.svg"
+   id="svg58"
+   version="1.1"
+   fill="none"
+   viewBox="0 0 24 16"
+   height="16"
+   width="24">
+  <metadata
+     id="metadata64">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs62" />
+  <sodipodi:namedview
+     inkscape:current-layer="svg58"
+     inkscape:window-maximized="0"
+     inkscape:window-y="23"
+     inkscape:window-x="2132"
+     inkscape:cy="7.047619"
+     inkscape:cx="6"
+     inkscape:zoom="24.48"
+     showgrid="false"
+     id="namedview60"
+     inkscape:window-height="924"
+     inkscape:window-width="1292"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     inkscape:document-rotation="0"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
+  <path
+     sodipodi:nodetypes="ccccccssssssssccssccssscccccccccccccccccc"
+     inkscape:connector-curvature="0"
+     id="path56"
+     fill="#1B1F23"
+     d="m 13.4,13 h -1 v -1 h 1 z m 6,-7 h 1 c 0.55,0 1,0.45 1,1 v 7 c 0,0.55 -0.45,1 -1,1 h -10 c -0.55,0 -1,-0.45 -1,-1 V 7 c 0,-0.55 0.45,-1 1,-1 h 1 V 4.085901 C 11.4,2.1862908 9.8780193,2.4095693 8.904902,2.4143325 8.0404588,2.4185637 6.3689542,2.1882296 6.3689542,4.085901 V 7.4918301 L 4.2521568,7.4509801 4.2930068,4.045051 C 4.3176792,1.987953 5.080245,-0.02206145 8.792353,-0.03403364 13.536238,-0.0493335 13.21,3.1688541 13.21,4.085901 V 6 h -0.01 4.41 m 2.79,1 h -9 v 7 h 9 z m -7,1 h -1 v 1 h 1 z m 0,2 h -1 v 1 h 1 z"
+     clip-rule="evenodd"
+     fill-rule="evenodd" />
+</svg>

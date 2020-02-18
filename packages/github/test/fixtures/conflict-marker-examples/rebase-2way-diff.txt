@@ -1,0 +1,9 @@
+Before the start.
+
+<<<<<<< HEAD
+These are your changes
+=======
+These are my changes
+>>>>>>> this is a message
+
+Past the end.

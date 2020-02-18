@@ -1,0 +1,74 @@
+
+@import "variables";
+
+// Loader
+// Shows a spinner with an Octoface
+
+/* Usage: ---------------------------------------------
+
+<div className="github-Loader">
+  <span className="github-Spinner"></span>
+</div>
+
+--------------------------------------------------- */
+
+// Loader (just the container)
+
+.github-Loader {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: @gh-background-color-purple;
+
+  .tooltip & { color: inherit; }
+}
+
+
+// Spinner (can be used outside of github-Loader too)
+
+.github-Spinner {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 2em;
+  height: 2em;
+
+  // Octoface
+  &::before {
+    display: inline-block;
+    width: inherit;
+    height: inherit;
+    content: "\f008";
+    font-family: 'Octicons Regular';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 2;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  // spinner
+  &::after {
+    content: "";
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    top: 0;
+    left: 0;
+    border-right: 2px dotted;
+    border-bottom: 2px dotted;
+    border-left: 2px solid transparent;
+    border-radius: 1em;
+
+    // To limit CPU usage, the animation plays for some time at normal speed,
+    // then slows down frame-rate for a while and stops at some point
+    animation: github-Spinner-animation 4s linear 12,
+               github-Spinner-animation 4s 48s steps(12) 100;
+
+    @keyframes github-Spinner-animation {
+      100% { transform: rotate(360deg); }
+    }
+  }
+}

@@ -1,0 +1,290 @@
+@import "variables";
+@import (less) "../node_modules/react-select/dist/react-select.css";
+
+.github-CommitView {
+  padding: @component-padding;
+  flex: 0 0 auto;
+
+  &-editor {
+    position: relative;
+    border: 1px solid @input-border-color;
+    border-radius: @component-border-radius;
+    padding: @component-padding / 2;
+    font-size: @font-size;
+    background-color: @syntax-background-color;
+
+    .github-CommitView-hardwrap {
+      position: absolute;
+      right: 20px;
+      bottom: 0;
+      padding: (@component-padding / 5) (@component-padding / 2);
+      line-height: 1;
+      border: none;
+      background-color: @syntax-background-color;
+      cursor: default;
+      opacity: .3;
+      &:hover {
+        opacity: 1;
+      }
+      &:active {
+        opacity: .5;
+      }
+    }
+  }
+
+  &-editor.hidden {
+    display: none;
+  }
+
+  &-editor atom-text-editor {
+    height: 100px;
+    .cursor-line.cursor-line.cursor-line {
+      background-color: transparent;
+    }
+  }
+
+  &-coAuthorToggle {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    // in expanded editor view, make this button sit on top of
+    // the editor toggle button so the co author toggle is still clickable.
+    z-index: 1;
+    &:hover {
+      opacity: 1;
+      cursor: pointer;
+    }
+    &:active {
+      opacity: .5;
+    }
+    &.focused {
+      opacity: 1;
+    }
+
+    &Icon {
+      width: 12px;
+      height: 7px;
+      fill: @text-color;
+
+      &.focused {
+        fill: @button-background-color-selected;
+      }
+    }
+  }
+
+  &-buttonWrapper {
+    align-items: center;
+    display: flex;
+    margin: 0 -@component-padding @component-padding -@component-padding;
+    padding: @component-padding;
+    padding-top: 0;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-coAuthorEditor {
+    position: relative;
+    margin-top: @component-padding / 2;
+    padding: (@component-padding / 4) (@component-padding / 2);
+    border: 1px solid @base-border-color;
+    color: @syntax-text-color;
+    border-radius: @component-border-radius;
+    background-color: @syntax-background-color;
+    cursor: text;
+
+    &&, &.is-open, &.is-focused, &.is-searchable, &.is-searchable.is-open, &.is-searchable.is-focused:not(.is-open) {
+      & > .Select-control {
+        background-color: inherit;
+        border: none;
+        border-radius: 0;
+        color: inherit;
+        cursor: inherit;
+        height: @component-line-height;
+        box-shadow: none;
+      }
+    }
+
+    .Select-placeholder {
+      line-height: @component-line-height;
+      padding: 0;
+      color: @text-color-subtle;
+    }
+
+    .Select-input {
+      line-height: @component-line-height;
+      padding: 0;
+      margin: 0;
+      height: auto;
+
+      & > input {
+        padding: 0;
+        line-height: inherit;
+      }
+    }
+
+    // Token
+    .Select-value {
+      margin: 0;
+      margin-right: .5em;
+      vertical-align: middle;
+      line-height: 1.1;
+      color: mix(@text-color-highlight, @text-color-info, 70%);
+      border-color: fade(@background-color-info, 15%);
+      background-color: fade(@background-color-info, 10%);
+
+      &-icon {
+        border-color: inherit;
+      }
+    }
+
+    // Popup
+    .Select-menu-outer {
+      top: auto;
+      left: -1px;
+      right: -1px;
+      width: auto;
+      bottom: calc(100% ~'+' 2px);
+      border-radius: @component-border-radius;
+      border: 1px solid @overlay-border-color;
+      background-color: @overlay-background-color;
+      box-shadow: 0 2px 4px hsla(0,0%,0%,.15);
+      overflow: hidden;
+    }
+
+    .Select-option {
+      display: inline-block;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      background-color: transparent;
+      width: 100%;
+
+      padding: @component-padding / 2;
+      padding-right: 10px; // space for scrollbar
+      border-top: 1px solid @overlay-border-color;
+      white-space: nowrap;
+
+      &:first-child {
+        border-top: none;
+      }
+
+      &.is-focused {
+        color: white;
+        background-color: @background-color-info;
+
+        .github-CommitView-coAuthorEditor-selectListItem > span {
+          color: inherit;
+        }
+      }
+    }
+
+    &-selectListItem {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+
+      &> span:first-child {
+        font-weight: 600;
+        color: @text-color-highlight;
+      }
+      &> span {
+        color: @text-color-subtle;
+        margin-right: .75em;
+      }
+      &> span:last-child {
+        margin-right: 0;
+      }
+    }
+
+    .new-author {
+      font-style: italic;
+    }
+  }
+
+  &-expandButton {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: @component-padding / 2;
+    line-height: 1;
+    border: none;
+    background-color: @syntax-background-color;
+    cursor: default;
+    opacity: .3;
+    &:hover {
+      opacity: 1;
+    }
+    &:active {
+      opacity: .5;
+    }
+    &:before {
+      margin: 0;
+    }
+  }
+
+  &-bar {
+    display: flex;
+    align-items: center;
+    margin-top: @component-padding;
+  }
+
+  &-label {
+    margin-right: @component-padding;
+  }
+
+  &-button {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+    &.is-secondary {
+      flex: 0 1 auto;
+      margin-right: @component-padding;
+    }
+  }
+
+  &-remaining-characters {
+    width: 1.25em;
+    text-align: right;
+    margin-left: @component-padding;
+    color: @text-color-subtle;
+
+    &.is-warning { color: @text-color-warning; }
+    &.is-error   { color: @text-color-error; }
+  }
+
+
+  // States ---------------------------------------------------
+
+  &-editor.is-expanded {
+    background-color: transparent;
+    atom-text-editor {
+      display: none;
+    }
+    .github-CommitView-expandButton {
+      position: relative;
+      width: 100%;
+      line-height: inherit;
+      background-color: transparent;
+      opacity: .5;
+      &::before {
+        margin-right: @component-padding / 2;
+      }
+      &::after {
+        content: "Toggle expanded commit message";
+      }
+      &:active {
+        opacity: .3;
+      }
+    }
+  }
+
+  .hard-wrap-icons {
+    fill: @text-color
+  }
+}

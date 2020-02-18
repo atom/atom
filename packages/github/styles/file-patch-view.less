@@ -1,0 +1,368 @@
+@import "variables";
+@import "octicon-utf-codes";
+@import "octicon-mixins";
+
+@header-bg-color: mix(@syntax-text-color, @syntax-background-color, 6%);
+
+.github-FilePatchView {
+  display: flex;
+  flex-direction: column;
+  -webkit-user-select: none;
+  cursor: default;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+
+  &--blank &-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.2em;
+    padding: @component-padding;
+  }
+
+  &-controlBlock {
+    background-color: @syntax-background-color;
+    display: flow-root;
+  }
+
+  &-controlBlock &-header {
+    margin: @component-padding*4 @component-padding @component-padding 0;
+  }
+
+  &-controlBlock .github-HunkHeaderView {
+    margin: @component-padding @component-padding @component-padding 0;
+  }
+
+  &-controlBlock + &-controlBlock {
+    .github-FilePatchView-header , .github-HunkHeaderView {
+      margin-top: 0;
+    }
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    font-family: @font-family;
+    font-size: @font-size;
+    background-color: @header-bg-color;
+    cursor: default;
+
+    .btn {
+      font-size: .9em;
+      &.icon-move-up::before,
+      &.icon-move-down::before {
+        font-size: 1em;
+        margin-right: .5em;
+      }
+    }
+
+    .btn-group {
+      margin: @component-padding/2;
+    }
+  }
+
+  &-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: @component-padding;
+  }
+
+  &-message {
+    font-family: @font-family;
+    text-align: center;
+    margin: 15px 0 0 0;
+  }
+
+  &-showDiffButton {
+    background: transparent;
+    border: none;
+    color: @text-color-highlight;
+    font-size: 18px;
+    margin-bottom: 15px;
+
+    &:hover {
+        color: @gh-background-color-blue;
+      }
+  }
+
+  &-collapseButton {
+    background: transparent;
+    border: none;
+    padding: @component-padding/1.5;
+
+    & + .github-FilePatchView-title {
+      margin-left: 0; // chevron already has margin
+    }
+  }
+
+  &-collapseButtonIcon {
+    &:before {
+      margin-right: 0;
+      vertical-align: -2px;
+    }
+  }
+
+  &-container {
+    flex: 1;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    .large-file-patch {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1.2em;
+      padding: @component-padding;
+    }
+
+    .large-file-patch {
+      flex-direction: column;
+    }
+
+    atom-text-editor {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  // Meta section
+  // Used for mode changes
+
+  &-meta {
+    font-family: @font-family;
+    padding-top: @component-padding;
+  }
+
+  &-metaContainer {
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+  }
+
+  &-metaHeader {
+    display: flex;
+    align-items: center;
+    font-size: .9em;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-metaTitle {
+    flex: 1;
+    margin: 0;
+    padding-left: @component-padding;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &-metaControls {
+    margin-left: @component-padding;
+  }
+
+  &-metaButton {
+    line-height: 1.9; // Magic number to match the hunk height
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    font-family: @font-family;
+    border: none;
+    border-left: 1px solid @base-border-color;
+    background-color: transparent;
+    cursor: default;
+    &:hover  { background-color: mix(@syntax-text-color, @syntax-background-color, 4%); }
+    &:active { background-color: mix(@syntax-text-color, @syntax-background-color, 2%); }
+
+    &.icon-move-up::before,
+    &.icon-move-down::before {
+      font-size: 1em;
+      margin-right: .25em;
+      vertical-align: baseline;
+    }
+  }
+
+  &-metaDetails {
+    padding: @component-padding;
+  }
+
+  &-metaDiff {
+    margin: 0 .2em;
+    padding: .2em .4em;
+    line-height: 1.6;
+    border-radius: @component-border-radius;
+    &--added {
+      color: mix(@text-color-highlight, @text-color-success, 40%);
+      background-color: mix(@base-background-color, @background-color-success, 80%);
+    }
+    &--removed {
+      color: mix(@text-color-highlight, @text-color-error, 40%);
+      background-color: mix(@base-background-color, @background-color-error, 80%);
+    }
+    &--fullWidth {
+      display: block;
+      margin: @component-padding/2 0 0 0;
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    code {
+      margin: 0 .2em;
+      padding: 0 .2em;
+      font-size: .9em;
+      color: inherit;
+      line-height: 1;
+      vertical-align: middle;
+      word-break: break-all;
+      background-color: @base-background-color;
+    }
+  }
+
+  // Line decorations
+
+  &-line {
+    &--deleted {
+      background-color: @github-diff-deleted;
+      &.line.cursor-line {
+        background-color: fadein(@github-diff-deleted, 3%);
+      }
+    }
+    &--added {
+      background-color: @github-diff-added;
+      &.line.cursor-line {
+        background-color: fadein(@github-diff-added, 3%);
+      }
+    }
+  }
+
+
+  // Gutter
+
+  .gutter {
+    .icon-right {
+      display: none; // remove fold icon
+    }
+
+    &.old .line-number, &.new .line-number {
+      min-width: 6ch; // Fit up to 4 characters (+1 padding on each side)
+      opacity: 1;
+      padding: 0 1ch 0 0;
+    }
+
+    &.icons .line-number {
+      padding: 0;
+      opacity: 1;
+      width: 2ch;
+      font-family: @font-family;
+      text-align: center;
+      color: mix(@syntax-gutter-text-color, @syntax-text-color);
+      -webkit-font-smoothing: antialiased;
+
+      &:before {
+        display: inline-block;
+        min-width: 2ch;
+      }
+
+      &.github-FilePatchView-line--added:before {
+        content: "+";
+      }
+
+      &.github-FilePatchView-line--deleted:before {
+        content: "-";
+      }
+
+      &.github-FilePatchView-line--nonewline:before {
+        content: @no-newline;
+        .octicon-font();
+        width: inherit;
+        min-width: auto;
+      }
+    }
+  }
+
+  // Inactive
+
+  &--inactive .highlights .highlight.selection {
+    display: none;
+  }
+
+  // Readonly editor
+
+  atom-text-editor[readonly] {
+    .cursors {
+      display: none;
+    }
+  }
+}
+
+
+// States
+
+// Selected
+.github-FilePatchView {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number,
+    &[gutter-name="github-comment-icon"] .github-editorCommentGutterIcon {
+      &.github-FilePatchView-line--selected {
+        color: @text-color-selected;
+        background: @background-color-selected;
+        &.github-editorCommentGutterIcon.empty {
+          z-index: -1;
+        }
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: transparent; // remove default selection
+    }
+  }
+}
+
+// Selected + focused
+.github-FilePatchView:focus-within {
+  .gutter {
+    &.old .line-number,
+    &.new .line-number,
+    &.icons .line-number,
+    &[gutter-name="github-comment-icon"] .github-editorCommentGutterIcon {
+      &.github-FilePatchView-line--selected {
+        color: contrast(@button-background-color-selected);
+        background: @button-background-color-selected;
+        &.github-editorCommentGutterIcon.empty {
+          z-index: -1;
+        }
+      }
+    }
+  }
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 25%);
+    }
+  }
+}
+
+// Selected + focused hunkmode
+.github-FilePatchView.github-FilePatchView--hunkMode:focus-within {
+
+  atom-text-editor {
+    .selection .region {
+      background-color: mix(@button-background-color-selected, @syntax-background-color, 8%);
+    }
+  }
+}
+
+.gitub-FilePatchHeaderView-basename {
+  font-weight: bold;
+}

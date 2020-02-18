@@ -1,0 +1,98 @@
+@import "variables";
+
+@hunk-fg-color: @text-color-subtle;
+@hunk-bg-color: mix(@syntax-text-color, @syntax-background-color, 0%);
+@hunk-bg-color-hover: mix(@syntax-text-color, @syntax-background-color, 4%);
+@hunk-bg-color-active: mix(@syntax-text-color, @syntax-background-color, 2%);
+
+.github-HunkHeaderView {
+  display: flex;
+  align-items: stretch;
+  font-size: @font-size;
+  border: 1px solid @base-border-color;
+  border-radius: @component-border-radius;
+  background-color: @hunk-bg-color;
+  cursor: default;
+
+  &-title {
+    flex: 1;
+    line-height: 2.4;
+    padding: 0 @component-padding;
+    color: @text-color-subtle;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -webkit-font-smoothing: antialiased;
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
+  }
+
+  &-stageButton,
+  &-discardButton {
+    line-height: 1;
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    font-family: @font-family;
+    border: none;
+    border-left: inherit;
+    background-color: transparent;
+    cursor: default;
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
+
+    .keystroke {
+      margin-right: 1em;
+    }
+  }
+
+  // pixel fit the icon
+  &-discardButton:before {
+    text-align: left;
+    width: auto;
+    vertical-align: 2px;
+  }
+}
+
+//
+// States
+// -------------------------------
+
+.github-HunkHeaderView {
+  &-title,
+  &-stageButton,
+  &-discardButton {
+    &:hover  { background-color: @hunk-bg-color-hover; }
+    &:active { background-color: @hunk-bg-color-active; }
+  }
+}
+
+// Selected
+.github-HunkHeaderView--isSelected {
+  color: @text-color-selected;
+  background-color: @background-color-selected;
+  border-color: transparent;
+  .github-HunkHeaderView-title {
+    color: inherit;
+  }
+  .github-HunkHeaderView-title,
+  .github-HunkHeaderView-stageButton,
+  .github-HunkHeaderView-discardButton {
+    &:hover  { background-color: @background-color-highlight; }
+    &:active { background-color: @background-color-selected; }
+  }
+}
+
+
+// Selected + focused
+.github-FilePatchView:focus-within {
+  .github-HunkHeaderView--isSelected {
+    color: contrast(@button-background-color-selected);
+    background-color: @button-background-color-selected;
+    .github-HunkHeaderView-title,
+    .github-HunkHeaderView-stageButton,
+    .github-HunkHeaderView-discardButton {
+      &:hover  { background-color: lighten(@button-background-color-selected, 4%); }
+      &:active { background-color: darken(@button-background-color-selected, 4%); }
+    }
+  }
+}

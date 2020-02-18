@@ -1,0 +1,64 @@
+@import "variables";
+
+.github-CacheView {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+
+  header {
+    text-align: center;
+    border-bottom: 1px solid @base-border-color;
+    padding: @component-padding;
+  }
+
+  &-Controls {
+    padding: 0 @component-padding;
+    text-align: right;
+  }
+
+  &-Clear {
+    margin-left: 1em;
+  }
+
+  &-Order select {
+    margin-left: 0.5em;
+  }
+
+  table {
+    margin: 10px 20px;
+    width: 90%;
+  }
+
+  thead {
+    color: @text-color-highlight;
+    background-color: @background-color-highlight;
+    font-weight: bold;
+  }
+
+  td {
+    padding: @component-padding / 2;
+    vertical-align: top;
+  }
+
+  &-Key {
+    button {
+      width: 100%;
+      font-family: monospace;
+      text-align: left;
+    }
+  }
+
+  &-Age {
+    min-width: 100px;
+  }
+
+  &-Hits {
+    min-width: 50px;
+  }
+
+  &-Content {
+    white-space: pre-wrap;
+    max-height: 100px;
+    overflow-y: scroll;
+  }
+}

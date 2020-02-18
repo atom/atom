@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const fetch = require('node-fetch');
+const {buildClientSchema, printSchema} = require('graphql/utilities');
+const schemaPath = path.resolve(__dirname, '..', 'graphql', 'schema');
+
+const introspectionQuery = `
+  query IntrospectionQuery {
+    __schema {
+      queryType { name }
+      mutationType { name }
+      subscriptionType { name }
+      types {
+        ...FullType
+      }
+      directives {
+        name
+        description
+        locations
+        args {
+          ...InputValue
+        }
+      }
+    }
+  }
+  fragment FullType on __Type {
+    kind
+    name
+    description
+    fields(includeDeprecated: false) {
+      name
+      description
+      args {
+        ...InputValue
+      }
+      type {
+        ...TypeRef
+      }
+      isDeprecated
+      deprecationReason
+    }
+    inputFields {
+      ...InputValue
+    }
+    interfaces {
+      ...TypeRef
+    }
+    enumValues(includeDeprecated: false) {
+      name
+      description
+      isDeprecated
+      deprecationReason
+    }
+    possibleTypes {
+      ...TypeRef
+    }
+  }
+  fragment InputValue on __InputValue {
+    name
+    description
+    type { ...TypeRef }
+    defaultValue
+  }
+  fragment TypeRef on __Type {
+    kind
+    name
+    ofType {
+      kind
+      name
+      ofType {
+        kind
+        name
+        ofType {
+          kind
+          name
+          ofType {
+            kind
+            name
+            ofType {
+              kind
+              name
+              ofType {
+                kind
+                name
+                ofType {
+                  kind
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const token = process.env.GITHUB_TOKEN;
+if (!token) {
+  throw new Error('You must specify a GitHub auth token in GITHUB_TOKEN');
+}
+const SERVER = 'https://api.github.com/graphql';
+
+// Save JSON of full schema introspection for Babel Relay Plugin to use
+fetch(`${SERVER}`, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/vnd.github.antiope-preview+json',
+    'Content-Type': 'application/json',
+    'Authorization': 'bearer ' + token,
+  },
+  body: JSON.stringify({query: introspectionQuery}),
+}).then(res => res.json()).then(schemaJSON => {
+  const graphQLSchema = buildClientSchema(schemaJSON.data);
+  fs.writeFileSync(`${schemaPath}.graphql`, printSchema(graphQLSchema));
+}).catch(err => console.error(err)); // eslint-disable-line no-console

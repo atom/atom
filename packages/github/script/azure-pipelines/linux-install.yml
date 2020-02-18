@@ -1,0 +1,20 @@
+parameters:
+  atom_channel: dev
+  atom_name: atom-dev
+
+steps:
+- bash: |
+    curl -s -L "https://atom.io/download/deb?channel=${ATOM_CHANNEL}" \
+      -H 'Accept: application/octet-stream' \
+      -o 'atom-amd64.deb'
+    /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+    sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+    dpkg-deb -x atom-amd64.deb /tmp/atom
+  displayName: install Atom
+  env:
+    ATOM_CHANNEL: ${{ parameters.atom_channel }}
+- bash: |
+    "/tmp/atom/usr/share/${ATOM_NAME}/resources/app/apm/bin/apm" ci
+  displayName: install dependencies
+  env:
+    ATOM_NAME: ${{ parameters.atom_name }}

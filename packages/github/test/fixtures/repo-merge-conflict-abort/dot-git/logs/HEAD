@@ -1,0 +1,19 @@
+0000000000000000000000000000000000000000 2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a Katrina Uychaco <kuychaco@github.com> 1468271892 -0700	commit (initial): Initial commit
+2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a 349956c7ab3239fff22320b5a55f5b170a7122b2 Katrina Uychaco <kuychaco@github.com> 1468271951 -0700	commit: Change files
+349956c7ab3239fff22320b5a55f5b170a7122b2 2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a Katrina Uychaco <kuychaco@github.com> 1468271958 -0700	checkout: moving from master to head~
+2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a 2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a Katrina Uychaco <kuychaco@github.com> 1468271969 -0700	checkout: moving from 2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a to spanish
+2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a 2db6b6aa7c11be9e5c2ca404f8e517ebd0a0f37c Katrina Uychaco <kuychaco@github.com> 1468272049 -0700	commit: Change files, but this time in Spanish
+2db6b6aa7c11be9e5c2ca404f8e517ebd0a0f37c 349956c7ab3239fff22320b5a55f5b170a7122b2 Katrina Uychaco <kuychaco@github.com> 1468272109 -0700	checkout: moving from spanish to master
+349956c7ab3239fff22320b5a55f5b170a7122b2 2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a Katrina Uychaco <kuychaco@github.com> 1468401317 -0700	reset: moving to head~
+2c9b98342c82fdf66e6c7d44c2cfc3f40f3a834a f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 Katrina Uychaco <kuychaco@github.com> 1468401394 -0700	commit (amend): Initial commit
+f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 8205b673910d6b46f7d5a58faf43e68845f8b8db Katrina Uychaco <kuychaco@github.com> 1468401489 -0700	commit: version two
+8205b673910d6b46f7d5a58faf43e68845f8b8db f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 Katrina Uychaco <kuychaco@github.com> 1468401498 -0700	checkout: moving from master to head~
+f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 2db6b6aa7c11be9e5c2ca404f8e517ebd0a0f37c Katrina Uychaco <kuychaco@github.com> 1468401511 -0700	checkout: moving from f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 to spanish
+2db6b6aa7c11be9e5c2ca404f8e517ebd0a0f37c d552f7cca429a69833b88324ed8e6fc366b69071 Katrina Uychaco <kuychaco@github.com> 1468401609 -0700	commit (amend): Change files, but this time in Spanish
+d552f7cca429a69833b88324ed8e6fc366b69071 8205b673910d6b46f7d5a58faf43e68845f8b8db Katrina Uychaco <kuychaco@github.com> 1468401618 -0700	checkout: moving from spanish to master
+8205b673910d6b46f7d5a58faf43e68845f8b8db f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 Katrina Uychaco <kuychaco@github.com> 1468401695 -0700	checkout: moving from master to head~
+f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 Katrina Uychaco <kuychaco@github.com> 1468401715 -0700	checkout: moving from f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 to spanish
+f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 718907eba661f42d6afd596b5909d7b4c63645ea Katrina Uychaco <kuychaco@github.com> 1468401769 -0700	commit: in spanish
+718907eba661f42d6afd596b5909d7b4c63645ea 8205b673910d6b46f7d5a58faf43e68845f8b8db Katrina Uychaco <kuychaco@github.com> 1468401773 -0700	checkout: moving from spanish to master
+8205b673910d6b46f7d5a58faf43e68845f8b8db f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 Katrina Uychaco <kuychaco@github.com> 1468406022 -0700	reset: moving to head~
+f619b79c0e40ff7f66f4aa8a4e6f03fad667c7d3 8205b673910d6b46f7d5a58faf43e68845f8b8db Katrina Uychaco <kuychaco@github.com> 1468406052 -0700	reset: moving to 8205b67

@@ -1,0 +1,55 @@
+@import "variables";
+
+.github-Project {
+  display: flex;
+  align-items: center;
+  padding: @component-padding/2 @component-padding;
+  border-bottom: 1px solid @base-border-color;
+
+  &-path {
+    flex: 1;
+    margin-left: @component-padding;
+  }
+
+  &-avatar {
+    width: 23px;
+    height: 23px;
+    border-radius: @component-border-radius;
+  }
+
+  &-lock.btn {
+    width: 40px;
+    height: 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: baseline;
+
+    border: none;
+    background-color: transparent;
+    background-image: none;
+
+    &:active, &:hover {
+      background-color: transparent;
+      background-image: none;
+    }
+  }
+
+  .icon {
+    padding: 0;
+    margin: 0;
+    line-height: 1em;
+    fill: @text-color;
+
+    &:hover {
+      fill: @text-color-highlight;
+    }
+
+    &.icon-unlock {
+      width: 21px;
+      height: 17px;
+      padding-left: 1px;
+    }
+  }
+}

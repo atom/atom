@@ -1,0 +1,119 @@
+@import 'variables';
+
+@donut-size: 26px;
+@donut-stroke: 4px;
+
+.github-PrStatuses {
+
+  &-header {
+    display: flex;
+    align-items: center;
+    border: 1px solid @base-border-color;
+    padding: @component-padding;
+    border-radius: @component-border-radius @component-border-radius 0 0;
+  }
+
+  &-donut-chart {
+    margin-right: @component-padding;
+
+    svg {
+      display: block;
+      width: @donut-size;
+      height: @donut-size;
+
+      circle {
+        cx: @donut-size/2;
+        cy: @donut-size/2;
+        r: @donut-size/2 - @donut-stroke/2;
+        stroke-width: @donut-stroke;
+      }
+    }
+  }
+
+  &-summary {
+    font-weight: bold;
+    flex: 1;
+  }
+
+  &-list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    padding: 0;
+    margin-bottom: 0;
+  }
+
+  &-list-item {
+    display: flex;
+    flex-direction: row;
+    padding: @component-padding/2 @component-padding;
+    border: 1px solid @base-border-color;
+    border-top: none;
+
+    &--checkRun {
+      padding-left: @component-padding*2;
+    }
+
+    &:last-child {
+      border-radius: 0 0 @component-border-radius @component-border-radius;
+    }
+
+    &-icon {
+      width: @donut-size;
+      margin-right: @component-padding;
+      text-align: center;
+      .icon::before { margin-right: 0; }
+    }
+
+    &-name {
+      font-weight: bold;
+      color: @text-color-info;
+      margin-right: 0.5em;
+    }
+
+    &-context {
+      flex: 1;
+      color: @text-color-subtle;
+      strong {
+        margin-right: .5em;
+        color: @text-color-highlight;
+      }
+    }
+
+    &-title {
+      margin-right: 0.5em;
+    }
+
+    &-summary {
+      display: inline-flex;
+      font-size: 90%;
+    }
+
+    &-details-link {
+      margin-left: .5em;
+      color: @text-color-info;
+      a {
+        color: @text-color-info;
+      }
+    }
+  }
+
+
+  // States --------------------
+
+  &--pending {
+    color: @gh-background-color-yellow;
+  }
+
+  &--success {
+    color: @gh-background-color-green;
+  }
+
+  &--failure {
+    color: @gh-background-color-red;
+  }
+
+  &--neutral {
+    color: @text-color-subtle;
+  }
+}

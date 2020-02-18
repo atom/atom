@@ -1,0 +1,94 @@
+@import "variables";
+
+@default-padding: @component-padding;
+@avatar-dimensions: 16px;
+
+.github-CommitDetailView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &-header {
+    flex: 0;
+    border-bottom: 1px solid @pane-item-border-color;
+    background-color: @pane-item-background-color;
+  }
+
+  &-commit {
+    padding: @default-padding*2;
+    padding-bottom: 0;
+  }
+
+  &-title {
+    margin: 0 0 .25em 0;
+    font-size: 1.4em;
+    line-height: 1.3;
+    color: @text-color-highlight;
+  }
+
+  &-avatar {
+    border-radius: @component-border-radius;
+    height: @avatar-dimensions;
+    margin-right: .4em;
+    width: @avatar-dimensions;
+  }
+
+  &-meta {
+    display: flex;
+    align-items: center;
+    margin:  @default-padding/2 0 @default-padding*2 0;
+  }
+
+  &-metaText {
+    flex: 1;
+    margin-left: @avatar-dimensions * 1.4; // leave some space for the avatars
+    line-height: @avatar-dimensions;
+    color: @text-color-subtle;
+  }
+
+  &-moreButton {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 0em .4em;
+    color: @text-color-subtle;
+    font-style: italic;
+    border: 1px solid @button-border-color;
+    border-radius: @component-border-radius;
+    background-color: @button-background-color;
+
+    &:hover {
+      background-color: @button-background-color-hover
+    }
+  }
+
+  &-moreText {
+    padding: @default-padding*2 0;
+    font-size: inherit;
+    font-family: var(--editor-font-family);
+    word-wrap: initial;
+    word-break: break-word;
+    white-space: pre-wrap;
+    border-top: 1px solid @pane-item-border-color;
+    background-color: transparent;
+    // in the case of loonnng commit message bodies, we want to cap the height so that
+    // the content beneath will remain visible / scrollable.
+    max-height: 55vh;
+    &:empty {
+      display: none;
+    }
+  }
+
+  &-sha {
+    flex: 0 0 7ch; // Limit to 7 characters
+    margin-left: @default-padding*2;
+    line-height: @avatar-dimensions;
+    color: @text-color-subtle;
+    font-family: var(--editor-font-family);
+    white-space: nowrap;
+    overflow: hidden;
+    a {
+      color: @text-color-info;
+    }
+  }
+}

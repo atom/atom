@@ -1,0 +1,105 @@
+@import "variables";
+
+.github-StagingView {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  &-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-header {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 @component-padding;
+    font-weight: 600;
+    border-top: 1px solid @panel-heading-border-color;
+    border-bottom: 1px solid @panel-heading-border-color;
+
+    .github-UnstagedChanges > & {
+      border-top: none;
+    }
+
+    .icon {
+      text-align: center;
+      &:before {
+        color: @text-color-subtle;
+        margin-right: @component-padding / 1.2;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  &-headerButton {
+    height: 2.5em;
+    border: none;
+    padding: 0 @component-padding;
+    font-weight: normal;
+    border-left: 1px solid @panel-heading-border-color;
+    white-space: nowrap;
+    background: none;
+    cursor: default;
+
+    &:disabled {
+      color: @text-color-subtle;
+    }
+
+    &:active {
+      background-color: @button-background-color-hover;
+    }
+
+    &.icon:before {
+      margin-right: 0;
+      font-size: 1em;
+      text-align: left;
+    }
+
+    &--fullWidth {
+      border-left: none;
+      border-bottom: 1px solid @panel-heading-border-color;
+    }
+
+    &--iconOnly:before {
+      width: auto;
+    }
+  }
+
+
+  &-title {
+    flex: 1;
+    margin-right: @component-padding;
+    line-height: 2.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &-list {
+    flex: 1 1 0;
+    overflow-x: auto;
+  }
+}
+
+
+//
+// States
+// -----------------------------------------
+
+.github-StagingView-group-truncatedMsg {
+  padding: @component-padding / 2 @component-padding;
+}
+
+.github-StagingView-group.is-focused .is-selected {
+  // is selected
+  color: @text-color-selected;
+  background: @background-color-selected;
+
+  // also has focus
+  .github-StagingView:focus & {
+    color: contrast(@button-background-color-selected);
+    background: @button-background-color-selected;
+  }
+}

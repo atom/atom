@@ -1,0 +1,17 @@
+This is a file containing a corrupted diff3 patch.
+
+<<<<<<< HEAD
+These are my changes
+||||||| merged common ancestors
+These are original texts
+Oops, we never get a separator
+These are your changes
+>>>>>>> master
+
+These are my changes
+||||||| merged common ancestors
+These are original texts
+These are your changes
+>>>>>>> master
+
+And some text after the end.

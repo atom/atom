@@ -1,0 +1,8 @@
+Merge branch 'branch'
+
+# Conflicts:
+#	added-to-both.txt
+#	modified-on-both-ours.txt
+#	modified-on-both-theirs.txt
+#	removed-on-branch.txt
+#	removed-on-master.txt

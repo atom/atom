@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+new stuff
+||||||| merged common ancestors
+=======
+foo
+>>>>>>> branch

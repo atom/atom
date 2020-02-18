@@ -1,0 +1,155 @@
+'.workspace':
+  'ctrl-8': 'github:toggle-github-tab-focus'
+  'ctrl-shift-8': 'github:toggle-github-tab'
+  'ctrl-9': 'github:toggle-git-tab-focus'
+  'ctrl-shift-9': 'github:toggle-git-tab'
+  'alt-g enter': 'github:commit'
+  'alt-g f': 'github:fetch'
+  'alt-g shift-f': 'github:pull'
+  'alt-g p': 'github:push'
+  'alt-g shift-p': 'github:force-push'
+  'alt-g =': 'github:clone'
+  'alt-g r': 'github:open-reviews-tab'
+
+'atom-text-editor':
+  'alt-m 1': 'github:resolve-as-ours'
+  'alt-m 2': 'github:resolve-as-theirs'
+  'alt-m 3': 'github:resolve-as-base'
+  'alt-m enter': 'github:resolve-as-current'
+  'alt-m r': 'github:revert-current'
+
+'.platform-darwin .github-Git':
+  'cmd-enter': 'github:commit'
+'.platform-win32 .github-Git, .platform-linux .github-Git':
+  'ctrl-enter': 'github:commit'
+
+'.github-StagingView':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+  'o': 'github:jump-to-file'
+  'left': 'core:move-left'
+'.platform-darwin .github-StagingView':
+  'cmd-left': 'core:move-left'
+'.platform-linux .github-StagingView, .platform-win32 .github-StagingView':
+  'ctrl-left': 'core-move-left'
+
+'.github-CommitView button':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+
+'.platform-darwin .github-StagingView.unstaged-changes-focused':
+  'cmd-backspace': 'github:discard-changes-in-selected-files'
+'.platform-linux .github-StagingView.unstaged-changes-focused':
+  'ctrl-backspace': 'github:discard-changes-in-selected-files'
+'.platform-win32 .github-StagingView.unstaged-changes-focused':
+  # Repeated to avoid line length
+  'ctrl-backspace': 'github:discard-changes-in-selected-files'
+
+'.github-CommitView-editor atom-text-editor:not([mini])':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+'.platform-darwin .github-CommitView-editor atom-text-editor:not([mini])':
+  'cmd-enter': 'github:commit'
+'.platform-win32 .github-CommitView-editor atom-text-editor:not([mini])':
+  'ctrl-enter': 'github:commit'
+'.platform-linux .github-CommitView-editor atom-text-editor:not([mini])':
+  # Repeated to avoid line length
+  'ctrl-enter': 'github:commit'
+
+'.github-CommitView-commitPreview':
+  'left': 'github-dive'
+  'enter': 'native!'
+'.platform-darwin .github-CommitView-commitPreview':
+  'cmd-left': 'github:dive'
+'.platform-win32 .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
+'.platform-linux .github-CommitView-commitPreview':
+  'ctrl-left': 'github:dive'
+
+'.github-RecentCommits':
+  'left': 'github:dive'
+  'enter': 'github:dive'
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+'.platform-darwin .github-RecentCommits':
+  'cmd-left': 'github:dive'
+'.platform-win32 .github-RecentCommits, .platform-linux .github-RecentCommits':
+  'ctrl-left': 'github:dive'
+
+'.github-FilePatchView atom-text-editor:not([mini])':
+  # Only support unprefixed file patch keybindings until MultiFilePatch is
+  # editable
+  '/': 'github:toggle-patch-selection-mode'
+  'backspace': 'github:discard-selected-lines'
+  'enter': 'core:confirm'
+  'right': 'github:surface'
+  'o': 'github:jump-to-file'
+'.platform-darwin .github-FilePatchView atom-text-editor:not([mini])':
+  'cmd-/': 'github:toggle-patch-selection-mode'
+  'cmd-backspace': 'github:discard-selected-lines'
+  'cmd-enter': 'core:confirm'
+  'cmd-right': 'github:surface'
+  'cmd-o': 'github:jump-to-file'
+'.platform-win32 .github-FilePatchView atom-text-editor:not([mini])':
+  'ctrl-/': 'github:toggle-patch-selection-mode'
+  'ctrl-backspace': 'github:discard-selected-lines'
+  'ctrl-enter': 'core:confirm'
+  'ctrl-right': 'github:surface'
+  'ctrl-o': 'github:jump-to-file'
+'.platform-linux .github-FilePatchView atom-text-editor:not([mini])':
+  'ctrl-/': 'github:toggle-patch-selection-mode'
+  'ctrl-backspace': 'github:discard-selected-lines'
+  'ctrl-enter': 'core:confirm'
+  'ctrl-right': 'github:surface'
+  'ctrl-o': 'github:jump-to-file'
+
+'.github-FilePatchView--hunkMode atom-text-editor:not([mini])':
+  'down': 'github:select-next-hunk'
+  'up': 'github:select-previous-hunk'
+
+'.github-Prompt-input':
+  'enter': 'core:confirm'
+  'esc': 'tool-panel:unfocus'
+
+'.github-Dialog':
+  'tab': 'core:focus-next'
+  'shift-tab': 'core:focus-previous'
+
+'.github-Dialog input':
+  'enter': 'core:confirm'
+
+'.github-CoAuthorForm input':
+  'enter': 'core:confirm'
+
+'body .github-TabbableWrapper':
+  'down': 'github:selectbox-down'
+  'up': 'github:selectbox-up'
+  'enter': 'github:selectbox-enter'
+  'tab': 'github:selectbox-tab'
+  'backspace': 'github:selectbox-backspace'
+  'pageup': 'github:selectbox-pageup'
+  'pagedown': 'github:selectbox-pagedown'
+  'end': 'github:selectbox-end'
+  'home': 'github:selectbox-home'
+  'delete': 'github:selectbox-delete'
+  'escape': 'github:selectbox-escape'
+
+'body .github-CommitView-coAuthorEditor':
+  'shift-backspace': 'github:co-author-exclude'
+
+'.platform-darwin .github-Reviews':
+  'cmd-=': 'github:more-context'
+  'cmd--': 'github:less-context'
+'.platform-win32 .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
+'.platform-linux .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
+
+'.platform-darwin .github-Reviews atom-text-editor':
+  'cmd-enter': 'github:submit-comment'
+'.platform-win32 .github-Reviews atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'
+'.platform-linux .github-Reviews atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'

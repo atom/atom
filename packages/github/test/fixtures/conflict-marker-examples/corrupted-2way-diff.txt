@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+These are my changes
+=======
+These are your changes
+
+Oops, deleted the end marker.

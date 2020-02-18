@@ -1,0 +1,82 @@
+@import "variables";
+
+.github-StatusBarTileController {
+  display: inline-block;
+
+  &-tooltipMenu {
+    &.tooltip {
+      width: 400px; // Same as the github-Panel
+      padding-left: @component-padding;
+      padding-right: @component-padding;
+      box-sizing: border-box;
+    }
+    .tooltip-inner.tooltip-inner {
+      padding: @component-padding / 2;
+      background-color: @tool-panel-background-color;
+      border: 1px solid @base-border-color;
+      box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
+      color: @text-color;
+    }
+    &.top .tooltip-arrow.tooltip-arrow {
+      width: @component-padding;
+      height: @component-padding;
+      border-width: 0 0 1px 1px;
+      border-color: @base-border-color;
+      background-color: @tool-panel-background-color;
+      border-bottom-right-radius: 2px;
+      transform: rotate(-45deg);
+    }
+  }
+
+  & > .inline-block:hover {
+    text-decoration: underline;
+    cursor: default;
+  }
+
+  @keyframes github-StatusBarAnimation-fade {
+      0% { opacity: 0; }
+      25% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+  }
+
+  // Sync animation
+  .animate-rotate.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-rotate {
+      100% { transform: rotate(360deg); }
+    }
+    animation: github-StatusBarAnimation-rotate 1s linear infinite;
+  }
+
+  // Push animation
+  .animate-up.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-up {
+      0% { transform: translateY(40%); }
+      100% { transform: translateY(-20%); }
+    }
+    animation:
+        github-StatusBarAnimation-up 800ms ease-out infinite,
+        github-StatusBarAnimation-fade 800ms ease-out infinite;
+  }
+
+  // Pull animation
+  .animate-down.github-PushPull-icon::before {
+    @keyframes github-StatusBarAnimation-down {
+        0% { transform: translateY(-20%); }
+        100% { transform: translateY(40%); }
+    }
+    animation:
+        github-StatusBarAnimation-down 800ms ease-out infinite,
+        github-StatusBarAnimation-fade 800ms ease-out infinite;
+  }
+
+  // Merge conflict icon
+  .github-ChangedFilesCount .icon-alert {
+    margin-left: @component-padding / 2;
+  }
+
+  .github-branch-detached {
+    color: @text-color-subtle;
+    font-style: italic;
+  }
+}

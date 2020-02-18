@@ -1,0 +1,81 @@
+@import "variables";
+
+.github-BranchMenuView {
+
+  .hidden {
+    display: none
+  }
+
+  &-selector {
+    display: flex;
+    align-items: center;
+  }
+
+  &-item {
+    margin: @component-padding / 2;
+  }
+
+  .icon-sync::before {
+    @keyframes github-BranchViewSync-animation {
+      100% { transform: rotate(360deg); }
+    }
+    animation: github-BranchViewSync-animation 2s linear 30; // limit to 1min in case something gets stuck
+  }
+
+  .icon-git-branch {
+    flex-basis: 16px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    color: @text-color-subtle;
+  }
+
+  .icon-git-branch::before {
+    margin-right: 0;
+    text-align: center;
+  }
+
+  &-select {
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 100%;
+  }
+
+  &-button {
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+
+  &-editor {
+    flex: 1;
+
+    atom-text-editor,
+    atom-text-editor .cursor-line {
+      background-color: inherit;
+    }
+    atom-text-editor[mini] {
+      font-size: inherit;
+      text-align: left;
+    }
+    atom-text-editor[readonly] {
+      color: @text-color-subtle;
+      pointer-events: none;
+    }
+  }
+
+  &-message {
+    max-height: 20em;
+    margin: @component-padding / 2;
+    padding: @component-padding / 2;
+    line-height: 1.4;
+    white-space: normal;
+    text-align: left;
+    overflow-y: auto;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+    background-color: @inset-panel-background-color;
+
+    &:empty {
+      display: none;
+    }
+  }
+}

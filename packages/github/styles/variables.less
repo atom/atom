@@ -1,0 +1,19 @@
+@import "ui-variables";
+@import "syntax-variables";
+
+@gh-background-color-blue: #006eeb;
+@gh-background-color-light-blue: #dbedff;
+@gh-background-color-yellow: #ffd93d;
+@gh-background-color-red: #dc3545;
+@gh-background-color-purple: #6f42c1;
+@gh-background-color-green: #28a745;
+
+
+// diff colors -----------------
+// Needs to be semi transparent to make it work with selections and different themes
+
+@github-diff-deleted:           fade(hsl(353, 100%, 66%), 15%); // similar to .com's hsl(353, 100%, 97%)
+@github-diff-added:             fade(hsl(137, 100%, 55%), 15%); // similar to .com's hsl(137, 100%, 95%)
+
+@github-diff-deleted-highlight: fade(hsl(353, 95%, 66%), 25%); // similar to .com's hsl(353, 95%, 86%)
+@github-diff-added-highlight:   fade(hsl(135, 73%, 55%), 25%); // similar to .com's hsl(135, 73%, 81%)

@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+const {runAtom} = require('./helpers/run-atom');
+const {projectPath} = require('./helpers/paths');
+
+runAtom({NODE_ENV: 'development'}, '--test', projectPath('test'));

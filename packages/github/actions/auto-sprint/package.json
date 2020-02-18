@@ -1,0 +1,11 @@
+{
+  "name": "auto-sprint",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "actions-toolkit": "2.1.0"
+  }
+}

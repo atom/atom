@@ -1,0 +1,59 @@
+@import 'variables';
+
+.react-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.react-tabs__tab-panel--selected {
+  flex: 1;
+  overflow: auto;
+}
+
+.github-tab {
+  padding: @component-padding/2 @component-padding*1.5;
+  text-align: center;
+  font-weight: 600;
+  color: mix(@text-color, @app-background-color, 75%);
+  cursor: default;
+  user-select: none;
+
+  &list {
+    flex: none;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border-bottom: 1px solid @base-border-color;
+    background-color: @app-background-color;
+  }
+
+  &-icon {
+    color: mix(@text-color, @app-background-color, 33%);
+    vertical-align: middle;
+    &:before {
+      margin-right: .4em;
+    }
+  }
+
+  &-count {
+    display: inline-block;
+    background-color: mix(@text-color-subtle, @app-background-color, 20%);
+    border-radius: @component-border-radius;
+    padding: 0 .25em;
+    margin-left: @component-padding/2;
+  }
+
+
+  // Selected tab
+  &.react-tabs__tab--selected {
+    color: @text-color-selected;
+    box-shadow: 0 1px 0 @button-background-color-selected;
+
+    .github-tab-icon {
+      color: @text-color;
+    }
+  }
+}

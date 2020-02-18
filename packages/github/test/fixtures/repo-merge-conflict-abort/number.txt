@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+two
+||||||| merged common ancestors
+one
+=======
+dos
+>>>>>>> spanish

@@ -1,0 +1,18 @@
+.resizer-container {
+  height: 100%;
+  display: flex;
+
+  .sizing-handle, .content {
+    display: inline;
+  }
+
+  .sizing-handle {
+    position: absolute;
+    width: 8px;
+    top: 0;
+    bottom: 0;
+    left: -5px;
+    z-index: 3;
+    cursor: col-resize;
+  }
+}
