@@ -9,7 +9,7 @@ import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 import ErrorBoundary from '../../lib/error-boundary';
 
-describe('Decoration', function() {
+describe('Decorations', function() {
   let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
