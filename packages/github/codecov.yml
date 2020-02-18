@@ -1,0 +1,10 @@
+coverage:
+  status:
+    project:
+      default:
+        # Allow coverage to drop by as much as 2% from the parent commit or pull request base
+        threshold: 2
+
+    patch:
+      default:
+        threshold: 2

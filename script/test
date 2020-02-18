@@ -84,6 +84,11 @@ function runCoreMainProcessTests (callback) {
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
+
+  if(process.env.CI && process.platform === 'linux') {
+      testArguments.push('--no-sandbox')
+  }
+
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('Executing core main process tests'.bold.green)
@@ -148,10 +153,12 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
       console.log(`Executing ${packageName} tests`.bold.green)
     }
     const cp = childProcess.spawn(executablePath, testArguments, {env: testEnv})
+
     let stderrOutput = ''
     cp.stderr.on('data', data => { stderrOutput += data })
     cp.stdout.on('data', data => { stderrOutput += data })
     cp.on('error', error => {
+      console.log(error, "error")
       finalize()
       callback(error)
     })

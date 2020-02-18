@@ -1,0 +1,2 @@
+This is a file that will contain a merge conflict.
+This is a change on "master".

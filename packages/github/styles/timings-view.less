@@ -1,0 +1,109 @@
+@import "variables";
+
+.github-GitTimingsView {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+
+  &-header {
+    display: flex;
+    justify-content: flex-end;
+    padding: @component-padding;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  .waterfall-widget {
+    border-radius: @component-border-radius;
+    border: 1px solid @pane-item-border-color;
+    background-color: @pane-item-background-color;
+    margin: 10px;
+  }
+
+  .waterfall-header {
+    padding: 5px 5px 0 5px;
+    color: @text-color;
+    font-size: @font-size;
+    display: flex;
+    border-bottom: 1px solid @pane-item-border-color;
+
+    .collapse-toggle {
+      cursor: pointer;
+      margin-right: 2px;
+    }
+
+    &-text {
+      flex: 1;
+    }
+
+    &-controls {
+      flex-basis: 250px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .waterfall-export-button {
+    margin: 0 10px 3px 0;
+  }
+
+  .waterfall-scroller {
+    overflow: auto;
+  }
+
+  .waterfall-container {
+    position: relative;
+    display: inline-block; // stretches to childs width
+    min-width: 100%;
+  }
+
+  .waterfall-time-marker {
+    position: absolute;
+    height: 100%;
+    width: 1px;
+    border-left: 1px solid @pane-item-border-color;
+  }
+
+  .waterfall-timeline {
+    position: relative;
+    margin: 5px 0;
+  }
+
+  .waterfall-timeline-label {
+    position: absolute;
+    padding-left: 5px;
+    color: @text-color;
+  }
+
+  .waterfall-row {
+    position: relative;
+    min-height: 15px;
+    padding: 2px 0;
+
+    &:nth-child(2n+1) {
+      background-color: @app-background-color;
+    }
+
+    &:hover {
+      background-color: @pane-item-border-color;
+    }
+  }
+
+  .waterfall-row-label {
+    position: relative;
+    margin: 0 5px;
+    white-space: nowrap;
+  }
+
+  .waterfall-marker {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+  }
+
+  .waterfall-marker-section {
+    display: inline-block;
+    position: relative;
+    height: 100%;
+    vertical-align: top;
+  }
+}

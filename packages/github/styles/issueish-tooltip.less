@@ -1,0 +1,70 @@
+@import 'variables';
+
+.github-IssueishTooltip {
+  display: flex;
+  flex-direction: column;
+  padding: @component-padding/2;
+  font-size: .9em;
+  text-align: left;
+
+  .issueish-avatar-and-title {
+    display: flex;
+    align-items: center;
+    margin: @component-padding/2;
+  }
+
+  .author-avatar {
+    margin-right: @component-padding;
+    flex: 0 0 26px; // prevent sqeezing
+    width: 26px;
+    height: 26px;
+    align-self: flex-start;
+    border-radius: @component-border-radius;
+  }
+
+  .issueish-title {
+    margin: 0;
+    font-size: 1.25em;
+    font-weight: 600;
+    line-height: 1.3;
+    color: @text-color-highlight;
+    white-space: initial;
+  }
+
+  .issueish-badge-and-link {
+    margin: @component-padding/2;
+  }
+
+  .issueish-badge {
+    margin-right: @component-padding;
+    font-weight: 500;
+    text-transform: capitalize;
+    border-radius: @component-border-radius;
+
+    &.open {
+      color: contrast(@gh-background-color-green, black, white, 50%);
+      background-color: @gh-background-color-green;
+    }
+
+    &.closed {
+      color: contrast(@gh-background-color-red, black, white, 50%);
+      background-color: @gh-background-color-red;
+    }
+
+    &.merged {
+      color: contrast(@gh-background-color-purple, black, white, 50%);
+      background-color: @gh-background-color-purple;
+    }
+
+    .icon:before {
+      width: auto;
+      font-size: 14px;
+      vertical-align: -1px;
+    }
+  }
+
+  .issueish-link {
+    color: @text-color-subtle;
+  }
+
+}

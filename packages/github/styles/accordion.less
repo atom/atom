@@ -1,0 +1,63 @@
+@import "variables";
+
+.github-Accordion {
+  cursor: default;
+  user-select: none;
+
+  &-header {
+    font-weight: 600;
+    color: @text-color-subtle;
+    padding: @component-padding/2;
+    border-bottom: 1px solid @base-border-color;
+    display: flex;
+    align-items: center;
+
+    &::-webkit-details-marker {
+      color: @text-color-subtle;
+    }
+  }
+
+  &--rightTitle, &--leftTitle {
+    flex: 1;
+  }
+
+  &-content {
+    border-bottom: 1px solid @base-border-color;
+    background-color: @base-background-color;
+
+    // Add an "Empty" label for empty items
+    &:empty::before {
+      content: "Empty";
+      display: block;
+      font-style: italic;
+      text-align: center;
+      color: @text-color-subtle;
+    }
+  }
+
+  &-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &[open] &-header {
+    color: @text-color-highlight;
+  }
+
+  &-listItem {
+    display: flex;
+    align-items: center;
+    padding: @component-padding / 4;
+    border-bottom: 1px solid @base-border-color;
+
+    &:last-child {
+      border: none;
+    }
+
+    &:active {
+      background-color: @background-color-highlight;
+    }
+  }
+
+}

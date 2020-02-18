@@ -1,0 +1,32 @@
+parameters:
+  atom_channel: dev
+  atom_directory: Atom Dev
+
+steps:
+- powershell: |
+    Set-StrictMode -Version Latest
+    $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+
+    Write-Host "Downloading latest Atom release"
+    $source = "https://atom.io/download/windows_zip?channel=$env:ATOM_CHANNEL"
+    $destination = "atom.zip"
+
+    (New-Object System.Net.WebClient).DownloadFile($source, $destination)
+    Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+  displayName: install Atom
+  env:
+    ATOM_CHANNEL: ${{ parameters.atom_channel }}
+- powershell: |
+    Set-StrictMode -Version Latest
+    $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+    $script:APM_SCRIPT_PATH = "$script:ATOMROOT\${env:ATOM_DIRECTORY}\resources\app\apm\bin\apm.cmd"
+
+    & "$script:APM_SCRIPT_PATH" ci
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host "Dependency installation failed"
+      $host.SetShouldExit($LASTEXITCODE)
+      exit
+    }
+  displayName: install dependencies
+  env:
+    ATOM_DIRECTORY: ${{ parameters.atom_directory }}

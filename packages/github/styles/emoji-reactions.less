@@ -1,0 +1,21 @@
+.github-EmojiReactions {
+  &-add.btn.btn {
+    color: @text-color-subtle;
+    border-color: transparent;
+    background: none;
+
+    &:first-child {
+      border-color: transparent;
+    }
+
+    &:focus.btn {
+      border-color: transparent;
+      box-shadow: none;
+      color: @text-color-info;
+    }
+
+    &:hover {
+      color: lighten(@text-color-subtle, 10%);
+    }
+  }
+}

@@ -1,0 +1,29 @@
+@import "variables";
+
+// Popover: Custom tooltip
+// Used for branch switcher and hovercards
+
+.github-Popover {
+  &.tooltip {
+    max-width: 400px; // Same as the github-Git
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+    box-sizing: border-box;
+  }
+  .tooltip-inner.tooltip-inner {
+    padding: @component-padding / 2;
+    background-color: @tool-panel-background-color;
+    border: 1px solid @base-border-color;
+    box-shadow: 0 4px 8px hsla(0, 0, 0, .1);
+    color: @text-color;
+  }
+  &.top .tooltip-arrow.tooltip-arrow {
+    width: @component-padding;
+    height: @component-padding;
+    border-width: 0 0 1px 1px;
+    border-color: @base-border-color;
+    background-color: @tool-panel-background-color;
+    border-bottom-right-radius: 2px;
+    transform: rotate(-45deg);
+  }
+}

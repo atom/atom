@@ -1,0 +1,8 @@
+Before the start
+
+<<<<<<< HEAD
+These are my changes
+=======
+>>>>>>> master
+
+Past the end

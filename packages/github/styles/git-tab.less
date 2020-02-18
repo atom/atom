@@ -1,0 +1,55 @@
+@import "variables";
+
+.github-StubItem-git,
+.github-Git-root {
+  flex: 1;
+  display: flex;
+}
+
+.github-Git {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: @font-family;
+  font-size: @font-size;
+  color: @text-color;
+  -webkit-user-select: none;
+  cursor: default;
+
+  &.is-loading {
+    color: @text-color-subtle;
+  }
+
+  &.no-repository,
+  &.too-many-changes,
+  &.unsupported-directory {
+    display: flex;
+    justify-content: center;
+    font-size: 1.25em;
+    padding: @component-padding * 3;
+    text-align: center;
+
+    > * {
+      margin: @component-padding 0;
+    }
+
+    h1 {
+      margin-bottom: @component-padding * 3;
+    }
+
+    button {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &-LargeIcon:before {
+    margin-right: 0;
+    margin-bottom: @component-padding * 5;
+    width: auto;
+    height: auto;
+    font-size: 8em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+  }
+}

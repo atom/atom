@@ -1,0 +1,137 @@
+@import "variables";
+
+.github-IssueishList {
+  &-item {
+    margin: @component-padding / 4;
+
+    &--avatar {
+      @size: 16px;
+      border-radius: @component-border-radius;
+      height: @size;
+      width: @size;
+    }
+
+    &--title {
+      flex: 1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    &--number {
+      font-size: .9em;
+      color: @text-color-subtle;
+    }
+
+    &--status {
+      @size: 20px;
+      text-align: center;
+
+      &:before {
+        margin-right: 0;
+        width: @size;
+      }
+      &.icon-check {
+        color: @text-color-success;
+      }
+      &.icon-x {
+        color: @text-color-error;
+      }
+      &.icon-dash {
+        color: @text-color-subtle;
+      }
+      svg& {
+        height: @size;
+        width: @size;
+
+        circle {
+          cx: @size/2;
+          cy: @size/2;
+          r: 5.5;
+          stroke-width: 3;
+        }
+      }
+    }
+
+    &--age {
+      color: @text-color-subtle;
+      font-size: .9em;
+
+      // Better balance for 3 characters (10M)
+      margin-left: 0;
+      min-width: 3ch;
+      text-align: center;
+    }
+
+    &--menu {
+      color: @text-color-subtle;
+      line-height: 1;
+    }
+
+  }
+
+  &-more {
+    padding: @component-padding / 2;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    border-top: 1px solid @base-border-color;
+    a {
+      font-style: italic;
+      color: @text-color-subtle;
+    }
+  }
+
+  &-loading {
+    padding: @component-padding / 2;
+    min-height: 29px; // Magic number: Prevents jumping.
+    font-style: italic;
+    text-align: center;
+    color: @text-color-subtle;
+  }
+}
+
+.github-CreatePullRequestTile {
+  &-message,
+  &-controls {
+    padding: @component-padding;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  &-message + .github-CreatePullRequestTile-controls {
+    border-top: 1px solid @base-border-color;
+  }
+  &-message .icon {
+    vertical-align: middle;
+    &:before {
+      width: auto;
+    }
+  }
+  &-divider {
+    margin: @component-padding/1.25 20%;
+    border-color: @base-border-color;
+  }
+  &-createPr {
+    width: 100%;
+  }
+}
+
+.github-QueryErrorTile {
+  padding: @component-padding;
+  display: flex;
+  color: @text-color-error;
+
+  &-messages {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1
+  }
+
+  .icon-alert {
+    vertical-align: text-top;
+  }
+
+  &-message {
+    font-weight: bold;
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "instrument": false,
+  "source-map": false,
+  "include": [
+    "lib/**/*.js"
+  ],
+  "exclude": [
+    "lib/views/git-cache-view.js",
+    "lib/views/git-timings-view.js",
+    "lib/relay-network-layer-manager.js",
+    "**/__generated__/*.graphql.js"
+  ]
+}

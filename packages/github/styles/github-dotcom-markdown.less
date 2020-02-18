@@ -1,0 +1,195 @@
+@import "variables";
+
+// This styles Markdown used in issueish panes.
+
+@margin: 1em;
+
+.github-DotComMarkdownHtml {
+
+  font-size: 1.15em;
+  line-height: 1.5;
+
+  & > *:first-child {
+    margin-top: 0;
+  }
+  & > *:last-child {
+    margin-bottom: 0;
+  }
+
+  // Headings --------------------
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    margin-top: @margin;
+    margin-bottom: @margin/3;
+    color: @text-color-highlight;
+  }
+
+  h1 { font-size: 1.5em; font-weight: 400; }
+  h2 { font-size: 1.3em; font-weight: 400; }
+  h3 { font-size: 1.2em; font-weight: 500; }
+  h4 { font-size: 1.1em; font-weight: 600; }
+  h5 { font-size: 1em;   font-weight: 600; }
+  h6 { font-size: .9em;  font-weight: 600; }
+
+  h2 {
+    padding-bottom: .25em;
+    margin-bottom: @margin/2;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+
+  // Emphasis --------------------
+
+  strong {
+    color: @text-color-highlight;
+  }
+
+  del {
+    color: @text-color-subtle;
+  }
+
+
+  // Link --------------------
+
+  a,
+  a code {
+    color: @text-color-info;
+  }
+
+
+  // Images --------------------
+
+  img {
+    max-width: 100%;
+  }
+
+
+  // Paragraph --------------------
+
+  & > p {
+    margin-top: 0;
+    margin-bottom: @margin;
+  }
+
+
+  // List --------------------
+
+  & > ul,
+  & > ol {
+    margin-bottom: @margin;
+    padding-left: 2em;
+  }
+
+  li {
+    // font-size: .9em;
+    padding-top: .1em;
+    padding-bottom: .1em;
+
+    li {
+      font-size: 1em;
+    }
+  }
+
+  .task-list-item {
+    position: relative;
+    // indent task lists
+    list-style: none;
+    .task-list-item-checkbox {
+      position: absolute;
+      margin-left: -20px;
+    }
+  }
+
+  // Blockquotes --------------------
+
+  blockquote {
+    margin: @margin 0;
+    padding: .25em 1em;
+    font-size: inherit;
+    color: @text-color-subtle;
+    border-color: @base-border-color;
+    border-width: 3px;
+  }
+
+
+  // HR --------------------
+
+  hr {
+    margin: @margin*1.5 25%;
+    border-top: 1px solid @base-border-color;
+    background: none;
+  }
+
+
+  // Table --------------------
+
+  table {
+    margin: @margin 0;
+  }
+
+  th {
+    color: @text-color-highlight;
+  }
+
+  th,
+  td {
+    padding: .66em 1em;
+    border: 1px solid @base-border-color;
+  }
+
+
+  // Code --------------------
+
+  pre,
+  code {
+    color: @text-color-highlight;
+    background-color: @background-color-highlight;
+
+  }
+
+  pre {
+    margin: @margin 0;
+
+    & > code {
+      white-space: pre;
+    }
+  }
+
+  .highlight {
+    margin: @margin 0;
+    pre {
+      margin: 0;
+    }
+  }
+
+
+  // KBD --------------------
+
+  kbd {
+    color: @text-color-highlight;
+    border: 1px solid @base-border-color;
+    border-bottom: 2px solid darken(@base-border-color, 6%);
+    background-color: @background-color-highlight;
+  }
+
+  // Custom --------------------
+
+  .issue-link {
+    color: @text-color-subtle; // same as .cross-referenced-event-label-number
+  }
+
+  .js-suggested-changes-blob { // gets used for suggested changes
+    margin: @margin 0;
+  }
+
+}
+
+.github-EmojiReactions {
+  &:empty {
+    display: none;
+  }
+  &Group {
+    margin-right: @component-padding*2;
+  }
+}

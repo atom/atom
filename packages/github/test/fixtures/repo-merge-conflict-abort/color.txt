@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+blue
+||||||| merged common ancestors
+red
+=======
+azul
+>>>>>>> spanish

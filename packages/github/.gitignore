@@ -1,0 +1,9 @@
+.DS_Store
+npm-debug.log
+node_modules
+spec/fixtures/a/
+spec/fixtures/b/
+.tern-project
+.nyc_output/
+coverage/
+test-results/

@@ -1,0 +1,152 @@
+'menu': [
+  {
+    'label': 'View'
+    'submenu': [
+      {
+        'label': 'Toggle Git Tab'
+        'command': 'github:toggle-git-tab'
+      }
+      {
+        'label': 'Toggle GitHub Tab'
+        'command': 'github:toggle-github-tab'
+      }
+      {
+        'label': 'Open Reviews Tab'
+        'command': 'github:open-reviews-tab'
+      }
+    ]
+  }
+  {
+    'label': 'Packages'
+    'submenu': [
+      {
+        'label': 'GitHub',
+        'submenu': [
+          {
+            'label': 'Toggle Git Tab'
+            'command': 'github:toggle-git-tab'
+          }
+          {
+            'label': 'Toggle GitHub Tab'
+            'command': 'github:toggle-github-tab'
+          }
+          {
+            'label': 'Open Reviews Tab'
+            'command': 'github:open-reviews-tab'
+          }
+        ]
+      }
+    ]
+  }
+]
+'context-menu':
+  '.github-FilePatchListView-item': [
+    {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+    }
+  ]
+  '.github-FilePatchView--staged': [
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+      'after': ['core:confirm']
+    }
+    {
+      'label': 'Unstage Selection'
+      'command': 'core:confirm'
+      'beforeGroupContaining': ['core:undo']
+    }
+  ]
+  '.github-FilePatchView--unstaged': [
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+      'after': ['core:confirm']
+    }
+    {
+      'label': 'Stage Selection'
+      'command': 'core:confirm'
+      'beforeGroupContaining': ['core:undo']
+    }
+    {
+      'label': 'Discard Selection'
+      'command': 'github:discard-selected-lines'
+    }
+  ]
+  '.github-DotComMarkdownHtml .issue-link': [
+    {
+      'label': 'Open in New Tab'
+      'command': 'github:open-link-in-new-tab'
+    }
+    {
+      'label': 'Open in This Tab'
+      'command': 'github:open-link-in-this-tab'
+    }
+    {
+      'label': 'Open in Browser'
+      'command': 'github:open-link-in-browser'
+    }
+  ]
+  '.github-CommitView': [
+    {
+      'type': 'separator'
+    }
+    {
+      'label': 'Toggle Expanded Commit Message Editor'
+      'command': 'github:toggle-expanded-commit-message-editor'
+    }
+  ]
+  '.item-views > atom-text-editor': [
+    {
+      'label': 'View Unstaged Changes',
+      'command': 'github:view-unstaged-changes-for-current-file'
+    }
+    {
+      'label': 'View Staged Changes',
+      'command': 'github:view-staged-changes-for-current-file'
+    }
+  ]
+  '.github-PushPull': [
+    {
+      'label': 'Fetch',
+      'command': 'github:fetch'
+    }
+    {
+      'label': 'Pull',
+      'command': 'github:pull'
+    }
+    {
+        'type': 'separator'
+    }
+    {
+        'label': 'Push',
+        'command': 'github:push'
+    }
+    {
+        'label': 'Force Push',
+        'command': 'github:force-push'
+    }
+  ]
+  '.most-recent': [
+    {
+      'label': 'Amend'
+      'command': 'github:amend-last-commit'
+    }
+  ]
+  '.github-RecentCommit': [
+    {
+      'label': 'Copy Commit SHA'
+      'command': 'github:copy-commit-sha'
+    }
+    {
+      'label': 'Copy Commit Subject'
+      'command': 'github:copy-commit-subject'
+    }
+  ]

@@ -1,0 +1,208 @@
+@import 'variables';
+
+@avatar-size: 16px;
+@avatar-spacing: 6px;
+
+
+.github-PrCommentThread {
+  padding: @component-padding @component-padding @component-padding 0;
+}
+
+
+.github-PrComment {
+  max-width: 60em;
+  padding: @component-padding;
+  font-family: @font-family;
+  font-size: @font-size;
+  border: 1px solid @base-border-color;
+
+  &:first-child {
+    border-top-left-radius: @component-border-radius;
+    border-top-right-radius: @component-border-radius;
+  }
+  &:last-child {
+    border-bottom-left-radius: @component-border-radius;
+    border-bottom-right-radius: @component-border-radius;
+  }
+
+  & + .github-PrComment {
+    border-top: none;
+  }
+
+  &-header {
+    color: @text-color-subtle;
+    line-height: @avatar-size;
+  }
+
+  &-avatar {
+    margin-right: @avatar-spacing;
+    height: @avatar-size;
+    width: @avatar-size;
+    border-radius: @component-border-radius;
+    vertical-align: top;
+  }
+
+  &-timeAgo {
+    color: inherit;
+  }
+
+  &-body {
+    margin-left: @avatar-size + @avatar-spacing; // avatar + margin
+  }
+
+  &-hidden {
+    font-size: 14px;
+  }
+
+  &-icon {
+    vertical-align: middle;
+  }
+
+
+  // Suggested changes
+  .js-suggested-changes-blob {
+    font-size: .9em;
+    border: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+
+    .d-flex { display: flex; }
+    .d-inline-block { display: inline-block; }
+    .flex-auto { flex: 1 1 auto; }
+    .p-1 { padding: @component-padding/2; }
+    .px-1 { padding-left: @component-padding/2; padding-right: @component-padding/2; }
+    .p-2 { padding: @component-padding; }
+    .text-gray { color: @text-color-subtle; }
+    .lh-condensed { line-height: 1.25; }
+    .rounded-1 { border-radius: @component-border-radius; }
+    .border { border: 1px solid; }
+    .border-bottom { border-bottom: 1px solid @base-border-color; }
+    .border-green { border-color: @text-color-success; }
+    .octicon { vertical-align: -4px; fill: currentColor; }
+
+    .blob-wrapper > table {
+      width: 100%;
+      margin: 0;
+      font-family: var(--editor-font-family);
+      font-size: var(--editor-font-size);
+      line-height: var(--editor-line-height);
+
+      td {
+        border: none;
+        padding: 0 .5em;
+      }
+    }
+
+    .blob-num {
+      padding: 0 .5em;
+      color: @text-color-subtle;
+      &:before {
+        content: attr(data-line-number);
+      }
+      &-addition {
+        background-color: fadein(@github-diff-added, 10%);
+      }
+      &-deletion {
+        background-color: fadein(@github-diff-deleted, 10%);
+      }
+    }
+
+    .blob-code {
+      &-inner {
+        &:before { margin-right: .5em; }
+        .x {
+          &-first {
+            border-bottom-left-radius: @component-border-radius;
+            border-top-left-radius: @component-border-radius;
+          }
+          &-last {
+            border-bottom-right-radius: @component-border-radius;
+            border-top-right-radius: @component-border-radius;
+          }
+        }
+      }
+
+      &-addition {
+        background-color: @github-diff-added;
+        &:before { content: "+"; }
+        .x {
+          background-color: @github-diff-added-highlight;
+        }
+      }
+
+      &-deletion {
+        background-color: @github-diff-deleted;
+        &:before { content: "-"; }
+        .x {
+          background-color: @github-diff-deleted-highlight;
+        }
+      }
+    }
+
+    // These styles are mostly copied from the Primer tooltips
+    .tooltipped {
+      position: relative;
+
+      // This is the tooltip bubble
+      &::after {
+        position: absolute;
+        z-index: 1000000;
+        display: none;
+        width: max-content;
+        max-width: 22em;
+        padding: .5em .6em;
+        font-weight: 500;
+        color: @base-background-color;
+        text-align: center;
+        pointer-events: none;
+        content: attr(aria-label);
+        background: @background-color-info;
+        border-radius: @component-border-radius;
+      }
+
+      // This is the tooltip arrow
+      &::before {
+        position: absolute;
+        z-index: 1000001;
+        display: none;
+        width: 0;
+        height: 0;
+        color: @background-color-info;
+        pointer-events: none;
+        content: "";
+        border: 6px solid transparent;
+      }
+
+      // This will indicate when we'll activate the tooltip
+      &:hover,
+      &:active,
+      &:focus {
+        &::before,
+        &::after {
+          display: inline-block;
+          text-decoration: none;
+        }
+      }
+
+      // Tooltipped south
+      &::after {
+        top: 100%;
+        right: 50%;
+        margin-top: 6px;
+      }
+      &::before {
+        top: auto;
+        right: 50%;
+        bottom: -7px;
+        margin-right: -6px;
+        border-bottom-color: @background-color-info;
+      }
+
+      // Move the tooltip body to the center of the object.
+      &::after {
+        transform: translateX(50%);
+      }
+    }
+
+  }
+
+}

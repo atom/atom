@@ -1,0 +1,39 @@
+@import 'variables';
+
+.github-ReviewsFooterView {
+
+  margin-right: auto;
+
+  // Footer ------------------------
+
+  &-footer {
+    display: flex;
+    align-items: center;
+    padding: @component-padding;
+    border-top: 1px solid @base-border-color;
+    background-color: @app-background-color;
+  }
+
+  &-footerTitle {
+    font-size: 1.4em;
+    margin: 0 @component-padding*2 0 0;
+  }
+
+  &-openReviewsButton,
+  &-reviewChangesButton {
+    margin-left: @component-padding;
+  }
+
+  &-commentCount {
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+  }
+
+  &-commentsResolved {
+    color: @text-color-highlight;
+  }
+
+  &-progessBar {
+    margin-right: @component-padding;
+  }
+}

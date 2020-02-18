@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script type="text/javascript">
+      const qs = require('querystring')
+      const jsPath = qs.parse(window.location.search.substr(1)).js
+      require(jsPath)
+    </script>
+  </head>
+  <body>
+    <h1>GitHub Package Git Execution Window</h1>
+    <p>
+      Hi there! I'm a window used by the GitHub package to execute Git commands in the background. My PID is <script>document.write(process.pid)</script>.
+    </p>
+    <p>Last command: <span id='command'></span></p>
+  </body>
+</html>

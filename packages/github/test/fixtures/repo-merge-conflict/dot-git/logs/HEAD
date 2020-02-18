@@ -1,0 +1,21 @@
+0000000000000000000000000000000000000000 fd3607929fe430d3e446bf99302fec6c3ca4ef23 Katrina Uychaco <kuychaco@github.com> 1468547838 -0700	commit (initial): initial commit
+fd3607929fe430d3e446bf99302fec6c3ca4ef23 7a08d0ea2c8576d58d391583ec604f0a7b1027a7 Katrina Uychaco <kuychaco@github.com> 1468547894 -0700	commit (amend): initial commit
+7a08d0ea2c8576d58d391583ec604f0a7b1027a7 61c54960920b111f3248176eb9cd5020c52027d9 Katrina Uychaco <kuychaco@github.com> 1468548001 -0700	commit: changes to master
+61c54960920b111f3248176eb9cd5020c52027d9 7a08d0ea2c8576d58d391583ec604f0a7b1027a7 Katrina Uychaco <kuychaco@github.com> 1468548013 -0700	checkout: moving from master to branch
+7a08d0ea2c8576d58d391583ec604f0a7b1027a7 e0a5f5388900faf59368bc51b1bca24f445fd1ca Katrina Uychaco <kuychaco@github.com> 1468548072 -0700	commit: changes to branch
+e0a5f5388900faf59368bc51b1bca24f445fd1ca 61c54960920b111f3248176eb9cd5020c52027d9 Katrina Uychaco <kuychaco@github.com> 1468548075 -0700	checkout: moving from branch to master
+61c54960920b111f3248176eb9cd5020c52027d9 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548149 -0700	commit (amend): changes to master
+7b4af728600ee46303c3891f59fc3a09a49b251c 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548811 -0700	rebase -i (start): checkout head~
+7b4af728600ee46303c3891f59fc3a09a49b251c 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548811 -0700	rebase -i (finish): returning to refs/heads/master
+7b4af728600ee46303c3891f59fc3a09a49b251c 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548859 -0700	rebase -i (start): checkout head~
+7b4af728600ee46303c3891f59fc3a09a49b251c 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548859 -0700	rebase -i (finish): returning to refs/heads/master
+7b4af728600ee46303c3891f59fc3a09a49b251c 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548869 -0700	checkout: moving from master to foo
+7b4af728600ee46303c3891f59fc3a09a49b251c 7a08d0ea2c8576d58d391583ec604f0a7b1027a7 Katrina Uychaco <kuychaco@github.com> 1468548873 -0700	reset: moving to head~
+7a08d0ea2c8576d58d391583ec604f0a7b1027a7 0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 Katrina Uychaco <kuychaco@github.com> 1468548936 -0700	commit (amend): initial commit
+0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 7b4af728600ee46303c3891f59fc3a09a49b251c Katrina Uychaco <kuychaco@github.com> 1468548994 -0700	checkout: moving from foo to master
+7b4af728600ee46303c3891f59fc3a09a49b251c 0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 Katrina Uychaco <kuychaco@github.com> 1468549009 -0700	reset: moving to 0d6c7a1
+0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 b4d9c630c544c782683de3ce2864a6a0e2a202f8 Katrina Uychaco <kuychaco@github.com> 1468549125 -0700	commit: change master
+b4d9c630c544c782683de3ce2864a6a0e2a202f8 0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 Katrina Uychaco <kuychaco@github.com> 1468549153 -0700	checkout: moving from master to branch
+0d6c7a1a4a876da53f4928ba83a122f4e50a1f31 1968fa28c7d15283adae3b2a523455305a75ea58 Katrina Uychaco <kuychaco@github.com> 1468549279 -0700	commit: changes to branch
+1968fa28c7d15283adae3b2a523455305a75ea58 b4d9c630c544c782683de3ce2864a6a0e2a202f8 Katrina Uychaco <kuychaco@github.com> 1468549281 -0700	checkout: moving from branch to master
+b4d9c630c544c782683de3ce2864a6a0e2a202f8 221202fafbed8259265ebca0fe0adc60c1cf650f Katrina Uychaco <kuychaco@github.com> 1468549284 -0700	commit (amend): change to master

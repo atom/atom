@@ -1,0 +1,239 @@
+@import 'variables';
+
+@avatar-size: 20px;
+
+.github-PrTimeline {
+  position: relative;
+  border-top: 1px solid mix(@text-color, @base-background-color, 15%);
+
+  // all items
+  .timeline-item {
+    padding: @component-padding*1.5 @component-padding*2;
+    padding-left:@component-padding * 4.5;
+    border-top: 1px solid mix(@text-color, @base-background-color, 15%);
+  }
+
+  .emoji,
+  g-emoji {
+    margin-right: .25em;
+  }
+
+
+  .author-avatar {
+    width: @avatar-size;
+    height: @avatar-size;
+    margin-right: 5px;
+    border-radius: @component-border-radius;
+  }
+
+  .open-commit-detail-button {
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    &:hover,
+    &:focus {
+      color: @text-color-highlight;
+    }
+    &:active {
+      color: @text-color-subtle;
+    }
+  }
+
+  .pre-timeline-item-icon {
+    position: absolute;
+    margin-left: -@component-padding * 2.5;
+    text-align: center;
+    margin-top: 2px;
+    color: mix(@text-color, @base-background-color, 33%);
+    border-radius: 20px;
+  }
+
+  .commits {
+    .info-row {
+      margin-bottom: @component-padding;
+    }
+  }
+
+  .commit {
+    display: table-row;
+    align-items: center;
+    margin-left: @component-padding * 2;
+
+    &:first-child {
+      padding-top: @component-padding;
+    }
+
+    &:only-child {
+      padding-top: 0;
+      padding-bottom: 0;
+      margin-left: -@component-padding;
+    }
+
+    & + .issue {
+      margin-top: @component-padding/2;
+    }
+
+    .commit-author {
+      position: absolute;
+      display: flex;
+    }
+
+    .author-avatar {
+      @size: 20px;
+      position: relative;
+      margin-right: -@size + 4px;
+      width: @size;
+      height: @size;
+      border-radius: @component-border-radius;
+      background-color: mix(@text-color, @base-background-color, 15%);
+      box-shadow: 1px 0 @base-background-color;
+      transition: margin .12s cubic-bezier(.5,.1,0,1);
+
+      &:nth-child(1) { z-index: 3; }
+      &:nth-child(2) { z-index: 2; opacity: .7; }
+      &:nth-child(3) { z-index: 1; opacity: .4; }
+      &:nth-child(n+4) {
+        display: none;
+      }
+      &:only-child,
+      &:last-child {
+        box-shadow: none;
+      }
+    }
+
+    .commit-author:hover .author-avatar {
+      display: inline-block;
+      margin-right: 1px;
+      opacity: 1;
+    }
+
+    .commit-message-headline {
+      display: table-cell;
+      line-height: @avatar-size + 4px;
+      padding: 0 @component-padding/3;
+      padding-left: @avatar-size + @component-padding;
+      max-height: @avatar-size;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 0; // this makes sure the ellipsis work in table-cell
+      width: 100%;
+    }
+
+    .commit-sha {
+      display: table-cell;
+      text-align: right;
+      font-family: monospace;
+      padding-left: 5px;
+      color: @text-color-info;
+    }
+  }
+
+  .comment-message-header {
+    color: @text-color-subtle;
+    a {
+      color: inherit;
+    }
+  }
+
+  .cross-referenced-events {
+    // provides spacing between cross-referenced-event rows
+    border-spacing: 0 @component-padding / 2;
+
+    .info-row {
+      margin-bottom: @component-padding;
+    }
+  }
+
+  .cross-referenced-event {
+    display: table-row;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &-header {
+      color: @text-color-subtle;
+    }
+
+    &-label {
+      display: table-cell;
+      width: 100%;
+
+      &-title {
+        font-weight: bold;
+      }
+
+      &-number {
+        display: inline;
+        margin-left: 5px;
+        white-space: nowrap;
+        color: @text-color-subtle;
+      }
+    }
+
+    &-private {
+      display: table-cell;
+    }
+
+    &-state {
+      display: table-cell;
+      text-align: right;
+
+      .badge {
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .sha {
+    font-family: monospace;
+  }
+
+  .merged-event {
+    display: flex;
+    align-items: center;
+    font-size: .9em;
+    line-height: 1.3;
+    color: @text-color-subtle;
+
+    .username,
+    .merge-ref {
+      font-weight: bold;
+      color: @text-color-highlight;
+    }
+  }
+
+  .merged-event ~ .issue {
+    border-bottom-style: dashed;
+  }
+
+  .head-ref-force-pushed-event {
+    .username {
+      font-weight: bold;
+      color: @text-color-highlight;
+    }
+    .sha {
+      font-weight: bold;
+    }
+  }
+
+  .issue {
+
+    .info-row {
+      margin-bottom: @component-padding/1.5;
+    }
+
+    .github-DotComMarkdownHtml {
+      pre > code {
+        white-space: pre;
+      }
+    }
+  }
+
+  &-loadMore {
+    margin: 20px auto 0;
+    text-align: center;
+  }
+
+}

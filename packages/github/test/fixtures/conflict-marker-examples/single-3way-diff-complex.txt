@@ -1,0 +1,23 @@
+<<<<<<< HEAD
+These are my changes
+||||||| merged common ancestors
+<<<<<<< Temporary merge branch 1
+    Refer: http://stackoverflow.com/questions/16990657/git-merge-diff3-style-need-explanation
+    bbbbbb
+=======
+    cccccc
+>>>>>>> mybranch
+    dddddd
+<<<<<<< HEAD
+    eeeeee
+||||||| merged common ancestors
+    ffffff
+||||||| merged common ancestors
+    gggggg
+=======
+>>>>>>> Temporary merge branch 2
+=======
+These are your changes
+>>>>>>> master
+
+Past the end

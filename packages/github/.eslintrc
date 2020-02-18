@@ -1,0 +1,54 @@
+{
+  "root": true,
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "ecmaFeatures": {
+      "jsx": true,
+    }
+  },
+  "settings": {
+    "import/core-modules": [
+      "atom"
+    ]
+  },
+  "plugins": [
+    "jsx-a11y"
+  ],
+  "extends": ["fbjs-opensource"],
+  "rules": {
+    "linebreak-style": 0,
+    "no-param-reassign": 0,
+    "jsx-a11y/alt-text": 2,
+    "jsx-a11y/anchor-is-valid": 2,
+    "indent": ["error", 2],
+    "max-len": [1, 120, {tabWidth: 2, ignoreUrls: true}]
+  },
+  "globals": {
+    "atom": true,
+    "advanceClock": true,
+    "assert": true,
+    "HTMLElement": true,
+    "MouseEvent": true,
+    "IDBKeyRange": true,
+    "before": true,
+    "beforeEach": true,
+    "after": true,
+    "afterEach": true,
+    "describe": true,
+    "fdescribe": true,
+    "xdescribe": true,
+    "it": true,
+    "xit": true,
+    "stress": true,
+    "waitsForPromise": true,
+    "oneTick": true,
+    "until": true,
+    "runs": true,
+    "openAndActivated": true,
+    "jasmine": true,
+    "expect": true,
+    "spyOn": true,
+    "waitsFor": true,
+    "sinon": true,
+  }
+}

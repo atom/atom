@@ -1,0 +1,10 @@
+// Our AtomTextEditor React component adds a parent <div> to the <atom-text-editor> element.
+.github-AtomTextEditor-container {
+  width: 100%;
+  height: 100%;
+}
+
+// Conceal the automatically added blank line element within TextEditors that we want to actually be empty
+.github-AtomTextEditor-empty .cursor-line {
+  display: none;
+}

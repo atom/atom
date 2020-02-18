@@ -1,0 +1,60 @@
+@import "ui-variables.less";
+@import "syntax-variables.less";
+
+@gh-comment-line: mix(@background-color-info, @syntax-background-color, 20%);
+@gh-comment-line-cursor: mix(@background-color-info, @syntax-selection-color, 40%);
+
+atom-text-editor {
+  .line.github-editorCommentHighlight {
+    background-color: @gh-comment-line;
+
+    &.cursor-line {
+      background-color: @gh-comment-line-cursor;
+    }
+  }
+}
+
+.gutter[gutter-name="github-comment-icon"] {
+  width: 1.4em;
+}
+
+.github-editorCommentGutterIcon {
+  &.decoration {
+    width: 100%;
+  }
+
+  &.react-atom-decoration {
+    width: 100%;
+    text-align: center;
+    padding: 0 @component-padding/4;
+  }
+
+  button {
+    padding: 0;
+    border: none;
+    background: none;
+    vertical-align: middle;
+  }
+}
+
+.github-EditorComment-omitted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: @tool-panel-background-color;
+  border-radius: @component-border-radius;
+  padding: @component-padding;
+  margin: @component-padding/2 0;
+
+  p {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: @component-padding/4;
+  }
+
+  button {
+    margin-left: @component-padding;
+  }
+}

@@ -1,0 +1,67 @@
+@import "variables";
+
+.github-StubItem-github,
+.github-GitHub-root {
+  flex: 1;
+  display: flex;
+}
+
+.github-GitHub {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  -webkit-user-select: none;
+  cursor: default;
+
+  &-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-noRemotes,
+  .github-RemoteSelector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 1.25em;
+    text-align: center;
+    padding: @component-padding * 3;
+
+    > * {
+      margin: @component-padding 0;
+    }
+
+    h1 {
+      margin-bottom: @component-padding * 3;
+    }
+  }
+
+  .github-RemoteSelector {
+    ul {
+      list-style: none;
+      padding-left: 0;
+
+      li:not(:last-child) {
+        margin-bottom: @component-padding;
+      }
+    }
+
+    button {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &-LargeIcon:before {
+    margin-right: 0;
+    margin-bottom: @component-padding * 5;
+    width: auto;
+    height: auto;
+    font-size: 8em;
+    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+  }
+}

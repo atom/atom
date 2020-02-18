@@ -1,0 +1,186 @@
+@import 'variables';
+
+.github-IssueishDetailView {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: @base-background-color;
+
+
+  // Layout ------------------------
+
+  &-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  // Header ------------------------
+
+  &-header {
+    display: flex;
+    align-items: center;
+    padding: @component-padding*1.5 @component-padding*2;
+    border-bottom: 1px solid @base-border-color;
+  }
+
+  &-headerColumn {
+    &.is-flexible {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+
+  &-headerRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 2px 0;
+    &.is-fullwidth {
+      flex: 1 1 100%;
+    }
+  }
+
+  // Avatar ------------------------
+
+  &-avatar {
+    align-self: flex-start;
+    margin-right: @component-padding;
+  }
+
+  &-title {
+    margin: 0;
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.3;
+    color: @text-color-highlight;
+    &:hover,
+    &:focus {
+      text-decoration: none;
+    }
+  }
+
+  &-headerBadge {
+    margin-right: @component-padding;
+    padding: 0 0.75em;
+    line-height: 1.65em;
+  }
+
+  &-headerLink {
+    color: @text-color-subtle;
+  }
+
+  &-headerStatus {
+    margin-left: @component-padding;
+  }
+
+  // Checkout button -----------------------
+  &-checkoutButton {
+    font-weight: 600;
+    margin-left: @component-padding;
+  }
+
+  // Refresh Button ------------------------
+
+  &-headerRefreshButton {
+    display: inline-block;
+    margin-right: @component-padding;
+    color: @text-color-subtle;
+    cursor: pointer;
+
+    &::before {
+      display: block;
+      width: 16px;
+      height: 16px;
+      line-height: .9;
+      margin-right: 0;
+      text-align: center;
+    }
+    &.refreshing::before {
+      @keyframes github-IssueishDetailView-headerRefreshButtonAnimation {
+        100% { transform: rotate(360deg); }
+      }
+      animation: github-IssueishDetailView-headerRefreshButtonAnimation 2s linear 30; // limit to 1min in case something gets stuck
+    }
+  }
+
+  &-avatarImage {
+    width: 40px;
+    height: 40px;
+    border-radius: @component-border-radius;
+  }
+
+
+  // Meta ------------------------
+
+  &-meta {
+    color: @text-color-subtle;
+
+    &Author {
+      color: inherit;
+    }
+  }
+
+
+  // Footer ------------------------
+
+  &-footer {
+    padding: @component-padding;
+    text-align: center;
+    border-top: 1px solid @base-border-color;
+    background-color: @app-background-color;
+
+    &Link.icon {
+      color: @text-color-subtle;
+      &:before {
+        vertical-align: -2px;
+      }
+    }
+  }
+
+  // Tab Content ------------------------
+
+  // Overview
+  &-overview {
+    max-width: 60em;
+    margin: 0 auto;
+
+    & > .github-DotComMarkdownHtml {
+      padding: @component-padding*2;
+    }
+  }
+
+
+  .github-EmojiReactions {
+    padding: 0 @component-padding*2 @component-padding @component-padding*2;
+  }
+
+  // Build Status
+  &-buildStatus {
+    padding: @component-padding*2;
+    &:empty {
+      display: none;
+    }
+  }
+
+  // Commits
+  .github-PrCommitsView-commitWrapper {
+    padding: @component-padding*2;
+  }
+
+
+  // Issue Body ------------------------
+
+  &-issueBody {
+    flex: 1;
+    overflow: auto;
+
+    & > .github-DotComMarkdownHtml {
+      padding: @component-padding*2;
+    }
+  }
+
+}

@@ -1,0 +1,104 @@
+@import "variables";
+
+@conflict-color-ours:     spin(@syntax-color-renamed, 80); // usually magenta/purple-ish
+@conflict-color-theirs:   @syntax-color-renamed;
+@conflict-color-base:     desaturate( @syntax-color-renamed, 100% );
+@conflict-color-modified: @syntax-color-modified;
+@conflict-color-resolved: @syntax-color-added;
+
+
+atom-text-editor {
+
+  .github-ConflictBlock {
+    display: flex;
+    align-items: center;
+    margin-right: @component-padding;
+    padding: @component-padding / 2;
+    cursor: default;
+    color: fade(@syntax-text-color, 75%);
+
+    .github-ResolutionControls {
+      flex: 1;
+      button {
+        margin-right: @component-padding;
+      }
+
+      span {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .github-SideDescription {
+    font-family: @font-family;
+    font-size: .9em;
+  }
+
+  .github-ResolutionControls .icon {
+    line-height: 0;
+  }
+
+  .github-ConflictTopBlock {
+    margin-top: @component-padding;
+    border-top-left-radius: @component-border-radius * 1.5;
+    border-top-right-radius: @component-border-radius * 1.5;
+  }
+  .github-ConflictBottomBlock {
+    margin-bottom: @component-padding;
+    border-bottom-left-radius: @component-border-radius * 1.5;
+    border-bottom-right-radius: @component-border-radius * 1.5;
+  }
+
+
+  // Color variations -------------------------
+
+  .generate-conflicts(@name, @color) {
+    .github-Conflict@{name} {
+      margin-right: @component-padding;
+      background-color: @color;
+      &.cursor-line { background-color: fadein(@color, 10%) !important; }
+    }
+
+    .github-Conflict@{name}Banner {
+      margin-right: @component-padding;
+      background-color: @color;
+      &.cursor-line { background-color: fadein(@color, 10%) !important; }
+      &.github-ConflictUnmodifiedBanner span { color: fade(@color, 66%) !important; };
+    }
+
+    .github-Conflict@{name}Block {
+      color: contrast(@syntax-background-color, hsla(0,0%,0%,.66), hsla(0,0%,100%,.5));
+      background-color: fadein(@color, 20%);
+
+      .btn {
+        color: white;
+        border-color: hsla(0,0%,0%,.15);
+        border: none;
+        background: fade(@color, 100%);
+      }
+    }
+  }
+
+  .generate-conflicts(Ours,      fade(@conflict-color-ours, 15%) );
+  .generate-conflicts(Theirs,    fade(@conflict-color-theirs, 15%) );
+  .generate-conflicts(Base,      fade(@conflict-color-base, 15%) );
+  .generate-conflicts(Modified,  fade(@conflict-color-modified, 15%) );
+
+
+  // Separator -------------------------
+  // Uses same color as Base
+
+  .github-ConflictSeparator {
+    margin-right: @component-padding;
+    background-color: fade(@conflict-color-base, 15%);
+    &.cursor-line { background-color: fade(@conflict-color-base, 25%) !important; }
+    span { color: fade(@conflict-color-base, 66%) !important; };
+  }
+
+  // Resolved -------------------------
+
+  .github-ResolvedLines {
+    background-color: fade(@conflict-color-resolved, 15%);
+    &.cursor-line { background-color: fade(@conflict-color-resolved, 25%) !important; }
+  }
+}

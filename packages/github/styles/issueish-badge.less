@@ -1,0 +1,39 @@
+@import 'variables';
+
+// Issueish Badge
+// Shows the [Open], [Closed], [Merged] state
+
+.github-IssueishBadge {
+  @space: .4em;
+
+  display: inline-block;
+  padding: @space/1.5  @space;
+  font-size: .9em;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: capitalize;
+  border-radius: @component-border-radius;
+  white-space: nowrap;
+
+  .icon::before {
+    font-size: inherit;
+    width: auto;
+    height: auto;
+    margin-right: @space/2;
+  }
+
+  &.open {
+    color: contrast(@gh-background-color-green, black, white, 50%);
+    background-color: @gh-background-color-green;
+  }
+
+  &.closed {
+    color: contrast(@gh-background-color-red, black, white, 50%);
+    background-color: @gh-background-color-red;
+  }
+
+  &.merged {
+    color: contrast(@gh-background-color-purple, black, white, 50%);
+    background-color: @gh-background-color-purple;
+  }
+}

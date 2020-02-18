@@ -155,7 +155,10 @@ describe('TreeSitterLanguageMode', () => {
         languageMode.tree.rootNode
           .descendantForPosition(Point(1, 2), Point(1, 6))
           .toString()
-      ).toBe('(declaration (primitive_type) (identifier) (MISSING ";"))');
+      ).toBe(
+        '(declaration type: (primitive_type)' +
+          ' declarator: (identifier) (MISSING ";"))'
+      );
 
       expectTokensToEqual(editor, [
         [
@@ -1522,11 +1525,11 @@ describe('TreeSitterLanguageMode', () => {
         'named vs anonymous nodes'
       );
       expect(languageMode.tree.rootNode.toString()).toBe(
-        '(program (if (identifier) (then ' +
+        '(program (if condition: (identifier) consequence: (then ' +
           '(identifier)) ' +
-          '(elsif (identifier) (then ' +
+          'alternative: (elsif condition: (identifier) consequence: (then ' +
           '(identifier)) ' +
-          '(else ' +
+          'alternative: (else ' +
           '(identifier)))))'
       );
 
@@ -1940,8 +1943,8 @@ describe('TreeSitterLanguageMode', () => {
         'fragment',
         'element',
         'script_element',
-        'raw_text',
         'program',
+        'raw_text',
         'expression_statement',
         'call_expression',
         'template_string',

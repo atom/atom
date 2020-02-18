@@ -1,0 +1,132 @@
+@import "variables";
+
+// Dock overrides
+// Here ALL the overrides when a pane/panel gets used as a dock item
+// It's not too high of a priority, but still good to check (and fix) once in a while
+
+
+// Git Panel (in bottom dock) ----------------------------------------------
+
+atom-dock.bottom {
+  .github-Git {
+    flex-direction: row;
+  }
+
+  .github-StagingView {
+    display: contents; // make these invisible to layout
+  }
+
+  .github-Git > div {
+    flex: 1;
+  }
+
+  .github-StagedChanges {
+    border-left: 1px solid @base-border-color;
+    border-right: 1px solid @base-border-color;
+  }
+
+  .github-StagingView-header {
+    flex-wrap: wrap;
+  }
+  .github-StagingView-group:first-child .github-StagingView-header {
+    border-top: 1px solid @base-border-color;
+  }
+
+  .github-RecentCommits {
+    max-height: none;
+    border-left: 1px solid @base-border-color;
+  }
+
+}
+
+
+// GitHub Pane (in left/right dock) ----------------------------------------------
+
+atom-dock.left .github-IssueishDetailView,
+atom-dock.right .github-IssueishDetailView {
+
+  // Header
+  &-header {
+    display: block;
+    padding: @component-padding;
+    background-color: @tool-panel-background-color;
+  }
+  &-avatar { position: absolute; }
+  &-avatarImage {
+    width: 20px;
+    height: 20px;
+  }
+  &-headerRow:nth-child(1) {
+    padding-left: 25px; // space for avatar
+    overflow: hidden;
+  }
+  &-title {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  &-checkoutButton {
+    margin: @component-padding 0 0 0;
+  }
+
+
+  &-tablist   { flex-wrap: wrap; }
+  &-tab       { padding: @component-padding/2 @component-padding; }
+  &-tab-icon  { display: none; }
+
+
+  // [Overview]
+  &-overview {
+    font-size: .9em;
+
+    & > .github-DotComMarkdownHtml,
+    .timeline-item {
+      padding: @component-padding;
+    }
+  }
+
+
+  // [Build Status]
+  &-buildStatus { padding: 0; }
+  .github-PrStatuses {
+    &-header { border-top: none; }
+    &-header,
+    &-list-item {
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+  }
+
+
+  // [Commits]
+  .github-PrCommitsView-commitWrapper {
+    padding: 0;
+  }
+  .github-PrCommitView-container {
+    font-size: .9em;
+    border-left: none;
+    border-right: none;
+
+    &:first-child {
+      border-top: none;
+      border-radius: 0;
+    }
+    &:last-child {
+      border-bottom: none;
+      border-radius: 0;
+    }
+  }
+
+}
+
+
+// Commit Detail (in left/right dock) ----------------------------------------------
+
+atom-dock.left .github-CommitDetailView,
+atom-dock.right .github-CommitDetailView {
+  &-header { background-color: @tool-panel-background-color; }
+  &-commit { padding: @component-padding @component-padding 0 @component-padding; }
+  &-meta { margin-bottom: @component-padding; }
+  &-moreText { padding: @component-padding 0; }
+}
