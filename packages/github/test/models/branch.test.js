@@ -95,7 +95,7 @@ describe('Branch', function() {
     );
   });
 
-  it('has a null object', function() {
+  // it('has a null object', function() {
     for (const method of [
       'getName', 'getFullRef', 'getShortRef', 'getSha', 'getRemoteName', 'getRemoteRef', 'getShortRemoteRef',
     ]) {

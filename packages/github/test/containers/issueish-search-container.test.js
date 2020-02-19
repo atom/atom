@@ -124,7 +124,7 @@ describe('IssueishSearchContainer', function() {
     });
   });
 
-  it('passes results to the controller', async function() {
+  // it('passes results to the controller', async function() {
     const {promise, resolve} = expectRelayQuery({
       name: 'issueishSearchContainerQuery',
       variables: {
