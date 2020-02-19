@@ -319,6 +319,7 @@ describe('Decoration', function() {
     mount(app);
 
     assert.lengthOf(editor.getLineDecorations(), 0);
+    console.log("Attempt to be destroyed by a marler")
   });
 
   it('does not attempt to decorate a destroyed TextEditor', function() {
@@ -336,5 +337,7 @@ describe('Decoration', function() {
     mount(app);
 
     assert.lengthOf(editor.getLineDecorations(), 0);
+    console.log("Attempt to be destroyed by a text editor")
+
   });
 });
