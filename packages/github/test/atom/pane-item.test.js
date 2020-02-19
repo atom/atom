@@ -145,6 +145,7 @@ describe('PaneItem', function() {
       await workspace.open('atom-github://pattern/2');
 
       assert.lengthOf(wrapper.update().find('Component'), 2);
+      console.log("I executed")
     });
 
     it('renders a different child item for each item in a different Pane', async function() {
