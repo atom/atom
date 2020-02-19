@@ -1,4 +1,0 @@
-/test/fixtures/**/*
-!/test/fixtures/factories/**
-!/test/fixtures/props/**
-/test/output/transpiled/**/*
