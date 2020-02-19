@@ -123,46 +123,46 @@ describe('IssueishSearchContainer', function() {
       assert.lengthOf(controller.prop('results'), 0);
     });
   });
-
+  // 
   // it('passes results to the controller', async function() {
-    const {promise, resolve} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
-        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
-        checkSuiteCursor: null,
-        checkRunCount: CHECK_RUN_PAGE_SIZE,
-        checkRunCursor: null,
-      },
-    }, op => {
-      return relayResponseBuilder(op)
-        .search(s => {
-          s.issueCount(2);
-          s.addNode(n => n.bePullRequest(pr => {
-            pr.id('pr0');
-            pr.number(1);
-            pr.commits(conn => conn.addNode());
-          }));
-          s.addNode(n => n.bePullRequest(pr => {
-            pr.id('pr1');
-            pr.number(2);
-            pr.commits(conn => conn.addNode());
-          }));
-        })
-        .build();
-    });
-
-    const search = new Search('pull requests', 'type:pr author:me');
-    const wrapper = mount(buildApp({search}));
-
-    resolve();
-    await promise;
-
-    const controller = wrapper.update().find('BareIssueishListController');
-    assert.isFalse(controller.prop('isLoading'));
-    assert.strictEqual(controller.prop('total'), 2);
-    assert.isTrue(controller.prop('results').some(node => node.number === 1));
-    assert.isTrue(controller.prop('results').some(node => node.number === 2));
-  });
+  //   const {promise, resolve} = expectRelayQuery({
+  //     name: 'issueishSearchContainerQuery',
+  //     variables: {
+  //       query: 'type:pr author:me',
+  //       first: 20,
+  //       checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
+  //       checkSuiteCursor: null,
+  //       checkRunCount: CHECK_RUN_PAGE_SIZE,
+  //       checkRunCursor: null,
+  //     },
+  //   }, op => {
+  //     return relayResponseBuilder(op)
+  //       .search(s => {
+  //         s.issueCount(2);
+  //         s.addNode(n => n.bePullRequest(pr => {
+  //           pr.id('pr0');
+  //           pr.number(1);
+  //           pr.commits(conn => conn.addNode());
+  //         }));
+  //         s.addNode(n => n.bePullRequest(pr => {
+  //           pr.id('pr1');
+  //           pr.number(2);
+  //           pr.commits(conn => conn.addNode());
+  //         }));
+  //       })
+  //       .build();
+  //   });
+  //
+  //   const search = new Search('pull requests', 'type:pr author:me');
+  //   const wrapper = mount(buildApp({search}));
+  //
+  //   resolve();
+  //   await promise;
+  //
+  //   const controller = wrapper.update().find('BareIssueishListController');
+  //   assert.isFalse(controller.prop('isLoading'));
+  //   assert.strictEqual(controller.prop('total'), 2);
+  //   assert.isTrue(controller.prop('results').some(node => node.number === 1));
+  //   assert.isTrue(controller.prop('results').some(node => node.number === 2));
+  // });
 });
