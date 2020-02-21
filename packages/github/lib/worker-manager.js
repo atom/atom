@@ -267,7 +267,7 @@ export class RendererProcess {
     this.onStdinError = onStdinError;
     this.onExecStarted = onExecStarted;
 
-    this.win = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
+    this.win = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW, webPreferences: { nodeIntegration: true }});
     this.webContents = this.win.webContents;
     // this.webContents.openDevTools();
 
@@ -355,6 +355,7 @@ export class RendererProcess {
   }
 
   getReadyPromise() {
+    console.log("renderer process promise was called", this.readyPromise)
     return this.readyPromise;
   }
 

@@ -151,7 +151,7 @@ describe('WorkerManager', function() {
     it('destroys all the renderer processes that were created', async function() {
       this.retries(5); // FLAKE
 
-      const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW});
+      const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW, webPreferences: { nodeIntegration: true }});
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
 
