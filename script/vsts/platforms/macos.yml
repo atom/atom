@@ -12,11 +12,11 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - task: Check MacOs version
       - script: sw_vers -productVersion
-      
-      - task: Check XCode version
+        displayName: Check MacOs version
+
       - script: gcc --version
+        displayName: Check XCode version
       
       - task: NodeTool@0
         inputs:
