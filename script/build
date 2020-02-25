@@ -89,11 +89,11 @@ if (!argv.generateApiDocs) {
   binariesPromise
     .then(packageApplication)
     .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(packagedAppPath => {
+    .then(async packagedAppPath => {
       switch (process.platform) {
         case 'darwin': {
           if (argv.codeSign) {
-            codeSignOnMac(packagedAppPath)
+            await codeSignOnMac(packagedAppPath)
           } else if (argv.testSign) {
             testSignOnMac(packagedAppPath)
           } else {

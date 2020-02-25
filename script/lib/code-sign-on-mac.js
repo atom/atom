@@ -12,7 +12,7 @@ const macEntitlementsPath = path.join(
   'entitlements.plist'
 );
 
-module.exports = function(packagedAppPath) {
+module.exports = async function(packagedAppPath) {
   if (
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL &&
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH
@@ -129,25 +129,20 @@ module.exports = function(packagedAppPath) {
 
     console.log(`Code-signing application at ${packagedAppPath}`);
 
-    osxSign.sign(
-      {
+    try {
+      await osxSign.signAsync({
         app: packagedAppPath,
         entitlements: macEntitlementsPath,
         identity: 'Developer ID Application: GitHub',
         keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         platform: 'darwin',
         hardenedRuntime: true
-      },
-
-      function done(err) {
-        if (err) {
-          console.error('Applicaiton singing failed');
-          console.error(err);
-          return;
-        }
-        console.info('Application signing complete');
-      }
-    );
+      });
+      console.info('Application signing complete');
+    } catch (err) {
+      console.error('Applicaiton singing failed');
+      console.error(err);
+    }
   } finally {
     if (!process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH) {
       console.log(`Deleting certificate at ${certPath}`);
