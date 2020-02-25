@@ -1,8 +1,16 @@
 const downloadFileFromGithub = require('./download-file-from-github');
+const CONFIG = require('../config');
 const fs = require('fs-extra');
 const os = require('os');
 const path = require('path');
 const spawnSync = require('./spawn-sync');
+const osxSign = require('electron-osx-sign');
+const macEntitlementsPath = path.join(
+  CONFIG.repositoryRootPath,
+  'resources',
+  'mac',
+  'entitlements.plist'
+);
 
 module.exports = function(packagedAppPath) {
   if (
@@ -120,19 +128,25 @@ module.exports = function(packagedAppPath) {
     }
 
     console.log(`Code-signing application at ${packagedAppPath}`);
-    spawnSync(
-      'codesign',
-      [
-        '--deep',
-        '--force',
-        '--verbose',
-        '--keychain',
-        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
-        '--sign',
-        'Developer ID Application: GitHub',
-        packagedAppPath
-      ],
-      { stdio: 'inherit' }
+
+    osxSign.sign(
+      {
+        app: packagedAppPath,
+        entitlements: macEntitlementsPath,
+        identity: 'Developer ID Application: GitHub',
+        keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
+        platform: 'darwin',
+        hardenedRuntime: true
+      },
+
+      function done(err) {
+        if (err) {
+          console.error('Applicaiton singing failed');
+          console.error(err);
+          return;
+        }
+        console.info('Application signing complete');
+      }
     );
   } finally {
     if (!process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH) {
