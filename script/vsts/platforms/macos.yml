@@ -18,6 +18,9 @@ jobs:
       - script: gcc --version
         displayName: Check XCode version
       
+      - script: xcrun --sdk macosx --show-sdk-path
+        displayName: Check MacOS SDK version
+      
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
