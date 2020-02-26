@@ -750,20 +750,20 @@ describe('Repository', function() {
 
     it('clears the stored resolution progress');
 
-    // it('executes hook scripts with a sane environment', async function() {
-    //   const workingDirPath = await cloneRepository('three-files');
-    //   const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
-    //   await fs.copy(
-    //     path.join(scriptDirPath, 'hook.sh'),
-    //     path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
-    //   );
-    //   const repo = new Repository(workingDirPath);
-    //   await repo.getLoadPromise();
-    //
-    //   process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
-    //
-    //   await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
-    // });
+    it('executes hook scripts with a sane environment', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
+      await fs.copy(
+        path.join(scriptDirPath, 'hook.sh'),
+        path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
+      );
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+
+      process.env.PATH = `${scriptDirPath}:${process.env.PATH}`;
+
+      await assert.isRejected(repo.commit('hmm'), /didirun\.sh did run/);
+    });
 
     describe('recording commit event with metadata', function() {
       it('reports partial commits', async function() {

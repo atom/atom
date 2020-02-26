@@ -142,30 +142,33 @@ describe('MultiFilePatchController', function() {
       assert.isTrue(repository.unstageFiles.calledWith([filePatch.getPath()]));
     });
 
-    // it('is a no-op if a staging operation is already in progress', async function() {
-    //   sinon.stub(repository, 'stageFiles').resolves('staged');
-    //   sinon.stub(repository, 'unstageFiles').resolves('unstaged');
-    //
-    //   const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
-    //   assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
-    //
-    //   // No-op
-    //   assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
-    //
-    //   // Simulate an identical patch arriving too soon
-    //   wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
-    //
-    //   // Still a no-op
-    //   assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
-    //
-    //   // Simulate updated patch arrival
-    //   const promise = wrapper.instance().patchChangePromise;
-    //   wrapper.setProps({multiFilePatch: MultiFilePatch.createNull()});
-    //   await promise;
-    //
-    //   // Performs an operation again
-    //   assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
-    // });
+    it('is a no-op if a staging operation is already in progress', async function() {
+      sinon.stub(repository, 'stageFiles').resolves('staged');
+      sinon.stub(repository, 'unstageFiles').resolves('unstaged');
+
+      const wrapper = shallow(buildApp({stagingStatus: 'unstaged'}));
+      assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
+
+      // No-op
+      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
+
+      // Simulate an identical patch arriving too soon
+      wrapper.setProps({multiFilePatch: multiFilePatch.clone()});
+
+      // Still a no-op
+      assert.isNull(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch));
+
+      // Simulate updated patch arrival
+      const promise = wrapper.instance().patchChangePromise;
+      wrapper.setProps({multiFilePatch: MultiFilePatch.createNull()});
+      await promise;
+
+      await wrapper.instance().forceUpdate();
+
+      // Performs an operation again
+      let result = await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch);
+      assert.strictEqual(result, 'staged');
+    });
   });
 
   describe('selected row and selection mode tracking', function() {
