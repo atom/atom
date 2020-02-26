@@ -136,7 +136,7 @@ module.exports = async function(packagedAppPath) {
         identity: 'Developer ID Application: GitHub',
         keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         platform: 'darwin',
-        hardenedRuntime: true
+        hardenedRuntime: false
       });
       console.info('Application signing complete');
     } catch (err) {
