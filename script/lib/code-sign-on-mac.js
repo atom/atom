@@ -133,10 +133,11 @@ module.exports = async function(packagedAppPath) {
       await osxSign.signAsync({
         app: packagedAppPath,
         entitlements: macEntitlementsPath,
+        "entitlements-inherit": macEntitlementsPath,
         identity: 'Developer ID Application: GitHub',
         keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         platform: 'darwin',
-        hardenedRuntime: false
+        hardenedRuntime: true
       });
       console.info('Application signing complete');
     } catch (err) {
