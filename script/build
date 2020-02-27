@@ -95,7 +95,7 @@ if (!argv.generateApiDocs) {
         case 'darwin': {
           if (argv.codeSign) {
             await codeSignOnMac(packagedAppPath)
-            await notarizeOnMac(packagedAppPath)
+            //await notarizeOnMac(packagedAppPath)
           } else if (argv.testSign) {
             testSignOnMac(packagedAppPath)
           } else {
