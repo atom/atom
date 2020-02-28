@@ -56,11 +56,7 @@ jobs:
 
       - script: script/lint
         displayName: Run linter
-
-      - script: |
-          cd ./node_modules/tree-sitter-bash
-          HOME=~/.electron-gyp node-gyp rebuild --target=5.0.13 --arch=x64 --dist-url=https://electronjs.org/headers
-          
+      
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
