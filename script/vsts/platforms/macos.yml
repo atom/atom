@@ -45,6 +45,9 @@ jobs:
 
       # - script: script/lint
       #   displayName: Run linter
+      - script: |
+          cd ./node_modules/tree-sitter-bash
+          HOME=~/.electron-gyp node-gyp rebuild --target=5.0.13 --arch=x64 --dist-url=https://electronjs.org/headers
 
       - script: |
           if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
