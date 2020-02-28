@@ -13,6 +13,6 @@ module.exports = async function(packagedAppPath) {
       appleIdPassword: appleIdPassword
     });
   } catch (e) {
-    //  throw new Error(e);
+    throw new Error(e);
   }
 };

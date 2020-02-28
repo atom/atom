@@ -9,18 +9,9 @@ jobs:
       IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
     pool:
-      vmImage: macos-10.14
+      vmImage: macos-10.13
 
     steps:
-      - script: sw_vers -productVersion
-        displayName: Check MacOs version
-
-      - script: gcc --version
-        displayName: Check XCode version
-      
-      - script: xcrun --sdk macosx --show-sdk-path
-        displayName: Check MacOS SDK version
-      
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
@@ -72,7 +63,7 @@ jobs:
           ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
           AC_USER: $(AC_USER)
           AC_PASSWORD: $(AC_PASSWORD)
-          
+
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
         displayName: Stage Artifacts
@@ -106,7 +97,7 @@ jobs:
     dependsOn: macOS_build
     timeoutInMinutes: 180
     pool:
-      vmImage: macos-10.14
+      vmImage: macos-10.13
     strategy:
       maxParallel: 3
       matrix:
