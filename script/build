@@ -48,6 +48,7 @@ const generateMetadata = require('./lib/generate-metadata')
 const generateModuleCache = require('./lib/generate-module-cache')
 const generateStartupSnapshot = require('./lib/generate-startup-snapshot')
 const installApplication = require('./lib/install-application')
+const notarizeOnMac = require('./lib/notarize-on-mac')
 const packageApplication = require('./lib/package-application')
 const prebuildLessCache = require('./lib/prebuild-less-cache')
 const testSignOnMac = require('./lib/test-sign-on-mac')
@@ -89,11 +90,12 @@ if (!argv.generateApiDocs) {
   binariesPromise
     .then(packageApplication)
     .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(packagedAppPath => {
+    .then(async packagedAppPath => {
       switch (process.platform) {
         case 'darwin': {
           if (argv.codeSign) {
-            codeSignOnMac(packagedAppPath)
+            await codeSignOnMac(packagedAppPath)
+            await notarizeOnMac(packagedAppPath)
           } else if (argv.testSign) {
             testSignOnMac(packagedAppPath)
           } else {

@@ -15,6 +15,7 @@ jobs:
   - template: platforms/macos.yml
   - template: platforms/linux.yml
 
+
   - job: Release
     pool:
       vmImage: vs2015-win2012r2 # needed for Python 2.7 and gyp
@@ -34,8 +35,8 @@ jobs:
           versionSpec: 10.2.1
         displayName: Install Node.js 10.2.1
 
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
+       #This has to be done separately because VSTS inexplicably
+       #exits the script block after `npm install` completes.
       - script: |
           cd script\vsts
           npm install
