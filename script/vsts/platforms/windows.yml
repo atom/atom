@@ -89,6 +89,10 @@ jobs:
         displayName: Run linter
 
       - script: |
+          cd ./node_modules/tree-sitter-bash
+          HOME=~/.electron-gyp node-gyp rebuild --target=5.0.13 --arch=x64 --dist-url=https://electronjs.org/headers
+
+      - script: |
           IF NOT EXIST C:\tmp MKDIR C:\tmp
           SET SQUIRREL_TEMP=C:\tmp
           IF [%IS_RELEASE_BRANCH%]==[true] (
