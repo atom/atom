@@ -181,6 +181,22 @@ module.exports = function(packagedAppPath) {
           path.join(
             '..',
             'node_modules',
+            'spell-check',
+            'lib',
+            'locale-checker.js'
+          ) ||
+        requiredModuleRelativePath ===
+          path.join(
+            '..',
+            'node_modules',
+            'spell-check',
+            'lib',
+            'system-checker.js'
+          ) ||
+        requiredModuleRelativePath ===
+          path.join(
+            '..',
+            'node_modules',
             'spellchecker',
             'lib',
             'spellchecker.js'
