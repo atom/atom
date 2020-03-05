@@ -11,7 +11,7 @@ jobs:
           buildArch: x86
 
     pool:
-      vmImage: vs2017-win2016 # needed for python 2.7 and gyp
+      vmImage: vs2017-win2016 # needed for python 3.6 and gyp
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
@@ -20,9 +20,6 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '2.7.3'
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
