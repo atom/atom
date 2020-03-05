@@ -22,7 +22,7 @@ jobs:
     steps:
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: 2.7
+          versionSpec: '2.7.3'
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
@@ -60,7 +60,7 @@ jobs:
         condition: eq(variables['buildArch'], 'x86')
 
       - script: |
-          node script\vsts\windows-run.js script\bootstrap.cmd --no-quiet
+          node script\vsts\windows-run.js script\bootstrap.cmd
         env:
           BUILD_ARCH: $(buildArch)
           CI: true
