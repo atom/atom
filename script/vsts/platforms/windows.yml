@@ -20,6 +20,9 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: 2.7
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
