@@ -60,7 +60,7 @@ jobs:
         condition: eq(variables['buildArch'], 'x86')
 
       - script: |
-          node script\vsts\windows-run.js script\bootstrap.cmd
+          node script\vsts\windows-run.js script\bootstrap.cmd --no-quiet
         env:
           BUILD_ARCH: $(buildArch)
           CI: true
