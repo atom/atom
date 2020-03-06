@@ -26,6 +26,9 @@ jobs:
         displayName: Install Node.js 10.2.1
 
       - script: |
+          npm install --global windows-build-tools
+
+      - script: |
           ECHO Installing npm-windows-upgrade
           npm install --global --production npm-windows-upgrade
         displayName: Install npm-windows-upgrade
