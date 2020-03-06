@@ -40,7 +40,7 @@ jobs:
         displayName: Install npm 6.2.0
 
       - script: |
-          npm install --global --production --ci windows-build-tools
+          npm install --global --production windows-build-tools
         displayName: "TBD"
 
       - script: |
