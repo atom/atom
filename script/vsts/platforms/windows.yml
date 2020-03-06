@@ -39,7 +39,8 @@ jobs:
         displayName: Install npm 6.2.0
 
       - script: |
-          dir Microsoft.Cpp.Default.props /s /p
+          dir Microsoft.Cpp.Default.props /s
+          SET
 
       - script: |
           cd script\vsts
