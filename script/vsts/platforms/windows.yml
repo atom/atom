@@ -57,7 +57,9 @@ jobs:
         condition: eq(variables['buildArch'], 'x86')
 
       - script: |
-          SET
+          dir Microsoft.Cpp.Default.props /s /p
+
+      - script: |
           node script\vsts\windows-run.js script\bootstrap.cmd
         env:
           BUILD_ARCH: $(buildArch)
