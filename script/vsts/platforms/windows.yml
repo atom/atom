@@ -48,7 +48,7 @@ jobs:
 
       # just to test the environment
       - script: |
-          npm install sqlite3
+          npm config set python python2.7
 
           # just to test the environment
       - script: |
