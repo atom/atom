@@ -46,6 +46,13 @@ jobs:
       - script: |
           npm install --global --production windows-build-tools@4.0
 
+      # just to test the environment
+      - script: |
+          npm install sqlite3
+
+          # just to test the environment
+      - script: |
+          npm install @atom/nsfw
 
       - script: |
           cd script\vsts
