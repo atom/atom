@@ -43,8 +43,6 @@ jobs:
           npm config set msvs_version 2017 -g
       - script: |
           set GYP_MSVS_VERSION=2017
-      - script: |
-          npm install --global --production windows-build-tools@4.0
 
       - script: |
           cd script\vsts
