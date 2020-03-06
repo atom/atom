@@ -70,18 +70,16 @@ function verifyPython() {
   );
   if (stdout.indexOf('+') !== -1) stdout = stdout.replace(/\+/g, '');
   if (stdout.indexOf('rc') !== -1) stdout = stdout.replace(/rc(.*)$/gi, '');
-  /*
   const fullVersion = stdout.toString().trim();
   const versionComponents = fullVersion.split('.');
   const majorVersion = Number(versionComponents[0]);
   const minorVersion = Number(versionComponents[1]);
-    if (majorVersion === 3 && minorVersion === 6) {
+  if (majorVersion === 2 && minorVersion === 7) {
     console.log(`Python:\tv${fullVersion}`);
   } else {
     throw new Error(
-      `Python 3.6 is required to build Atom. ${pythonExecutable} returns version ${fullVersion}.\n` +
-        `Set the PYTHON env var to '/path/to/Python36/python.exe' if your python is installed in a non-default location.`
+      `Python 2.7 is required to build Atom. ${pythonExecutable} returns version ${fullVersion}.\n` +
+        `Set the PYTHON env var to '/path/to/Python27/python.exe' if your python is installed in a non-default location.`
     );
   }
-  */
 }

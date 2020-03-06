@@ -11,7 +11,7 @@ jobs:
           buildArch: x86
 
     pool:
-      vmImage: vs2017-win2016 # needed for python 3.6 and gyp
+      vmImage: vs2017-win2016 # needed for python 2.7 and gyp
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
@@ -20,6 +20,9 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '2.7'
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
@@ -34,6 +37,9 @@ jobs:
           ECHO Upgrading npm
           npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
         displayName: Install npm 6.2.0
+
+      - script: |
+          dir Microsoft.Cpp.Default.props /s /p
 
       - script: |
           cd script\vsts
@@ -55,9 +61,6 @@ jobs:
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')
-
-      - script: |
-          dir Microsoft.Cpp.Default.props /s /p
 
       - script: |
           node script\vsts\windows-run.js script\bootstrap.cmd
