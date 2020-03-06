@@ -26,7 +26,7 @@ jobs:
         displayName: Install Node.js 10.2.1
 
       - script: |
-          npm install --global --production windows-build-tools --vs2017
+          node-gyp configure --verbose
 
       - script: |
           ECHO Installing npm-windows-upgrade
