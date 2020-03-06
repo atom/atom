@@ -26,9 +26,6 @@ jobs:
         displayName: Install Node.js 10.2.1
 
       - script: |
-          node-gyp configure --verbose
-
-      - script: |
           ECHO Installing npm-windows-upgrade
           npm install --global --production npm-windows-upgrade
         displayName: Install npm-windows-upgrade
@@ -58,6 +55,10 @@ jobs:
           targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
           vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
         condition: eq(variables['buildArch'], 'x86')
+
+      - script: |
+          node-gyp configure --verbose
+
 
       - script: |
           node script\vsts\windows-run.js script\bootstrap.cmd
