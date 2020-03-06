@@ -20,19 +20,14 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-    #  - task: UsePythonVersion@0
-    #    inputs:
-    #      versionSpec: '2.7'
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '2.7'
 
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
         displayName: Install Node.js 10.2.1
-
-      - script: |
-          ECHO Installing npm-windows-upgrade
-          npm install --global --production npm-windows-upgrade
-        displayName: Install npm-windows-upgrade
 
       - script: |
           ECHO Upgrading npm
@@ -53,6 +48,11 @@ jobs:
           # just to test the environment
       - script: |
           npm install @atom/nsfw
+
+      - script: |
+          ECHO Installing npm-windows-upgrade
+          npm install --global --production npm-windows-upgrade
+        displayName: Install npm-windows-upgrade
 
       - script: |
           cd script\vsts
