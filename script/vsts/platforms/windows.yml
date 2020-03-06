@@ -40,11 +40,8 @@ jobs:
         displayName: Install npm 6.2.0
 
       - script: |
-          npm config set msvs_version 2017
-          dir Microsoft.Cpp.Default.props /s
-          ls -a 'C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0'
-          SET
-          npm install --global windows-build-tools
+          npm install --global --production --ci windows-build-tools
+        displayName: "TBD"
 
       - script: |
           cd script\vsts
