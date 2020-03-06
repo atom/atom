@@ -20,9 +20,9 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '2.7'
+    #  - task: UsePythonVersion@0
+    #    inputs:
+    #      versionSpec: '2.7'
 
       - task: NodeTool@0
         inputs:
@@ -40,6 +40,9 @@ jobs:
         displayName: Install npm 6.2.0
 
       - script: |
+          npm config set msvs_version 2017 -g
+          set GYP_MSVS_VERSION=2017
+          npm install --global --production windows-build-tools@4.0
           npm install --global --production windows-build-tools
         displayName: "TBD"
 
