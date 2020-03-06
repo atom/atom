@@ -45,11 +45,7 @@ jobs:
           set GYP_MSVS_VERSION=2017
       - script: |
           npm install --global --production windows-build-tools@4.0
-      - script: |
-          npm install --global --production windows-build-tools
-          
-          
-          
+
 
       - script: |
           cd script\vsts
