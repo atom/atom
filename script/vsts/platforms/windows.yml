@@ -57,12 +57,7 @@ jobs:
         condition: eq(variables['buildArch'], 'x86')
 
       - script: |
-          npm install -g node-gyp@3.8.0
-          npm config set msvs_version 2017
-          node-gyp configure --verbose
-
-
-      - script: |
+          SET
           node script\vsts\windows-run.js script\bootstrap.cmd
         env:
           BUILD_ARCH: $(buildArch)
