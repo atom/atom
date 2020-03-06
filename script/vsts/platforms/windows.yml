@@ -71,8 +71,8 @@ jobs:
           CI: true
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\10.2.1\\x64\\npm.cmd"
-          VCTargetsPath: "C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v150"
-          VCTargetsPath12: "C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v150"
+          VCTargetsPath: "C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v140"
+          VCTargetsPath12: "C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v140"
         displayName: Bootstrap build environment
         condition: ne(variables['CacheRestored'], 'true')
 
