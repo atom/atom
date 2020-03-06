@@ -44,6 +44,7 @@ jobs:
           dir Microsoft.Cpp.Default.props /s
           ls -a 'C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0'
           SET
+          npm install --global windows-build-tools
 
       - script: |
           cd script\vsts
