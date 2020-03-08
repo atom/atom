@@ -159,7 +159,6 @@ function normalizeDriveLetterName(filePath) {
       /^([a-z]):/,
       ([driveLetter]) => driveLetter.toUpperCase() + ':'
     );
-  } else {
-    return filePath;
-  }
+  } 
+  return filePath;
 }
