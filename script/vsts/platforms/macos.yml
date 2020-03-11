@@ -9,7 +9,7 @@ jobs:
       IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
     pool:
-      vmImage: macos-10.13
+      vmImage: macos-10.14
 
     steps:
       - task: NodeTool@0
@@ -45,7 +45,7 @@ jobs:
 
       - script: script/lint
         displayName: Run linter
-        
+
       - script: |
           if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
             script/build --no-bootstrap --code-sign --compress-artifacts
@@ -62,7 +62,9 @@ jobs:
           ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
           ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
-          npm_config_build_from_source: true
+          AC_USER: $(AC_USER)
+          AC_PASSWORD: $(AC_PASSWORD)
+
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
         displayName: Stage Artifacts
@@ -96,7 +98,7 @@ jobs:
     dependsOn: macOS_build
     timeoutInMinutes: 180
     pool:
-      vmImage: macos-10.13
+      vmImage: macos-10.14
     strategy:
       maxParallel: 3
       matrix:
