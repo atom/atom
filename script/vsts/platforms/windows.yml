@@ -11,7 +11,7 @@ jobs:
           buildArch: x86
 
     pool:
-      vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
+      vmImage: vs2017-win2016
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
@@ -20,6 +20,10 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '2.7'
+
       - task: NodeTool@0
         inputs:
           versionSpec: 10.2.1
@@ -34,6 +38,10 @@ jobs:
           ECHO Upgrading npm
           npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.2.0
         displayName: Install npm 6.2.0
+
+      - script: |
+          npm install --global --production windows-build-tools@4.0
+        displayName: Install windows build tools
 
       - script: |
           cd script\vsts
@@ -62,7 +70,7 @@ jobs:
           BUILD_ARCH: $(buildArch)
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "D:\\a\\_tool\\node\\10.2.1\\x64\\npm.cmd"
+          NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\10.2.1\\x64\\npm.cmd"
         displayName: Bootstrap build environment
         condition: ne(variables['CacheRestored'], 'true')
 

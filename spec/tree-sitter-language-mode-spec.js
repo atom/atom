@@ -18,6 +18,9 @@ const pythonGrammarPath = require.resolve(
 const jsGrammarPath = require.resolve(
   'language-javascript/grammars/tree-sitter-javascript.cson'
 );
+const jsdocGrammarPath = require.resolve(
+  'language-javascript/grammars/tree-sitter-jsdoc.cson'
+);
 const htmlGrammarPath = require.resolve(
   'language-html/grammars/tree-sitter-html.cson'
 );
@@ -518,7 +521,10 @@ describe('TreeSitterLanguageMode', () => {
             'template_substitution > "}"': 'interpolation'
           },
           injectionRegExp: 'javascript',
-          injectionPoints: [HTML_TEMPLATE_LITERAL_INJECTION_POINT]
+          injectionPoints: [
+            HTML_TEMPLATE_LITERAL_INJECTION_POINT,
+            JSDOC_INJECTION_POINT
+          ]
         });
 
         htmlGrammar = new TreeSitterGrammar(atom.grammars, htmlGrammarPath, {
@@ -830,6 +836,71 @@ describe('TreeSitterLanguageMode', () => {
             { text: 'b', scopes: ['function'] },
             { text: '() ', scopes: [] },
             { text: '%>', scopes: ['directive'] }
+          ]
+        ]);
+      });
+
+      it('only covers scope boundaries in parent layers if a nested layer has a boundary at the same position', async () => {
+        const jsdocGrammar = new TreeSitterGrammar(
+          atom.grammars,
+          jsdocGrammarPath,
+          {
+            scopeName: 'jsdoc',
+            parser: 'tree-sitter-jsdoc',
+            scopes: {},
+            injectionRegExp: 'jsdoc',
+            injectionPoints: []
+          }
+        );
+        atom.grammars.addGrammar(jsGrammar);
+        atom.grammars.addGrammar(jsdocGrammar);
+
+        editor.setGrammar(jsGrammar);
+        editor.setText('/**\n*/\n{\n}');
+
+        expectTokensToEqual(editor, [
+          [{ text: '/**', scopes: ['comment'] }],
+          [{ text: '*/', scopes: ['comment'] }],
+          [{ text: '{', scopes: [] }],
+          [{ text: '}', scopes: [] }]
+        ]);
+      });
+
+      it('reports scopes from shallower layers when they are at the start or end of an injection', async () => {
+        await atom.packages.activatePackage('language-javascript');
+
+        editor.setGrammar(atom.grammars.grammarForScopeName('source.js'));
+        editor.setText('/** @babel */\n{\n}');
+        expectTokensToEqual(editor, [
+          [
+            { text: '/** ', scopes: ['source js', 'comment block'] },
+            {
+              text: '@babel',
+              scopes: ['source js', 'comment block', 'keyword control']
+            },
+            { text: ' *', scopes: ['source js', 'comment block'] },
+            {
+              text: '/',
+              scopes: ['source js', 'comment block', 'meta delimiter slash']
+            }
+          ],
+          [
+            {
+              text: '{',
+              scopes: [
+                'source js',
+                'punctuation definition function body begin bracket curly'
+              ]
+            }
+          ],
+          [
+            {
+              text: '}',
+              scopes: [
+                'source js',
+                'punctuation definition function body end bracket curly'
+              ]
+            }
           ]
         ]);
       });
@@ -2415,5 +2486,15 @@ const SCRIPT_TAG_INJECTION_POINT = {
   },
   content(node) {
     return node.child(1);
+  }
+};
+
+const JSDOC_INJECTION_POINT = {
+  type: 'comment',
+  language(comment) {
+    if (comment.text.startsWith('/**')) return 'jsdoc';
+  },
+  content(comment) {
+    return comment;
   }
 };
