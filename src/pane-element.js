@@ -53,15 +53,39 @@ class PaneElement extends HTMLElement {
       }
     };
     const handleDragOver = event => {
-      event.preventDefault();
-      event.stopPropagation();
+      const items = Array.from(event.dataTransfer.items).filter(
+        item => item.kind === 'file'
+      );
+      // TextEditors are only allowed in the center workspace, so make sure this pane is in the center
+      if (
+        items.length > 0 &&
+        atom.workspace
+          .getCenter()
+          .getPanes()
+          .includes(this.getModel())
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
     };
     const handleDrop = event => {
-      event.preventDefault();
-      event.stopPropagation();
-      this.getModel().activate();
-      const pathsToOpen = [...event.dataTransfer.files].map(file => file.path);
-      if (pathsToOpen.length > 0) {
+      const items = Array.from(event.dataTransfer.items).filter(
+        item => item.kind === 'file'
+      );
+      // TextEditors are only allowed in the center workspace, so make sure this pane is in the center
+      if (
+        items.length > 0 &&
+        atom.workspace
+          .getCenter()
+          .getPanes()
+          .includes(this.getModel())
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.getModel().activate();
+
+        const files = items.map(item => item.getAsFile());
+        const pathsToOpen = files.map(file => file.path);
         this.applicationDelegate.open({ pathsToOpen, here: true });
       }
     };
