@@ -1,0 +1,267 @@
+/*
+   This defines styling rules for syntax classes.
+
+   See the naming conventions for a list of syntax classes:
+   https://flight-manual.atom.io/hacking-atom/sections/syntax-naming-conventions
+
+   When styling rules conflict:
+   - The last rule overrides previous rules.
+   - The rule with most classes and pseudo-classes overrides the last rule.
+*/
+
+// if for return
+.syntax--keyword {
+  color: #96CBFE;
+
+  // global let def class
+  &.syntax--storage {
+    color: #96CBFE;
+  }
+
+  // int char float
+  &.syntax--type {
+    color: #FFFFB6;
+  }
+
+  // and del not
+  &.syntax--operator {
+    color: #96CBFE;
+  }
+
+  // super
+  &.syntax--function {
+    color: #C6C5FE;
+  }
+
+  // this self
+  &.syntax--variable {
+    color: #C6C5FE;
+  }
+
+  // = + && | << ?
+  &.syntax--symbolic {
+    color: #EDEDED;
+  }
+}
+
+// identifier
+.syntax--entity {
+  color: #C5C8C6;
+
+  // variable
+  &.syntax--variable {
+    color: #C5C8C6;
+  }
+
+  // self cls iota
+  &.syntax--support {
+    color: #C6C5FE;
+  }
+
+  // @entity.decorator
+  &.syntax--decorator:last-child {
+    color: #FFD2A7;
+  }
+
+  // label:
+  &.syntax--label {
+    text-decoration: underline;
+  }
+
+  // import package
+  &.syntax--package {
+    color: #FFD2A7;
+  }
+
+  // function method
+  &.syntax--function {
+    color: #FFD2A7;
+  }
+
+  // add
+  &.syntax--operator {
+    color: #FFD2A7;
+
+    // %>% <=>
+    &.syntax--symbolic {
+      color: #EDEDED;
+    }
+  }
+
+  // String Class int rune list
+  &.syntax--type {
+    color: #FFFFB6;
+  }
+
+  // div span
+  &.syntax--tag {
+    color: #96CBFE;
+  }
+
+  // href src alt
+  &.syntax--attribute {
+    color: #FF73FD;
+  }
+}
+
+// () [] {} => @
+.syntax--punctuation {
+  color: #C5C8C6;
+
+  // . ->
+  &.syntax--accessor.syntax--member {
+    color: #EDEDED;
+  }
+}
+
+// "string"
+.syntax--string {
+  color: #A8FF60;
+
+  // :immutable
+  &.syntax--immutable {
+    color: #A8FF60;
+  }
+
+  // ${variable} %().2f
+  &.syntax--part {
+    color: #00A0A0;
+  }
+
+  // /^reg[ex]?p/
+  &.syntax--regexp {
+    color: #A8FF60;
+
+    &.syntax--group {
+      color: #A8FF60;
+      background-color: @syntax-background-color;
+    }
+
+    // \g \"
+    .syntax--constant.syntax--character.syntax--escape {
+      color: #A8FF60;
+
+      // \n \W \d .
+      &.syntax--code {
+        color: #00A0A0;
+      }
+    }
+
+    // ^ $ \b ? + i
+    &.syntax--language {
+      color: #96CBFE;
+    }
+
+    // <variable> \1
+    &.syntax--variable {
+      color: #C5C8C6;
+    }
+
+    // ( ) [^ ] (?= ) | r" /
+    &.syntax--punctuation {
+      color: #E9C062;
+    }
+  }
+}
+
+// literal true nil
+.syntax--constant {
+  color: #FF73FD;
+
+  // 4 1.3 Infinity
+  &.syntax--numeric {
+    color: #FF73FD;
+  }
+
+  // &lt; 'a'
+  &.syntax--character {
+    color: #A8FF60;
+
+    // \" \' \g \.
+    &.syntax--escape {
+      color: #A8FF60;
+    }
+
+    // \u2661 \n \t \W .
+    &.syntax--code {
+      color: #00A0A0;
+    }
+  }
+}
+
+// text
+.syntax--text {
+  color: #C5C8C6;
+}
+
+// __formatted__
+.syntax--markup {
+
+  // # Heading
+  &.syntax--heading {
+    color: #eee;
+  }
+
+  // - item
+  &.syntax--list {
+    color: #555;
+  }
+
+  // > quote
+  &.syntax--quote {
+    color: #555;
+  }
+
+  // `raw`
+  &.syntax--raw {
+    color: #aaa;
+  }
+
+  // url.com (path)
+  &.syntax--link {
+    color: #555;
+  }
+
+  // [alt] ![alt]
+  &.syntax--alt {
+    color: #ddd;
+  }
+}
+
+// /* comment */
+.syntax--comment {
+  color: #8A8A8A;
+
+  // @param TODO NOTE
+  &.syntax--caption {
+    color: lighten(#8A8A8A, 6);
+    font-weight: bold;
+  }
+
+  // variable function type
+  &.syntax--term {
+    color: lighten(#8A8A8A, 9);
+  }
+
+  // { } / .
+  &.syntax--punctuation {
+    color: #8A8A8A;
+    font-weight: normal;
+  }
+}
+
+// 0invalid
+.syntax--invalid:not(.syntax--punctuation) {
+
+  // §illegal
+  &.syntax--illegal {
+    color: #FD5FF1 !important;
+    background-color: rgba(86, 45, 86, 0.75) !important;
+  }
+
+  // obsolete()
+  &.syntax--deprecated {
+    color: #FD5FF1 !important;
+    text-decoration: underline !important;
+  }
+}
