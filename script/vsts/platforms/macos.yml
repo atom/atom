@@ -14,10 +14,10 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 10.2.1
-        displayName: Install Node.js 10.2.1
+          versionSpec: 12.13.1
+        displayName: Install Node.js 12.13.1
 
-      - script: npm install --global npm@6.2.0
+      - script: npm install --global npm@6.12.1
         displayName: Update npm
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
@@ -33,6 +33,7 @@ jobs:
           CI: true
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
+          npm_config_build_from_source: true
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
@@ -114,10 +115,10 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 10.2.1
-        displayName: Install Node.js 10.2.1
+          versionSpec: 12.13.1
+        displayName: Install Node.js 12.13.1
 
-      - script: npm install --global npm@6.2.0
+      - script: npm install --global npm@6.12.1
         displayName: Update npm
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
@@ -135,6 +136,8 @@ jobs:
           CI: true
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
+          npm_config_build_from_source: true
+
         condition: ne(variables['CacheRestored'], 'true')
 
       - task: DownloadBuildArtifacts@0
