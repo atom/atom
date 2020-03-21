@@ -320,11 +320,7 @@ module.exports = class AtomApplication extends EventEmitter {
         );
       });
 
-      // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
-      // in Windows machines, which affects directly the startup time.
-      if (process.platform !== 'win32') {
-        await this.configFilePromise;
-      }
+      await this.configFilePromise;
     }
 
     let optionsForWindowsToOpen = [];
