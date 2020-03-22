@@ -1,5 +1,19 @@
-const crypto = require('crypto');
-const { clipboard } = require('electron');
+----_----
+PaulLeonDiaz-_.
+----------------------------------------
+-
+--
+---
+
+
+~90^=1; ~100/1=1; 0=?
+~$_.PaulLeonDiaz
+~$_"HED"=P
+
+/
+//clipboard = requiere('Hello')
+//const crypto = require('crypto');
+//const { clipboard } = require('electron');
 
 // Extended: Represents the clipboard used for copying and pasting in Atom.
 //
