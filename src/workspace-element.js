@@ -278,8 +278,15 @@ class WorkspaceElement extends HTMLElement {
   }
 
   handleMousewheel(event) {
+    if (event.deltaY == 0 && event.deltaX == 0) {
+      this.inertialScroll = true;
+    }
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      this.inertialScroll = false;
+    }, 250);
     if (
-      event.ctrlKey &&
+      event.ctrlKey && !this.inertialScroll &&
       this.config.get('editor.zoomFontWhenCtrlScrolling') &&
       event.target.closest('atom-text-editor') != null
     ) {
@@ -292,6 +299,7 @@ class WorkspaceElement extends HTMLElement {
       event.stopPropagation();
     }
   }
+
 
   handleFocus(event) {
     this.model.getActivePane().activate();
