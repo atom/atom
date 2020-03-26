@@ -278,13 +278,14 @@ class WorkspaceElement extends HTMLElement {
   }
 
   handleMousewheel(event) {
-    if (event.deltaY == 0 && event.deltaX == 0) {
+    if (event.deltaY === 0 && event.deltaX === 0) {
       this.inertialScroll = true;
     }
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       this.inertialScroll = false;
     }, 250);
+
     if (
       event.ctrlKey && !this.inertialScroll &&
       this.config.get('editor.zoomFontWhenCtrlScrolling') &&
@@ -299,7 +300,6 @@ class WorkspaceElement extends HTMLElement {
       event.stopPropagation();
     }
   }
-
 
   handleFocus(event) {
     this.model.getActivePane().activate();
