@@ -285,9 +285,9 @@ class WorkspaceElement extends HTMLElement {
     this.timer = setTimeout(() => {
       this.inertialScroll = false;
     }, 250);
-
     if (
-      event.ctrlKey && !this.inertialScroll &&
+      event.ctrlKey &&
+      !this.inertialScroll &&
       this.config.get('editor.zoomFontWhenCtrlScrolling') &&
       event.target.closest('atom-text-editor') != null
     ) {
