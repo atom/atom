@@ -10,3 +10,4 @@ Installed-Size: <%= installedSize %>
 Maintainer: GitHub <atom@github.com>
 Description: <%= description %>
  Atom is a free and open source text editor that is modern, approachable, and hackable to the core.
+
