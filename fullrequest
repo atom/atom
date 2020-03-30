@@ -1,0 +1,54 @@
+commit 5c0e54283de1a6c12d047360b7aec8fb4c00cc4a
+Author:     kozec <kozec@users.noreply.github.com>
+AuthorDate: Thu Oct 31 02:52:35 GMT+08:00 2019
+Commit:     GitHub <noreply@github.com>
+CommitDate: Thu Oct 31 02:52:35 GMT+08:00 2019
+
+    Merge pull request #539 from TechupBusiness/improve-html-entity-encoding
+    
+    [TASK] Improve html entity encoding
+
+diff --git a/syncthing_gtk/app.py b/syncthing_gtk/app.py
+index 6e907b1..dbe049f 100644
+--- a/syncthing_gtk/app.py
++++ b/syncthing_gtk/app.py
+@@ -1406,7 +1406,6 @@
+ 			title = display_path
+ 		if label not in (None, ""):
+ 			title = label
+-		title = title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
+ 		if id in self.folders:
+ 			# Reuse existing box
+ 			box = self.folders[id]
+diff --git a/syncthing_gtk/infobox.py b/syncthing_gtk/infobox.py
+index 4d8a332..6d31859 100644
+--- a/syncthing_gtk/infobox.py
++++ b/syncthing_gtk/infobox.py
+@@ -7,7 +7,7 @@
+ from __future__ import unicode_literals
+ from gi.repository import Gtk, Gdk, GLib, GObject, Pango, Rsvg
+ from syncthing_gtk.ribar import RevealerClass
+-from syncthing_gtk.tools import _ # gettext function
++from syncthing_gtk.tools import _, escape_html_entities # _ is gettext function
+ import os, logging, math
+ log = logging.getLogger("InfoBox")
+ 
+@@ -313,6 +313,7 @@
+ 	
+ 	### Methods
+ 	def set_title(self, t):
++		t = escape_html_entities(t)
+ 		self.str_title = t
+ 		inverted = self.header_inverted and self.dark_color is None
+ 		col = "black" if inverted else "white"
+diff --git a/syncthing_gtk/tools.py b/syncthing_gtk/tools.py
+index 961fe1d..b8525aa 100644
+--- a/syncthing_gtk/tools.py
++++ b/syncthing_gtk/tools.py
+@@ -558,3 +558,6 @@
+ 		("".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5)))
+ 		for _ in range(2)
+ 	))
++
++def escape_html_entities(string):
++	return string.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')

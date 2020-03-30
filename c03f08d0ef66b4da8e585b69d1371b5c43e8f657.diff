@@ -1,0 +1,19 @@
+commit c03f08d0ef66b4da8e585b69d1371b5c43e8f657
+Author:     adnane-tebbaa <58398485+adnane-X-tebbaa@users.noreply.github.com>
+AuthorDate: Sat Mar 28 05:29:42 GMT+08:00 2020
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sat Mar 28 05:29:42 GMT+08:00 2020
+
+    Update requirements.txt
+    
+    added pysocks for python 3.8
+
+diff --git a/requirements.txt b/requirements.txt
+index e5506c6..3a4386e 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -6,3 +6,4 @@
+ colorama
+ bs4
+ StringGenerator
++pysocks

@@ -1,0 +1,633 @@
+commit 73e8bf2136c8e2908030df3e16b88c4ca62bd3b2
+Author:     Clément Devos <cdevos.0@gmail.com>
+AuthorDate: Wed Feb 12 23:33:14 GMT+08:00 2020
+Commit:     Clément Devos <cdevos.0@gmail.com>
+CommitDate: Wed Feb 12 23:33:14 GMT+08:00 2020
+
+    feat(i18n) implemented i18n with french language
+    
+
+diff --git a/.babelrc b/.babelrc
+index 109411d..ccd6933 100644
+--- a/.babelrc
++++ b/.babelrc
+@@ -13,6 +13,12 @@
+                 }
+             }
+         ],
+-        "babel-plugin-inline-react-svg"
++        "babel-plugin-inline-react-svg",
++        [
++            "react-intl",
++            {
++                "messagesDir": "./build/messages/"
++            }
++        ]
+     ]
+ }
+diff --git a/package.json b/package.json
+index bc9cd28..9275de3 100644
+--- a/package.json
++++ b/package.json
+@@ -13,7 +13,9 @@
+         "test-build": "rimraf ./test-build && ./node_modules/.bin/babel src -d ./test_build",
+         "posttest-build": "rimraf ./test_build ./styles ",
+         "build:app": "react-scripts build",
+-        "build-serve": "react-scripts build && serve build"
++        "build-serve": "react-scripts build && serve build",
++        "build:messages": "NODE_ENV=production babel ./src >/dev/null",
++        "manage:translations": "node ./translationRunner.js"
+     },
+     "author": "",
+     "license": "ISC",
+@@ -27,6 +29,7 @@
+         "@date-io/moment": "^1.3.13",
+         "@material-ui/pickers": "^3.2.9",
+         "@wld/ui": "https://github.com/welovedevs/wld-design-system.git#v1.0.14",
++        "babel-plugin-react-intl": "^5.1.18",
+         "chroma-js": "^2.1.0",
+         "classnames": "^2.2.6",
+         "cp-cli": "^2.0.0",
+@@ -68,6 +71,7 @@
+         "eslint-plugin-react-hooks": "^2.3.0",
+         "husky": "^3.1.0",
+         "ora": "^4.0.3",
++        "react-intl-translations-manager": "^5.0.3",
+         "readline-sync": "^1.4.10",
+         "rimraf": "^3.0.0",
+         "serve": "^11.3.0",
+diff --git a/src/package/components/banner/user_actions_row/customize_dialog/palette_picker/palette_picker.jsx b/src/package/components/banner/user_actions_row/customize_dialog/palette_picker/palette_picker.jsx
+index bfd7914..09b97e9 100644
+--- a/src/package/components/banner/user_actions_row/customize_dialog/palette_picker/palette_picker.jsx
++++ b/src/package/components/banner/user_actions_row/customize_dialog/palette_picker/palette_picker.jsx
+@@ -57,7 +57,7 @@
+                 {selectedPalette && (
+                     <div className={classes.currentPalette}>
+                         <Typography>
+-                            <FormattedMessage id="PalettePicker.field.title" defaultMessage="Current palette" />
++                            <FormattedMessage id="PalettePicker.field.currentPalette" defaultMessage="Current palette" />
+                         </Typography>
+                         <div className={classes.colorSquare} style={{ backgroundColor: selectedPalette[0] }} />
+                         <div className={classes.colorSquare} style={{ backgroundColor: selectedPalette[1] }} />
+diff --git a/src/package/components/cards/cards_types/basics/basics_back/basics_back.jsx b/src/package/components/cards/cards_types/basics/basics_back/basics_back.jsx
+index ea4f4ea..eb3d7e4 100644
+--- a/src/package/components/cards/cards_types/basics/basics_back/basics_back.jsx
++++ b/src/package/components/cards/cards_types/basics/basics_back/basics_back.jsx
+@@ -69,10 +69,10 @@
+                 )
+             },
+             codingYears: {
+-                title: <FormattedMessage id="Basics.Back.CodingYears" defaultMessage="Experience" />,
++                title: <FormattedMessage id="Basics.Back.CodingYears.title" defaultMessage="Experience" />,
+                 value: (
+                     <FormattedMessage
+-                        id="Basics.Back.CodingYears"
++                        id="Basics.Back.CodingYears.value"
+                         defaultMessage={'{codingYears} years coding'}
+                         values={{ codingYears }}
+                     />
+diff --git a/src/package/components/cards/cards_types/basics/basics_edit_dialog/basic_edit_dialog.jsx b/src/package/components/cards/cards_types/basics/basics_edit_dialog/basic_edit_dialog.jsx
+index 43c1f1c..d04b6ff 100644
+--- a/src/package/components/cards/cards_types/basics/basics_edit_dialog/basic_edit_dialog.jsx
++++ b/src/package/components/cards/cards_types/basics/basics_edit_dialog/basic_edit_dialog.jsx
+@@ -170,7 +170,7 @@
+                     <Typography className={classes.sliderValue}>
+                         <FormattedMessage
+                             id="Main.lang.years"
+-                            defaultMessage="{countNode} year{count, plural, one {} other {}}"
++                            defaultMessage="{countNode} year{count, plural, one {} other {s}}"
+                             values={{
+                                 count: studiesLevel,
+                                 countNode: <span className={classes.bolden}>{studiesLevel}</span>
+diff --git a/src/package/components/cards/cards_types/dream_job/dream_job_back/dream_job_back.jsx b/src/package/components/cards/cards_types/dream_job/dream_job_back/dream_job_back.jsx
+index 127edb5..25078f6 100644
+--- a/src/package/components/cards/cards_types/dream_job/dream_job_back/dream_job_back.jsx
++++ b/src/package/components/cards/cards_types/dream_job/dream_job_back/dream_job_back.jsx
+@@ -110,7 +110,7 @@
+         <>
+             <button className={classes.button} type="button" ref={textAnchor} {...handlers}>
+                 <FormattedMessage
+-                    id="Dreamjob.Back.Location.OnePlace"
++                    id="Dreamjob.Back.Location.ManyPlaces"
+                     defaultMessage="I want to work in {place} and {length, plural, one {one other place} other {# other places}}"
+                     values={{ place: firstPlace.name, length: remainingPlaces.length }}
+                 />
+diff --git a/src/package/components/cards/cards_types/projects/projects_front/projects_front.jsx b/src/package/components/cards/cards_types/projects/projects_front/projects_front.jsx
+index 4aeb06a..2a0d002 100644
+--- a/src/package/components/cards/cards_types/projects/projects_front/projects_front.jsx
++++ b/src/package/components/cards/cards_types/projects/projects_front/projects_front.jsx
+@@ -28,7 +28,7 @@
+                 <Typography variant="h2" component="h2" customClasses={{ container: classes.text }}>
+                     <FormattedMessage
+                         id="Projects.front.title"
+-                        defaultMessage="My <emoji>♥</emoji>: project "
++                        defaultMessage="My <emoji>♥️</emoji> project : "
+                         values={{
+                             emoji: value => <Twemoji svg text={value} />
+                         }}
+diff --git a/src/package/components/cards/cards_types/skills/skills_front/skills_front.jsx b/src/package/components/cards/cards_types/skills/skills_front/skills_front.jsx
+index 640724a..e47db01 100644
+--- a/src/package/components/cards/cards_types/skills/skills_front/skills_front.jsx
++++ b/src/package/components/cards/cards_types/skills/skills_front/skills_front.jsx
+@@ -41,7 +41,7 @@
+                         <FormattedMessage
+                             id="Skills.front.title"
+                             defaultMessage="I mainly write {techno} stuff"
+-                            values={{ values: techno?.name }}
++                            values={{ techno: techno?.name }}
+                         />
+                     </ProfileCardFrontTypography>
+                 </CenterContentContainer>
+diff --git a/src/package/components/profile.jsx b/src/package/components/profile.jsx
+index 0a7e993..50bcd97 100644
+--- a/src/package/components/profile.jsx
++++ b/src/package/components/profile.jsx
+@@ -8,11 +8,18 @@
+ 
+ import { styles } from './profile_styles';
+ 
++import en from '../i18n/en.json';
++import fr from '../i18n/fr.json';
++
+ import '../styles/lib/slick-carousel/slick-theme.css';
+ import '../styles/lib/slick-carousel/slick.css';
+ import { technologiesInitialState, technologiesReducer } from '../store/technologies/technologies_reducer';
+ import { DeveloperProfileContext } from '../utils/context/contexts';
+ 
++const messages = {
++    en,
++    fr
++};
+ const useStyles = createUseStyles(styles);
+ 
+ const DEFAULT_OPTIONS = Object.freeze({
+@@ -67,11 +74,11 @@
+ 
+     return (
+         <div className={classes.container}>
+-            <DeveloperProfileContext.provider value={context}>
++            <DeveloperProfileContext.Provider value={context}>
+                 <Banner customizationOptions={options.customization}>{ActionButtons}</Banner>
+                 {BeforeCards}
+                 <Cards cardsOrder={options.customization?.cardsOrder} />
+-            </DeveloperProfileContext.provider>
++            </DeveloperProfileContext.Provider>
+         </div>
+     );
+ };
+@@ -103,7 +110,7 @@
+ 
+     return (
+         <ThemeProvider theme={builtTheme}>
+-            <IntlProvider locale={locale}>
++            <IntlProvider locale={locale} messages={messages[locale] || messages.en} defaultLocale={locale}>
+                 <DeveloperProfileComponent
+                     isEditing={isEditing}
+                     data={data}
+diff --git a/src/package/i18n/en.json b/src/package/i18n/en.json
+index e69de29..09292cd 100644
+--- a/src/package/i18n/en.json
++++ b/src/package/i18n/en.json
+@@ -0,0 +1,161 @@
++{
++  "AddButton.plus": "+",
++  "App.main.": "See more",
++  "Banner.actions.customize": "Customize",
++  "Banner.actions.customize.dialog.title": "Customize your profile",
++  "Basics.Back.CodingYears.title": "Experience",
++  "Basics.Back.CodingYears.value": "{codingYears} years coding",
++  "Basics.Back.PersonalDescription": "A bit more about me : ",
++  "Basics.Back.StudiesLevel": "{studiesLevel} years of higher education",
++  "Basics.Back.StudiesLevel.Title": "Training",
++  "Basics.Back.VisaSponsorship": "I require a visa sponsorship",
++  "Basics.Back.Work": "{experienceYears} years of experience",
++  "Basics.Back.Work.Title": "Work",
++  "Basics.Back.WorkContract.multi": "Looking for a {contracts} or {lastContract} contract",
++  "Basics.Back.WorkContract.single": "Looking for a {contractType} contract",
++  "Basics.editDialog.codingReason.title": "What motivates you to write code?",
++  "Basics.editDialog.codingYears.subtitle": "(every experiences, studies, personal projects, work...)",
++  "Basics.editDialog.codingYears.title": "How long have you been coding?",
++  "Basics.editDialog.experienceYears.subtitle": "Tech and non-tech experiences",
++  "Basics.editDialog.experienceYears.title": "How many years of professional experience do you have?",
++  "Basics.editDialog.location.title": "What's your current location?",
++  "Basics.editDialog.personalDescription.subtitle": "Use this space to describe yourself a bit more ! ",
++  "Basics.editDialog.personalDescription.title": "Do you want to tell a bit more about you?",
++  "Basics.editDialog.searchState.title": "What's your current job search state?",
++  "Basics.editDialog.studiesLevel.subtitle": "Bachelor = 3 years post graduate. Master = 5 years post graduate.",
++  "Basics.editDialog.studiesLevel.title": "What is your highest level of formal education?",
++  "Basics.editDialog.summary.title": "Describe yourself in a few words.",
++  "Basics.editDialog.title": "Your basic information",
++  "Basics.editDialog.visaSponsorship": "I require a visa sponsorship",
++  "Basics.form.validation.byGroup": "Vous ne pouvez pas sélectionner Stage ou Alternance en meme temps que CDI/CDD/Freelance",
++  "Basics.form.validation.selectOne": "Veuillez sélectionner au moins un contrat !",
++  "Basics.front.action": "More about me",
++  "Basics.moreText": "More about me",
++  "CardsOrderer.field.title": "Order your profile cards",
++  "Developer.JobPerks.challenge": "Du challenge",
++  "Developer.JobPerks.mood": "Une bonne ambiance",
++  "Developer.JobPerks.other": "Autre",
++  "Developer.JobPerks.perks": "Des avantages (tickets restaurants, CE, etc...)",
++  "Developer.JobPerks.resopnsabilities": "Des responsabilités",
++  "Developer.JobPerks.salary": "Le salaire",
++  "Developer.JobPerks.training": "Des formations",
++  "Developer.JobPerks.work_hours": "Des horaires flexibles",
++  "Developer.RemoteFrequency.Display.fullTime": "I'm interested by full-time remote work",
++  "Developer.RemoteFrequency.Display.never": "I'm not interested by remote work",
++  "Developer.RemoteFrequency.Display.occasionally": "I'm interested by occasional remote work (a few times a month)",
++  "Developer.RemoteFrequency.Display.other": "Autres",
++  "Developer.RemoteFrequency.Display.regularly": "I'm interested by regular remote work (a few times a week)",
++  "Developer.RemoteFrequency.Select.FullTime": "Full-time",
++  "Developer.RemoteFrequency.Select.Never": "No",
++  "Developer.RemoteFrequency.Select.Occasionally": "Occasionally",
++  "Developer.RemoteFrequency.Select.Other": "Other",
++  "Developer.RemoteFrequency.Select.Regularly": "Regularly",
++  "Developer.developerJobSearchState.activelySearching": "I'm actively searching for a job",
++  "Developer.developerJobSearchState.dreamjobOnly": "I'm only searching for my dream job",
++  "Developer.developerJobSearchState.openOpportunities": "I'm open to job opportunitues",
++  "Developer.developerJobSearchState.unknown": "Unknown job search state",
++  "DeveloperProfile.contractTypes.apprenticeship": "Apprenticeship",
++  "DeveloperProfile.contractTypes.fixedTerm": "Fixed-Term",
++  "DeveloperProfile.contractTypes.freelance": "Freelancing",
++  "DeveloperProfile.contractTypes.internship": "Internship",
++  "DeveloperProfile.contractTypes.permanent": "Permanent",
++  "DeveloperProfile.contractTypes.unknown": "Unknown",
++  "DeveloperProfile.locationField.label": "Localisation",
++  "DeveloperProfile.locationField.placeholder": "Paris, France",
++  "DreamJob.Front.Cities": "I want to work in {cities}",
++  "DreamJob.Front.RemoteFulltime": "I want to work remotely",
++  "DreamJob.editDialog.contractTypes.title": "What contract types are you currently looking for?",
++  "DreamJob.editDialog.location.title": "What's your dream job location?",
++  "DreamJob.editDialog.perks.title": "What perks are important to you ?",
++  "DreamJob.editDialog.remoteFrequency.title": "Do you want to work remotely?",
++  "DreamJob.editDialog.salary.title": "What's your desired salary?",
++  "DreamJob.editDialog.title": "Your dream job information",
++  "Dreamjob.Back.ContractTypes.Title": "Contract types",
++  "Dreamjob.Back.Location.ManyPlaces": "I want to work in {place} and {length, plural, one {one other place} other {# other places}}",
++  "Dreamjob.Back.Location.OnePlace": "I want to work in {place}",
++  "Dreamjob.Back.Location.Perks.Title": "Important perks in my job",
++  "Dreamjob.Back.Location.RemoteOnly": "I only want to work remotely",
++  "Dreamjob.Back.Location.Title": "My dreamjob location",
++  "Dreamjob.Back.Salary.Title": "Ideal yearly salary",
++  "Dreamjob.front.action": "Discover my dream job",
++  "Education.form.validation.noFutureDate": "Cette date ne peut pas être dans le futur.",
++  "Experiences.backCard.dates.since": "Since {year}",
++  "Experiences.editDialog.companyName.placeholder": "Exemple : WeLoveDevs.com (facultatif)",
++  "Experiences.editDialog.companyName.title": "Nom de l'entreprise",
++  "Experiences.editDialog.description.placeholder": "Vos compétences et technologies utilisées pour ce poste - Quel contrat aviez-vous (CDI, Alternance...) ? (30 car. mini)",
++  "Experiences.editDialog.description.title": "Description  du poste",
++  "Experiences.editDialog.end": "Fin : ",
++  "Experiences.editDialog.jobPlace.placeholder": "Where is/was it located?",
++  "Experiences.editDialog.jobPlace.title": "Localisation du poste",
++  "Experiences.editDialog.jobTitle.placeholder": "Saisissez l'intitulé du poste pour cette entreprise",
++  "Experiences.editDialog.jobTitle.title": "Intitulé du poste",
++  "Experiences.editDialog.jobTitleCompanyBothDates": "{jobTitle} chez {companyName} de {start} à {end}",
++  "Experiences.editDialog.jobTitleCompanyNoEnd": "{jobTitle} chez {companyName} depuis {start}",
++  "Experiences.editDialog.jobTitleNoCompanyBothDates": "{jobTitle} de {start} à {end}",
++  "Experiences.editDialog.jobTitleNoCompanyNoEnd": "{jobTitle} depuis {start}",
++  "Experiences.editDialog.start": "Début : ",
++  "Experiences.editDialog.stillEmployed": "Toujours en poste",
++  "Experiences.editDialog.title": "Edit your professional experiences?",
++  "Experiences.front.action": "See all experiences",
++  "Form.Url.input.title": "Enter an url",
++  "Form.validation.global.changeNumber": "Veuillez changer la valeur par défaut de ce champ",
++  "Form.validation.global.date.mustBeAfter": "La date de fin doit être supérieure à la date de début",
++  "Form.validation.global.mandatory": "Ce champ est obligatoire",
++  "Form.validation.global.max": "Ce champ doit contenir au maximum {max} caractères",
++  "Form.validation.global.min": "Ce champ doit contenir au moins {min} caractères",
++  "Form.validation.global.number.max": "Ce champ doit être inférieur à {max}",
++  "Form.validation.global.number.min": "Ce champ doit être supérieur à {min}",
++  "Form.validation.global.phoneNumber": "Ce champ doit être un numéro de téléphone",
++  "Form.validation.global.url": "Ce champ doit être une URL valide",
++  "Gifs.front.action": "See all hobbies",
++  "Gifs.searchdialog.title": "Search gifs",
++  "Hobbies.side.commons": "Hobbies",
++  "InterestedBy.editDialog.interestedBy.placeholder": "Vue.js, Blockchain, Datadog...",
++  "InterestedBy.editDialog.title": "What technologies are you interested in?",
++  "InterestedBy.front.content": "I'm interested by {interestedBy}",
++  "Interests.editDialog.title": "Show your loved hobbies with fancy gifs!",
++  "Languages.editDialog.language.placeholder": "Ex : English, Italian...",
++  "Languages.editDialog.language.title": "Language : ",
++  "Languages.editDialog.level.title": "Level: {valueNode}%",
++  "Languages.editDialog.title": "Your languages",
++  "Languages.front.action": "Languages level",
++  "Languages.front.content": "I speak {languagesNode}",
++  "Main.Lang.Add": "Ajouter",
++  "Main.lang.close": "Close",
++  "Main.lang.delete": "Supprimer",
++  "Main.lang.remove": "Remove",
++  "Main.lang.save": "Save",
++  "Main.lang.years": "{countNode} year{count, plural, one {} other {s}}",
++  "Palette.picker.select.value": "Select a palette",
++  "PalettePicker.field.currentPalette": "Current palette",
++  "PalettePicker.field.title": "Choose your palette",
++  "Project.details.dialog.title": "Project details",
++  "Project.dialog.link.title": "Lien du projet",
++  "Project.editDialog.title": "Le projet en détails",
++  "Project.section.link": "Link",
++  "Projects.back.title": "Projects",
++  "Projects.details.seemore": "See more",
++  "Projects.dialog.content.title": "Project title",
++  "Projects.front.action": "See {count} projects",
++  "Projects.front.title": "My <emoji>♥️</emoji> project : ",
++  "Skills.Dialog.SliderValue": "{valueNode}%",
++  "Skills.back.title": "Skills",
++  "Skills.editDialog.title": "What are your main skills?",
++  "Skills.front.action": "More skills",
++  "Skills.front.title": "I mainly write {techno} stuff",
++  "Skills.otherskills.title": "I also master",
++  "Soundtrack.editDialog.embedUrl.title": "Enter a Spotify embed URL.",
++  "Soundtrack.front.button": "My playlist",
++  "Soundtrack.front.title": "Discover my favourite tracks",
++  "Sountrack.editDialog.title": "Embed your musical tastes in your profile.",
++  "Studies.back.diploma": "{studyType} in {area}",
++  "Studies.editDialog.diploma.date": "Année de diplômation.",
++  "Studies.editDialog.diploma.mainCourse": "Ex : IA , Géographie, médecine",
++  "Studies.editDialog.diploma.placeholder": "Diplôme : License, Doctorat...",
++  "Studies.editDialog.diploma.title": "Diplôme obtenu",
++  "Studies.editDialog.schoolName.placeholder": "Epitech, Supinfo, 42, ISEN, IG2I...",
++  "Studies.editDialog.schoolName.title": "Formation/Ecole supérieure",
++  "Studies.front.action": "All my studies",
++  "Studies.title": "I gratuated from {schoolName}",
++  "UploadDialog.title": "Upload a file"
++}
+\ No newline at end of file
+diff --git a/src/package/i18n/fr.json b/src/package/i18n/fr.json
+new file mode 100644
+index 0000000..5b26742
+--- /dev/null
++++ b/src/package/i18n/fr.json
+@@ -0,0 +1,161 @@
++{
++  "AddButton.plus": "+",
++  "App.main.": "Voir plus",
++  "Banner.actions.customize": "Personaliser",
++  "Banner.actions.customize.dialog.title": "Personaliser votre profil",
++  "Basics.Back.CodingYears.title": "Expérience",
++  "Basics.Back.CodingYears.value": "{codingYears} années de dev",
++  "Basics.Back.PersonalDescription": "Un peu plus sur moi :",
++  "Basics.Back.StudiesLevel": "{studiesLevel} années d'études supérieures",
++  "Basics.Back.StudiesLevel.Title": "Formation",
++  "Basics.Back.VisaSponsorship": "J'ai besoin d'un visa",
++  "Basics.Back.Work": "{experienceYears} années d'expérience",
++  "Basics.Back.Work.Title": "Expériences",
++  "Basics.Back.WorkContract.multi": "Je cherche un {contracts} ou un {lastContract}",
++  "Basics.Back.WorkContract.single": "Je cherche un {contractType}",
++  "Basics.editDialog.codingReason.title": "Qu'est-ce qui vous motive à coder?",
++  "Basics.editDialog.codingYears.subtitle": "(toutes expérience, projets personnels ou pro confondus...)",
++  "Basics.editDialog.codingYears.title": "Depuis combien de temps codez-vous?",
++  "Basics.editDialog.experienceYears.subtitle": "Toutes expériences confondues",
++  "Basics.editDialog.experienceYears.title": "Combien d'années d'expérience avez-vous?",
++  "Basics.editDialog.location.title": "Dans quelle ville vous situez-vous?",
++  "Basics.editDialog.personalDescription.subtitle": "Utilisez cet espace pour vous décrire un peu plus ! ",
++  "Basics.editDialog.personalDescription.title": "Do you want to tell a bit more about you?",
++  "Basics.editDialog.searchState.title": "What's your current job search state?",
++  "Basics.editDialog.studiesLevel.subtitle": "Bachelor = 3 years post graduate. Master = 5 years post graduate.",
++  "Basics.editDialog.studiesLevel.title": "What is your highest level of formal education?",
++  "Basics.editDialog.summary.title": "Describe yourself in a few words.",
++  "Basics.editDialog.title": "Your basic information",
++  "Basics.editDialog.visaSponsorship": "I require a visa sponsorship",
++  "Basics.form.validation.byGroup": "Vous ne pouvez pas sélectionner Stage ou Alternance en meme temps que CDI/CDD/Freelance",
++  "Basics.form.validation.selectOne": "Veuillez sélectionner au moins un contrat !",
++  "Basics.front.action": "More about me",
++  "Basics.moreText": "More about me",
++  "CardsOrderer.field.title": "Order your profile cards",
++  "Developer.JobPerks.challenge": "Du challenge",
++  "Developer.JobPerks.mood": "Une bonne ambiance",
++  "Developer.JobPerks.other": "Autre",
++  "Developer.JobPerks.perks": "Des avantages (tickets restaurants, CE, etc...)",
++  "Developer.JobPerks.resopnsabilities": "Des responsabilités",
++  "Developer.JobPerks.salary": "Le salaire",
++  "Developer.JobPerks.training": "Des formations",
++  "Developer.JobPerks.work_hours": "Des horaires flexibles",
++  "Developer.RemoteFrequency.Display.fullTime": "I'm interested by full-time remote work",
++  "Developer.RemoteFrequency.Display.never": "I'm not interested by remote work",
++  "Developer.RemoteFrequency.Display.occasionally": "I'm interested by occasional remote work (a few times a month)",
++  "Developer.RemoteFrequency.Display.other": "Autres",
++  "Developer.RemoteFrequency.Display.regularly": "I'm interested by regular remote work (a few times a week)",
++  "Developer.RemoteFrequency.Select.FullTime": "Full-time",
++  "Developer.RemoteFrequency.Select.Never": "No",
++  "Developer.RemoteFrequency.Select.Occasionally": "Occasionally",
++  "Developer.RemoteFrequency.Select.Other": "Other",
++  "Developer.RemoteFrequency.Select.Regularly": "Regularly",
++  "Developer.developerJobSearchState.activelySearching": "I'm actively searching for a job",
++  "Developer.developerJobSearchState.dreamjobOnly": "I'm only searching for my dream job",
++  "Developer.developerJobSearchState.openOpportunities": "I'm open to job opportunitues",
++  "Developer.developerJobSearchState.unknown": "Unknown job search state",
++  "DeveloperProfile.contractTypes.apprenticeship": "Apprenticeship",
++  "DeveloperProfile.contractTypes.fixedTerm": "Fixed-Term",
++  "DeveloperProfile.contractTypes.freelance": "Freelancing",
++  "DeveloperProfile.contractTypes.internship": "Internship",
++  "DeveloperProfile.contractTypes.permanent": "Permanent",
++  "DeveloperProfile.contractTypes.unknown": "Unknown",
++  "DeveloperProfile.locationField.label": "Localisation",
++  "DeveloperProfile.locationField.placeholder": "Paris, France",
++  "DreamJob.Front.Cities": "I want to work in {cities}",
++  "DreamJob.Front.RemoteFulltime": "I want to work remotely",
++  "DreamJob.editDialog.contractTypes.title": "What contract types are you currently looking for?",
++  "DreamJob.editDialog.location.title": "What's your dream job location?",
++  "DreamJob.editDialog.perks.title": "What perks are important to you ?",
++  "DreamJob.editDialog.remoteFrequency.title": "Do you want to work remotely?",
++  "DreamJob.editDialog.salary.title": "What's your desired salary?",
++  "DreamJob.editDialog.title": "Your dream job information",
++  "Dreamjob.Back.ContractTypes.Title": "Contract types",
++  "Dreamjob.Back.Location.ManyPlaces": "I want to work in {place} and {length, plural, one {one other place} other {# other places}}",
++  "Dreamjob.Back.Location.OnePlace": "I want to work in {place}",
++  "Dreamjob.Back.Location.Perks.Title": "Important perks in my job",
++  "Dreamjob.Back.Location.RemoteOnly": "I only want to work remotely",
++  "Dreamjob.Back.Location.Title": "My dreamjob location",
++  "Dreamjob.Back.Salary.Title": "Ideal yearly salary",
++  "Dreamjob.front.action": "Discover my dream job",
++  "Education.form.validation.noFutureDate": "Cette date ne peut pas être dans le futur.",
++  "Experiences.backCard.dates.since": "Since {year}",
++  "Experiences.editDialog.companyName.placeholder": "Exemple : WeLoveDevs.com (facultatif)",
++  "Experiences.editDialog.companyName.title": "Nom de l'entreprise",
++  "Experiences.editDialog.description.placeholder": "Vos compétences et technologies utilisées pour ce poste - Quel contrat aviez-vous (CDI, Alternance...) ? (30 car. mini)",
++  "Experiences.editDialog.description.title": "Description  du poste",
++  "Experiences.editDialog.end": "Fin : ",
++  "Experiences.editDialog.jobPlace.placeholder": "Where is/was it located?",
++  "Experiences.editDialog.jobPlace.title": "Localisation du poste",
++  "Experiences.editDialog.jobTitle.placeholder": "Saisissez l'intitulé du poste pour cette entreprise",
++  "Experiences.editDialog.jobTitle.title": "Intitulé du poste",
++  "Experiences.editDialog.jobTitleCompanyBothDates": "{jobTitle} chez {companyName} de {start} à {end}",
++  "Experiences.editDialog.jobTitleCompanyNoEnd": "{jobTitle} chez {companyName} depuis {start}",
++  "Experiences.editDialog.jobTitleNoCompanyBothDates": "{jobTitle} de {start} à {end}",
++  "Experiences.editDialog.jobTitleNoCompanyNoEnd": "{jobTitle} depuis {start}",
++  "Experiences.editDialog.start": "Début : ",
++  "Experiences.editDialog.stillEmployed": "Toujours en poste",
++  "Experiences.editDialog.title": "Edit your professional experiences?",
++  "Experiences.front.action": "See all experiences",
++  "Form.Url.input.title": "Enter an url",
++  "Form.validation.global.changeNumber": "Veuillez changer la valeur par défaut de ce champ",
++  "Form.validation.global.date.mustBeAfter": "La date de fin doit être supérieure à la date de début",
++  "Form.validation.global.mandatory": "Ce champ est obligatoire",
++  "Form.validation.global.max": "Ce champ doit contenir au maximum {max} caractères",
++  "Form.validation.global.min": "Ce champ doit contenir au moins {min} caractères",
++  "Form.validation.global.number.max": "Ce champ doit être inférieur à {max}",
++  "Form.validation.global.number.min": "Ce champ doit être supérieur à {min}",
++  "Form.validation.global.phoneNumber": "Ce champ doit être un numéro de téléphone",
++  "Form.validation.global.url": "Ce champ doit être une URL valide",
++  "Gifs.front.action": "See all hobbies",
++  "Gifs.searchdialog.title": "Search gifs",
++  "Hobbies.side.commons": "Hobbies",
++  "InterestedBy.editDialog.interestedBy.placeholder": "Vue.js, Blockchain, Datadog...",
++  "InterestedBy.editDialog.title": "What technologies are you interested in?",
++  "InterestedBy.front.content": "I'm interested by {interestedBy}",
++  "Interests.editDialog.title": "Show your loved hobbies with fancy gifs!",
++  "Languages.editDialog.language.placeholder": "Ex : English, Italian...",
++  "Languages.editDialog.language.title": "Language : ",
++  "Languages.editDialog.level.title": "Level: {valueNode}%",
++  "Languages.editDialog.title": "Your languages",
++  "Languages.front.action": "Languages level",
++  "Languages.front.content": "I speak {languagesNode}",
++  "Main.Lang.Add": "Ajouter",
++  "Main.lang.close": "Close",
++  "Main.lang.delete": "Supprimer",
++  "Main.lang.remove": "Remove",
++  "Main.lang.save": "Save",
++  "Main.lang.years": "{countNode} year{count, plural, one {} other {s}}",
++  "Palette.picker.select.value": "Select a palette",
++  "PalettePicker.field.currentPalette": "Current palette",
++  "PalettePicker.field.title": "Choose your palette",
++  "Project.details.dialog.title": "Project details",
++  "Project.dialog.link.title": "Lien du projet",
++  "Project.editDialog.title": "Le projet en détails",
++  "Project.section.link": "Link",
++  "Projects.back.title": "Projects",
++  "Projects.details.seemore": "See more",
++  "Projects.dialog.content.title": "Project title",
++  "Projects.front.action": "See {count} projects",
++  "Projects.front.title": "My <emoji>♥️</emoji> project : ",
++  "Skills.Dialog.SliderValue": "{valueNode}%",
++  "Skills.back.title": "Skills",
++  "Skills.editDialog.title": "What are your main skills?",
++  "Skills.front.action": "More skills",
++  "Skills.front.title": "I mainly write {techno} stuff",
++  "Skills.otherskills.title": "I also master",
++  "Soundtrack.editDialog.embedUrl.title": "Enter a Spotify embed URL.",
++  "Soundtrack.front.button": "My playlist",
++  "Soundtrack.front.title": "Discover my favourite tracks",
++  "Sountrack.editDialog.title": "Embed your musical tastes in your profile.",
++  "Studies.back.diploma": "{studyType} in {area}",
++  "Studies.editDialog.diploma.date": "Année de diplômation.",
++  "Studies.editDialog.diploma.mainCourse": "Ex : IA , Géographie, médecine",
++  "Studies.editDialog.diploma.placeholder": "Diplôme : License, Doctorat...",
++  "Studies.editDialog.diploma.title": "Diplôme obtenu",
++  "Studies.editDialog.schoolName.placeholder": "Epitech, Supinfo, 42, ISEN, IG2I...",
++  "Studies.editDialog.schoolName.title": "Formation/Ecole supérieure",
++  "Studies.front.action": "All my studies",
++  "Studies.title": "I gratuated from {schoolName}",
++  "UploadDialog.title": "Upload a file"
++}
+\ No newline at end of file
+diff --git a/src/package/i18n/whitelist/whitelist_en.json b/src/package/i18n/whitelist/whitelist_en.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/src/package/i18n/whitelist/whitelist_en.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/src/package/i18n/whitelist/whitelist_fr.json b/src/package/i18n/whitelist/whitelist_fr.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/src/package/i18n/whitelist/whitelist_fr.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/translationRunner.js b/translationRunner.js
+new file mode 100644
+index 0000000..de84012
+--- /dev/null
++++ b/translationRunner.js
+@@ -0,0 +1,10 @@
++// translationRunner.js
++const manageTranslations = require('react-intl-translations-manager').default;
++
++manageTranslations({
++    messagesDirectory: 'build/messages/',
++    whitelistsDirectory: 'src/package/i18n/whitelist',
++    translationsDirectory: 'src/package/i18n',
++    languages: ['fr', 'en'], // any language you need,
++    detectDuplicateIds: false
++});
+diff --git a/yarn.lock b/yarn.lock
+index 4194dfa..55008df 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -54,7 +54,7 @@
+     semver "^5.4.1"
+     source-map "^0.5.0"
+ 
+-"@babel/core@7.8.4", "@babel/core@^7.1.0", "@babel/core@^7.4.5", "@babel/core@^7.7.7":
++"@babel/core@7.8.4", "@babel/core@^7.1.0", "@babel/core@^7.4.5", "@babel/core@^7.7.2", "@babel/core@^7.7.7":
+   version "7.8.4"
+   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.8.4.tgz#d496799e5c12195b3602d0fddd77294e3e38e80e"
+   integrity sha512-0LiLrB2PwrVI+a2/IEskBopDYSd8BCb3rOvH7D5tzoWd696TBEduBvuLVm4Nx6rltrLZqvI3MCalB2K2aVzQjA==
+@@ -1390,7 +1390,7 @@
+     "@svgr/plugin-svgo" "^4.3.1"
+     loader-utils "^1.2.3"
+ 
+-"@types/babel__core@^7.1.0":
++"@types/babel__core@^7.1.0", "@types/babel__core@^7.1.3":
+   version "7.1.3"
+   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.3.tgz#e441ea7df63cd080dfcd02ab199e6d16a735fc30"
+   integrity sha512-8fBo0UR2CcwWxeX7WIIgJ7lXjasFxoYgRnFHUj+hRvKkpiBJbxhdAPTCY6/ZKM0uxANFVzt4yObSLuTiTnazDA==
+@@ -1529,6 +1529,11 @@
+   dependencies:
+     "@types/prop-types" "*"
+     csstype "^2.2.0"
++
++"@types/schema-utils@^1.0.0":
++  version "1.0.0"
++  resolved "https://registry.yarnpkg.com/@types/schema-utils/-/schema-utils-1.0.0.tgz#295d36f01e2cb8bc3207ca1d9a68e210db6b40cb"
++  integrity sha512-YesPanU1+WCigC/Aj1Mga8UCOjHIfMNHZ3zzDsUY7lI8GlKnh/Kv2QwJOQ+jNQ36Ru7IfzSedlG14hppYaN13A==
+ 
+ "@types/stack-utils@^1.0.1":
+   version "1.0.1"
+@@ -2317,6 +2322,19 @@
+   resolved "https://registry.yarnpkg.com/babel-plugin-named-asset-import/-/babel-plugin-named-asset-import-0.3.6.tgz#c9750a1b38d85112c9e166bf3ef7c5dbc605f4be"
+   integrity sha512-1aGDUfL1qOOIoqk9QKGIo2lANk+C7ko/fqH0uIyC71x3PEGz0uVP8ISgfEsFuG+FKmjHTvFK/nNM8dowpmUxLA==
+ 
++babel-plugin-react-intl@^5.1.18:
++  version "5.1.18"
++  resolved "https://registry.yarnpkg.com/babel-plugin-react-intl/-/babel-plugin-react-intl-5.1.18.tgz#7713c1fdf0055b606d67e2d1624a2e583a1fcdb7"
++  integrity sha512-tzzZoGDNQOiHmGFh+NPQJDpC10RbKlfw1CBVfALulqRa6UGkAv5eMs9sirxjhD3HryHPbYZ4x5FNdbzOyG2GJw==
++  dependencies:
++    "@babel/core" "^7.7.2"
++    "@babel/helper-plugin-utils" "^7.0.0"
++    "@types/babel__core" "^7.1.3"
++    "@types/schema-utils" "^1.0.0"
++    fs-extra "^8.1.0"
++    intl-messageformat-parser "^3.6.4"
++    schema-utils "^2.2.0"
++
+ babel-plugin-syntax-object-rest-spread@^6.8.0:
+   version "6.13.0"
+   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-object-rest-spread/-/babel-plugin-syntax-object-rest-spread-6.13.0.tgz#fd6536f2bce13836ffa3a5458c4903a597bb3bf5"
+@@ -2856,7 +2874,7 @@
+     strip-ansi "^3.0.0"
+     supports-color "^2.0.0"
+ 
+-chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.4.1, chalk@^2.4.2:
++chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.2, chalk@^2.4.1, chalk@^2.4.2:
+   version "2.4.2"
+   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
+   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
+@@ -9644,6 +9662,16 @@
+     react-transition-group "^2.9.0"
+     react-view-pager "^0.6.0"
+ 
++react-intl-translations-manager@^5.0.3:
++  version "5.0.3"
++  resolved "https://registry.yarnpkg.com/react-intl-translations-manager/-/react-intl-translations-manager-5.0.3.tgz#aee010ecf35975673e033ca5d7d3f4147894324d"
++  integrity sha512-EfBeugnOGFcdUbQyY9TqBMbuauQ8wm73ZqFr0UqCljhbXl7YDHQcVzclWFRkVmlUffzxitLQFhAZEVVeRNQSwA==
++  dependencies:
++    chalk "^2.3.2"
++    glob "^7.1.2"
++    json-stable-stringify "^1.0.1"
++    mkdirp "^0.5.1"
++
+ react-intl@^3.9.3:
+   version "3.12.0"
+   resolved "https://registry.yarnpkg.com/react-intl/-/react-intl-3.12.0.tgz#98ef1c94434cc25a8c67448e1e283e6bfe11b2fc"
