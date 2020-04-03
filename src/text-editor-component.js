@@ -1736,7 +1736,10 @@ module.exports = class TextEditorComponent {
     const scrollTopChanged =
       wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY);
 
-    if (scrollLeftChanged || scrollTopChanged) this.updateSync();
+    if (scrollLeftChanged || scrollTopChanged) {
+      event.preventDefault();
+      this.updateSync();
+    }
   }
 
   didResize() {

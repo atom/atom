@@ -1680,11 +1680,17 @@ describe('TextEditorComponent', () => {
         width: 50,
         scrollSensitivity
       });
+      // stub in place for Event.preventDefault()
+      const eventPreventDefaultStub = function() {};
 
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
         const expectedScrollLeft = component.getScrollLeft();
-        component.didMouseWheel({ wheelDeltaX: -5, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: -5,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1696,7 +1702,11 @@ describe('TextEditorComponent', () => {
         const expectedScrollTop =
           component.getScrollTop() - 10 * (scrollSensitivity / 100);
         const expectedScrollLeft = component.getScrollLeft();
-        component.didMouseWheel({ wheelDeltaX: -5, wheelDeltaY: 10 });
+        component.didMouseWheel({
+          wheelDeltaX: -5,
+          wheelDeltaY: 10,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1707,7 +1717,11 @@ describe('TextEditorComponent', () => {
       {
         const expectedScrollTop = component.getScrollTop();
         const expectedScrollLeft = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: -20, wheelDeltaY: 10 });
+        component.didMouseWheel({
+          wheelDeltaX: -20,
+          wheelDeltaY: 10,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1719,7 +1733,11 @@ describe('TextEditorComponent', () => {
         const expectedScrollTop = component.getScrollTop();
         const expectedScrollLeft =
           component.getScrollLeft() - 10 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 10, wheelDeltaY: -8 });
+        component.didMouseWheel({
+          wheelDeltaX: 10,
+          wheelDeltaY: -8,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1735,11 +1753,17 @@ describe('TextEditorComponent', () => {
         width: 50,
         scrollSensitivity
       });
+      // stub in place for Event.preventDefault()
+      const eventPreventDefaultStub = function() {};
 
       component.props.platform = 'linux';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1752,7 +1776,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1766,7 +1791,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1778,7 +1804,11 @@ describe('TextEditorComponent', () => {
       component.props.platform = 'win32';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1791,7 +1821,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1805,7 +1836,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1817,7 +1849,11 @@ describe('TextEditorComponent', () => {
       component.props.platform = 'darwin';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1830,7 +1866,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1844,7 +1881,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
