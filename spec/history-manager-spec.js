@@ -1,6 +1,7 @@
 const { HistoryManager, HistoryProject } = require('../src/history-manager');
 const StateStore = require('../src/state-store');
 
+<<<<<<< HEAD
 describe('HistoryManager', () => {
   let historyManager, commandRegistry, project, stateStore;
   let commandDisposable, projectDisposable;
