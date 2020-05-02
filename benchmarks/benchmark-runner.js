@@ -73,3 +73,4 @@ module.exports = async ({ test, benchmarkPaths }) => {
 
   return 0;
 };
+###
