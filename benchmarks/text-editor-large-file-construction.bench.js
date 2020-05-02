@@ -98,3 +98,4 @@ module.exports = async ({ test }) => {
 function timeout(duration) {
   return new Promise(resolve => setTimeout(resolve, duration));
 }
+###
