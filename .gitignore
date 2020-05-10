@@ -11,7 +11,7 @@ node_modules
 npm-debug.log
 debug.log
 /tags
-/atom-shell/
+/ultraleopard-shell/
 /out/
 docs/output
 docs/includes
