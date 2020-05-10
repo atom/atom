@@ -10,13 +10,13 @@ else
 fi
 
 case $(basename $0) in
-  atom-beta)
+  ultraleopard-alpha)
     CHANNEL=beta
     ;;
-  atom-nightly)
+  ultraleopard-nightly)
     CHANNEL=nightly
     ;;
-  atom-dev)
+  ultraleopard-dev)
     CHANNEL=dev
     ;;
   *)
@@ -24,14 +24,14 @@ case $(basename $0) in
     ;;
 esac
 
-# Only set the ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT env var if it hasn't been set.
-if [ -z "$ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT" ]
+# Only set the ULTRALEOPARD_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT env var if it hasn't been set.
+if [ -z "$ULTRALEOPARD_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT" ]
 then
-  export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
+  export ULTRALEOPARD_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 fi
 
-ATOM_ADD=false
-ATOM_NEW_WINDOW=false
+ULTRALEOPARD_ADD=false
+ULTRALEOPARD_NEW_WINDOW=false
 EXIT_CODE_OVERRIDE=
 
 while getopts ":anwtfvh-:" opt; do
@@ -39,10 +39,10 @@ while getopts ":anwtfvh-:" opt; do
     -)
       case "${OPTARG}" in
         add)
-          ATOM_ADD=true
+          ULTRALEOPARD_ADD=true
           ;;
         new-window)
-          ATOM_NEW_WINDOW=true
+          ULTRALEOPARD_NEW_WINDOW=true
           ;;
         wait)
           WAIT=1
@@ -60,10 +60,10 @@ while getopts ":anwtfvh-:" opt; do
       esac
       ;;
     a)
-      ATOM_ADD=true
+      ULTRALEOPARD_ADD=true
       ;;
     n)
-      ATOM_NEW_WINDOW=true
+      ULTRALEOPARD_NEW_WINDOW=true
       ;;
     w)
       WAIT=1
@@ -78,7 +78,7 @@ while getopts ":anwtfvh-:" opt; do
   esac
 done
 
-if [ "${ATOM_ADD}" = "true" ] && [ "${ATOM_NEW_WINDOW}" = "true" ]; then
+if [ "${ULTRALEOPARD_ADD}" = "true" ] && [ "${ULTRALEOPARD_NEW_WINDOW}" = "true" ]; then
   EXPECT_OUTPUT=1
   EXIT_CODE_OVERRIDE=1
 fi
@@ -87,8 +87,8 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
-mkdir -p "$ATOM_HOME"
+ULTRALEOPARD_HOME="${ULTRALEOPARD_HOME:-$HOME/.ultraleopard}"
+mkdir -p "$ULTRALEOPARD_HOME"
 
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
@@ -96,17 +96,17 @@ if [ $OS == 'Mac' ]; then
   else
     SCRIPT="$0"
   fi
-  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
-  if [ "$ATOM_APP" == . ]; then
-    unset ATOM_APP
+  ULTRALEOPARD_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
+  if [ "$ULTRALEOPARD_APP" == . ]; then
+    unset ULTRALEOPARD_APP
   else
-    ATOM_PATH="$(dirname "$ATOM_APP")"
-    ATOM_APP_NAME="$(basename "$ATOM_APP")"
+    ULTRALEOPARD_PATH="$(dirname "$ULTRALEOPARD_APP")"
+    ULTRALEOPARD_APP_NAME="$(basename "$ULTRALEOPARD_APP")"
   fi
 
-  if [ ! -z "${ATOM_APP_NAME}" ]; then
+  if [ ! -z "${ULTRALEOPARD_APP_NAME}" ]; then
     # If ATOM_APP_NAME is known, use it as the executable name
-    ATOM_EXECUTABLE_NAME="${ATOM_APP_NAME%.*}"
+    ULTRALEOPARD_EXECUTABLE_NAME="${ULTRALEOPARD_APP_NAME%.*}"
   else
     # Else choose it from the inferred channel name
     if [ "$CHANNEL" == 'beta' ]; then
