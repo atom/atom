@@ -10,13 +10,13 @@ else
 fi
 
 case $(basename $0) in
-  atom-beta)
-    CHANNEL=beta
+  wolfer-alpha)
+    CHANNEL=alpha
     ;;
-  atom-nightly)
+  wolfer-nightly)
     CHANNEL=nightly
     ;;
-  atom-dev)
+  wolfer-dev)
     CHANNEL=dev
     ;;
   *)
@@ -24,14 +24,14 @@ case $(basename $0) in
     ;;
 esac
 
-# Only set the ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT env var if it hasn't been set.
-if [ -z "$ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT" ]
+# Only set the WOLFER_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT env var if it hasn't been set.
+if [ -z "$WOLFER_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT" ]
 then
-  export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
+  export WOLFER_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 fi
 
-ATOM_ADD=false
-ATOM_NEW_WINDOW=false
+WOLFER_ADD=false
+WOLFER_NEW_WINDOW=false
 EXIT_CODE_OVERRIDE=
 
 while getopts ":anwtfvh-:" opt; do
@@ -39,10 +39,10 @@ while getopts ":anwtfvh-:" opt; do
     -)
       case "${OPTARG}" in
         add)
-          ATOM_ADD=true
+          WOLFER_ADD=true
           ;;
         new-window)
-          ATOM_NEW_WINDOW=true
+          WOLFER_NEW_WINDOW=true
           ;;
         wait)
           WAIT=1
@@ -60,10 +60,10 @@ while getopts ":anwtfvh-:" opt; do
       esac
       ;;
     a)
-      ATOM_ADD=true
+      WOLFER_ADD=true
       ;;
     n)
-      ATOM_NEW_WINDOW=true
+      WOLFER_NEW_WINDOW=true
       ;;
     w)
       WAIT=1
@@ -78,7 +78,7 @@ while getopts ":anwtfvh-:" opt; do
   esac
 done
 
-if [ "${ATOM_ADD}" = "true" ] && [ "${ATOM_NEW_WINDOW}" = "true" ]; then
+if [ "${WOLFER_ADD}" = "true" ] && [ "${WOLFER_NEW_WINDOW}" = "true" ]; then
   EXPECT_OUTPUT=1
   EXIT_CODE_OVERRIDE=1
 fi
@@ -87,8 +87,8 @@ if [ $REDIRECT_STDERR ]; then
   exec 2> /dev/null
 fi
 
-ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
-mkdir -p "$ATOM_HOME"
+WOLFER_HOME="${WOLFER_HOME:-$HOME/.wolfer}"
+mkdir -p "$WOLFER_HOME"
 
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
@@ -96,58 +96,58 @@ if [ $OS == 'Mac' ]; then
   else
     SCRIPT="$0"
   fi
-  ATOM_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
-  if [ "$ATOM_APP" == . ]; then
-    unset ATOM_APP
+  WOLFER_APP="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT")")")")"
+  if [ "$WOLFER_APP" == . ]; then
+    unset WOLFER_APP
   else
-    ATOM_PATH="$(dirname "$ATOM_APP")"
-    ATOM_APP_NAME="$(basename "$ATOM_APP")"
+    WOLFER_PATH="$(dirname "$WOLFER_APP")"
+    WOLFER_APP_NAME="$(basename "$WOLFER_APP")"
   fi
 
-  if [ ! -z "${ATOM_APP_NAME}" ]; then
-    # If ATOM_APP_NAME is known, use it as the executable name
-    ATOM_EXECUTABLE_NAME="${ATOM_APP_NAME%.*}"
+  if [ ! -z "${WOLFER_APP_NAME}" ]; then
+    # If WOLFER_APP_NAME is known, use it as the executable name
+    WOLFER_EXECUTABLE_NAME="${WOLFER_APP_NAME%.*}"
   else
     # Else choose it from the inferred channel name
-    if [ "$CHANNEL" == 'beta' ]; then
-      ATOM_EXECUTABLE_NAME="Atom Beta"
+    if [ "$CHANNEL" == 'alpha' ]; then
+      WOLFER_EXECUTABLE_NAME="Wolfer Alpha"
     elif [ "$CHANNEL" == 'nightly' ]; then
-      ATOM_EXECUTABLE_NAME="Atom Nightly"
+      WOLFER_EXECUTABLE_NAME="Wolfer Nightly"
     elif [ "$CHANNEL" == 'dev' ]; then
-      ATOM_EXECUTABLE_NAME="Atom Dev"
+      WOLFER_EXECUTABLE_NAME="Wolfer Dev"
     else
-      ATOM_EXECUTABLE_NAME="Atom"
+      WOLFER_EXECUTABLE_NAME="Wolfer"
     fi
   fi
 
-  if [ -z "${ATOM_PATH}" ]; then
-    # If ATOM_PATH isn't set, check /Applications and then ~/Applications for Atom.app
-    if [ -x "/Applications/$ATOM_APP_NAME" ]; then
-      ATOM_PATH="/Applications"
-    elif [ -x "$HOME/Applications/$ATOM_APP_NAME" ]; then
-      ATOM_PATH="$HOME/Applications"
+  if [ -z "${WOLFER_PATH}" ]; then
+    # If WOLFER_PATH isn't set, check /Applications and then ~/Applications for Wolfer.app
+    if [ -x "/Applications/$WOLFER_APP_NAME" ]; then
+      WOLFER_PATH="/Applications"
+    elif [ -x "$HOME/Applications/$WOLFER_APP_NAME" ]; then
+      WOLFER_PATH="$HOME/Applications"
     else
-      # We haven't found an Atom.app, use spotlight to search for Atom
-      ATOM_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.github.atom'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
+      # We haven't found a Wolfer.app, use spotlight to search for Wolfer
+      WOLFER_PATH="$(mdfind "kMDItemCFBundleIdentifier == 'com.wolfer.wolfer'" | grep -v ShipIt | head -1 | xargs -0 dirname)"
 
-      # Exit if Atom can't be found
-      if [ ! -x "$ATOM_PATH/$ATOM_APP_NAME" ]; then
-        echo "Cannot locate ${ATOM_APP_NAME}, it is usually located in /Applications. Set the ATOM_PATH environment variable to the directory containing ${ATOM_APP_NAME}."
+      # Exit if Wolfer can't be found
+      if [ ! -x "$WOLFER_PATH/$WOLFER_APP_NAME" ]; then
+        echo "Cannot locate ${WOLFER_APP_NAME}, it is usually located in /Applications. Set the WOLFER_PATH environment variable to the directory containing ${WOLFER_APP_NAME}."
         exit 1
       fi
     fi
   fi
 
   if [ $EXPECT_OUTPUT ]; then
-    "$ATOM_PATH/$ATOM_APP_NAME/Contents/MacOS/$ATOM_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
-    ATOM_EXIT=$?
-    if [ ${ATOM_EXIT} -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
+    "$WOLFER_PATH/$WOLFER_APP_NAME/Contents/MacOS/$WOLFER_EXECUTABLE_NAME" --executed-from="$(pwd)" --pid=$$ "$@"
+    WOLFER_EXIT=$?
+    if [ ${WOLFER_EXIT} -eq 0 ] && [ -n "${EXIT_CODE_OVERRIDE}" ]; then
       exit "${EXIT_CODE_OVERRIDE}"
     else
-      exit ${ATOM_EXIT}
+      exit ${WOLFER_EXIT}
     fi
   else
-    open -a "$ATOM_PATH/$ATOM_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
+    open -a "$WOLFER_PATH/$WOLFER_APP_NAME" -n --args --executed-from="$(pwd)" --pid=$$ --path-environment="$PATH" "$@"
   fi
 elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
