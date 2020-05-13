@@ -1994,7 +1994,9 @@ module.exports = class TextEditorComponent {
       return;
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin');
+    const allowMultiCursor = atom.config.get('core.editor.multiCursorOnClick');
+    const addOrRemoveSelection =
+      allowMultiCursor && (metaKey || (ctrlKey && platform !== 'darwin'));
 
     switch (detail) {
       case 1:

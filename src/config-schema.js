@@ -609,6 +609,12 @@ const configSchema = {
         default: process.platform !== 'darwin',
         description:
           'Change the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      },
+      multiCursorOnClick: {
+        type: 'boolean',
+        default: true,
+        description:
+          'Add multiple cursors when pressing the Ctrl key (Command key on MacOS) and clicking the editor.'
       }
     }
   }
