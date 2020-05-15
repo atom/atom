@@ -4221,6 +4221,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent({ platform: 'darwin' });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
 
@@ -4301,6 +4302,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds word selections when holding cmd or ctrl when double-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4327,6 +4329,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4362,6 +4365,107 @@ describe('TextEditorComponent', () => {
             [[0, 0], [0, 0]],
             [[1, 0], [2, 0]]
           ]);
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add cursors when holding cmd or ctrl when single-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent({ platform: 'darwin' });
+          expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
+
+          // moves cursor to 1, 16
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              metaKey: true
+            })
+          );
+          expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
+
+          // ctrl-click does not add cursors on macOS, nor does it move the cursor
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 4), {
+              detail: 1,
+              button: 0,
+              ctrlKey: true
+            })
+          );
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 16], [1, 16]]
+          ]);
+
+          // ctrl-click does not add cursors on platforms *other* than macOS
+          component.props.platform = 'win32';
+          editor.setCursorScreenPosition([1, 4], { autoscroll: false });
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              ctrlKey: true
+            })
+          );
+          expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
+
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add word selections when holding cmd or ctrl when double-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent();
+
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              metaKey: true
+            })
+          );
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 2,
+              button: 0,
+              metaKey: true
+            })
+          );
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 13], [1, 21]]
+          ]);
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add line selections when holding cmd or ctrl when triple-clicking', () => {
+          atom.config.set('core.editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent();
+
+          const { clientX, clientY } = clientPositionForCharacter(
+            component,
+            1,
+            16
+          );
+          component.didMouseDownOnContent({
+            detail: 1,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+          component.didMouseDownOnContent({
+            detail: 2,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+          component.didMouseDownOnContent({
+            detail: 3,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+
+          expect(editor.getSelectedScreenRanges()).toEqual([[[1, 0], [2, 0]]]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
 
@@ -4453,6 +4557,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('expands the last selection on drag', () => {
+          atom.config.set('core.editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           spyOn(component, 'handleMouseDragUntilMouseUp');
 
