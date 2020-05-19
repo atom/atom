@@ -319,7 +319,6 @@ module.exports = class AtomApplication extends EventEmitter {
           this.promptForRestart()
         );
       });
-      
       await this.configFilePromise;
     }
 
