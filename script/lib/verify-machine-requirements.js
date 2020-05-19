@@ -7,9 +7,6 @@ const path = require('path');
 const CONFIG = require('../config');
 
 module.exports = function(ci) {
-  console.log('------')
-  console.log(ci)
-  console.log('------')
   verifyNode();
   verifyNpm(ci);
   if (process.platform === 'win32') {
