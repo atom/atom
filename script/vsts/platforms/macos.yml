@@ -18,8 +18,12 @@ jobs:
         displayName: Install Node.js 12.14.0
 
       - script:  | 
-          rm -r /usr/local/lib/node_modules/npm
-          /usr/bin/npm uninstall npm
+          npm -v
+          node -v
+          which npm
+          which node
+          grep \"version\" ~/.npm-packages/lib/node_modules/npm/package.json
+          grep \"version\" /usr/local/lib/node_modules/npm/package.json
           npm install --global npm@6.13.4
           
         displayName: Update npm
