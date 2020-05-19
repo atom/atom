@@ -143,7 +143,7 @@
     "resolve": "^1.1.6",
     "scandal": "^3.2.0",
     "scoped-property-store": "^0.17.0",
-    "scrollbar-style": "^3.2",
+    "scrollbar-style": "^3.2.1",
     "season": "^6.0.2",
     "semver": "^4.3.3",
     "service-hub": "^0.7.4",
