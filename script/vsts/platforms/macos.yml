@@ -17,7 +17,11 @@ jobs:
           versionSpec: 12.14.0
         displayName: Install Node.js 12.14.0
 
-      - script: npm install --global npm@6.13.4
+      - script:  | 
+          rm -r /usr/local/lib/node_modules/npm
+          /usr/bin/npm uninstall npm
+          npm install --global npm@6.13.4
+          
         displayName: Update npm
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
