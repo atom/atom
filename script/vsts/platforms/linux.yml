@@ -24,8 +24,8 @@ jobs:
 
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.4.0
-        displayName: Install Node.js 12.4.0
+          versionSpec: 12.8.1
+        displayName: Install Node.js 12.8.1
 
       - script: npm install --global npm@6.13.4
         displayName: Update npm

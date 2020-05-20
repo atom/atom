@@ -26,8 +26,8 @@ jobs:
 
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.4.0
-        displayName: Install Node.js 12.4.0
+          versionSpec: 12.8.1
+        displayName: Install Node.js 12.8.1
 
       - script: |
           ECHO Installing npm-windows-upgrade
@@ -70,7 +70,7 @@ jobs:
           BUILD_ARCH: $(buildArch)
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.4.0\\x64\\npm.cmd"
+          NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.8.1\\x64\\npm.cmd"
           npm_config_build_from_source: true
         displayName: Bootstrap build environment
         condition: ne(variables['CacheRestored'], 'true')
