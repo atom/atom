@@ -56,7 +56,7 @@ jobs:
 
       - script: script/lint
         displayName: Run linter
-      
+
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
@@ -67,8 +67,8 @@ jobs:
         displayName: Build Atom
 
       - script: |
-          sudo chown root ./out/atom*-amd64/chrome-sandbox
-          sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
+          sudo sysctl kernel.unprivileged_userns_clone=1
+          echo "kernel.unprivileged_userns_clone=1" | sudo tee /etc/sysctl.d/electron-fix.conf
         displayName: Tweaking chrome-sandbox binary
 
       - script: script/test
