@@ -67,8 +67,8 @@ jobs:
         displayName: Build Atom
 
       - script: |
-          sudo sysctl kernel.unprivileged_userns_clone=1
-          echo "kernel.unprivileged_userns_clone=1" | sudo tee /etc/sysctl.d/electron-fix.conf
+          sudo chown root ./out/atom*-amd64/chrome-sandbox
+          sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
         displayName: Tweaking chrome-sandbox binary
 
       - script: script/test
