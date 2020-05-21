@@ -1,0 +1,4 @@
+jobs:
+  - job: Windows
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180

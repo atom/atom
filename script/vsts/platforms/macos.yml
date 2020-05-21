@@ -1,0 +1,3 @@
+jobs:
+  - job: macOS_build
+    displayName: macOS build
