@@ -228,6 +228,8 @@ module.exports = function(packagedAppPath) {
 
   fs.copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath);
 
-  fs.chmodSync(path.join(outputDebianPackageFilePath, 'chrome-sandbox'), '4755');
-
+  fs.chmodSync(
+    path.join(outputDebianPackageFilePath, 'chrome-sandbox'),
+    '4755'
+  );
 };
