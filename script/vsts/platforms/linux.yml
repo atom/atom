@@ -69,6 +69,8 @@ jobs:
       - script: |
           sudo chown root ./out/atom*-amd64/chrome-sandbox
           sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
+          find * -type f -name *chrome-sandbox
+
         displayName: Tweaking chrome-sandbox binary
 
       - script: script/test

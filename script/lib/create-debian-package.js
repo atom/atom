@@ -217,6 +217,12 @@ module.exports = function(packagedAppPath) {
     )
   );
 
+  // childProcess.execSync(
+  //   `find "${debianPackageDirPath}" -type f -name *.node;`
+  // );
+
+  // fs.chmodSync(path.join(debianPackageDirPath, 'chrome-sandbox'), '4755');
+
   console.log(`Generating .deb file from ${debianPackageDirPath}`);
   spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {
     stdio: 'inherit'
@@ -225,8 +231,6 @@ module.exports = function(packagedAppPath) {
   console.log(
     `Copying generated package into "${outputDebianPackageFilePath}"`
   );
-
-  fs.chmodSync(path.join(debianPackageDirPath, 'chrome-sandbox'), '4755');
 
   fs.copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath);
 };
