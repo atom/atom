@@ -4221,7 +4221,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', true);
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent({ platform: 'darwin' });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
 
@@ -4302,7 +4302,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds word selections when holding cmd or ctrl when double-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', true);
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4329,7 +4329,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', true);
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4369,7 +4369,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('does not add cursors when holding cmd or ctrl when single-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', false);
+          atom.config.set('editor.multiCursorOnClick', false);
           const { component, editor } = buildComponent({ platform: 'darwin' });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
 
@@ -4411,7 +4411,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('does not add word selections when holding cmd or ctrl when double-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', false);
+          atom.config.set('editor.multiCursorOnClick', false);
           const { component, editor } = buildComponent();
 
           component.didMouseDownOnContent(
@@ -4435,7 +4435,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('does not add line selections when holding cmd or ctrl when triple-clicking', () => {
-          atom.config.set('core.editor.multiCursorOnClick', false);
+          atom.config.set('editor.multiCursorOnClick', false);
           const { component, editor } = buildComponent();
 
           const { clientX, clientY } = clientPositionForCharacter(
@@ -4557,7 +4557,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('expands the last selection on drag', () => {
-          atom.config.set('core.editor.multiCursorOnClick', true);
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           spyOn(component, 'handleMouseDragUntilMouseUp');
 
