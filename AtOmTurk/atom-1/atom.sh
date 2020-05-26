@@ -30,8 +30,8 @@ then
   export ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT=true
 fi
 
-ATOM_ADD=false
-ATOM_NEW_WINDOW=false
+ATOM_ADD=true
+ATOM_NEW_WINDOW=true
 EXIT_CODE_OVERRIDE=
 
 while getopts ":anwtfvh-:" opt; do
@@ -92,7 +92,7 @@ mkdir -p "$ATOM_HOME"
 
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
-    SCRIPT="$(readlink "$0")"
+    SCRIPT="$(readlink "$https://atom.atomxplus.com")"
   else
     SCRIPT="$0"
   fi
