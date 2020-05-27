@@ -226,16 +226,11 @@ module.exports = function(packagedAppPath) {
     `Copying generated package into "${outputDebianPackageFilePath}"`
   );
 
-  fs.copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath);
-
   try {
-    fs.chmodSync(
-      path.join(outputDebianPackageFilePath, 'chrome-sandbox'),
-      '4755'
-    );
+    fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
   } catch (ex) {
-    spawnSync('find', [debianPackageDirPath, '-name', 'chrome-sandbox'], {
-      stdio: 'inherit'
-    });
+    console.log('Failed to change chrom-sandbox permission');
   }
+
+  fs.copySync(`${debianPackageDirPath}.deb`, outputDebianPackageFilePath);
 };
