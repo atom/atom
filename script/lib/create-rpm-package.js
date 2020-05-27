@@ -52,18 +52,10 @@ module.exports = function(packagedAppPath) {
   );
   fs.copySync(packagedAppPath, rpmPackageApplicationDirPath);
 
-  try {
-    fs.chmodSync(
-      path.join(rpmPackageApplicationDirPath, 'chrome-sandbox'),
-      '4755'
-    );
-  } catch (ex) {
-    console.log('Chmod failed');
-
-    spawnSync('find', [rpmPackageDirPath, '-name', 'chrome-sandbox'], {
-      stdio: 'inherit'
-    });
-  }
+  fs.chmodSync(
+    path.join(rpmPackageApplicationDirPath, 'chrome-sandbox'),
+    '4755'
+  );
 
   console.log(`Copying icons into "${rpmPackageIconsDirPath}"`);
   fs.copySync(
