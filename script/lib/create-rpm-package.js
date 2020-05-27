@@ -54,7 +54,7 @@ module.exports = function(packagedAppPath) {
 
   try {
     fs.chmodSync(
-      path.join(rpmPackageApplicationDirPath,·'chrome-sandbox'),
+      path.join(rpmPackageApplicationDirPath, 'chrome-sandbox'),
       '4755'
     );
   } catch (ex) {
