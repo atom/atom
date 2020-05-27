@@ -2,7 +2,8 @@ trigger:
   - master
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
-
+  - fix-crash-on-linux
+  
 jobs:
   - job: GetReleaseVersion
     steps:
