@@ -122,7 +122,7 @@ module.exports = function(packagedAppPath) {
   );
 
   try {
-    fs.chmodSync(path.join(debianPackageAtomDirPath,·'chrome-sandbox'),·'4755');
+    fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
   } catch (ex) {
     console.log('Chmod failed');
 
