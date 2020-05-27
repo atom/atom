@@ -121,15 +121,7 @@ module.exports = function(packagedAppPath) {
     path.join(debianPackageBinDirPath, apmExecutableName)
   );
 
-  try {
-    fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
-  } catch (ex) {
-    console.log('Chmod failed');
-
-    spawnSync('find', [debianPackageDirPath, '-name', 'chrome-sandbox'], {
-      stdio: 'inherit'
-    });
-  }
+  fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
 
   console.log(`Writing control file into "${debianPackageConfigPath}"`);
   const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath])
