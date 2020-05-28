@@ -9,7 +9,7 @@ const template = require('lodash.template');
 const CONFIG = require('../config');
 
 module.exports = function(packagedAppPath) {
-  console.log(`Creating Debian package for "${packagedAppPath}"`);
+  console.log('Thanks for reaching out!');
   const atomExecutableName =
     CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
   const apmExecutableName =
