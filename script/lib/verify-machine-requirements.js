@@ -9,9 +9,7 @@ const CONFIG = require('../config');
 module.exports = function(ci) {
   verifyNode();
   verifyNpm(ci);
-  if (process.platform === 'win32') {
-    verifyPython();
-  }
+  verifyPython();
 };
 
 function verifyNode() {
@@ -50,36 +48,98 @@ function verifyNpm(ci) {
 }
 
 function verifyPython() {
-  const systemDrive = process.env.SystemDrive || 'C:\\';
-  let pythonExecutable;
-  if (process.env.PYTHON) {
-    pythonExecutable = process.env.PYTHON;
-  } else {
-    const pythonBinPath = path.join(systemDrive, 'Python27', 'python.exe');
-    if (fs.existsSync(pythonBinPath)) {
-      pythonExecutable = pythonBinPath;
-    } else {
-      pythonExecutable = 'python';
+  // This function essentially re-implements node-gyp's "find-python.js" library,
+  // but in a synchronous, bootstrap-script-friendly way.
+  // It is based off of the logic of the file from node-gyp v5.x:
+  // https://github.com/nodejs/node-gyp/blob/v5.1.1/lib/find-python.js
+  // This node-gyp is the version in use by current npm (in mid 2020).
+  //
+  // TODO: If apm ships a newer version of node-gyp (v6.x or later), please update this script.
+  // Particularly, node-gyp v6.x looks for python3 first, then python, then python2.
+  // (In contrast: node-gyp v5.x looks for python first, then python2, then python3.)
+  // Also, node-gyp v7.x or later will probably drop the "-2" flag from "py.exe",
+  // so as to allow finding Python 3 as well, not just Python 2.
+  // https://github.com/nodejs/node-gyp/pull/2124#issuecomment-633812957
+
+  var stdout;
+  var fullVersion;
+  var usablePythonWasFound;
+
+  function verifyBinary(binary, prependFlag) {
+    if (binary && !usablePythonWasFound) {
+      let allFlags = ['-c', 'import platform\nprint(platform.python_version())'];
+      if (prependFlag) {
+        // prependFlag is an optional argument,
+        // used to prepend "-2" for the "py.exe" launcher.
+        // TODO: Refactor by eliminating prependFlag
+        // once apm updates to node-gyp v7.x+, when it is anticipated
+        // that the "-2" flag will be dropped for invoking the py launcher.
+        allFlags.unshift(prependFlag);
+      }
+
+      try {
+        stdout = childProcess.execFileSync(
+          binary,
+          allFlags,
+            { env: process.env, stdio: ['ignore', 'pipe', 'ignore'] }
+        );
+      } catch {
+      }
+
+      if (stdout) {
+        if (stdout.indexOf('+') !== -1) stdout = stdout.toString().replace(/\+/g, '');
+        if (stdout.indexOf('rc') !== -1) stdout = stdout.toString().replace(/rc(.*)$/gi, '');
+        fullVersion = stdout.toString().trim();
+      }
+
+      if (fullVersion) {
+        var versionComponents = fullVersion.split('.');
+        var majorVersion = Number(versionComponents[0]);
+        var minorVersion = Number(versionComponents[1]);
+        if (majorVersion === 2 && minorVersion === 7 || majorVersion === 3 && minorVersion >= 5) {
+          usablePythonWasFound = true;
+        } else {
+          stdout = '';
+        }
+      }
     }
   }
 
-  let stdout = childProcess.execFileSync(
-    pythonExecutable,
-    ['-c', 'import platform\nprint(platform.python_version())'],
-    { env: process.env }
-  );
-  if (stdout.indexOf('+') !== -1) stdout = stdout.replace(/\+/g, '');
-  if (stdout.indexOf('rc') !== -1) stdout = stdout.replace(/rc(.*)$/gi, '');
-  const fullVersion = stdout.toString().trim();
-  const versionComponents = fullVersion.split('.');
-  const majorVersion = Number(versionComponents[0]);
-  const minorVersion = Number(versionComponents[1]);
-  if (majorVersion === 2 && minorVersion === 7) {
+  function verifyForcedBinary(binary) {
+    if (typeof binary !== 'undefined' && binary.length > 0) {
+      verifyBinary(binary);
+      if (!usablePythonWasFound){
+        throw new Error(
+          `NODE_GYP_FORCE_PYTHON is set to: "${binary}", but this is not a valid Python.\n` +
+            'Please set NODE_GYP_FORCE_PYTHON to something valid, or unset it entirely.\n' +
+              '(Python 2.7 or 3.5+ is required to build Atom.)\n'
+        );
+      }
+    }
+  }
+
+  // These first two checks do nothing if the relevant
+  // environment variables aren't set.
+  verifyForcedBinary(process.env.NODE_GYP_FORCE_PYTHON);
+  // All the following checks will no-op if a previous check has succeeded.
+  verifyBinary(process.env.PYTHON);
+  verifyBinary('python');
+  verifyBinary('python2');
+  verifyBinary('python3');
+  if (process.platform === 'win32') {
+    verifyBinary('py.exe', '-2');
+    verifyBinary(path.join(process.env.SystemDrive || 'C:', 'Python27', 'python.exe'));
+    verifyBinary(path.join(process.env.SystemDrive || 'C:', 'Python37', 'python.exe'));
+  }
+
+  if (usablePythonWasFound) {
     console.log(`Python:\tv${fullVersion}`);
   } else {
     throw new Error(
-      `Python 2.7 is required to build Atom. ${pythonExecutable} returns version ${fullVersion}.\n` +
-        `Set the PYTHON env var to '/path/to/Python27/python.exe' if your python is installed in a non-default location.`
+      'Python 2.7 or 3.5+ is required to build Atom.\n' +
+        'verify-machine-requirements.js was unable to find such a version of Python.\n' +
+          "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
+            'if your Python is installed in a non-default location.\n'
     );
   }
 }
