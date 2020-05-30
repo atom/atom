@@ -1,7 +1,6 @@
 'use strict';
 
 const childProcess = require('child_process');
-const fs = require('fs');
 const path = require('path');
 
 const CONFIG = require('../config');
@@ -65,10 +64,14 @@ function verifyPython() {
   var fullVersion;
   var usablePythonWasFound;
   var triedLog = '';
+  var binaryPlusFlag;
 
   function verifyBinary(binary, prependFlag) {
     if (binary && !usablePythonWasFound) {
-      let allFlags = ['-c', 'import platform\nprint(platform.python_version())'];
+      let allFlags = [
+        '-c',
+        'import platform\nprint(platform.python_version())'
+      ];
       if (prependFlag) {
         // prependFlag is an optional argument,
         // used to prepend "-2" for the "py.exe" launcher.
@@ -79,17 +82,17 @@ function verifyPython() {
       }
 
       try {
-        stdout = childProcess.execFileSync(
-          binary,
-          allFlags,
-            { env: process.env, stdio: ['ignore', 'pipe', 'ignore'] }
-        );
-      } catch {
-      }
+        stdout = childProcess.execFileSync(binary, allFlags, {
+          env: process.env,
+          stdio: ['ignore', 'pipe', 'ignore']
+        });
+      } catch {}
 
       if (stdout) {
-        if (stdout.indexOf('+') !== -1) stdout = stdout.toString().replace(/\+/g, '');
-        if (stdout.indexOf('rc') !== -1) stdout = stdout.toString().replace(/rc(.*)$/gi, '');
+        if (stdout.indexOf('+') !== -1)
+          stdout = stdout.toString().replace(/\+/g, '');
+        if (stdout.indexOf('rc') !== -1)
+          stdout = stdout.toString().replace(/rc(.*)$/gi, '');
         fullVersion = stdout.toString().trim();
       }
 
@@ -97,7 +100,10 @@ function verifyPython() {
         var versionComponents = fullVersion.split('.');
         var majorVersion = Number(versionComponents[0]);
         var minorVersion = Number(versionComponents[1]);
-        if (majorVersion === 2 && minorVersion === 7 || majorVersion === 3 && minorVersion >= 5) {
+        if (
+          (majorVersion === 2 && minorVersion === 7) ||
+          (majorVersion === 3 && minorVersion >= 5)
+        ) {
           usablePythonWasFound = true;
         } else {
           stdout = '';
@@ -106,22 +112,28 @@ function verifyPython() {
 
       // Prepare to log which commands were tried, and the results, in case no usable Python can be found.
       if (prependFlag) {
-        var binaryPlusFlag = binary.concat(' ' + prependFlag);
+        binaryPlusFlag = binary.concat(' ' + prependFlag);
       } else {
-        var binaryPlusFlag = binary;
+        binaryPlusFlag = binary;
       }
-      triedLog = triedLog.concat('log message: tried to check version of "' + binaryPlusFlag + '", got: ' + fullVersion + '\n');
+      triedLog = triedLog.concat(
+        'log message: tried to check version of "' +
+          binaryPlusFlag +
+          '", got: ' +
+          fullVersion +
+          '\n'
+      );
     }
   }
 
   function verifyForcedBinary(binary) {
     if (typeof binary !== 'undefined' && binary.length > 0) {
       verifyBinary(binary);
-      if (!usablePythonWasFound){
+      if (!usablePythonWasFound) {
         throw new Error(
           `NODE_GYP_FORCE_PYTHON is set to: "${binary}", but this is not a valid Python.\n` +
             'Please set NODE_GYP_FORCE_PYTHON to something valid, or unset it entirely.\n' +
-              '(Python 2.7 or 3.5+ is required to build Atom.)\n'
+            '(Python 2.7 or 3.5+ is required to build Atom.)\n'
         );
       }
     }
@@ -137,8 +149,12 @@ function verifyPython() {
   verifyBinary('python3');
   if (process.platform === 'win32') {
     verifyBinary('py.exe', '-2');
-    verifyBinary(path.join(process.env.SystemDrive || 'C:', 'Python27', 'python.exe'));
-    verifyBinary(path.join(process.env.SystemDrive || 'C:', 'Python37', 'python.exe'));
+    verifyBinary(
+      path.join(process.env.SystemDrive || 'C:', 'Python27', 'python.exe')
+    );
+    verifyBinary(
+      path.join(process.env.SystemDrive || 'C:', 'Python37', 'python.exe')
+    );
   }
 
   if (usablePythonWasFound) {
@@ -147,9 +163,9 @@ function verifyPython() {
     throw new Error(
       `\n${triedLog}\n` +
         'Python 2.7 or 3.5+ is required to build Atom.\n' +
-          'verify-machine-requirements.js was unable to find such a version of Python.\n' +
-            "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
-              'if your Python is installed in a non-default location.\n'
+        'verify-machine-requirements.js was unable to find such a version of Python.\n' +
+        "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
+        'if your Python is installed in a non-default location.\n'
     );
   }
 }
