@@ -64,6 +64,7 @@ function verifyPython() {
   var stdout;
   var fullVersion;
   var usablePythonWasFound;
+  var triedLog = '';
 
   function verifyBinary(binary, prependFlag) {
     if (binary && !usablePythonWasFound) {
@@ -102,6 +103,14 @@ function verifyPython() {
           stdout = '';
         }
       }
+
+      // Prepare to log which commands were tried, and the results, in case no usable Python can be found.
+      if (prependFlag) {
+        var binaryPlusFlag = binary.concat(' ' + prependFlag);
+      } else {
+        var binaryPlusFlag = binary;
+      }
+      triedLog = triedLog.concat('log message: tried to check version of "' + binaryPlusFlag + '", got: ' + fullVersion + '\n');
     }
   }
 
@@ -136,10 +145,11 @@ function verifyPython() {
     console.log(`Python:\tv${fullVersion}`);
   } else {
     throw new Error(
-      'Python 2.7 or 3.5+ is required to build Atom.\n' +
-        'verify-machine-requirements.js was unable to find such a version of Python.\n' +
-          "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
-            'if your Python is installed in a non-default location.\n'
+      `\n${triedLog}\n` +
+        'Python 2.7 or 3.5+ is required to build Atom.\n' +
+          'verify-machine-requirements.js was unable to find such a version of Python.\n' +
+            "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
+              'if your Python is installed in a non-default location.\n'
     );
   }
 }
