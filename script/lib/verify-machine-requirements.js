@@ -112,16 +112,12 @@ function verifyPython() {
 
       // Prepare to log which commands were tried, and the results, in case no usable Python can be found.
       if (prependFlag) {
-        binaryPlusFlag = binary.concat(' ' + prependFlag);
+        binaryPlusFlag = binary + ' ' + prependFlag;
       } else {
         binaryPlusFlag = binary;
       }
       triedLog = triedLog.concat(
-        'log message: tried to check version of "' +
-          binaryPlusFlag +
-          '", got: ' +
-          fullVersion +
-          '\n'
+        `log message: tried to check version of "${binaryPlusFlag}", got: ${fullVersion}\n`
       );
     }
   }
