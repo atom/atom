@@ -1,16 +1,17 @@
 'use strict';
 
 const buildMetadata = require('../package.json');
-const CONFIG = require('../config');
 const semver = require('semver');
+const chromedriverMetadataPath = require('electron-chromedriver/package.json');
+const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
 module.exports = function() {
   // Chromedriver should be at least v9.0.0
   // Mksnapshot should be at least v9.0.2
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver'];
   const mksnapshotVer = buildMetadata.dependencies['electron-mksnapshot'];
-  const chromedriverActualVer = require('electron-chromedriver/package.json').version;
-  const mksnapshotActualVer = require('electron-mksnapshot/package.json').version;
+  const chromedriverActualVer = chromedriverMetadataPath.version;
+  const mksnapshotActualVer = mksnapshotMetadataPath.version;
 
   // Always use caret on electron-chromedriver so that it can pick up the best minor/patch versions
   if (!chromedriverVer.startsWith('^')) {
