@@ -60,11 +60,11 @@ function verifyPython() {
   // so as to allow finding Python 3 as well, not just Python 2.
   // https://github.com/nodejs/node-gyp/pull/2124#issuecomment-633812957
 
-  var stdout;
-  var fullVersion;
-  var usablePythonWasFound;
-  var triedLog = '';
-  var binaryPlusFlag;
+  let stdout;
+  let fullVersion;
+  let usablePythonWasFound;
+  let triedLog = '';
+  let binaryPlusFlag;
 
   function verifyBinary(binary, prependFlag) {
     if (binary && !usablePythonWasFound) {
@@ -99,9 +99,9 @@ function verifyPython() {
       }
 
       if (fullVersion) {
-        var versionComponents = fullVersion.split('.');
-        var majorVersion = Number(versionComponents[0]);
-        var minorVersion = Number(versionComponents[1]);
+        let versionComponents = fullVersion.split('.');
+        let majorVersion = Number(versionComponents[0]);
+        let minorVersion = Number(versionComponents[1]);
         if (
           (majorVersion === 2 && minorVersion === 7) ||
           (majorVersion === 3 && minorVersion >= 5)
