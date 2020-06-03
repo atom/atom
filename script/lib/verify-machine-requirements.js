@@ -68,6 +68,8 @@ function verifyPython() {
 
   function verifyBinary(binary, prependFlag) {
     if (binary && !usablePythonWasFound) {
+      fullVersion = '';
+
       let allFlags = [
         '-c',
         'import platform\nprint(platform.python_version())'
@@ -117,7 +119,7 @@ function verifyPython() {
         binaryPlusFlag = binary;
       }
       triedLog = triedLog.concat(
-        `log message: tried to check version of "${binaryPlusFlag}", got: ${fullVersion}\n`
+        `log message: tried to check version of "${binaryPlusFlag}", got: "${fullVersion}"\n`
       );
     }
   }
