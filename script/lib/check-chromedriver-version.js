@@ -34,7 +34,7 @@ module.exports = function() {
 
   if (!semver.satisfies(mksnapshotActualVer, '>=9.0.2')) {
     throw new Error(
-      `electron-chromedriver should be at least v9.0.2 to support the ELECTRON_CUSTOM_VERSION environment variable.`
+      `electron-mksnapshot should be at least v9.0.2 to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
 };
