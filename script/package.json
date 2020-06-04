@@ -5,8 +5,11 @@
     "7zip-bin": "^4.0.2",
     "async": "2.0.1",
     "babel-core": "5.8.38",
+<<<<<<< HEAD
     "babel-eslint": "^10.0.1",
     "cheerio": "1.0.0-rc.2",
+=======
+>>>>>>> origin/1.16-releases-archived
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
     "donna": "1.0.16",

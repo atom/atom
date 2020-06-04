@@ -4,8 +4,13 @@ var crypto = require('crypto');
 var path = require('path');
 var defaultOptions = require('../static/babelrc.json');
 
+<<<<<<< HEAD
 var babel = null;
 var babelVersionDirectory = null;
+=======
+var babel = null
+var babelVersionDirectory = null
+>>>>>>> origin/1.16-releases-archived
 
 var PREFIXES = [
   '/** @babel */',
@@ -50,23 +55,40 @@ exports.getCachePath = function(sourceCode) {
 
 exports.compile = function(sourceCode, filePath) {
   if (!babel) {
+<<<<<<< HEAD
     babel = require('babel-core');
     var Logger = require('babel-core/lib/transformation/file/logger');
     var noop = function() {};
     Logger.prototype.debug = noop;
     Logger.prototype.verbose = noop;
+=======
+    babel = require('babel-core')
+    var Logger = require('babel-core/lib/transformation/file/logger')
+    var noop = function () {}
+    Logger.prototype.debug = noop
+    Logger.prototype.verbose = noop
+>>>>>>> origin/1.16-releases-archived
   }
 
   if (process.platform === 'win32') {
     filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/');
   }
 
+<<<<<<< HEAD
   var options = { filename: filePath };
   for (var key in defaultOptions) {
     options[key] = defaultOptions[key];
   }
   return babel.transform(sourceCode, options).code;
 };
+=======
+  var options = {filename: filePath}
+  for (var key in defaultOptions) {
+    options[key] = defaultOptions[key]
+  }
+  return babel.transform(sourceCode, options).code
+}
+>>>>>>> origin/1.16-releases-archived
 
 function createVersionAndOptionsDigest(version, options) {
   return crypto

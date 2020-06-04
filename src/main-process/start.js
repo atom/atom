@@ -46,6 +46,7 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
   args.resourcePath = normalizeDriveLetterName(resourcePath);
   args.devResourcePath = normalizeDriveLetterName(devResourcePath);
 
+<<<<<<< HEAD
   atomPaths.setAtomHome(app.getPath('home'));
   atomPaths.setUserData(app);
 
@@ -54,6 +55,12 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
   if (colorProfile && colorProfile !== 'default') {
     app.commandLine.appendSwitch('force-color-profile', colorProfile);
   }
+=======
+  const args = parseCommandLine(process.argv.slice(1))
+  atomPaths.setAtomHome(app.getPath('home'))
+  atomPaths.setUserData(app)
+  setupCompileCache()
+>>>>>>> origin/1.16-releases-archived
 
   if (handleStartupEventWithSquirrel()) {
     return;
