@@ -56,9 +56,9 @@ function verifyPython() {
   // TODO: If apm ships a newer version of node-gyp (v6.x or later), please update this script.
   // Particularly, node-gyp v6.x looks for python3 first, then python, then python2.
   // (In contrast: node-gyp v5.x looks for python first, then python2, then python3.)
-  // Also, node-gyp v7.x or later will probably drop the "-2" flag from "py.exe",
+  // Also, node-gyp v7.x stopped using the "-2" flag for "py.exe",
   // so as to allow finding Python 3 as well, not just Python 2.
-  // https://github.com/nodejs/node-gyp/pull/2124#issuecomment-633812957
+  // https://github.com/nodejs/node-gyp/blob/master/CHANGELOG.md#v700-2020-06-03
 
   let stdout;
   let fullVersion;
@@ -78,8 +78,8 @@ function verifyPython() {
         // prependFlag is an optional argument,
         // used to prepend "-2" for the "py.exe" launcher.
         // TODO: Refactor by eliminating prependFlag
-        // once apm updates to node-gyp v7.x+, when it is anticipated
-        // that the "-2" flag will be dropped for invoking the py launcher.
+        // once apm updates to node-gyp v7.x or newer, in which
+        // the "-2" flag has been dropped for invoking the py launcher.
         allFlags.unshift(prependFlag);
       }
 
