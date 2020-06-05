@@ -1698,12 +1698,6 @@ module.exports = class TextEditorComponent {
   }
 
   didFocusHiddenInput() {
-    // Focusing the hidden input when it is off-screen causes the browser to
-    // scroll it into view. Since we use synthetic scrolling this behavior
-    // causes all the lines to disappear so we counteract it by always setting
-    // the scroll position to 0.
-    this.refs.scrollContainer.scrollTop = 0;
-    this.refs.scrollContainer.scrollLeft = 0;
     if (!this.focused) {
       this.focused = true;
       this.startCursorBlinking();
