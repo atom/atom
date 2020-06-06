@@ -1,4 +1,4 @@
-{BrowserWindow, app, dialog} = require 'electron'
+{BrowserWindow, app, dialog, ipcMain} = require 'electron'
 path = require 'path'
 fs = require 'fs'
 url = require 'url'
@@ -15,10 +15,13 @@ class AtomWindow
   loaded: null
   isSpec: null
 
-  constructor: (@fileRecoveryService, settings={}) ->
-    {@resourcePath, initialPaths, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
+  constructor: (@atomApplication, @fileRecoveryService, settings={}) ->
+    {@resourcePath, pathToOpen, locationsToOpen, @isSpec, @headless, @safeMode, @devMode} = settings
     locationsToOpen ?= [{pathToOpen}] if pathToOpen
     locationsToOpen ?= []
+
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @closedPromise = new Promise((@resolveClosedPromise) =>)
 
     options =
       show: false
@@ -40,9 +43,16 @@ class AtomWindow
     if process.platform is 'linux'
       options.icon = @constructor.iconPath
 
-    @browserWindow = new BrowserWindow options
-    global.atomApplication.addWindow(this)
+    if @shouldAddCustomTitleBar()
+      options.titleBarStyle = 'hidden'
 
+    if @shouldAddCustomInsetTitleBar()
+      options.titleBarStyle = 'hidden-inset'
+
+    if @shouldHideTitleBar()
+      options.frame = false
+
+    @browserWindow = new BrowserWindow(options)
     @handleEvents()
 
     loadSettings = Object.assign({}, settings)
@@ -54,11 +64,15 @@ class AtomWindow
     loadSettings.clearWindowState ?= false
     loadSettings.initialPaths ?=
       for {pathToOpen} in locationsToOpen when pathToOpen
-        if fs.statSyncNoException(pathToOpen).isFile?()
-          path.dirname(pathToOpen)
-        else
+        stat = fs.statSyncNoException(pathToOpen) or null
+        if stat?.isDirectory()
           pathToOpen
-
+        else
+          parentDirectory = path.dirname(pathToOpen)
+          if stat?.isFile() or fs.existsSync(parentDirectory)
+            parentDirectory
+          else
+            pathToOpen
     loadSettings.initialPaths.sort()
 
     # Only send to the first non-spec window created
@@ -66,33 +80,31 @@ class AtomWindow
       @constructor.includeShellLoadTime = false
       loadSettings.shellLoadTime ?= Date.now() - global.shellStartTime
 
+    @representedDirectoryPaths = loadSettings.initialPaths
+    @env = loadSettings.env if loadSettings.env?
+
     @browserWindow.loadSettings = loadSettings
 
-    @browserWindow.once 'window:loaded', =>
+    @browserWindow.on 'window:loaded', =>
       @emit 'window:loaded'
-      @loaded = true
+      @resolveLoadedPromise()
 
-    @setLoadSettings(loadSettings)
-    @env = loadSettings.env if loadSettings.env?
+    @browserWindow.loadURL url.format
+      protocol: 'file'
+      pathname: "#{@resourcePath}/static/index.html"
+      slashes: true
+
+    @browserWindow.showSaveDialog = @showSaveDialog.bind(this)
+
     @browserWindow.focusOnWebView() if @isSpec
     @browserWindow.temporaryState = {windowDimensions} if windowDimensions?
 
     hasPathToOpen = not (locationsToOpen.length is 1 and not locationsToOpen[0].pathToOpen?)
     @openLocations(locationsToOpen) if hasPathToOpen and not @isSpecWindow()
 
-  setLoadSettings: (loadSettings) ->
-    @browserWindow.loadURL url.format
-      protocol: 'file'
-      pathname: "#{@resourcePath}/static/index.html"
-      slashes: true
-      hash: encodeURIComponent(JSON.stringify(loadSettings))
+    @atomApplication.addWindow(this)
 
-  getLoadSettings: ->
-    if @browserWindow.webContents? and not @browserWindow.webContents.isLoading()
-      hash = url.parse(@browserWindow.webContents.getURL()).hash.substr(1)
-      JSON.parse(decodeURIComponent(hash))
-
-  hasProjectPath: -> @getLoadSettings().initialPaths?.length > 0
+  hasProjectPath: -> @representedDirectoryPaths.length > 0
 
   setupContextMenu: ->
     ContextMenu = require './context-menu'
@@ -106,7 +118,7 @@ class AtomWindow
     true
 
   containsPath: (pathToCheck) ->
-    @getLoadSettings()?.initialPaths?.some (projectPath) ->
+    @representedDirectoryPaths.some (projectPath) ->
       if not projectPath
         false
       else if not pathToCheck
@@ -121,12 +133,17 @@ class AtomWindow
         false
 
   handleEvents: ->
-    @browserWindow.on 'close', ->
-      global.atomApplication.saveState(false)
+    @browserWindow.on 'close', (event) =>
+      unless @atomApplication.quitting or @unloading
+        event.preventDefault()
+        @unloading = true
+        @atomApplication.saveState(false)
+        @saveState().then(=> @close())
 
     @browserWindow.on 'closed', =>
       @fileRecoveryService.didCloseWindow(this)
-      global.atomApplication.removeWindow(this)
+      @atomApplication.removeWindow(this)
+      @resolveClosedPromise()
 
     @browserWindow.on 'unresponsive', =>
       return if @isSpec
@@ -139,7 +156,10 @@ class AtomWindow
       @browserWindow.destroy() if chosen is 0
 
     @browserWindow.webContents.on 'crashed', =>
-      global.atomApplication.exit(100) if @headless
+      if @headless
+        console.log "Renderer process crashed, exiting"
+        @atomApplication.exit(100)
+        return
 
       @fileRecoveryService.didCrashWindow(this)
       chosen = dialog.showMessageBox @browserWindow,
@@ -162,14 +182,27 @@ class AtomWindow
       @browserWindow.on 'blur', =>
         @browserWindow.focusOnWebView()
 
+  didCancelWindowUnload: ->
+    @unloading = false
+
+  saveState: ->
+    if @isSpecWindow()
+      return Promise.resolve()
+
+    @lastSaveStatePromise = new Promise (resolve) =>
+      callback = (event) =>
+        if BrowserWindow.fromWebContents(event.sender) is @browserWindow
+          ipcMain.removeListener('did-save-window-state', callback)
+          resolve()
+      ipcMain.on('did-save-window-state', callback)
+      @browserWindow.webContents.send('save-window-state')
+    @lastSaveStatePromise
+
   openPath: (pathToOpen, initialLine, initialColumn) ->
     @openLocations([{pathToOpen, initialLine, initialColumn}])
 
   openLocations: (locationsToOpen) ->
-    if @loaded
-      @sendMessage 'open-locations', locationsToOpen
-    else
-      @browserWindow.once 'window:loaded', => @openLocations(locationsToOpen)
+    @loadedPromise.then => @sendMessage 'open-locations', locationsToOpen
 
   replaceEnvironment: (env) ->
     @browserWindow.webContents.send 'environment', env
@@ -179,7 +212,7 @@ class AtomWindow
 
   sendCommand: (command, args...) ->
     if @isSpecWindow()
-      unless global.atomApplication.sendCommandToFirstResponder(command)
+      unless @atomApplication.sendCommandToFirstResponder(command)
         switch command
           when 'window:reload' then @reload()
           when 'window:toggle-dev-tools' then @toggleDevTools()
@@ -187,7 +220,7 @@ class AtomWindow
     else if @isWebViewFocused()
       @sendCommandToBrowserWindow(command, args...)
     else
-      unless global.atomApplication.sendCommandToFirstResponder(command)
+      unless @atomApplication.sendCommandToFirstResponder(command)
         @sendCommandToBrowserWindow(command, args...)
 
   sendCommandToBrowserWindow: (command, args...) ->
@@ -199,6 +232,21 @@ class AtomWindow
     [width, height] = @browserWindow.getSize()
     {x, y, width, height}
 
+  shouldAddCustomTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom'
+
+  shouldAddCustomInsetTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'custom-inset'
+
+  shouldHideTitleBar: ->
+    not @isSpec and
+    process.platform is 'darwin' and
+    @atomApplication.config.get('core.titleBar') is 'hidden'
+
   close: -> @browserWindow.close()
 
   focus: -> @browserWindow.focus()
@@ -207,7 +255,13 @@ class AtomWindow
 
   maximize: -> @browserWindow.maximize()
 
+  unmaximize: -> @browserWindow.unmaximize()
+
   restore: -> @browserWindow.restore()
+
+  setFullScreen: (fullScreen) -> @browserWindow.setFullScreen(fullScreen)
+
+  setAutoHideMenuBar: (autoHideMenuBar) -> @browserWindow.setAutoHideMenuBar(autoHideMenuBar)
 
   handlesAtomCommands: ->
     not @isSpecWindow() and @isWebViewFocused()
@@ -222,6 +276,30 @@ class AtomWindow
 
   isSpecWindow: -> @isSpec
 
-  reload: -> @browserWindow.reload()
+  reload: ->
+    @loadedPromise = new Promise((@resolveLoadedPromise) =>)
+    @saveState().then => @browserWindow.reload()
+    @loadedPromise
+
+  showSaveDialog: (params) ->
+    params = Object.assign({
+      title: 'Save File',
+      defaultPath: @representedDirectoryPaths[0]
+    }, params)
+    dialog.showSaveDialog(@browserWindow, params)
 
   toggleDevTools: -> @browserWindow.toggleDevTools()
+
+  openDevTools: -> @browserWindow.openDevTools()
+
+  closeDevTools: -> @browserWindow.closeDevTools()
+
+  setDocumentEdited: (documentEdited) -> @browserWindow.setDocumentEdited(documentEdited)
+
+  setRepresentedFilename: (representedFilename) -> @browserWindow.setRepresentedFilename(representedFilename)
+
+  setRepresentedDirectoryPaths: (@representedDirectoryPaths) ->
+    @representedDirectoryPaths.sort()
+    @atomApplication.saveState()
+
+  copy: -> @browserWindow.copy()

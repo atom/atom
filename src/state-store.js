@@ -1,95 +1,130 @@
-'use strict'
+'use strict';
 
-module.exports =
-class StateStore {
-  constructor (databaseName, version) {
-    this.dbPromise = new Promise((resolve) => {
-      let dbOpenRequest = indexedDB.open(databaseName, version)
-      dbOpenRequest.onupgradeneeded = (event) => {
-        let db = event.target.result
-        db.createObjectStore('states')
-      }
-      dbOpenRequest.onsuccess = () => {
-        resolve(dbOpenRequest.result)
-      }
-      dbOpenRequest.onerror = (error) => {
-        console.error('Could not connect to indexedDB', error)
-        resolve(null)
-      }
-    })
+module.exports = class StateStore {
+  constructor(databaseName, version) {
+    this.connected = false;
+    this.databaseName = databaseName;
+    this.version = version;
   }
 
-  connect () {
-    return this.dbPromise.then(db => !!db)
+  get dbPromise() {
+    if (!this._dbPromise) {
+      this._dbPromise = new Promise(resolve => {
+        const dbOpenRequest = indexedDB.open(this.databaseName, this.version);
+        dbOpenRequest.onupgradeneeded = event => {
+          let db = event.target.result;
+          db.createObjectStore('states');
+        };
+        dbOpenRequest.onsuccess = () => {
+          this.connected = true;
+          resolve(dbOpenRequest.result);
+        };
+        dbOpenRequest.onerror = error => {
+          console.error('Could not connect to indexedDB', error);
+          this.connected = false;
+          resolve(null);
+        };
+      });
+    }
+
+    return this._dbPromise;
   }
 
-  save (key, value) {
+  isConnected() {
+    return this.connected;
+  }
+
+  connect() {
+    return this.dbPromise.then(db => !!db);
+  }
+
+  save(key, value) {
     return new Promise((resolve, reject) => {
       this.dbPromise.then(db => {
-        if (db == null) resolve()
+        if (db == null) return resolve();
 
-        var request = db.transaction(['states'], 'readwrite')
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .put({value: value, storedAt: new Date().toString()}, key)
+          .put({ value: value, storedAt: new Date().toString() }, key);
 
-        request.onsuccess = resolve
-        request.onerror = reject
-      })
-    })
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
   }
 
-  load (key) {
+  load(key) {
     return this.dbPromise.then(db => {
-      if (!db) return
+      if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'])
+        var request = db
+          .transaction(['states'])
           .objectStore('states')
-          .get(key)
+          .get(key);
 
-        request.onsuccess = (event) => {
-          let result = event.target.result
+        request.onsuccess = event => {
+          let result = event.target.result;
           if (result && !result.isJSON) {
-            resolve(result.value)
+            resolve(result.value);
           } else {
-            resolve(null)
+            resolve(null);
           }
-        }
+        };
 
-        request.onerror = (event) => reject(event)
-      })
-    })
+        request.onerror = event => reject(event);
+      });
+    });
   }
 
-  clear () {
-    return this.dbPromise.then(db => {
-      if (!db) return
+  delete(key) {
+    return new Promise((resolve, reject) => {
+      this.dbPromise.then(db => {
+        if (db == null) return resolve();
 
-      return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'], 'readwrite')
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .clear()
+          .delete(key);
 
-        request.onsuccess = resolve
-        request.onerror = reject
-      })
-    })
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
   }
 
-  count () {
+  clear() {
     return this.dbPromise.then(db => {
-      if (!db) return
+      if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db.transaction(['states'])
+        var request = db
+          .transaction(['states'], 'readwrite')
           .objectStore('states')
-          .count()
+          .clear();
+
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+    });
+  }
+
+  count() {
+    return this.dbPromise.then(db => {
+      if (!db) return;
+
+      return new Promise((resolve, reject) => {
+        var request = db
+          .transaction(['states'])
+          .objectStore('states')
+          .count();
 
         request.onsuccess = () => {
-          resolve(request.result)
-        }
-        request.onerror = reject
-      })
-    })
+          resolve(request.result);
+        };
+        request.onerror = reject;
+      });
+    });
   }
-}
+};

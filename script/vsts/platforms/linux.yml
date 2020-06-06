@@ -1,0 +1,121 @@
+jobs:
+  - job: Linux
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    pool:
+      # This image is used to host the Docker container that runs the build
+      vmImage: ubuntu-16.04
+    container: ubuntu:trusty
+
+    steps:
+      - script: |
+          sudo apt-get update
+          sudo apt-get install -y wget software-properties-common
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo apt-add-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main"
+          sudo apt-get update
+          sudo apt-get install -y build-essential ca-certificates clang-5.0 xvfb fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0 libasound2 libicu-dev
+        displayName: Install apt dependencies
+
+      - script: sudo /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+        displayName: Start Xvfb
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 12.13.1
+        displayName: Install Node.js 12.13.1
+
+      - script: npm install --global npm@6.12.1
+        displayName: Update npm
+
+      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
+        displayName: Restore node_modules cache
+        inputs:
+          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
+          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+
+      - script: script/bootstrap
+        displayName: Bootstrap build environment
+        env:
+          CI: true
+          CI_PROVIDER: VSTS
+          CC: clang-5.0
+          CXX: clang++-5.0
+          npm_config_clang: 1
+        condition: ne(variables['CacheRestored'], 'true')
+
+      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
+        displayName: Save node_modules cache
+        inputs:
+          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
+          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
+          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+
+      - script: script/lint
+        displayName: Run linter
+      
+      - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          ATOM_RELEASE_VERSION: $(ReleaseVersion)
+          CC: clang-5.0
+          CXX: clang++-5.0
+          npm_config_clang: 1
+        displayName: Build Atom
+
+      - script: |
+          sudo chown root ./out/atom*-amd64/chrome-sandbox
+          sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
+        displayName: Tweaking chrome-sandbox binary
+
+      - script: script/test
+        env:
+          CI: true
+          CI_PROVIDER: VSTS
+          ATOM_JASMINE_REPORTER: list
+          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+          DISPLAY: :99.0
+        displayName: Run tests
+        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+      - script: script/postprocess-junit-results --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "**/*.xml"
+        env:
+          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+        displayName: Post-process test results
+        condition: ne(variables['Atom.SkipTests'], 'true')
+
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: JUnit
+          searchFolder: $(Common.TestResultsDirectory)/junit
+          testResultsFiles: '**/*.xml'
+          mergeTestResults: true
+          testRunTitle: Linux
+        condition: ne(variables['Atom.SkipTests'], 'true')
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
+          ArtifactName: atom.x86_64.rpm
+          ArtifactType: Container
+        displayName: Upload atom.x84_64.rpm
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
+          ArtifactName: atom-amd64.deb
+          ArtifactType: Container
+        displayName: Upload atom-amd64.deb
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
+          ArtifactName: atom-amd64.tar.gz
+          ArtifactType: Container
+        displayName: Upload atom-amd64.tar.gz
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

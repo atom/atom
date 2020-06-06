@@ -66,20 +66,11 @@ class Task
   constructor: (taskPath) ->
     @emitter = new Emitter
 
-    compileCacheRequire = "require('#{require.resolve('./compile-cache')}')"
     compileCachePath = require('./compile-cache').getCacheDirectory()
-    taskBootstrapRequire = "require('#{require.resolve('./task-bootstrap')}');"
-    bootstrap = """
-      #{compileCacheRequire}.setCacheDirectory('#{compileCachePath}');
-      #{taskBootstrapRequire}
-    """
-    bootstrap = bootstrap.replace(/\\/g, "\\\\")
-
     taskPath = require.resolve(taskPath)
-    taskPath = taskPath.replace(/\\/g, "\\\\")
 
-    env = _.extend({}, process.env, {taskPath, userAgent: navigator.userAgent})
-    @childProcess = ChildProcess.fork '--eval', [bootstrap], {env, silent: true}
+    env = Object.assign({}, process.env, {userAgent: navigator.userAgent})
+    @childProcess = ChildProcess.fork require.resolve('./task-bootstrap'), [compileCachePath, taskPath], {env, silent: true}
 
     @on "task:log", -> console.log(arguments...)
     @on "task:warn", -> console.warn(arguments...)
@@ -93,17 +84,23 @@ class Task
 
   # Routes messages from the child to the appropriate event.
   handleEvents: ->
-    @childProcess.removeAllListeners()
+    # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+    # Remove the argument when migrating to electron v4.
+    @childProcess.removeAllListeners('message')
     @childProcess.on 'message', ({event, args}) =>
       @emitter.emit(event, args) if @childProcess?
 
     # Catch the errors that happened before task-bootstrap.
     if @childProcess.stdout?
-      @childProcess.stdout.removeAllListeners()
+      # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+      # Remove the argument when migrating to electron v4.
+      @childProcess.stdout.removeAllListeners('data')
       @childProcess.stdout.on 'data', (data) -> console.log data.toString()
 
     if @childProcess.stderr?
-      @childProcess.stderr.removeAllListeners()
+      # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+      # Remove the argument when migrating to electron v4.
+      @childProcess.stderr.removeAllListeners('data')
       @childProcess.stderr.on 'data', (data) -> console.error data.toString()
 
   # Public: Starts the task.
@@ -156,14 +153,19 @@ class Task
   terminate: ->
     return false unless @childProcess?
 
-    @childProcess.removeAllListeners()
-    @childProcess.stdout?.removeAllListeners()
-    @childProcess.stderr?.removeAllListeners()
+    # TodoElectronIssue: removeAllListeners() without arguments does not work on electron v3.
+    # Remove the argument when migrating to electron v4.
+    @childProcess.removeAllListeners('message')
+    @childProcess.stdout?.removeAllListeners('data')
+    @childProcess.stderr?.removeAllListeners('data')
     @childProcess.kill()
     @childProcess = null
 
     true
 
+  # Public: Cancel the running task and emit an event if it was canceled.
+  #
+  # Returns a {Boolean} indicating whether the task was terminated.
   cancel: ->
     didForcefullyTerminate = @terminate()
     if didForcefullyTerminate

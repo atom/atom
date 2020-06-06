@@ -1,0 +1,87 @@
+@import "ui-variables";
+
+@title-bar-height:           22px;
+@traffic-lights-width:       68px;
+
+@inset-title-bar-height:     38px;
+@inset-traffic-lights-width: 78px;
+
+@title-bar-text-size: 13px;
+@title-bar-background-color: @base-background-color;
+@title-bar-border-color: @base-border-color;
+
+
+// Title Bar -------------------------------
+
+.title-bar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: content-box;
+  font-size: @title-bar-text-size;
+  background-color: @title-bar-background-color;
+  border-bottom: 1px solid @title-bar-border-color;
+  transition: margin-top 160ms;
+  -webkit-user-select: none;
+  -webkit-app-region: drag;
+
+  .title {
+    flex: 0 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .is-blurred & {
+    color: @text-color-subtle;
+  }
+}
+
+
+// Custom -------------------------------
+
+.custom-title-bar {
+  .title-bar {
+    height: @title-bar-height;
+    padding-left: @traffic-lights-width;
+    padding-right: @traffic-lights-width;
+  }
+
+  &.fullscreen .title-bar {
+    margin-top: -@title-bar-height; // hide title bar in fullscreen mode
+  }
+
+  atom-panel.modal {
+    top: @title-bar-height; // Move modals down
+  }
+}
+
+
+// Custom Inset -------------------------------
+
+.custom-inset-title-bar {
+  .title-bar {
+    height: @inset-title-bar-height;
+    padding-left: @inset-traffic-lights-width;
+    padding-right: @inset-traffic-lights-width;
+  }
+
+  &.fullscreen .title-bar {
+    margin-top: -@inset-title-bar-height; // hide title bar in fullscreen mode
+  }
+
+  atom-panel.modal {
+    top: @inset-title-bar-height; // Move modals down
+  }
+}
+
+
+// Hidden -------------------------------
+
+.hidden-title-bar {
+  .status-bar {
+    -webkit-app-region: drag; // Enable dragging
+  }
+}

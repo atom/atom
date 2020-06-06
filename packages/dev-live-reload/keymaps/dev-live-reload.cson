@@ -1,0 +1,5 @@
+'.platform-darwin':
+  'cmd-ctrl-R': 'dev-live-reload:reload-all'
+
+'.platform-win32':
+  'alt-ctrl-R': 'dev-live-reload:reload-all'

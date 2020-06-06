@@ -60,11 +60,16 @@ platformMenu = require('../package.json')?._atomMenu?.menu
 module.exports =
 class MenuManager
   constructor: ({@resourcePath, @keymapManager, @packageManager}) ->
+    @initialized = false
     @pendingUpdateOperation = null
     @template = []
     @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
-    @keymapManager.onDidReloadKeymap => @update()
     @packageManager.onDidActivateInitialPackages => @sortPackagesMenu()
+
+  initialize: ({@resourcePath}) ->
+    @keymapManager.onDidReloadKeymap => @update()
+    @update()
+    @initialized = true
 
   # Public: Adds the given items to the application menu.
   #
@@ -88,7 +93,11 @@ class MenuManager
   # added menu items.
   add: (items) ->
     items = _.deepClone(items)
-    @merge(@template, item) for item in items
+
+    for item in items
+      continue unless item.label? # TODO: Should we emit a warning here?
+      @merge(@template, item)
+
     @update()
     new Disposable => @remove(items)
 
@@ -142,22 +151,27 @@ class MenuManager
 
   # Public: Refreshes the currently visible menu.
   update: ->
-    clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
-    @pendingUpdateOperation = setImmediate =>
-      includedBindings = []
-      unsetKeystrokes = new Set
+    return unless @initialized
 
-      for binding in @keymapManager.getKeyBindings() when @includeSelector(binding.selector)
-        includedBindings.push(binding)
+    clearTimeout(@pendingUpdateOperation) if @pendingUpdateOperation?
+
+    @pendingUpdateOperation = setTimeout(=>
+      unsetKeystrokes = new Set
+      for binding in @keymapManager.getKeyBindings()
         if binding.command is 'unset!'
           unsetKeystrokes.add(binding.keystrokes)
 
       keystrokesByCommand = {}
-      for binding in includedBindings when not unsetKeystrokes.has(binding.keystrokes)
+      for binding in @keymapManager.getKeyBindings()
+        continue unless @includeSelector(binding.selector)
+        continue if unsetKeystrokes.has(binding.keystrokes)
+        continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
+        continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
       @sendToBrowserProcess(@template, keystrokesByCommand)
+    , 1)
 
   loadPlatformItems: ->
     if platformMenu?
@@ -176,21 +190,7 @@ class MenuManager
   unmerge: (menu, item) ->
     MenuHelpers.unmerge(menu, item)
 
-  # macOS can't handle displaying accelerators for multiple keystrokes.
-  # If they are sent across, it will stop processing accelerators for the rest
-  # of the menu items.
-  filterMultipleKeystroke: (keystrokesByCommand) ->
-    filtered = {}
-    for key, bindings of keystrokesByCommand
-      for binding in bindings
-        continue if binding.indexOf(' ') isnt -1
-
-        filtered[key] ?= []
-        filtered[key].push(binding)
-    filtered
-
   sendToBrowserProcess: (template, keystrokesByCommand) ->
-    keystrokesByCommand = @filterMultipleKeystroke(keystrokesByCommand)
     ipcRenderer.send 'update-application-menu', template, keystrokesByCommand
 
   # Get an {Array} of {String} classes for the given element.

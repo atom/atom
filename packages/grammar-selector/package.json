@@ -1,0 +1,47 @@
+{
+  "name": "grammar-selector",
+  "version": "0.50.1",
+  "main": "./lib/main",
+  "description": "Select the grammar to use for the current editor with `ctrl-shift-L`.",
+  "license": "MIT",
+  "repository": "https://github.com/atom/atom",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "atom-select-list": "^0.7.0"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "globals": [
+      "atom",
+      "beforeEach",
+      "describe",
+      "expect",
+      "it",
+      "jasmine",
+      "spyOn"
+    ]
+  },
+  "configSchema": {
+    "showOnRightSideOfStatusBar": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show the active pane item's language on the right side of Atom's status bar, instead of the left."
+    },
+    "hideDuplicateTextMateGrammars": {
+      "type": "boolean",
+      "default": true,
+      "description": "Hides the TextMate grammar when there is an existing Tree-sitter grammar"
+    }
+  }
+}

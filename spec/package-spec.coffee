@@ -4,15 +4,14 @@ ThemePackage = require '../src/theme-package'
 {mockLocalStorage} = require './spec-helper'
 
 describe "Package", ->
-  build = (constructor, path) ->
+  build = (constructor, packagePath) ->
     new constructor(
-      path: path, packageManager: atom.packages, config: atom.config,
+      path: packagePath, packageManager: atom.packages, config: atom.config,
       styleManager: atom.styles, notificationManager: atom.notifications,
       keymapManager: atom.keymaps, commandRegistry: atom.command,
       grammarRegistry: atom.grammars, themeManager: atom.themes,
       menuManager: atom.menu, contextMenuManager: atom.contextMenu,
-      deserializerManager: atom.deserializers, viewRegistry: atom.views,
-      devMode: false
+      deserializerManager: atom.deserializers, viewRegistry: atom.views
     )
 
   buildPackage = (packagePath) -> build(Package, packagePath)
@@ -21,7 +20,11 @@ describe "Package", ->
 
   describe "when the package contains incompatible native modules", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
+
+    afterEach ->
+      atom.packages.devMode = true
 
     it "does not activate it", ->
       packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-incompatible-native-module')
@@ -64,7 +67,11 @@ describe "Package", ->
 
   describe "::rebuild()", ->
     beforeEach ->
+      atom.packages.devMode = false
       mockLocalStorage()
+
+    afterEach ->
+      atom.packages.devMode = true
 
     it "returns a promise resolving to the results of `apm rebuild`", ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-index')
@@ -131,7 +138,8 @@ describe "Package", ->
       jasmine.attachToDOM(editorElement)
 
     afterEach ->
-      theme.deactivate() if theme?
+      waitsForPromise ->
+        Promise.resolve(theme.deactivate()) if theme?
 
     describe "when the theme contains a single style file", ->
       it "loads and applies css", ->
@@ -193,11 +201,13 @@ describe "Package", ->
 
       it "deactivated event fires on .deactivate()", ->
         theme.onDidDeactivate spy = jasmine.createSpy()
-        theme.deactivate()
-        expect(spy).toHaveBeenCalled()
+        waitsForPromise ->
+          Promise.resolve(theme.deactivate())
+        runs ->
+          expect(spy).toHaveBeenCalled()
 
   describe ".loadMetadata()", ->
-    [packagePath, pack, metadata] = []
+    [packagePath, metadata] = []
 
     beforeEach ->
       packagePath = atom.project.getDirectories()[0]?.resolve('packages/package-with-different-directory-name')
@@ -205,3 +215,26 @@ describe "Package", ->
 
     it "uses the package name defined in package.json", ->
       expect(metadata.name).toBe 'package-with-a-totally-different-name'
+
+  describe "the initialize() hook", ->
+    it "gets called when the package is activated", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      pack.activate()
+      expect(mainModule.initialize).toHaveBeenCalled()
+      expect(mainModule.initialize.callCount).toBe(1)
+
+    it "gets called when a deserializer is used", ->
+      packagePath = atom.project.getDirectories()[0].resolve('packages/package-with-deserializers')
+      pack = buildPackage(packagePath)
+      pack.requireMainModule()
+      mainModule = pack.mainModule
+      spyOn(mainModule, 'initialize')
+      pack.load()
+      expect(mainModule.initialize).not.toHaveBeenCalled()
+      atom.deserializers.deserialize({deserializer: 'Deserializer1', a: 'b'})
+      expect(mainModule.initialize).toHaveBeenCalled()
