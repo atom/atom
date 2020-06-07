@@ -10,9 +10,9 @@
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
     "donna": "1.0.16",
-    "electron-chromedriver": "^6.0.0",
+    "electron-chromedriver": "^9.0.0",
     "electron-link": "^0.4.2",
-    "electron-mksnapshot": "^6.0.0",
+    "electron-mksnapshot": "^9.0.2",
     "electron-packager": "^14.2.1",
     "@atom/electron-winstaller": "0.0.1",
     "eslint": "^5.16.0",
@@ -48,5 +48,8 @@
     "terser": "^3.8.1",
     "webdriverio": "^5.9.2",
     "yargs": "4.8.1"
+  },
+  "scripts": {
+    "postinstall": "node ./redownload-electron-bins.js"
   }
 }
