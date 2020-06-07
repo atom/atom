@@ -424,8 +424,7 @@ module.exports = class PackageManager {
           const packageName = path.basename(packagePath);
           if (
             !packageName.startsWith('.') &&
-            !packagesByName.has(packageName) &&
-            fs.isDirectorySync(packagePath)
+            !packagesByName.has(packageName)
           ) {
             packages.push({
               name: packageName,
