@@ -1,6 +1,6 @@
 Package: <%= appFileName %>
 Version: <%= version %>
-Depends: git, libgconf-2-4 (>= 3.2.5) | libgconf2-4, libgtk-3-0 (>= 3.9.10), libgcrypt11 | libgcrypt20, libnotify4, libxtst6, libnss3 (>= 2:3.22), python | python2, gvfs-bin, xdg-utils, libx11-xcb1, libxss1, libasound2 (>= 1.0.16), libxkbfile1, libcurl3 | libcurl4, policykit-1
+Depends: git, libgconf-2-4 (>= 3.2.5) | libgconf2-4, libgtk-3-0 (>= 3.9.10), libgcrypt11 | libgcrypt20, libnotify4, libxtst6, libnss3 (>= 2:3.22), gvfs-bin, xdg-utils, libx11-xcb1, libxss1, libasound2 (>= 1.0.16), libxkbfile1, libcurl3 | libcurl4, policykit-1
 Recommends: lsb-release
 Suggests: libsecret-1-0, gir1.2-gnomekeyring-1.0
 Section: devel
