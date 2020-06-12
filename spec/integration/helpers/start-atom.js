@@ -24,7 +24,7 @@ const ChromedriverPath = path.resolve(
   'bin',
   'chromedriver'
 );
-const ChromedriverPort = 9515;
+const ChromedriverPort = 8082;
 const ChromedriverURLBase = '/wd/hub';
 const ChromedriverStatusURL = `http://localhost:${ChromedriverPort}${ChromedriverURLBase}/status`;
 
@@ -68,8 +68,8 @@ const buildAtomClient = async (args, env) => {
     host: 'localhost',
     port: ChromedriverPort,
     capabilities: {
-      browserName: 'atom',
-      chromeOptions: {
+      browserName: 'chrome', //Webdriverio will figure it out on it's own, but I will leave it in case it's helpful in the future https://webdriver.io/docs/configurationfile.html
+      'goog:chromeOptions': {
         binary: AtomLauncherPath,
         args: [
           `atom-path=${AtomPath}`,
@@ -159,6 +159,7 @@ Logs:\n${chromedriverLogs.join('\n')}`);
       try {
         client = await buildAtomClient(args, env);
       } catch (error) {
+        console.log(error)
         jasmine
           .getEnv()
           .currentSpec.fail(`Unable to build Atom client.\n${error}`);
