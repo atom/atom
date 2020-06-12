@@ -295,7 +295,7 @@ function registerBuiltins(devMode) {
     'crash-reporter',
     'ipc-renderer',
     'remote',
-    'screen'
+    //'screen' Deprecated https://www.electronjs.org/docs/breaking-changes#api-changed-electronscreen-in-the-renderer-process-should-be-accessed-via-remote
   ];
   for (const builtin of rendererBuiltins) {
     cache.builtins[builtin] = path.join(rendererRoot, `${builtin}.js`);
