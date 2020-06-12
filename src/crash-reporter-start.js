@@ -5,7 +5,7 @@ module.exports = function(params) {
   const arch = os.arch();
   const { uploadToServer, releaseChannel } = params;
 
-  const parsedUploadToServer = uploadToServer !== null? uploadToServer : false;
+  const parsedUploadToServer = uploadToServer !== null ? uploadToServer : false;
 
   crashReporter.start({
     productName: 'Atom',

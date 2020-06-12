@@ -68,7 +68,7 @@ const buildAtomClient = async (args, env) => {
     host: 'localhost',
     port: ChromedriverPort,
     capabilities: {
-      browserName: 'chrome', //Webdriverio will figure it out on it's own, but I will leave it in case it's helpful in the future https://webdriver.io/docs/configurationfile.html
+      browserName: 'chrome', // Webdriverio will figure it out on it's own, but I will leave it in case it's helpful in the future https://webdriver.io/docs/configurationfile.html
       'goog:chromeOptions': {
         binary: AtomLauncherPath,
         args: [
@@ -159,7 +159,6 @@ Logs:\n${chromedriverLogs.join('\n')}`);
       try {
         client = await buildAtomClient(args, env);
       } catch (error) {
-        console.log(error)
         jasmine
           .getEnv()
           .currentSpec.fail(`Unable to build Atom client.\n${error}`);
