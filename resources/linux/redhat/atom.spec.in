@@ -54,3 +54,4 @@ cp "icons/16.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/16x16/apps
 <%= installDir %>/share/applications/<%= appFileName %>.desktop
 <%= installDir %>/share/polkit-1/actions/<%= policyFileName %>
 <%= installDir %>/share/icons/hicolor/
+%attr(4755, root, root) <%= installDir %>/share/<%= appFileName %>/chrome-sandbox

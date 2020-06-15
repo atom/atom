@@ -47,7 +47,9 @@ module.exports = class AtomWindow extends EventEmitter {
         // Disable the `auxclick` feature so that `click` events are triggered in
         // response to a middle-click.
         // (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
-        disableBlinkFeatures: 'Auxclick'
+        disableBlinkFeatures: 'Auxclick',
+        nodeIntegration: true,
+        webviewTag: true
       }
     };
 

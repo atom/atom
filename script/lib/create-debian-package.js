@@ -121,6 +121,8 @@ module.exports = function(packagedAppPath) {
     path.join(debianPackageBinDirPath, apmExecutableName)
   );
 
+  fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
+
   console.log(`Writing control file into "${debianPackageConfigPath}"`);
   const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath])
     .stdout.toString()

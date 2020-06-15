@@ -1680,11 +1680,17 @@ describe('TextEditorComponent', () => {
         width: 50,
         scrollSensitivity
       });
+      // stub in place for Event.preventDefault()
+      const eventPreventDefaultStub = function() {};
 
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
         const expectedScrollLeft = component.getScrollLeft();
-        component.didMouseWheel({ wheelDeltaX: -5, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: -5,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1696,7 +1702,11 @@ describe('TextEditorComponent', () => {
         const expectedScrollTop =
           component.getScrollTop() - 10 * (scrollSensitivity / 100);
         const expectedScrollLeft = component.getScrollLeft();
-        component.didMouseWheel({ wheelDeltaX: -5, wheelDeltaY: 10 });
+        component.didMouseWheel({
+          wheelDeltaX: -5,
+          wheelDeltaY: 10,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1707,7 +1717,11 @@ describe('TextEditorComponent', () => {
       {
         const expectedScrollTop = component.getScrollTop();
         const expectedScrollLeft = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: -20, wheelDeltaY: 10 });
+        component.didMouseWheel({
+          wheelDeltaX: -20,
+          wheelDeltaY: 10,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1719,7 +1733,11 @@ describe('TextEditorComponent', () => {
         const expectedScrollTop = component.getScrollTop();
         const expectedScrollLeft =
           component.getScrollLeft() - 10 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 10, wheelDeltaY: -8 });
+        component.didMouseWheel({
+          wheelDeltaX: 10,
+          wheelDeltaY: -8,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1735,11 +1753,17 @@ describe('TextEditorComponent', () => {
         width: 50,
         scrollSensitivity
       });
+      // stub in place for Event.preventDefault()
+      const eventPreventDefaultStub = function() {};
 
       component.props.platform = 'linux';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1752,7 +1776,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1766,7 +1791,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1778,7 +1804,11 @@ describe('TextEditorComponent', () => {
       component.props.platform = 'win32';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1791,7 +1821,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1805,7 +1836,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1817,7 +1849,11 @@ describe('TextEditorComponent', () => {
       component.props.platform = 'darwin';
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
-        component.didMouseWheel({ wheelDeltaX: 0, wheelDeltaY: -20 });
+        component.didMouseWheel({
+          wheelDeltaX: 0,
+          wheelDeltaY: -20,
+          preventDefault: eventPreventDefaultStub
+        });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
@@ -1830,7 +1866,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1844,7 +1881,8 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 0,
-          shiftKey: true
+          shiftKey: true,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -4183,6 +4221,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds or removes cursors when holding cmd or ctrl when single-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent({ platform: 'darwin' });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
 
@@ -4263,6 +4302,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds word selections when holding cmd or ctrl when double-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4289,6 +4329,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('adds line selections when holding cmd or ctrl when triple-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
           expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
@@ -4324,6 +4365,107 @@ describe('TextEditorComponent', () => {
             [[0, 0], [0, 0]],
             [[1, 0], [2, 0]]
           ]);
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add cursors when holding cmd or ctrl when single-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent({ platform: 'darwin' });
+          expect(editor.getCursorScreenPositions()).toEqual([[0, 0]]);
+
+          // moves cursor to 1, 16
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              metaKey: true
+            })
+          );
+          expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
+
+          // ctrl-click does not add cursors on macOS, nor does it move the cursor
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 4), {
+              detail: 1,
+              button: 0,
+              ctrlKey: true
+            })
+          );
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 16], [1, 16]]
+          ]);
+
+          // ctrl-click does not add cursors on platforms *other* than macOS
+          component.props.platform = 'win32';
+          editor.setCursorScreenPosition([1, 4], { autoscroll: false });
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              ctrlKey: true
+            })
+          );
+          expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
+
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add word selections when holding cmd or ctrl when double-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent();
+
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 1,
+              button: 0,
+              metaKey: true
+            })
+          );
+          component.didMouseDownOnContent(
+            Object.assign(clientPositionForCharacter(component, 1, 16), {
+              detail: 2,
+              button: 0,
+              metaKey: true
+            })
+          );
+          expect(editor.getSelectedScreenRanges()).toEqual([
+            [[1, 13], [1, 21]]
+          ]);
+          expect(editor.testAutoscrollRequests).toEqual([]);
+        });
+
+        it('does not add line selections when holding cmd or ctrl when triple-clicking', () => {
+          atom.config.set('editor.multiCursorOnClick', false);
+          const { component, editor } = buildComponent();
+
+          const { clientX, clientY } = clientPositionForCharacter(
+            component,
+            1,
+            16
+          );
+          component.didMouseDownOnContent({
+            detail: 1,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+          component.didMouseDownOnContent({
+            detail: 2,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+          component.didMouseDownOnContent({
+            detail: 3,
+            button: 0,
+            metaKey: true,
+            clientX,
+            clientY
+          });
+
+          expect(editor.getSelectedScreenRanges()).toEqual([[[1, 0], [2, 0]]]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
 
@@ -4415,6 +4557,7 @@ describe('TextEditorComponent', () => {
         });
 
         it('expands the last selection on drag', () => {
+          atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           spyOn(component, 'handleMouseDragUntilMouseUp');
 

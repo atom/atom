@@ -26,12 +26,20 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizeStarted: (e) ->
     e.stopPropagation()
+    if not @overlay
+      @overlay = document.createElement('div')
+      @overlay.classList.add('atom-pane-cursor-overlay')
+      @overlay.classList.add(if @isHorizontal then 'horizontal' else 'vertical')
+      @appendChild @overlay
     document.addEventListener 'mousemove', @resizePane
     document.addEventListener 'mouseup', @resizeStopped
 
   resizeStopped: ->
     document.removeEventListener 'mousemove', @resizePane
     document.removeEventListener 'mouseup', @resizeStopped
+    if @overlay
+      @removeChild @overlay
+      @overlay = undefined
 
   calcRatio: (ratio1, ratio2, total) ->
     allRatio = ratio1 + ratio2
