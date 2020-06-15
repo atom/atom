@@ -113,7 +113,6 @@ describe('TreeSitterLanguageMode', () => {
         'aa',
         '.',
         'bbb',
-        ' ',
         '=',
         'cc',
         '(',
