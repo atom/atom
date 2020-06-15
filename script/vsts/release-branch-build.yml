@@ -22,7 +22,7 @@ jobs:
 
   - job: UploadArtifacts
     pool:
-      vmImage: vs2015-win2012r2 # needed for python 2.7 and gyp
+      vmImage: vs2017-win2016
 
     dependsOn:
       - GetReleaseVersion
@@ -38,8 +38,8 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 10.2.1
-        displayName: Install Node.js 10.2.1
+          versionSpec: 12.13.1
+        displayName: Install Node.js 12.13.1
 
       # This has to be done separately because VSTS inexplicably
       # exits the script block after `npm install` completes.

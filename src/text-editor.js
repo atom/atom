@@ -344,6 +344,7 @@ module.exports = class TextEditor {
   get languageMode() {
     return this.buffer.getLanguageMode();
   }
+
   get tokenizedBuffer() {
     return this.buffer.getLanguageMode();
   }

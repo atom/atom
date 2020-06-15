@@ -1736,7 +1736,10 @@ module.exports = class TextEditorComponent {
     const scrollTopChanged =
       wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY);
 
-    if (scrollLeftChanged || scrollTopChanged) this.updateSync();
+    if (scrollLeftChanged || scrollTopChanged) {
+      event.preventDefault();
+      this.updateSync();
+    }
   }
 
   didResize() {
@@ -1991,7 +1994,9 @@ module.exports = class TextEditorComponent {
       return;
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin');
+    const allowMultiCursor = atom.config.get('editor.multiCursorOnClick');
+    const addOrRemoveSelection =
+      allowMultiCursor && (metaKey || (ctrlKey && platform !== 'darwin'));
 
     switch (detail) {
       case 1:
