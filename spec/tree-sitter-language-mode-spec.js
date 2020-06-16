@@ -85,12 +85,12 @@ describe('TreeSitterLanguageMode', () => {
       });
       const original = grammar.idForScope.bind(grammar);
       let tokens = [];
-      grammar.idForScope = function (scope, text) {
+      grammar.idForScope = function(scope, text) {
         if (text && tokens[tokens.length - 1] !== text) {
           tokens.push(text);
         }
         return original(scope, text);
-      }
+      };
 
       buffer.setText('aa.bbb = cc(d.eee());');
 

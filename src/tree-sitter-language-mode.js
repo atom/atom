@@ -1294,7 +1294,10 @@ class LayerHighlightIterator {
     const scopeName = applyLeafRules(value, this.treeCursor);
     const node = this.treeCursor.currentNode;
     if (!node.childCount) {
-      return this.languageLayer.languageMode.grammar.idForScope(scopeName, node.text);
+      return this.languageLayer.languageMode.grammar.idForScope(
+        scopeName,
+        node.text
+      );
     } else if (scopeName) {
       return this.languageLayer.languageMode.grammar.idForScope(scopeName);
     }
