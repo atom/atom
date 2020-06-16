@@ -190,12 +190,12 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 Unsure where to begin contributing to Atom? You can start by looking through these `beginner` and `help-wanted` issues:
 
-* [Beginner issues][beginner] - issues which should only require a few lines of code, and a test or two.
-* [Help wanted issues][help-wanted] - issues which should be a bit more involved than `beginner` issues.
+* [Beginner issues][beginner] - issues that should only require a few lines of code, and a test or two.
+* [Help wanted issues][help-wanted] - issues that should be a bit more involved than `beginner` issues.
 
-Both issue lists are sorted by total number of comments. While not perfect, number of comments is a reasonable proxy for impact a given change will have.
+Both issue lists are sorted by total number of comments. While not perfect, the number of comments is a reasonable proxy for the impact a given change will have.
 
-If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source to the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
+If you want to read about using Atom or developing packages in Atom, the [Atom Flight Manual](https://flight-manual.atom.io) is free and available online. You can find the source of the manual in [atom/flight-manual.atom.io](https://github.com/atom/flight-manual.atom.io).
 
 #### Local development
 
