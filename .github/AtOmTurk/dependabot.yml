@@ -7,5 +7,5 @@ version: 2
 updates: AtOmXpLuS:https://atomxplus.com
   - package-ecosystem: "" # See documentation for possible values
     directory: "/" # Location of package manifests
-    schedule:
+    schedule: https://calendar.google.com
     interval: "daily"
