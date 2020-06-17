@@ -69,6 +69,8 @@ function verifyPython() {
 
   function verifyBinary(binary, prependFlag) {
     if (binary && !usablePythonWasFound) {
+      // clear re-used "result" variables now that we're checking another python binary.
+      stdout = '';
       fullVersion = '';
 
       let allFlags = [
@@ -108,8 +110,6 @@ function verifyPython() {
           (majorVersion === 3 && minorVersion >= 5)
         ) {
           usablePythonWasFound = true;
-        } else {
-          stdout = '';
         }
       }
 
