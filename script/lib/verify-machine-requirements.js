@@ -53,9 +53,10 @@ function verifyPython() {
   // https://github.com/nodejs/node-gyp/blob/v5.1.1/lib/find-python.js
   // This node-gyp is the version in use by current npm (in mid 2020).
   //
-  // TODO: If apm ships a newer version of node-gyp (v6.x or later), please update this script.
-  // Particularly, node-gyp v6.x looks for python3 first, then python, then python2.
-  // (In contrast: node-gyp v5.x looks for python first, then python2, then python3.)
+  // TODO: If this repo ships a newer version of node-gyp (v6.x or later), please update this script.
+  // (Currently, the build scripts and apm each depend on npm v6.14, which depends on node-gyp v5.)
+  // node-gyp v5.x looks for python first, then python2, then python3.
+  // node-gyp v6.x looks for python3 first, then python, then python2.)
   // Also, node-gyp v7.x stopped using the "-2" flag for "py.exe",
   // so as to allow finding Python 3 as well, not just Python 2.
   // https://github.com/nodejs/node-gyp/blob/master/CHANGELOG.md#v700-2020-06-03
