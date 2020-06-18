@@ -12,7 +12,7 @@ const {
   runApmInstall,
   sleep
 } = require('./util');
-const { createPR, findPR } = require('./pull-request');
+const { createPR, findPR, addLabel } = require('./pull-request');
 module.exports = async function() {
   try {
     // ensure we are on master
@@ -59,13 +59,13 @@ module.exports = async function() {
     }
     // create PRs here
     for (const { dependency, branch, branchIsRemote } of pendingPRs) {
-      const { status } = await createPR(dependency, branch);
-      status === 201
-        ? successfullBumps.push(dependency)
-        : failedBumps.push({
-            module: dependency.moduleName,
-            reason: `couldn't create pull request`
-          });
+      const { status, data = {} } = await createPR(dependency, branch);
+      if (status === 201) {
+        successfullBumps.push(dependency);
+        await addLabel(data.number);
+      } else {
+        failedBumps.push(dependency);
+      }
 
       if (!branchIsRemote) {
         await deleteBranch(branch);
@@ -73,14 +73,18 @@ module.exports = async function() {
       // https://developer.github.com/v3/guides/best-practices-for-integrators/#dealing-with-abuse-rate-limits
       await sleep(2000);
     }
-    console.log(
-      `Total dependencies: ${totalDependencies} Sucessfull: ${
-        successfullBumps.length
-      } Failed: ${failedBumps.length}`
-    );
-    // TODO: log other useful information
+    console.table([
+      {
+        totalDependencies,
+        totalSuccessfullBumps: successfullBumps.length,
+        totalFailedBumps: failedBumps.length
+      }
+    ]);
+    console.log('Successfull bumps');
+    console.table(successfullBumps);
+    console.log('Failed bumps');
+    console.table(failedBumps);
   } catch (ex) {
-    // TODO: handle errors
     console.log(ex.message);
   }
 };

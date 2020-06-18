@@ -30,5 +30,11 @@ module.exports = {
     return requestWithAuth('GET /search/issues', {
       q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch} state:open`
     });
+  },
+  addLabel: async pullRequestNumber => {
+    return requestWithAuth('PATCH /repos/:owner/:repo/issues/:issue_number', {
+      labels: ['depency ⬆️'],
+      issue_number: pullRequestNumber
+    });
   }
 };
