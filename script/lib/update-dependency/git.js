@@ -31,7 +31,7 @@ module.exports = {
   },
   createCommit: async function({ moduleName, latest }) {
     try {
-      const commitMessage = `:arrow_up:${moduleName}@${latest}`;
+      const commitMessage = `:arrow_up: ${moduleName}@${latest}`;
       await git.add([packageJsonFilePath, packageLockFilePath]);
       await git.commit(commitMessage);
     } catch (ex) {
@@ -40,7 +40,7 @@ module.exports = {
   },
   publishBranch: async function(branch) {
     try {
-      return git.push('origin', branch);
+      await git.push('origin', branch);
     } catch (ex) {
       throw Error(ex.message);
     }

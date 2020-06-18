@@ -20,7 +20,7 @@ module.exports = {
       description = `*List of changes between ${moduleName}@${installed} and ${moduleName}@${latest}: https://github.com/atom/${moduleName}/compare/v${installed}...v${latest}*`;
     }
     return requestWithAuth('POST /repos/:owner/:repo/pulls', {
-      title: `:arrow_up: ${moduleName}@${latest}`,
+      title: `⬆️ ${moduleName}@${latest}`,
       body: description,
       base: 'master',
       head: branch

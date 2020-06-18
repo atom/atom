@@ -18,7 +18,7 @@ module.exports = async function({ dependencies, packageDependencies }) {
     const packages = await Promise.all(promises);
     const outdatedPackages = [];
     packages.map(dependency => {
-      if (dependency.name) {
+      if (dependency.hasOwnProperty('name')) {
         const latestVersion = dependency.releases.latest;
         const installed = packageDependencies[dependency.name];
         if (latestVersion > installed) {

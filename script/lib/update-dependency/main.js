@@ -3,7 +3,8 @@ const {
   makeBranch,
   createCommit,
   switchToMaster,
-  publishBranch
+  publishBranch,
+  deleteBranch
 } = require('./git');
 const {
   updatePackageJson,
@@ -33,20 +34,31 @@ module.exports = async function() {
           console.log(`pull request found!`);
         } else {
           console.log(`pull request not found!`);
-          pendingPRs.push({ dependency, branch: newBranch });
+          const pr = { dependency, branch: newBranch, branchIsRemote: false };
+          // confirm if branch found is a local branch
+          if (found.indexOf('remotes') === -1) {
+            await publishBranch(found);
+          } else {
+            pr.branchIsRemote = true;
+          }
+          pendingPRs.push(pr);
         }
       } else {
         await updatePackageJson(dependency);
         await runApmInstall();
         await createCommit(dependency);
         await publishBranch(newBranch);
-        pendingPRs.push({ dependency, branch: newBranch });
+        pendingPRs.push({
+          dependency,
+          branch: newBranch,
+          branchIsRemote: false
+        });
       }
 
       await switchToMaster();
     }
     // create PRs here
-    for (const { dependency, branch } of pendingPRs) {
+    for (const { dependency, branch, branchIsRemote } of pendingPRs) {
       const { status } = await createPR(dependency, branch);
       status === 201
         ? successfullBumps.push(dependency)
@@ -54,6 +66,10 @@ module.exports = async function() {
             module: dependency.moduleName,
             reason: `couldn't create pull request`
           });
+
+      if (!branchIsRemote) {
+        await deleteBranch(branch);
+      }
       // https://developer.github.com/v3/guides/best-practices-for-integrators/#dealing-with-abuse-rate-limits
       await sleep(2000);
     }
@@ -65,5 +81,6 @@ module.exports = async function() {
     // TODO: log other useful information
   } catch (ex) {
     // TODO: handle errors
+    console.log(ex.message);
   }
 };
