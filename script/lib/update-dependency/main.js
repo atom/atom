@@ -30,10 +30,6 @@ module.exports = async function() {
         if (found.indexOf('remotes') === -1) {
           await switchToMaster();
             await deleteBranch(found);
-          }else {
-            await updatePackageJson(dependency);
-            await runApmInstall();
-            await createCommit(dependency);
           }
         // const {
         //   data: { total_count }
@@ -53,7 +49,7 @@ module.exports = async function() {
         // }
       } else {
         await updatePackageJson(dependency);
-        await runApmInstall();
+        // await runApmInstall();
         await createCommit(dependency);
         // await publishBranch(newBranch);
         // pendingPRs.push({
