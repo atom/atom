@@ -31,8 +31,9 @@ module.exports = {
         if (/\^|~/.test(packageJson)) {
           searchString = new RegExp(`\\${packageJson}`);
         } else {
-          searchString = packageJSON;
+          searchString = packageJson;
         }
+        console.log(searchString,updatePackageJson.dependencies[moduleName])
       }
       updatePackageJson.dependencies[
         moduleName
