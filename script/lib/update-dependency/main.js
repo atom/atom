@@ -27,52 +27,60 @@ module.exports = async function() {
       if (found) {
         console.log(`Branch was found ${found}`);
         console.log('checking if a PR already exists');
-        const {
-          data: { total_count }
-        } = await findPR(dependency, newBranch);
-        if (total_count > 0) {
-          console.log(`pull request found!`);
-        } else {
-          console.log(`pull request not found!`);
-          const pr = { dependency, branch: newBranch, branchIsRemote: false };
-          // confirm if branch found is a local branch
-          if (found.indexOf('remotes') === -1) {
-            await publishBranch(found);
-          } else {
-            pr.branchIsRemote = true;
+        if (found.indexOf('remotes') === -1) {
+          await switchToMaster();
+            await deleteBranch(found);
+          }else {
+            await updatePackageJson(dependency);
+            await runApmInstall();
+            await createCommit(dependency);
           }
-          pendingPRs.push(pr);
-        }
+        // const {
+        //   data: { total_count }
+        // } = await findPR(dependency, newBranch);
+        // if (total_count > 0) {
+        //   console.log(`pull request found!`);
+        // } else {
+        //   console.log(`pull request not found!`);
+        //   const pr = { dependency, branch: newBranch, branchIsRemote: false };
+        //   // confirm if branch found is a local branch
+        //   if (found.indexOf('remotes') === -1) {
+        //     await publishBranch(found);
+        //   } else {
+        //     pr.branchIsRemote = true;
+        //   }
+        //   pendingPRs.push(pr);
+        // }
       } else {
         await updatePackageJson(dependency);
         await runApmInstall();
         await createCommit(dependency);
-        await publishBranch(newBranch);
-        pendingPRs.push({
-          dependency,
-          branch: newBranch,
-          branchIsRemote: false
-        });
+        // await publishBranch(newBranch);
+        // pendingPRs.push({
+        //   dependency,
+        //   branch: newBranch,
+        //   branchIsRemote: false
+        // });
       }
 
       await switchToMaster();
     }
     // create PRs here
-    for (const { dependency, branch, branchIsRemote } of pendingPRs) {
-      const { status, data = {} } = await createPR(dependency, branch);
-      if (status === 201) {
-        successfullBumps.push(dependency);
-        await addLabel(data.number);
-      } else {
-        failedBumps.push(dependency);
-      }
+    // for (const { dependency, branch, branchIsRemote } of pendingPRs) {
+    //   const { status, data = {} } = await createPR(dependency, branch);
+    //   if (status === 201) {
+    //     successfullBumps.push(dependency);
+    //     await addLabel(data.number);
+    //   } else {
+    //     failedBumps.push(dependency);
+    //   }
 
-      if (!branchIsRemote) {
-        await deleteBranch(branch);
-      }
-      // https://developer.github.com/v3/guides/best-practices-for-integrators/#dealing-with-abuse-rate-limits
-      await sleep(2000);
-    }
+    //   if (!branchIsRemote) {
+    //     await deleteBranch(branch);
+    //   }
+    //   // https://developer.github.com/v3/guides/best-practices-for-integrators/#dealing-with-abuse-rate-limits
+    //   await sleep(2000);
+    // }
     console.table([
       {
         totalDependencies,

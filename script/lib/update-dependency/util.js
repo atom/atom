@@ -12,7 +12,7 @@ module.exports = {
   fetchOutdatedDependencies: async function() {
     return [
       ...(await checkAPM(packageJSON)),
-      // ...(await checkNPM(repositoryRootPath))
+      ...(await checkNPM(repositoryRootPath))
     ];
   },
   updatePackageJson: async function({
@@ -25,10 +25,15 @@ module.exports = {
     console.log(`Bumping ${moduleName} from ${installed} to ${latest}`);
     const updatePackageJson = JSON.parse(JSON.stringify(packageJSON));
     if (updatePackageJson.dependencies[moduleName]) {
+      let searchString = installed;
       // gets the exact version installed in package json for native packages
-      const searchString = isCorePackage
-        ? installed
-        : new RegExp(`\\${packageJson}`);
+      if (!isCorePackage) {
+        if (/\^|~/.test(packageJson)) {
+          searchString = new RegExp(`\\${packageJson}`);
+        } else {
+          searchString = packageJSON;
+        }
+      }
       updatePackageJson.dependencies[
         moduleName
       ] = updatePackageJson.dependencies[moduleName].replace(
