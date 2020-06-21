@@ -10,6 +10,7 @@
         ]
     ],
     "plugins": [
+        "@babel/plugin-transform-async-to-generator",
         "@babel/plugin-proposal-optional-chaining"
     ],
     "sourceMap": "inline"
