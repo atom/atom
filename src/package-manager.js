@@ -419,11 +419,10 @@ module.exports = class PackageManager {
 
     for (const packageDirPath of this.packageDirPaths) {
       if (fs.isDirectorySync(packageDirPath)) {
-          
         const packagePaths = fs
           .readdirSync(packageDirPath, { withFileTypes: true })
-          .filter((dirent) => dirent.isDirectory())
-          .map((dirent) => dirent.name);
+          .filter(dirent => dirent.isDirectory())
+          .map(dirent => dirent.name);
 
         for (const packageName of packagePaths) {
           if (
@@ -434,7 +433,7 @@ module.exports = class PackageManager {
             packages.push({
               name: packageName,
               path: packagePath,
-              isBundled: false,
+              isBundled: false
             });
             packagesByName.add(packageName);
           }
