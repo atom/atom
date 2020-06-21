@@ -8,6 +8,7 @@ import { setLineEnding } from './main';
 export class Selector {
   lineEndingListView;
   modalPanel;
+  previousActivePane;
 
   // Make a selector object (should be called once)
   constructor(selectorItems) {
@@ -34,12 +35,12 @@ export class Selector {
         if (editor instanceof TextEditor) {
         setLineEnding(editor, lineEnding.value);
         }
-        this.modalPanel.hide();
+        this.hide();
     },
 
     // called when the user presses Esc or the list loses focus. // use `=>` for `this`
     didCancelSelection: () => {
-        this.modalPanel.hide();
+        this.hide();
     }
     });
 
@@ -51,9 +52,20 @@ export class Selector {
 
   // Show a selector object
   show() {
+    this.previousActivePane = atom.workspace.getActivePane();
+
+    // Show selector
     this.lineEndingListView.reset();
     this.modalPanel.show();
     this.lineEndingListView.focus();
+  }
+
+  // Hide a selector
+  hide() {
+    // hide modal panel
+    this.modalPanel.hide();
+    // focus on the previous active pane
+    this.previousActivePane.activate();
   }
 
   // Dispose selector
