@@ -9,6 +9,8 @@
             }
         ]
     ],
-    "plugins": [],
+    "plugins": [
+        "@babel/plugin-proposal-optional-chaining"
+    ],
     "sourceMap": "inline"
 }

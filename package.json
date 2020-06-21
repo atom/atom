@@ -20,6 +20,7 @@
     "@babel/core": "7.10.3",
     "@babel/cli": "7.10.3",
     "@babel/preset-env": "7.10.3",
+    "@babel/plugin-proposal-optional-chaining": "7.10.3",
     "about": "file:packages/about",
     "archive-view": "https://www.atom.io/api/packages/archive-view/versions/0.65.2/tarball",
     "async": "0.2.6",
