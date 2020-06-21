@@ -1,7 +1,14 @@
 {
-  "breakConfig": true,
-  "sourceMap": "inline",
-  "blacklist": ["es6.forOf", "useStrict"],
-  "optional": ["asyncToGenerator"],
-  "stage": 0
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "electron": 5
+                }
+            }
+        ]
+    ],
+    "plugins": [],
+    "sourceMap": "inline"
 }
