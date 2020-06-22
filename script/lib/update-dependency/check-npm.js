@@ -9,11 +9,20 @@ module.exports = async function(cwd) {
       ignoreDev: true,
       skipUnused: true
     });
-    const outdatedPackages = currentState.get('packages').filter(p => {
-      if (p.packageJson && p.latest) {
-        return p.latest > p.installed;
-      }
-    });
+    const outdatedPackages = currentState
+      .get('packages')
+      .filter(p => {
+        if (p.packageJson && p.latest && p.installed) {
+          return p.latest > p.installed;
+        }
+      })
+      .map(({ packageJson, installed, moduleName, latest }) => ({
+        packageJson,
+        installed,
+        moduleName,
+        latest,
+        isCorePackage: false
+      }));
 
     console.log(`${outdatedPackages.length} outdated package(s) found`);
 
