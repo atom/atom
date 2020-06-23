@@ -9,10 +9,11 @@ const {
 const {
   updatePackageJson,
   fetchOutdatedDependencies,
-  runApmInstall,
   sleep
 } = require('./util');
 const { createPR, findPR, addLabel } = require('./pull-request');
+const runApmInstall = require('../run-apm-install');
+const { repositoryRootPath } = require('../../config');
 module.exports = async function() {
   try {
     // ensure we are on master
@@ -45,7 +46,7 @@ module.exports = async function() {
         }
       } else {
         await updatePackageJson(dependency);
-        await runApmInstall();
+        runApmInstall(repositoryRootPath, false);
         await createCommit(dependency);
         await publishBranch(newBranch);
         pendingPRs.push({
