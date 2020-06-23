@@ -79,7 +79,7 @@ jobs:
           npm install
         displayName: npm install
 
-       - script: | 
+      - script: | 
           cd script/lib/update-dependency
           node index.js
         displayName: Bump depedencies
