@@ -53,7 +53,7 @@
     "electron-notarize": "0.3.0",
     "electron-osx-sign": "0.4.17",
     "encoding-selector": "https://www.atom.io/api/packages/encoding-selector/versions/0.23.9/tarball",
-    "etch": "^0.12.6",
+    "etch": "0.14.0",
     "event-kit": "^2.5.3",
     "exception-reporting": "file:packages/exception-reporting",
     "find-and-replace": "https://www.atom.io/api/packages/find-and-replace/versions/0.219.5/tarball",
