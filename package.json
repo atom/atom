@@ -75,7 +75,7 @@
     "image-view": "https://www.atom.io/api/packages/image-view/versions/0.64.0/tarball",
     "incompatible-packages": "file:packages/incompatible-packages",
     "jasmine-json": "~0.0",
-    "jasmine-reporters": "1.1.0",
+    "jasmine-reporters": "2.3.2",
     "jasmine-tagged": "^1.1.4",
     "key-path-helpers": "^0.4.0",
     "keybinding-resolver": "https://www.atom.io/api/packages/keybinding-resolver/versions/0.39.0/tarball",
