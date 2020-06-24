@@ -5,10 +5,14 @@ const git = simpleGit(repositoryRootPath);
 const packageJsonFilePath = path.join(repositoryRootPath, 'package.json');
 const packageLockFilePath = path.join(repositoryRootPath, 'package-lock.json');
 
-git.addRemote(
-  'origin',
-  `https://atom:${process.env.AUTH_TOKEN}@github.com/atom/atom.git/`
-);
+try {
+  git.addRemote(
+    'ATOM',
+    `https://atom:${process.env.AUTH_TOKEN}@github.com/atom/atom.git/`
+  );
+} catch (ex) {
+  console.log(ex.message);
+}
 module.exports = {
   switchToMaster: async function() {
     const { current } = await git.branch();
@@ -43,7 +47,7 @@ module.exports = {
   },
   publishBranch: async function(branch) {
     try {
-      await git.push('origin', branch);
+      await git.push('ATOM', branch);
     } catch (ex) {
       throw Error(ex.message);
     }
