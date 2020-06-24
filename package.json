@@ -71,7 +71,7 @@
     "glob": "^7.1.1",
     "go-to-line": "file:packages/go-to-line",
     "grammar-selector": "file:packages/grammar-selector",
-    "grim": "1.5.0",
+    "grim": "2.0.2",
     "image-view": "https://www.atom.io/api/packages/image-view/versions/0.64.0/tarball",
     "incompatible-packages": "file:packages/incompatible-packages",
     "jasmine-json": "~0.0",
