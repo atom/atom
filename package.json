@@ -51,7 +51,7 @@
     "dev-live-reload": "file:packages/dev-live-reload",
     "devtron": "1.3.0",
     "electron-notarize": "0.3.0",
-    "electron-osx-sign": "0.4.16",
+    "electron-osx-sign": "0.4.17",
     "encoding-selector": "https://www.atom.io/api/packages/encoding-selector/versions/0.23.9/tarball",
     "etch": "^0.12.6",
     "event-kit": "^2.5.3",
