@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const execa = require('execa');
 const { repositoryRootPath } = require('../../config');
 const packageJsonFilePath = path.join(repositoryRootPath, 'package.json');
 const packageJSON = require(packageJsonFilePath);
@@ -63,16 +62,6 @@ module.exports = {
         }
       );
     });
-  },
-  runApmInstall: async function() {
-    console.log('apm install');
-
-    return execa('apm', ['install'], { cwd: repositoryRootPath })
-      .then(result => result.failed)
-      .catch(ex => {
-        console.log(`failed to install module`);
-        return false;
-      });
   },
   sleep: ms => new Promise(resolve => setTimeout(resolve, ms))
 };
