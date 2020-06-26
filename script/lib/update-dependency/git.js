@@ -16,10 +16,10 @@ try {
 module.exports = {
   switchToMaster: async function() {
     const { current } = await git.branch();
-    if (current !== 'master') {
-      await git.checkout('master');
+    if (current !== 'dependency-automation') {
+      await git.checkout('dependency-automation');
     }
-    await git.pull('origin', 'master');
+    // await git.pull('origin', 'dependency-automation');
   },
   makeBranch: async function(dependency) {
     const newBranch = `${dependency.moduleName}-${dependency.latest}`;
