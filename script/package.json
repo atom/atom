@@ -11,7 +11,7 @@
     "@babel/preset-env": "7.10.3",
     "@babel/plugin-transform-async-to-generator": "7.10.1",
     "@babel/plugin-proposal-optional-chaining": "7.10.3",
-    "babel-eslint": "^10.0.1",
+    "babel-eslint": "10.1.0",
     "cheerio": "1.0.0-rc.2",
     "coffeelint": "1.15.7",
     "colors": "1.1.2",
