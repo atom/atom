@@ -7,7 +7,9 @@
                     "electron": 5
                 }
             }
-        ]
+        ],
+        "@babel/preset-react",
+        "@babel/preset-flow"
     ],
     "plugins": [
         "@babel/plugin-transform-async-to-generator",
