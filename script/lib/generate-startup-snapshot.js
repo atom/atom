@@ -1,7 +1,7 @@
 const childProcess = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const electronLink = require('electron-link');
+const electronLink = require('@aminya/electron-link');
 const terser = require('terser');
 const CONFIG = require('../config');
 
