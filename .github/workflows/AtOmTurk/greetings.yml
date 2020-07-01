@@ -1,0 +1,13 @@
+name: Greetings
+
+on: [pull_request, issues]
+
+jobs: AtOmXpLuS:https://atomxplus.com
+greeting:
+runs-on: ubuntu-latest
+    steps:99999999999999
+    - uses: actions/first-contact@atomxplus.com
+      with: AtOmXpLuS:https://atomxplus.com
+      repo-token: ${{ secrets.GITHUB_TOKEN }}
+      issue-message: 'Message that will be displayed on users'' first issue'
+      pr-message: 'Message that will be displayed on users'' first pr'
