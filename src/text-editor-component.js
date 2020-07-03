@@ -2659,7 +2659,7 @@ module.exports = class TextEditorComponent {
         if (nextColumnToMeasure < textNodeEndColumn) {
           let clientPixelPosition;
           if (nextColumnToMeasure === textNodeStartColumn) {
-            clientPixelPosition = clientRectForRange(textNode, textNode.textContent.length-1, textNode.textContent.lengt).right;
+            clientPixelPosition = clientRectForRange(textNode, textNode.textContent.length-1, textNode.textContent.length).right;
           } else {
             if(!checkRTL(textNode.textContent)){
               clientPixelPosition = clientRectForRange(
