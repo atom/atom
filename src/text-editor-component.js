@@ -2793,6 +2793,8 @@ module.exports = class TextEditorComponent {
       }
     }
     const containingTextNode = textNodes[containingTextNodeIndex];
+    const rtl = checkRTL(containingTextNode.data);
+
     let characterIndex = 0;
     {
       let low = 0;
@@ -2811,29 +2813,37 @@ module.exports = class TextEditorComponent {
           charIndex,
           nextCharIndex
         );
-        if (targetClientLeft < rangeRect.left && !checkRTL(containingTextNode.data)) {
+        if (targetClientLeft < rangeRect.left && !rtl) {
           high = charIndex - 1;
           characterIndex = Math.max(0, charIndex - 1);
-        } else if (targetClientLeft > rangeRect.right && !checkRTL(containingTextNode.data)) {
+        } else if (targetClientLeft > rangeRect.right && !rtl) {
           low = nextCharIndex;
           characterIndex = Math.min(
             containingTextNode.textContent.length,
             nextCharIndex
           );
-        } else if (targetClientLeft > rangeRect.right && checkRTL(containingTextNode.data)) {
+        } else if (targetClientLeft > rangeRect.right && rtl) {
           high = charIndex - 1;
           characterIndex = Math.max(0, charIndex - 1);
-        } else if (targetClientLeft < rangeRect.left && checkRTL(containingTextNode.data)) {
+        } else if (targetClientLeft < rangeRect.left && rtl) {
           low = nextCharIndex;
           characterIndex = Math.min(
             containingTextNode.textContent.length,
             nextCharIndex
           );
         } else {
-          if (targetClientLeft <= (rangeRect.left + rangeRect.right) / 2) {
-            characterIndex = charIndex;
-          } else {
-            characterIndex = nextCharIndex;
+          if (!rtl){
+            if (targetClientLeft <= (rangeRect.left + rangeRect.right) / 2) {
+              characterIndex = charIndex;
+            } else {
+              characterIndex = nextCharIndex;
+            }
+          }else{
+            if (targetClientLeft <= (rangeRect.left + rangeRect.right) / 2) {
+              characterIndex = nextCharIndex;
+            } else {
+              characterIndex = charIndex;
+            }
           }
           break;
         }
