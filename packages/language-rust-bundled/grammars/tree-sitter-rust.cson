@@ -131,6 +131,8 @@ scopes:
   '"where"': 'keyword.control'
   '"ref"': 'keyword.control'
   '"macro_rules!"': 'keyword.control'
+  '"async"': 'keyword.control'
+  '"await"': 'keyword.control'
 
   '"as"': 'keyword.operator'
 
