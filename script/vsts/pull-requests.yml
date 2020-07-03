@@ -2,6 +2,8 @@ trigger: none # No CI builds, only PR builds
 
 jobs:
   - job: GetReleaseVersion
+    pool:
+      vmImage: 'windows-latest'
     steps:
       # This has to be done separately because VSTS inexplicably
       # exits the script block after `npm install` completes.
