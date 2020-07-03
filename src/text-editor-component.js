@@ -2623,6 +2623,7 @@ module.exports = class TextEditorComponent {
     this.horizontalPositionsToMeasure.clear();
   }
 
+
   measureHorizontalPositionsOnLine(
     lineNode,
     textNodes,
@@ -2633,6 +2634,8 @@ module.exports = class TextEditorComponent {
     let textNodeStartColumn = 0;
     let textNodesIndex = 0;
     let lastTextNodeRight = null;
+
+    // positions.clear(); used for debugging
 
     // eslint-disable-next-line no-labels
     columnLoop: for (
@@ -2652,16 +2655,25 @@ module.exports = class TextEditorComponent {
         const textNodeEndColumn =
           textNodeStartColumn + textNode.textContent.length;
 
+        // set clientPixelPosition value --
         if (nextColumnToMeasure < textNodeEndColumn) {
           let clientPixelPosition;
           if (nextColumnToMeasure === textNodeStartColumn) {
-            clientPixelPosition = clientRectForRange(textNode, 0, 1).left;
+            clientPixelPosition = clientRectForRange(textNode, textNode.textContent.length-1, textNode.textContent.lengt).right;
           } else {
-            clientPixelPosition = clientRectForRange(
-              textNode,
-              0,
-              nextColumnToMeasure - textNodeStartColumn
-            ).right;
+            if(!checkRTL(textNode.textContent)){
+              clientPixelPosition = clientRectForRange(
+                textNode,
+                0,
+                nextColumnToMeasure - textNodeStartColumn
+              ).right;
+            }else{
+              clientPixelPosition = clientRectForRange(
+                textNode,
+                0,
+                nextColumnToMeasure - textNodeStartColumn
+              ).left;
+            }
           }
 
           if (lineNodeClientLeft === -1) {
@@ -2697,6 +2709,7 @@ module.exports = class TextEditorComponent {
         Math.round(lastTextNodeRight - lineNodeClientLeft)
       );
     }
+    console.log(positions);
   }
 
   rowForPixelPosition(pixelPosition) {
@@ -2798,10 +2811,19 @@ module.exports = class TextEditorComponent {
           charIndex,
           nextCharIndex
         );
-        if (targetClientLeft < rangeRect.left) {
+        if (targetClientLeft < rangeRect.left && !checkRTL(containingTextNode.data)) {
           high = charIndex - 1;
           characterIndex = Math.max(0, charIndex - 1);
-        } else if (targetClientLeft > rangeRect.right) {
+        } else if (targetClientLeft > rangeRect.right && !checkRTL(containingTextNode.data)) {
+          low = nextCharIndex;
+          characterIndex = Math.min(
+            containingTextNode.textContent.length,
+            nextCharIndex
+          );
+        } else if (targetClientLeft > rangeRect.right && checkRTL(containingTextNode.data)) {
+          high = charIndex - 1;
+          characterIndex = Math.max(0, charIndex - 1);
+        } else if (targetClientLeft < rangeRect.left && checkRTL(containingTextNode.data)) {
           low = nextCharIndex;
           characterIndex = Math.min(
             containingTextNode.textContent.length,
@@ -2823,7 +2845,7 @@ module.exports = class TextEditorComponent {
       textNodeStartColumn = textNodeStartColumn + textNodes[i].length;
     }
     const column = textNodeStartColumn + characterIndex;
-
+    console.log(row, column);
     return Point(row, column);
   }
 
@@ -4264,7 +4286,9 @@ class LinesTileComponent {
           position: 'absolute',
           height: height + 'px',
           width: width + 'px',
-          transform: `translateY(${top}px)`
+          transform: `translateY(${top}px)`,
+          direction: 'rtl',
+          unicodeBidi: 'embed'
         }
       }
       // Lines and block decorations will be manually inserted here for efficiency
@@ -5223,3 +5247,11 @@ function ceilToPhysicalPixelBoundary(virtualPixelPosition) {
     virtualPixelsPerPhysicalPixel
   );
 }
+
+function checkRTL(s){
+    var ltrChars    = 'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590\u0800-\u1FFF'+'\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF',
+        rtlChars    = '\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC',
+        rtlDirCheck = new RegExp('^[^'+ltrChars+']*['+rtlChars+']');
+
+    return rtlDirCheck.test(s);
+};
