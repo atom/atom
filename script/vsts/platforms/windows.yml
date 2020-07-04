@@ -101,11 +101,19 @@ jobs:
           SET SQUIRREL_TEMP=C:\tmp
           IF [%IS_RELEASE_BRANCH%]==[true] (
             ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-            node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
+            IF [%SHOULD_SIGN%]==[true] (
+             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
+            ) ELSE (
+             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts --create-windows-installer
+            )
           ) ELSE (
             IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
               ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
+             IF [%SHOULD_SIGN%]==[true] (
               node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
+             ) ELSE (
+              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
+             )
             ) ELSE (
               ECHO Pull request build, no code signing will be performed
               node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
