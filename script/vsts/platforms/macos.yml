@@ -47,7 +47,7 @@ jobs:
         displayName: Run linter
 
       - script: |
-          if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
+          if [ $SHOULD_SIGN == "true" ] && ([ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]); then
             script/build --no-bootstrap --code-sign --compress-artifacts
           else
             script/build --no-bootstrap --compress-artifacts
