@@ -133,7 +133,7 @@ module.exports = function(packagedAppPath) {
             'command-event.js'
           ) ||
         requiredModuleRelativePath ===
-          path.join('..', 'node_modules', 'babel-core', 'index.js') ||
+          path.join('..', 'node_modules', '@babel/core', 'lib', 'index.js') ||
         requiredModuleRelativePath ===
           path.join('..', 'node_modules', 'debug', 'node.js') ||
         requiredModuleRelativePath ===
