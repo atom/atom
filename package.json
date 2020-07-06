@@ -147,7 +147,7 @@
     "semver": "^4.3.3",
     "service-hub": "^0.7.4",
     "settings-view": "https://www.atom.io/api/packages/settings-view/versions/0.255.0/tarball",
-    "sinon": "1.17.4",
+    "sinon": "9.0.2",
     "snippets": "https://www.atom.io/api/packages/snippets/versions/1.3.3/tarball",
     "solarized-dark-syntax": "https://www.atom.io/api/packages/solarized-dark-syntax/versions/1.1.5/tarball",
     "solarized-light-syntax": "https://www.atom.io/api/packages/solarized-light-syntax/versions/1.1.5/tarball",
