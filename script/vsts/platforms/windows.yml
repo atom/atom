@@ -48,21 +48,26 @@ jobs:
           npm install
         displayName: Install Windows build dependencies
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x64)
+      - task: Cache@2
+        displayName: Cache node_modules
         inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
+          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | package.json, package-lock.json, script/vsts/platforms/windows.yml'
+          path: 'node_modules'
+          cacheHitVar: MainNodeModulesRestored
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x86)
+      - task: Cache@2
+        displayName: Cache script/node_modules
         inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
+          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | script/package.json, script/package-lock.json, script/vsts/platforms/windows.yml'
+          path: 'script/node_modules'
+          cacheHitVar: ScriptNodeModulesRestored
+
+      - task: Cache@2
+        displayName: Cache apm/node_modules
+        inputs:
+          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/windows.yml'
+          path: 'apm/node_modules'
+          cacheHitVar: ApmNodeModulesRestored
 
       - script: |
           node script\vsts\windows-run.js script\bootstrap.cmd
@@ -73,23 +78,7 @@ jobs:
           NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.13.1\\x64\\npm.cmd"
           npm_config_build_from_source: true
         displayName: Bootstrap build environment
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x64)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x86)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - script: node script\vsts\windows-run.js script\lint.cmd
         env:
