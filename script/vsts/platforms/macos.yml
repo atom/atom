@@ -20,12 +20,26 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
+      - task: Cache@2
+        displayName: Cache node_modules
         inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+          key: 'npm | "$(Agent.OS)" | package.json, package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'node_modules'
+          cacheHitVar: MainNodeModulesRestored
+
+      - task: Cache@2
+        displayName: Cache script/node_modules
+        inputs:
+          key: 'npm | "$(Agent.OS)" | script/package.json, script/package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'script/node_modules'
+          cacheHitVar: ScriptNodeModulesRestored
+
+      - task: Cache@2
+        displayName: Cache apm/node_modules
+        inputs:
+          key: 'npm | "$(Agent.OS)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'apm/node_modules'
+          cacheHitVar: ApmNodeModulesRestored
 
       - script: script/bootstrap
         displayName: Bootstrap build environment
@@ -34,14 +48,7 @@ jobs:
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
           npm_config_build_from_source: true
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - script: script/lint
         displayName: Run linter
@@ -121,12 +128,26 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
+      - task: Cache@2
+        displayName: Cache node_modules
         inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+          key: 'npm | "$(Agent.OS)" | package.json, package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'node_modules'
+          cacheHitVar: MainNodeModulesRestored
+
+      - task: Cache@2
+        displayName: Cache script/node_modules
+        inputs:
+          key: 'npm | "$(Agent.OS)" | script/package.json, script/package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'script/node_modules'
+          cacheHitVar: ScriptNodeModulesRestored
+
+      - task: Cache@2
+        displayName: Cache apm/node_modules
+        inputs:
+          key: 'npm | "$(Agent.OS)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/macos.yml'
+          path: 'apm/node_modules'
+          cacheHitVar: ApmNodeModulesRestored
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.
@@ -137,8 +158,7 @@ jobs:
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /usr/local/bin/npm
           npm_config_build_from_source: true
-
-        condition: ne(variables['CacheRestored'], 'true')
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - task: DownloadBuildArtifacts@0
         displayName: Download atom-mac.zip
