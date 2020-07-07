@@ -113,6 +113,7 @@ scopes:
   '"enum"': 'storage.modifier'
   '"union"': 'storage.modifier'
   'mutable_specifier': 'storage.modifier'
+  '"auto"': 'storage.modifier'
 
   '"unsafe"': 'keyword.control'
   '"use"': 'keyword.control'
