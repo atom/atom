@@ -419,12 +419,12 @@ module.exports = class PackageManager {
 
     for (const packageDirPath of this.packageDirPaths) {
       if (fs.isDirectorySync(packageDirPath)) {
-        const packagePaths = fs
+        const packageNames = fs
           .readdirSync(packageDirPath, { withFileTypes: true })
           .filter(dirent => dirent.isDirectory())
           .map(dirent => dirent.name);
 
-        for (const packageName of packagePaths) {
+        for (const packageName of packageNames) {
           if (
             !packageName.startsWith('.') &&
             !packagesByName.has(packageName)
