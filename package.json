@@ -140,7 +140,7 @@
     "prebuild-install": "^5.3.3",
     "property-accessors": "^1.1.3",
     "random-words": "0.0.1",
-    "resolve": "^1.1.6",
+    "resolve": "1.17.0",
     "scandal": "^3.2.0",
     "scoped-property-store": "^0.17.0",
     "scrollbar-style": "^3.2",
