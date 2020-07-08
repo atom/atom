@@ -114,6 +114,7 @@ scopes:
   '"union"': 'storage.modifier'
   'mutable_specifier': 'storage.modifier'
   '"auto"': 'storage.modifier'
+  '"macro"': 'storage.modifier'
 
   '"unsafe"': 'keyword.control'
   '"use"': 'keyword.control'
