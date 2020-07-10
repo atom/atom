@@ -2,6 +2,7 @@ trigger:
   - master
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
+pr: none # no PR triggers
 
 jobs:
   - job: GetReleaseVersion
