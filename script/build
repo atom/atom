@@ -10,6 +10,8 @@ if (process.argv.includes('--no-bootstrap')) {
   require('./bootstrap')
 }
 
+// Required to load CS files in this build script, such as those in `donna`
+require('coffee-script/register')
 require('colors')
 
 const path = require('path')
