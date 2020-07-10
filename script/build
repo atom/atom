@@ -10,8 +10,6 @@ if (process.argv.includes('--no-bootstrap')) {
   require('./bootstrap')
 }
 
-// Needed so we can require src/module-cache.coffee during generateModuleCache
-require('coffee-script/register')
 require('colors')
 
 const path = require('path')
