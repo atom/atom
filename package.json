@@ -145,7 +145,7 @@
     "scoped-property-store": "^0.17.0",
     "scrollbar-style": "^3.2",
     "season": "^6.0.2",
-    "semver": "^4.3.3",
+    "semver": "7.3.2",
     "service-hub": "^0.7.4",
     "settings-view": "https://www.atom.io/api/packages/settings-view/versions/0.261.4/tarball",
     "sinon": "1.17.4",
