@@ -55,9 +55,11 @@ function verifyPython() {
   //
   // TODO: If this repo ships a newer version of node-gyp (v6.x or later), please update this script.
   // (Currently, the build scripts and apm each depend on npm v6.14, which depends on node-gyp v5.)
-  // node-gyp v5.x looks for python first, then python2, then python3.
-  // node-gyp v6.x looks for python3 first, then python, then python2.)
-  // Also, node-gyp v7.x stopped using the "-2" flag for "py.exe",
+  // Differences between major versions of node-gyp:
+  // node-gyp 5.x looks for python, then python2, then python3.
+  // node-gyp 6.x looks for python3, then python, then python2.)
+  // node-gyp 5.x accepts Python ^2.6 || >= 3.5, node-gyp 6+ only accepts Python == 2.7 || >= 3.5.
+  // node-gyp 7.x stopped using the "-2" flag for "py.exe",
   // so as to allow finding Python 3 as well, not just Python 2.
   // https://github.com/nodejs/node-gyp/blob/master/CHANGELOG.md#v700-2020-06-03
 
@@ -80,9 +82,10 @@ function verifyPython() {
       if (prependFlag) {
         // prependFlag is an optional argument,
         // used to prepend "-2" for the "py.exe" launcher.
-        // TODO: Refactor by eliminating prependFlag
-        // once apm updates to node-gyp v7.x or newer, in which
-        // the "-2" flag has been dropped for invoking the py launcher.
+        //
+        // TODO: Refactor this script by eliminating "prependFlag"
+        // once we update to node-gyp v7.x or newer;
+        // the "-2" flag is not used in node-gyp v7.x.
         allFlags.unshift(prependFlag);
       }
 
@@ -106,7 +109,7 @@ function verifyPython() {
         let majorVersion = Number(versionComponents[0]);
         let minorVersion = Number(versionComponents[1]);
         if (
-          (majorVersion === 2 && minorVersion === 7) ||
+          (majorVersion === 2 && minorVersion >= 6) ||
           (majorVersion === 3 && minorVersion >= 5)
         ) {
           usablePythonWasFound = true;
@@ -132,7 +135,7 @@ function verifyPython() {
         throw new Error(
           `NODE_GYP_FORCE_PYTHON is set to: "${binary}", but this is not a valid Python.\n` +
             'Please set NODE_GYP_FORCE_PYTHON to something valid, or unset it entirely.\n' +
-            '(Python 2.7 or 3.5+ is required to build Atom.)\n'
+            '(Python 2.6, 2.7 or 3.5+ is required to build Atom.)\n'
         );
       }
     }
@@ -161,7 +164,7 @@ function verifyPython() {
   } else {
     throw new Error(
       `\n${triedLog}\n` +
-        'Python 2.7 or 3.5+ is required to build Atom.\n' +
+        'Python 2.6, 2.7 or 3.5+ is required to build Atom.\n' +
         'verify-machine-requirements.js was unable to find such a version of Python.\n' +
         "Set the PYTHON env var to e.g. 'C:/path/to/Python27/python.exe'\n" +
         'if your Python is installed in a non-default location.\n'
