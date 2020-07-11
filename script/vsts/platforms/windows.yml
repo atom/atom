@@ -48,26 +48,9 @@ jobs:
           npm install
         displayName: Install Windows build dependencies
 
-      - task: Cache@2
-        displayName: Cache node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | package.json, package-lock.json, script/vsts/platforms/windows.yml'
-          path: 'node_modules'
-          cacheHitVar: MainNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache script/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | script/package.json, script/package-lock.json, script/vsts/platforms/windows.yml'
-          path: 'script/node_modules'
-          cacheHitVar: ScriptNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache apm/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | "$(buildArch)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/windows.yml'
-          path: 'apm/node_modules'
-          cacheHitVar: ApmNodeModulesRestored
+      - template: cache.yml
+        parameters:
+          OS: windows
 
       - script: |
           node script\vsts\windows-run.js script\bootstrap.cmd
