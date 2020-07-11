@@ -20,26 +20,9 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - task: Cache@2
-        displayName: Cache node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | package.json, package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'node_modules'
-          cacheHitVar: MainNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache script/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | script/package.json, script/package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'script/node_modules'
-          cacheHitVar: ScriptNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache apm/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'apm/node_modules'
-          cacheHitVar: ApmNodeModulesRestored
+      - template: cache.yml
+        parameters:
+          OS: macos
 
       - script: script/bootstrap
         displayName: Bootstrap build environment
@@ -128,26 +111,9 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - task: Cache@2
-        displayName: Cache node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | package.json, package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'node_modules'
-          cacheHitVar: MainNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache script/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | script/package.json, script/package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'script/node_modules'
-          cacheHitVar: ScriptNodeModulesRestored
-
-      - task: Cache@2
-        displayName: Cache apm/node_modules
-        inputs:
-          key: 'npm | "$(Agent.OS)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/macos.yml'
-          path: 'apm/node_modules'
-          cacheHitVar: ApmNodeModulesRestored
+      - template: cache.yml
+        parameters:
+          OS: macos
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.

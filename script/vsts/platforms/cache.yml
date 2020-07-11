@@ -1,0 +1,30 @@
+parameters:
+  - name: OS
+    displayName: Operating System
+    type: string
+    values:
+      - windows
+      - linux
+      - macos
+
+steps:
+  - task: Cache@2
+    displayName: Cache node_modules
+    inputs:
+      key: 'npm | "$(Agent.OS)" | "$(buildArch)" | package.json, package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml'
+      path: 'node_modules'
+      cacheHitVar: MainNodeModulesRestored
+
+  - task: Cache@2
+    displayName: Cache script/node_modules
+    inputs:
+      key: 'npm | "$(Agent.OS)" | "$(buildArch)" | script/package.json, script/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml'
+      path: 'script/node_modules'
+      cacheHitVar: ScriptNodeModulesRestored
+
+  - task: Cache@2
+    displayName: Cache apm/node_modules
+    inputs:
+      key: 'npm | "$(Agent.OS)" | "$(buildArch)" | apm/package.json, apm/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml'
+      path: 'apm/node_modules'
+      cacheHitVar: ApmNodeModulesRestored
