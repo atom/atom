@@ -11,6 +11,9 @@ jobs:
         displayName: npm install
       - script: node script\vsts\get-release-version.js --nightly
         name: Version
+        env:
+          REPO_OWNER: atom
+          NIGHTLY_RELEASE_REPO: atom-nightly-releases
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
@@ -59,6 +62,9 @@ jobs:
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
           PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+          REPO_OWNER: atom
+          MAIN_REPO: atom
+          NIGHTLY_RELEASE_REPO: atom-nightly-releases
         displayName: Create Nightly Release
   - job: bump_dependencies
     displayName: Bump Dependencies

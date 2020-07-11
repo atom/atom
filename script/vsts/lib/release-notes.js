@@ -3,9 +3,9 @@ const octokit = require('@octokit/rest')();
 const changelog = require('pr-changelog');
 const childProcess = require('child_process');
 
-const REPO_OWNER = 'atom';
-const MAIN_REPO = 'atom';
-const NIGHTLY_RELEASE_REPO = 'atom-nightly-repo';
+const REPO_OWNER = process.env.REPO_OWNER;
+const MAIN_REPO = process.env.MAIN_REPO;
+const NIGHTLY_RELEASE_REPO = process.env.NIGHTLY_RELEASE_REPO;
 
 module.exports.getRelease = async function(releaseVersion, githubToken) {
   if (githubToken) {

@@ -4,8 +4,8 @@ const request = require('request-promise-native');
 const repositoryRootPath = path.resolve(__dirname, '..', '..');
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'));
 
-const REPO_OWNER = 'atom';
-const NIGHTLY_RELEASE_REPO = 'atom-nightly-releases';
+const REPO_OWNER = process.env.REPO_OWNER;
+const NIGHTLY_RELEASE_REPO = process.env.NIGHTLY_RELEASE_REPO;
 
 const yargs = require('yargs');
 const argv = yargs

@@ -12,9 +12,9 @@ const uploadLinuxPackages = require('./lib/upload-linux-packages');
 
 const CONFIG = require('../config');
 
-const REPO_OWNER = 'atom';
-const MAIN_REPO = 'atom';
-const NIGHTLY_RELEASE_REPO = 'atom-nightly-releases';
+const REPO_OWNER = process.env.REPO_OWNER;
+const MAIN_REPO = process.env.MAIN_REPO;
+const NIGHTLY_RELEASE_REPO = process.env.NIGHTLY_RELEASE_REPO;
 
 const yargs = require('yargs');
 const argv = yargs
