@@ -12,6 +12,10 @@ const uploadLinuxPackages = require('./lib/upload-linux-packages');
 
 const CONFIG = require('../config');
 
+const REPO_OWNER = 'atom';
+const MAIN_REPO = 'atom';
+const NIGHTLY_RELEASE_REPO = 'atom-nightly-releases';
+
 const yargs = require('yargs');
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -127,13 +131,13 @@ async function uploadArtifacts() {
       ? spawnSync('git', ['rev-parse', 'HEAD'])
           .stdout.toString()
           .trimEnd()
-      : 'master'; // Nightly tags are created in atom/atom-nightly-releases so the SHA is irrelevant
+      : 'master'; // Nightly tags are created in REPO_OWNER/NIGHTLY_RELEASE_REPO so the SHA is irrelevant
 
     console.log(`Creating GitHub release v${releaseVersion}`);
     const release = await publishReleaseAsync({
       token: process.env.GITHUB_TOKEN,
-      owner: 'atom',
-      repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
+      owner: REPO_OWNER,
+      repo: !isNightlyRelease ? MAIN_REPO : NIGHTLY_RELEASE_REPO,
       name: CONFIG.computedAppVersion,
       notes: newReleaseNotes,
       target_commitish: releaseSha,
