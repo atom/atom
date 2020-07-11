@@ -14,8 +14,8 @@ jobs:
       - script: node script\vsts\get-release-version.js
         name: Version
         env:
-          REPO_OWNER: atom
-          NIGHTLY_RELEASE_REPO: atom-nightly-releases
+          REPO_OWNER: $(REPO_OWNER)
+          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
