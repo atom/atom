@@ -189,34 +189,19 @@ function runBenchmarkTests (callback) {
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks'}) })
 }
 
-let testSuitesToRun = requestedTestSuites() || testSuitesForPlatform(process.platform)
+let testSuitesToRun = requestedTestSuites(process.platform)
 
-function requestedTestSuites () {
-  const suites = []
-  if (argv.coreMain) {
-    suites.push(runCoreMainProcessTests)
-  }
-  if (argv.coreRenderer) {
-    suites.push(...coreRenderProcessTestSuites)
-  }
-  if (argv.coreBenchmark) {
-    suites.push(runBenchmarkTests)
-  }
-  if (argv.package) {
-    suites.push(...packageTestSuites)
-  }
-  return suites.length > 0 ? suites : null
-}
-
-function testSuitesForPlatform (platform) {
-  let suites = []
-  // Env variable options
-  let coreMain = process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true'
+function requestedTestSuites (platform) {
+  // env variable or argv options
+  let coreAll = process.env.ATOM_RUN_CORE_TESTS === 'true'
+  let coreMain = process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true' || argv.coreMain
+  let coreRenderer = argv.coreRenderer || process.env.ATOM_RUN_CORE_RENDER_TESTS == 'true'
   let coreRenderer1 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '1'
   let coreRenderer2 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '2'
-  let coreAll = process.env.ATOM_RUN_CORE_TESTS === 'true'
+  let packageAll = argv.package || process.env.ATOM_RUN_PACKAGE_TESTS == 'true'
   let packages1 = process.env.ATOM_RUN_PACKAGE_TESTS === '1'
   let packages2 = process.env.ATOM_RUN_PACKAGE_TESTS === '2'
+  let benchmark = argv.coreBenchmark
 
   // Operating system overrides:
   coreMain = coreMain || (platform === 'linux') || (platform === 'win32' && process.arch === 'x86')
@@ -224,26 +209,61 @@ function testSuitesForPlatform (platform) {
   // split package tests (used for macos in CI)
   const PACKAGES_TO_TEST_IN_PARALLEL = 23
   // split core render test (used for windows x64 in CI)
-  const CORE_RENDER_TO_TEST_IN_PARALLEL = 35
+  const CORE_RENDER_TO_TEST_IN_PARALLEL = 45
 
-  if (coreMain) {
-    suites = [runCoreMainProcessTests]
-  } else if (coreRenderer1) {
-    suites = coreRenderProcessTestSuites.slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL)
-  } else if (coreRenderer2) {
-    suites = coreRenderProcessTestSuites.slice(CORE_RENDER_TO_TEST_IN_PARALLEL)
-  } else if (coreAll) {
-    suites = [runCoreMainProcessTests, ...coreRenderProcessTestSuites]
-  } else if (packages1) {
-    suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
-  } else if (packages2) {
-    suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
+  let suites = []
+  // Core tess
+  if (coreAll) {
+    suites.push(...[runCoreMainProcessTests, ...coreRenderProcessTestSuites])
   } else {
-    suites = [runCoreMainProcessTests, ...coreRenderProcessTestSuites, ...packageTestSuites] // all
+
+    // Core main tests
+    if (coreMain) {
+      suites.push(runCoreMainProcessTests)
+    }
+
+    // Core renderer tests
+    if (coreRenderer) {
+      suites.push(...coreRenderProcessTestSuites)
+    } else {
+      // split
+      if (coreRenderer1) {
+        suites.push(...coreRenderProcessTestSuites.slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
+      }
+      if (coreRenderer2) {
+        suites.push(...coreRenderProcessTestSuites.slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
+      }
+    }
+
+  }
+
+  // Package tests
+  if (packageAll) {
+    suites.push(...packageTestSuites)
+  } else {
+    // split
+    if (packages1) {
+      suites.push(...packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
+    }
+    if (packages2) {
+      suites.push(...packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL))
+    }
+  }
+
+  // Benchmark tests
+  if (benchmark) {
+    suites.push(runBenchmarkTests)
   }
 
   if (argv.skipMainProcessTests) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests)
+  }
+
+  // Remove duplicates
+  suites = Array.from(new Set(suites))
+
+  if (suites.length == 0) {
+    throw new Error("No tests was requested")
   }
 
   return suites
