@@ -1,12 +1,13 @@
 'use strict';
 
-const fs = require('fs-extra');
-const os = require('os');
-const path = require('path');
-
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
+module.exports = taskify("Clean caches", function() {
+  const fs = require('fs-extra');
+  const os = require('os');
+  const path = require('path');
+
   const cachePaths = [
     path.join(CONFIG.repositoryRootPath, 'electron'),
     path.join(CONFIG.atomHomeDirPath, '.node-gyp'),
@@ -22,7 +23,7 @@ module.exports = function() {
   ];
 
   for (let path of cachePaths) {
-    console.log(`Cleaning ${path}`);
+    this.update(`Cleaning ${path}`);
     fs.removeSync(path);
   }
-};
+}, {canFail: true});

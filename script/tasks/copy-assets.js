@@ -1,16 +1,16 @@
 // This module exports a function that copies all the static assets into the
 // appropriate location in the build output directory.
-
-'use strict';
+"use strict";
 
 const path = require('path');
 const fs = require('fs-extra');
 const CONFIG = require('../config');
 const glob = require('glob');
-const includePathInPackagedApp = require('./include-path-in-packaged-app');
+const includePathInPackagedApp = require('../lib/include-path-in-packaged-app');
 
-module.exports = function() {
-  console.log(`Copying assets to ${CONFIG.intermediateAppPath}`);
+const {taskify} = require("../lib/task");
+
+module.exports = taskify("Copy assets", function() {
   let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'benchmarks', 'benchmark-runner.js'),
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
@@ -25,11 +25,16 @@ module.exports = function() {
       ignore: path.join('**', '*-spec.*')
     })
   );
+
+  this.update(`Copying ${srcPaths.length} assets to ${CONFIG.intermediateAppPath}`);
+
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {
       filter: includePathInPackagedApp
     });
   }
+
+  this.update(`Running copy pass`);
 
   // Run a copy pass to dereference symlinked directories under node_modules.
   // We do this to ensure that symlinked repo-local bundled packages get
@@ -64,7 +69,7 @@ module.exports = function() {
     ),
     path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
   );
-};
+});
 
 function computeDestinationPath(srcPath) {
   const relativePath = path.relative(CONFIG.repositoryRootPath, srcPath);

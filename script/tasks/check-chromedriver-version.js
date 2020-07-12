@@ -5,13 +5,18 @@ const semver = require('semver');
 const chromedriverMetadataPath = require('electron-chromedriver/package.json');
 const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
-module.exports = function() {
+const {taskify} = require("../lib/task");
+
+module.exports = taskify("Check chromedriver version", function() {
   // Chromedriver should be at least v9.0.0
   // Mksnapshot should be at least v9.0.2
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver'];
   const mksnapshotVer = buildMetadata.dependencies['electron-mksnapshot'];
   const chromedriverActualVer = chromedriverMetadataPath.version;
   const mksnapshotActualVer = mksnapshotMetadataPath.version;
+
+  this.info(`chromedriverVer: target=${chromedriverVer}, actual=${chromedriverActualVer}`);
+  this.info(`mksnapshotVer: target=${mksnapshotVer}, actual=${mksnapshotActualVer}`);
 
   // Always use caret on electron-chromedriver so that it can pick up the best minor/patch versions
   if (!chromedriverVer.startsWith('^')) {
@@ -37,4 +42,4 @@ module.exports = function() {
       `electron-mksnapshot should be at least v9.0.2 to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
-};
+});

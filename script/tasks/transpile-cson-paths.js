@@ -6,13 +6,15 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
-  console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`);
-  for (let path of getPathsToTranspile()) {
-    transpileBabelPath(path);
+module.exports = taskify("Transpile CSON paths", function() {
+  const paths = getPathsToTranspile();
+  this.update(`Transpiling ${paths.length} CSON paths in ${CONFIG.intermediateAppPath}`);
+  for (let path of paths) {
+    transpileCsonPath(path);
   }
-};
+});
 
 function getPathsToTranspile() {
   let paths = [];
@@ -24,7 +26,7 @@ function getPathsToTranspile() {
           'node_modules',
           packageName,
           '**',
-          '*.js'
+          '*.cson'
         ),
         {
           ignore: path.join(
@@ -33,7 +35,7 @@ function getPathsToTranspile() {
             packageName,
             'spec',
             '**',
-            '*.js'
+            '*.cson'
           ),
           nodir: true
         }
@@ -43,9 +45,13 @@ function getPathsToTranspile() {
   return paths;
 }
 
-function transpileBabelPath(path) {
+function transpileCsonPath(csonPath) {
+  const jsonPath = csonPath.replace(/cson$/g, 'json');
   fs.writeFileSync(
-    path,
-    CompileCache.addPathToCache(path, CONFIG.atomHomeDirPath)
+    jsonPath,
+    JSON.stringify(
+      CompileCache.addPathToCache(csonPath, CONFIG.atomHomeDirPath)
+    )
   );
+  fs.unlinkSync(csonPath);
 }

@@ -8,6 +8,7 @@ const path = require('path');
 const semver = require('semver');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
 let appName = CONFIG.appMetadata.name;
 if (process.platform === 'win32') {
@@ -16,8 +17,8 @@ if (process.platform === 'win32') {
   appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
 }
 
-module.exports = function() {
-  console.log(
+module.exports = taskify("Generate metadata", function() {
+  this.update(
     `Generating metadata for ${path.join(
       CONFIG.intermediateAppPath,
       'package.json'
@@ -35,10 +36,10 @@ module.exports = function() {
     path.join(CONFIG.intermediateAppPath, 'package.json'),
     JSON.stringify(CONFIG.appMetadata)
   );
-};
+});
 
-module.exports = function() {
-  console.log(
+module.exports = taskify("Generate metadata", function() {
+  this.update(
     `Generating metadata for ${path.join(
       CONFIG.intermediateAppPath,
       'package.json'
@@ -54,7 +55,7 @@ module.exports = function() {
     path.join(CONFIG.intermediateAppPath, 'package.json'),
     JSON.stringify(CONFIG.appMetadata)
   );
-};
+});
 
 function buildBundledPackagesMetadata() {
   const packages = {};

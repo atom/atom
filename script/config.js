@@ -28,6 +28,7 @@ const channel = getChannel(computedAppVersion);
 const appName = getAppName(channel);
 const executableName = getExecutableName(channel, appName);
 const channelName = getChannelName(channel);
+const ci = getCi();
 
 module.exports = {
   appMetadata,
@@ -49,8 +50,18 @@ module.exports = {
   homeDirPath,
   getApmBinPath,
   getNpmBinPath,
+  ci,
   snapshotAuxiliaryData: {}
 };
+
+function getCi() {
+  let ci = process.argv.indexOf('--ci') !== -1;
+  if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) {
+    console.warn('Automatically enabling --ci because CI is set in the environment');
+    ci = true;
+  }
+  return ci;
+}
 
 function getChannelName(channel) {
   return channel === 'stable' ? 'atom' : `atom-${channel}`;

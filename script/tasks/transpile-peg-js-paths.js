@@ -6,13 +6,15 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
-  console.log(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}`);
-  for (let path of getPathsToTranspile()) {
+module.exports = taskify("Transpile PEG.js paths", function() {
+  const paths = getPathsToTranspile();
+  this.update(`Transpiling ${paths.length} PEG.js paths in ${CONFIG.intermediateAppPath}`);
+  for (let path of paths) {
     transpilePegJsPath(path);
   }
-};
+});
 
 function getPathsToTranspile() {
   let paths = [];

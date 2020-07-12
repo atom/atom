@@ -1,31 +1,41 @@
 const path = require('path');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
+module.exports = taskify("Clean dependencies", function() {
   // We can't require fs-extra or glob if `script/bootstrap` has never been run,
   // because they are third party modules. This is okay because cleaning
   // dependencies only makes sense if dependencies have been installed at least
   // once.
-  const fs = require('fs-extra');
-  const glob = require('glob');
+
+  let fs;
+  let glob;
+
+  try {
+    fs = require('fs-extra');
+    glob = require('glob');
+  } catch(e) {
+    this.error("Could not import fs and glob modules, have you run bootstrap?");
+    return;
+  }
 
   const apmDependenciesPath = path.join(CONFIG.apmRootPath, 'node_modules');
-  console.log(`Cleaning ${apmDependenciesPath}`);
+  this.update(`Cleaning ${apmDependenciesPath}`);
   fs.removeSync(apmDependenciesPath);
 
   const atomDependenciesPath = path.join(
     CONFIG.repositoryRootPath,
     'node_modules'
   );
-  console.log(`Cleaning ${atomDependenciesPath}`);
+  this.update(`Cleaning ${atomDependenciesPath}`);
   fs.removeSync(atomDependenciesPath);
 
   const scriptDependenciesPath = path.join(
     CONFIG.scriptRootPath,
     'node_modules'
   );
-  console.log(`Cleaning ${scriptDependenciesPath}`);
+  this.update(`Cleaning ${scriptDependenciesPath}`);
   fs.removeSync(scriptDependenciesPath);
 
   const bundledPackageDependenciesPaths = path.join(
@@ -39,4 +49,4 @@ module.exports = function() {
   )) {
     fs.removeSync(bundledPackageDependencyPath);
   }
-};
+}, {canFail: true});

@@ -3,8 +3,11 @@
 const childProcess = require('child_process');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function(packagePath, ci, stdioOptions) {
+module.exports = taskify("Run apm install", function(packagePath, ci, stdioOptions) {
+  this.info(`Running apm install on ${packagePath}`);
+
   const installEnv = Object.assign({}, process.env);
   // Set resource path so that apm can load metadata related to Atom.
   installEnv.ATOM_RESOURCE_PATH = CONFIG.repositoryRootPath;
@@ -16,4 +19,4 @@ module.exports = function(packagePath, ci, stdioOptions) {
     cwd: packagePath,
     stdio: stdioOptions || 'inherit'
   });
-};
+});

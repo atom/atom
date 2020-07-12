@@ -11,12 +11,14 @@ const LESS_CACHE_VERSION = require('less-cache/package.json').version;
 const FALLBACK_VARIABLE_IMPORTS =
   '@import "variables/ui-variables";\n@import "variables/syntax-variables";\n';
 
-module.exports = function() {
+const {taskify} = require("../lib/task");
+
+module.exports = taskify("Prebuild LESS cache", function() {
   const cacheDirPath = path.join(
     CONFIG.intermediateAppPath,
     'less-compile-cache'
   );
-  console.log(`Generating pre-built less cache in ${cacheDirPath}`);
+  this.update(`Generating pre-built less cache in ${cacheDirPath}`);
 
   // Group bundled packages into UI themes, syntax themes, and non-theme packages
   const uiThemes = [];
@@ -215,4 +217,4 @@ module.exports = function() {
     lessCache.cssForFile(lessFilePath, lessSource);
     saveIntoSnapshotAuxiliaryData(lessFilePath, lessSource);
   }
-};
+});

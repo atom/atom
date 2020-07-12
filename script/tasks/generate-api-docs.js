@@ -8,10 +8,11 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
+module.exports = taskify("Generate API docs", function() {
   const generatedJSONPath = path.join(CONFIG.docsOutputPath, 'atom-api.json');
-  console.log(`Generating API docs at ${generatedJSONPath}`);
+  this.update(`Generating API docs at ${generatedJSONPath}`);
 
   // Unfortunately, correct relative paths depend on a specific working
   // directory, but this script should be able to run from anywhere, so we
@@ -34,7 +35,7 @@ module.exports = function() {
 
   fs.mkdirpSync(CONFIG.docsOutputPath);
   fs.writeFileSync(generatedJSONPath, JSON.stringify(api, null, 2));
-};
+});
 
 function getAPIDocsForDependencies() {
   const classes = {};

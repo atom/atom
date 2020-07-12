@@ -6,13 +6,15 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
-const backupNodeModules = require('./backup-node-modules');
+const backupNodeModules = require('../lib/backup-node-modules');
 const runApmInstall = require('./run-apm-install');
 
-require('colors');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
-  console.log(
+const colors = require('colors/safe');
+
+module.exports = taskify("Transpile packages with custom transpiler", function() {
+  this.update(
     `Transpiling packages with custom transpiler configurations in ${
       CONFIG.intermediateAppPath
     }`
@@ -33,22 +35,22 @@ module.exports = function() {
     const metadata = require(metadataPath);
 
     if (metadata.atomTranspilers) {
-      console.log(' transpiling for package '.cyan + packageName.cyan);
-      const rootPackageBackup = backupNodeModules(rootPackagePath);
-      const intermediatePackageBackup = backupNodeModules(
-        intermediatePackagePath
-      );
+      this.update(colors.cyan(`Transpiling package ${packageName}`));
+      // const rootPackageBackup = backupNodeModules(rootPackagePath);
+      // const intermediatePackageBackup = backupNodeModules(
+      //   intermediatePackagePath
+      // );
 
       // Run `apm install` in the *root* package's path, so we get devDeps w/o apm's weird caching
       // Then copy this folder into the intermediate package's path so we can run the transpilation in-line.
-      runApmInstall(rootPackagePath);
-      if (fs.existsSync(intermediatePackageBackup.nodeModulesPath)) {
-        fs.removeSync(intermediatePackageBackup.nodeModulesPath);
-      }
-      fs.copySync(
-        rootPackageBackup.nodeModulesPath,
-        intermediatePackageBackup.nodeModulesPath
-      );
+      // runApmInstall(rootPackagePath);
+      // if (fs.existsSync(intermediatePackageBackup.nodeModulesPath)) {
+      //   fs.removeSync(intermediatePackageBackup.nodeModulesPath);
+      // }
+      // fs.copySync(
+      //   rootPackageBackup.nodeModulesPath,
+      //   intermediatePackageBackup.nodeModulesPath
+      // );
 
       CompileCache.addTranspilerConfigForPath(
         intermediatePackagePath,
@@ -56,6 +58,7 @@ module.exports = function() {
         metadata,
         metadata.atomTranspilers
       );
+
       for (let config of metadata.atomTranspilers) {
         const pathsToCompile = glob.sync(
           path.join(intermediatePackagePath, config.glob),
@@ -74,11 +77,11 @@ module.exports = function() {
       );
 
       CompileCache.removeTranspilerConfigForPath(intermediatePackagePath);
-      rootPackageBackup.restore();
-      intermediatePackageBackup.restore();
+      // rootPackageBackup.restore();
+      // intermediatePackageBackup.restore();
     }
   }
-};
+});
 
 function transpilePath(path) {
   fs.writeFileSync(

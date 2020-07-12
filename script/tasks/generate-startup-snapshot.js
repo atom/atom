@@ -4,8 +4,9 @@ const path = require('path');
 const electronLink = require('electron-link');
 const terser = require('terser');
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function(packagedAppPath) {
+module.exports = taskify("Generate startup snapshot", function(packagedAppPath) {
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js');
   const coreModules = new Set([
     'electron',
@@ -259,19 +260,16 @@ module.exports = function(packagedAppPath) {
       );
     }
   }).then(({ snapshotScript }) => {
-    process.stdout.write('\n');
-
-    process.stdout.write('Minifying startup script');
+    this.update('Minifying startup script');
     const minification = terser.minify(snapshotScript, {
       keep_fnames: true,
       keep_classnames: true,
       compress: { keep_fargs: true, keep_infinity: true }
     });
     if (minification.error) throw minification.error;
-    process.stdout.write('\n');
     fs.writeFileSync(snapshotScriptPath, minification.code);
 
-    console.log('Verifying if snapshot can be executed via `mksnapshot`');
+    this.update('Verifying if snapshot can be executed via `mksnapshot`');
     const verifySnapshotScriptPath = path.join(
       CONFIG.repositoryRootPath,
       'script',
@@ -297,7 +295,7 @@ module.exports = function(packagedAppPath) {
       { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: 1 }) }
     );
 
-    console.log('Generating startup blob with mksnapshot');
+    this.update('Generating startup blob with mksnapshot');
     childProcess.spawnSync(process.execPath, [
       path.join(
         CONFIG.repositoryRootPath,
@@ -324,7 +322,7 @@ module.exports = function(packagedAppPath) {
         startupBlobDestinationPath,
         snapshotBinary
       );
-      console.log(`Moving generated startup blob into "${destinationPath}"`);
+      this.update(`Moving generated startup blob into "${destinationPath}"`);
       try {
         fs.unlinkSync(destinationPath);
       } catch (err) {
@@ -339,4 +337,4 @@ module.exports = function(packagedAppPath) {
       );
     }
   });
-};
+});

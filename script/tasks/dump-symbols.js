@@ -5,21 +5,23 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
-module.exports = function() {
+const {taskify} = require("../lib/task");
+
+module.exports = taskify("Dump symbols", function() {
   if (process.platform === 'win32') {
-    console.log(
+    this.info(
       'Skipping symbol dumping because minidump is not supported on Windows'
         .gray
     );
-    return Promise.resolve();
-  } else {
-    console.log(`Dumping symbols in ${CONFIG.symbolsPath}`);
-    const binaryPaths = glob.sync(
-      path.join(CONFIG.intermediateAppPath, 'node_modules', '**', '*.node')
-    );
-    return Promise.all(binaryPaths.map(dumpSymbol));
+    return;
   }
-};
+
+  this.update(`Dumping symbols in ${CONFIG.symbolsPath}`);
+  const binaryPaths = glob.sync(
+    path.join(CONFIG.intermediateAppPath, 'node_modules', '**', '*.node')
+  );
+  return Promise.all(binaryPaths.map(dumpSymbol));
+});
 
 function dumpSymbol(binaryPath) {
   const minidump = require('minidump');

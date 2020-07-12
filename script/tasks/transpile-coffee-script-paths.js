@@ -6,15 +6,17 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const {taskify} = require("../lib/task");
 
-module.exports = function() {
-  console.log(
-    `Transpiling CoffeeScript paths in ${CONFIG.intermediateAppPath}`
+module.exports = taskify("Transpile CoffeeScript paths", function() {
+  const paths = getPathsToTranspile();
+  this.update(
+    `Transpiling ${paths.length} CoffeeScript paths in ${CONFIG.intermediateAppPath}`
   );
-  for (let path of getPathsToTranspile()) {
+  for (let path of paths) {
     transpileCoffeeScriptPath(path);
   }
-};
+});
 
 function getPathsToTranspile() {
   let paths = [];
