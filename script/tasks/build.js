@@ -35,7 +35,7 @@ const buildTask = taskify("Build", async function() {
 
   let binariesPromise = Promise.resolve();
 
-  if (argv.deps) {
+  if (!process.argv.includes("--no-deps")) {
     await this.subtask(taskify("Install dependencies", async function() {
       await this.subtask(require("./install-apm"));
       await this.subtask(require("./run-apm-install"), CONFIG.repositoryRootPath, CONFIG.ci);

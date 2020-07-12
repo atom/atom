@@ -114,30 +114,6 @@ class Task {
   }
 }
 
-class TaskGroup extends Task {
-  constructor(name, tasks) {
-    super(`${name} (group)`);
-    this.tasks = tasks || [];
-  }
-
-  add(task, ...args) {
-    this.tasks.push({task, args});
-  }
-
-  skip() {
-    return false;
-  }
-
-  async run(...mainargs) {
-    for (let {task, args} of this.tasks) {
-      if (args.length === 0) {
-        args = mainargs;
-      }
-      await this.subtask(task, ...args);
-    }
-  }
-}
-
 /**
  * Convenience function to convert existing function based work to Task based.
  * Takes the name of the new Task, and the function that will be uses as it's
@@ -159,4 +135,4 @@ function taskify(name, run, other={}) {
   return task;
 }
 
-module.exports = {Task, TaskGroup, taskify}
+module.exports = {Task, TaskGroup, taskify};
