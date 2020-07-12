@@ -97,18 +97,23 @@ function runCoreMainProcessTests (callback) {
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process'}) })
 }
 
-function runCoreRenderProcessTests (callback) {
-  const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
-  const testArguments = [
-    '--resource-path', resourcePath,
-    '--test', testPath
-  ]
-  const testEnv = prepareEnv('core-render-process')
+// Build an array of functions, each running tests for a different rendering test
+const coreRenderProcessTestSuites = []
+const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
+let testFiles = glob.sync(path.join(testPath, '*-spec.+(js|coffee|ts|jsx|tsx|mjs)'))
+for (let testFile of testFiles) {
+  coreRenderProcessTestSuites.push( function (callback) {
 
-  console.log('Executing core render process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-render-process'}) })
+    const testEnv = prepareEnv('core-render-process')
+    console.log(`Executing core render process tests for ${testFile}`.bold.green)
+    const testArguments = [
+      '--resource-path', resourcePath,
+      '--test', testFile
+    ]
+    const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
+    cp.on('error', error => { callback(error) })
+    cp.on('close', exitCode => { callback(null, {exitCode, step: `core-render-process for ${testFile}`}) })
+  })
 }
 
 // Build an array of functions, each running tests for a different bundled package
@@ -192,7 +197,7 @@ function requestedTestSuites () {
     suites.push(runCoreMainProcessTests)
   }
   if (argv.coreRenderer) {
-    suites.push(runCoreRenderProcessTests)
+    suites.push(...coreRenderProcessTestSuites)
   }
   if (argv.coreBenchmark) {
     suites.push(runBenchmarkTests)
@@ -205,24 +210,36 @@ function requestedTestSuites () {
 
 function testSuitesForPlatform (platform) {
   let suites = []
-  if ((platform === 'darwin') || (platform === 'win32' && process.arch === 'x64'))  {
-    const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  // Env variable options
+  let coreMain = process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true'
+  let coreRenderer1 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '1'
+  let coreRenderer2 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '2'
+  let coreAll = process.env.ATOM_RUN_CORE_TESTS === 'true'
+  let packages1 = process.env.ATOM_RUN_PACKAGE_TESTS === '1'
+  let packages2 = process.env.ATOM_RUN_PACKAGE_TESTS === '2'
 
-    if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
-      suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
-    } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
-      suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
-    } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
-      suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
-    } else {
-      suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
-    }
-  }
-  else if ((platform === 'linux') || (platform === 'win32' && process.arch === 'x86')) {
+  // Operating system overrides:
+  coreMain = coreMain || (platform === 'linux') || (platform === 'win32' && process.arch === 'x86')
+
+  // split package tests (used for macos in CI)
+  const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  // split core render test (used for windows x64 in CI)
+  const CORE_RENDER_TO_TEST_IN_PARALLEL = 35
+
+  if (coreMain) {
     suites = [runCoreMainProcessTests]
-  }
-  else {
-    console.log(`Unrecognized platform: ${platform}`)
+  } else if (coreRenderer1) {
+    suites = coreRenderProcessTestSuites.slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL)
+  } else if (coreRenderer2) {
+    suites = coreRenderProcessTestSuites.slice(CORE_RENDER_TO_TEST_IN_PARALLEL)
+  } else if (coreAll) {
+    suites = [runCoreMainProcessTests, ...coreRenderProcessTestSuites]
+  } else if (packages1) {
+    suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
+  } else if (packages2) {
+    suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
+  } else {
+    suites = [runCoreMainProcessTests, ...coreRenderProcessTestSuites, ...packageTestSuites] // all
   }
 
   if (argv.skipMainProcessTests) {
