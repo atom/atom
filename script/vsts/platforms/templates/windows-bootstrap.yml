@@ -1,0 +1,11 @@
+steps:
+  - script: |
+      node script\vsts\windows-run.js script\bootstrap.cmd
+    env:
+      BUILD_ARCH: $(buildArch)
+      CI: true
+      CI_PROVIDER: VSTS
+      NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.13.1\\x64\\npm.cmd"
+      npm_config_build_from_source: true
+    displayName: Bootstrap build environment
+    condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
