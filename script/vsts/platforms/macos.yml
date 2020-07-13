@@ -18,14 +18,7 @@ jobs:
         parameters:
           OS: macos
 
-      - script: script/bootstrap
-        displayName: Bootstrap build environment
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
-          npm_config_build_from_source: true
-        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
+      - template: templates/macos-bootstrap.yml
 
       - script: script/lint
         displayName: Run linter
@@ -105,14 +98,7 @@ jobs:
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.
-      - script: script/bootstrap
-        displayName: Bootstrap build environment
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
-          npm_config_build_from_source: true
-        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
+      - template: templates/macos-bootstrap.yml
 
       - task: DownloadBuildArtifacts@0
         displayName: Download atom-mac.zip
