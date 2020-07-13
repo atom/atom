@@ -20,33 +20,7 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '3.8'
-
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
-
-      - script: |
-          ECHO Installing npm-windows-upgrade
-          npm install --global --production npm-windows-upgrade
-        displayName: Install npm-windows-upgrade
-
-      - script: |
-          ECHO Upgrading npm
-          npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.12.1
-        displayName: Install npm 6.12.1
-
-      - script: |
-          npm install --global --production windows-build-tools@4.0
-        displayName: Install windows build tools
-
-      - script: |
-          cd script\vsts
-          npm install
-        displayName: Install Windows build dependencies
+      - template: templates/windows-preparation.yml
 
       - template: templates/cache.yml
         parameters:
