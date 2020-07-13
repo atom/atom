@@ -1,0 +1,10 @@
+steps:
+  - script: script/bootstrap
+    displayName: Bootstrap build environment
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+      CC: clang-5.0
+      CXX: clang++-5.0
+      npm_config_clang: 1
+    condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
