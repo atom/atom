@@ -25,7 +25,22 @@ jobs:
 
       - template: templates/macos-build.yml
 
-      - template: templates/macos-publish.yml
+      - script: |
+          cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+        displayName: Stage Artifacts
+
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - filename: atom-mac.zip
+              dir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - filename: atom-mac-symbols.zip
+              dir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - filename: atom-api.json
+              dir: $(Build.SourcesDirectory)/docs/output
+              condition: succeeded()
 
   - job: macOS_tests
     displayName: macOS test

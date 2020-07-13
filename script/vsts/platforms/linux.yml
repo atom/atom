@@ -25,4 +25,15 @@ jobs:
 
       - template: templates/linux-test.yml
 
-      - template: templates/linux-publish.yml
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - filename: atom.x86_64.rpm
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - filename: atom-amd64.deb
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - filename: atom-amd64.tar.gz
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
