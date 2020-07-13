@@ -48,7 +48,7 @@ jobs:
           npm install
         displayName: Install Windows build dependencies
 
-      - template: cache.yml
+      - template: templates/cache.yml
         parameters:
           OS: windows
 
