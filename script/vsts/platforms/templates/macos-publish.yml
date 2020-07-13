@@ -1,0 +1,28 @@
+steps:
+  - script: |
+      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+    displayName: Stage Artifacts
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
+      ArtifactName: atom-mac.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac.zip
+    condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
+      ArtifactName: atom-mac-symbols.zip
+      ArtifactType: Container
+    displayName: Upload atom-mac-symbols.zip
+    condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
+      ArtifactName: atom-api.json
+      ArtifactType: Container
+    displayName: Upload atom-api.json
+    condition: succeeded()
