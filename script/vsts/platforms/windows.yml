@@ -76,61 +76,6 @@ jobs:
           npm_config_build_from_source: true
         displayName: Build Atom
 
-      - script: node script\vsts\windows-run.js script\test.cmd
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          ATOM_JASMINE_REPORTER: list
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
-          BUILD_ARCH: $(buildArch)
-        displayName: Run tests
-        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
-
-      - script: >
-          node script\vsts\windows-run.js script\postprocess-junit-results.cmd
-          --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
-        env:
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
-        displayName: Post-process test results
-        condition: ne(variables['Atom.SkipTests'], 'true')
-
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: JUnit
-          searchFolder: $(Common.TestResultsDirectory)\junit
-          testResultsFiles: '**/*.xml'
-          mergeTestResults: true
-          testRunTitle: Windows $(buildArch)
-        condition: ne(variables['Atom.SkipTests'], 'true')
-
-      - script: |
-          IF NOT EXIST "%ARTIFACT_STAGING_DIR%\crash-reports" MKDIR "%ARTIFACT_STAGING_DIR%\crash-reports"
-          IF EXIST "%Temp%\Atom Crashes" (
-            FOR %%a in ("%Temp%\Atom Crashes\*.dmp") DO XCOPY "%%a" "%ARTIFACT_STAGING_DIR%\crash-reports" /I
-          )
-        displayName: Stage crash reports
-        condition: failed()
-        env:
-          ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
-          ArtifactName: crash-reports
-        displayName: Publish crash reports on non-release branch
-        condition: and(failed(), eq(variables['ATOM_RELEASES_S3_KEY'], ''))
-
-      - script: >
-          node $(Build.SourcesDirectory)\script\vsts\upload-crash-reports.js --crash-report-path "%ARTIFACT_STAGING_DIR%\crash-reports" --s3-path "vsts-artifacts/%BUILD_ID%/"
-        env:
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-          ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
-          BUILD_ID: $(Build.BuildId)
-        displayName: Upload crash reports to S3 on release branch
-        condition: and(failed(), ne(variables['ATOM_RELEASES_S3_KEY'], ''))
-
       - task: PublishBuildArtifacts@1
         inputs:
           PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
@@ -212,3 +157,5 @@ jobs:
           ArtifactType: Container
         displayName: Upload RELEASES
         condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+
+      - template: templates/windows-test.yml
