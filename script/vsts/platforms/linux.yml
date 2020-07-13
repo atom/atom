@@ -30,7 +30,7 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - template: cache.yml
+      - template: templates/cache.yml
         parameters:
           OS: linux
 
