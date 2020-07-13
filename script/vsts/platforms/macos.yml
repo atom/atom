@@ -12,13 +12,7 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
-
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+      - template: templates/macos-preparation.yml
 
       - template: templates/cache.yml
         parameters:
@@ -103,13 +97,7 @@ jobs:
           RunPackageTests: 2
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
-
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+      - template: templates/macos-preparation.yml
 
       - template: templates/cache.yml
         parameters:
