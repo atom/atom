@@ -21,42 +21,8 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          CC: clang-5.0
-          CXX: clang++-5.0
-          npm_config_clang: 1
-        displayName: Build Atom
-
-      - script: |
-          sudo chown root ./out/atom*-amd64/chrome-sandbox
-          sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
-        displayName: Tweaking chrome-sandbox binary
+      - template: templates/linux-build.yml
 
       - template: templates/linux-test.yml
 
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
-          ArtifactName: atom.x86_64.rpm
-          ArtifactType: Container
-        displayName: Upload atom.x84_64.rpm
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
-          ArtifactName: atom-amd64.deb
-          ArtifactType: Container
-        displayName: Upload atom-amd64.deb
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
-          ArtifactName: atom-amd64.tar.gz
-          ArtifactType: Container
-        displayName: Upload atom-amd64.tar.gz
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      - template: templates/linux-publish.yml
