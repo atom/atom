@@ -1,10 +1,11 @@
 steps:
-  - bash: |
-      if ["$OS" == "Windows_NT"]; then
-          node script/vsts/windows-run.js script/bootstrap.cmd
-      else
+  - pwsh: |
+      if (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+        node 'script\vsts\windows-run.js' 'script\bootstrap.cmd'
+      }
+      else {
         script/bootstrap
-      fi
+      }
     displayName: Bootstrap build environment
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
