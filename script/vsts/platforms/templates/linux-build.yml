@@ -3,8 +3,8 @@ steps:
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
-      CC: clang-5.0
-      CXX: clang++-5.0
+      CC: clang
+      CXX: clang++
       npm_config_clang: 1
     displayName: Build Atom
 
