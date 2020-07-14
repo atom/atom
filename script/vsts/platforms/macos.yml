@@ -12,7 +12,7 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - template: templates/macos-preparation.yml
+      - template: templates/preparation.yml
 
       - template: templates/cache.yml
         parameters:
@@ -62,7 +62,7 @@ jobs:
           RunPackageTests: 2
 
     steps:
-      - template: templates/macos-preparation.yml
+      - template: templates/preparation.yml
 
       - template: templates/cache.yml
         parameters:

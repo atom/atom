@@ -10,7 +10,7 @@ jobs:
     container: ubuntu:trusty
 
     steps:
-      - template: templates/linux-preparation.yml
+      - template: templates/preparation.yml
 
       - template: templates/cache.yml
         parameters:
