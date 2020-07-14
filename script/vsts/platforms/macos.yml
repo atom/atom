@@ -72,4 +72,10 @@ jobs:
       # bootstrap again for pull requests coming from forked repositories.
       - template: templates/bootstrap.yml
 
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            - atom-mac.zip
+            - atom-mac-symbols.zip
+
       - template: templates/macos-test.yml

@@ -1,22 +1,4 @@
 steps:
-  - task: DownloadBuildArtifacts@0
-    displayName: Download atom-mac.zip
-    inputs:
-      artifactName: 'atom-mac.zip'
-      downloadPath: $(Build.SourcesDirectory)
-
-  - script: unzip atom-mac.zip/atom-mac.zip -d out
-    displayName: Unzip atom-mac.zip
-
-  - task: DownloadBuildArtifacts@0
-    displayName: Download atom-mac-symbols.zip
-    inputs:
-      artifactName: 'atom-mac-symbols.zip'
-      downloadPath: $(Build.SourcesDirectory)
-
-  - script: unzip atom-mac-symbols.zip/atom-mac-symbols.zip -d out
-    displayName: Unzip atom-mac-symbols.zip
-
   - script: |
       osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
       caffeinate -s script/test # Run with caffeinate to prevent screen saver
