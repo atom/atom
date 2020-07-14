@@ -20,7 +20,7 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - template: templates/windows-preparation.yml
+      - template: templates/preparation.yml
 
       - template: templates/cache.yml
         parameters:
