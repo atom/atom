@@ -26,7 +26,7 @@ jobs:
         parameters:
           OS: windows
 
-      - template: templates/windows-bootstrap.yml
+      - template: templates/bootstrap.yml
 
       - script: node script\vsts\windows-run.js script\lint.cmd
         env:
