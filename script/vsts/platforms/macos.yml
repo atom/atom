@@ -78,4 +78,4 @@ jobs:
             - atom-mac.zip
             - atom-mac-symbols.zip
 
-      - template: templates/macos-test.yml
+      - template: templates/test.yml

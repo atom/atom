@@ -35,7 +35,7 @@ jobs:
 
       - template: templates/build.yml
 
-      - template: templates/windows-test.yml
+      - template: templates/test.yml
 
       - script: |
           IF [%BUILD_ARCH%]==[x64] (

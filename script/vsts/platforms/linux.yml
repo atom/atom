@@ -22,7 +22,7 @@ jobs:
 
       - template: templates/build.yml
 
-      - template: templates/linux-test.yml
+      - template: templates/test.yml
 
       - template: templates/publish.yml
         parameters:
