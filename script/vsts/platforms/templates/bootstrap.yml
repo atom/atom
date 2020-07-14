@@ -7,6 +7,7 @@ steps:
       fi
     displayName: Bootstrap build environment
     env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
       OS: $(Agent.OS)
       CI: true
       CI_PROVIDER: VSTS
