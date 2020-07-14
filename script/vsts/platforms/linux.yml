@@ -16,7 +16,7 @@ jobs:
         parameters:
           OS: linux
 
-      - template: templates/linux-bootstrap.yml
+      - template: templates/bootstrap.yml
 
       - script: script/lint
         displayName: Run linter

@@ -18,7 +18,7 @@ jobs:
         parameters:
           OS: macos
 
-      - template: templates/macos-bootstrap.yml
+      - template: templates/bootstrap.yml
 
       - script: script/lint
         displayName: Run linter
@@ -70,6 +70,6 @@ jobs:
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.
-      - template: templates/macos-bootstrap.yml
+      - template: templates/bootstrap.yml
 
       - template: templates/macos-test.yml
