@@ -35,7 +35,8 @@ jobs:
 
       - template: templates/build.yml
 
-      - template: templates/windows-test.yml
+      - template: templates/test.yml
+
 
       - pwsh: |
           if ($env:BUILD_ARCH -eq "x64") {
