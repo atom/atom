@@ -1,15 +1,14 @@
 steps:
   - pwsh: |
-      if ($env:OS -eq "Darwin") {
+      if ($env:AGENT_OS -eq "Darwin") {
         osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
         caffeinate -s script/test # Run with caffeinate to prevent screen saver
-      } elseif (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+      } elseif (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\test.cmd'
       } else {
         script/test
       }
     env:
-      OS: $(Agent.OS)
       ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
         BUILD_ARCH: $(buildArch)
       ${{ if eq(variables['Agent.OS'], 'Linux') }}:
@@ -25,13 +24,12 @@ steps:
 
   # Test results
   - pwsh: |
-      if (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+      if (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\postprocess-junit-results.cmd' --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
       } else {
         script/postprocess-junit-results --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
       }
     env:
-      OS: $(Agent.OS)
       ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
         BUILD_ARCH: $(buildArch)
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
@@ -51,13 +49,12 @@ steps:
   # Crash Reports
   - pwsh: |
       mkdir -f -p $env:ARTIFACT_STAGING_DIR/crash-reports
-      if (($env:OS -eq "Windows_NT") -and (Test-Path "$env:TEMP/Atom Crashes")) {
+      if (($env:AGENT_OS -eq "Windows_NT") -and (Test-Path "$env:TEMP/Atom Crashes")) {
         cp "$env:TEMP/Atom Crashes/*.dmp"  $env:ARTIFACT_STAGING_DIR/crash-reports
       } else {
         cp $env:HOME/Library/Logs/DiagnosticReports/*.crash $env:ARTIFACT_STAGING_DIR/crash-reports
       }
     env:
-      OS: $(Agent.OS)
       ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
     displayName: Stage Crash Reports
     condition: failed()

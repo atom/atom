@@ -1,6 +1,6 @@
 steps:
   - pwsh: |
-      if (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+      if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\bootstrap.cmd'
       }
       else {
@@ -9,7 +9,6 @@ steps:
     displayName: Bootstrap build environment
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
-      OS: $(Agent.OS)
       CI: true
       CI_PROVIDER: VSTS
       ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:

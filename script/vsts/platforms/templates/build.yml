@@ -1,6 +1,6 @@
 steps:
   - pwsh: |
-      if ($env:OS -eq "Windows_NT") {
+      if ($env:AGENT_OS  -eq "Windows_NT") {
         mkdir -f -p $env:SQUIRREL_TEMP
         if ($env:IS_RELEASE_BRANCH -eq "true") {
           $CreateWindowsInstallaer="--create-windows-installer"
@@ -13,14 +13,13 @@ steps:
       } else {
         $CodeSign=""
       }
-      if (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+      if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\build.cmd' --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
       } else {
         script/build --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
       }
     displayName: Build Atom
     env:
-      OS: $(Agent.OS)
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
