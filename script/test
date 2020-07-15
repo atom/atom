@@ -276,10 +276,14 @@ async.parallel(testSuitesToRun, function (err, results) {
   } else {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
-    for (const {step} of failedSteps) {
-      console.error(`Error! The '${step}' test step finished with a non-zero exit code`)
+    if (failedSteps.length > 0) {
+      console.warn("\n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
+      for (const {step} of failedSteps) {
+        console.error(`Error! The '${step}' test step finished with a non-zero exit code`)
+      }
+      process.exit(1)
     }
 
-    process.exit(failedSteps.length === 0 ? 0 : 1)
+    process.exit(0)
   }
 })
