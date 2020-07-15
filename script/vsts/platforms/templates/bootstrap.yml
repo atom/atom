@@ -1,5 +1,23 @@
 steps:
   - pwsh: |
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:NPM_BIN_PATH="C:/hostedtoolcache/windows/node/12.13.1/x64/npm.cmd"
+        $env:BUILD_ARCH=$env:buildArch
+        $env:npm_config_build_from_source=true
+      }
+      if ($env:AGENT_OS -eq "Darwin") {
+        $env:NPM_BIN_PATH="/usr/local/bin/npm"
+        $env:npm_config_build_from_source=true
+      }
+      if ($env:AGENT_OS -eq "Linux") {
+        $env:NPM_BIN_PATH="/usr/local/bin/npm"
+        $env:CC=clang
+        $env:CXX=clang++
+        $env:npm_config_clang=1
+      }
+
+      # Bootstrap
       if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\bootstrap.cmd'
       }
@@ -11,15 +29,4 @@ steps:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       CI: true
       CI_PROVIDER: VSTS
-      ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
-        NPM_BIN_PATH: C:/hostedtoolcache/windows/node/12.13.1/x64/npm.cmd
-        BUILD_ARCH: $(buildArch)
-      ${{ if in(variables['Agent.OS'], 'Darwin', 'Linux') }}:
-        NPM_BIN_PATH: /usr/local/bin/npm
-      ${{ if in(variables['Agent.OS'], 'Darwin', 'Windows_NT') }}:
-        npm_config_build_from_source: true
-      ${{ if eq(variables['Agent.OS'], 'Linux') }}:
-        CC: clang
-        CXX: clang++
-        npm_config_clang: 1
       condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
