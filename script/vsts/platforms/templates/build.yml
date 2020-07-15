@@ -1,22 +1,48 @@
 steps:
   - pwsh: |
-      if ($env:AGENT_OS  -eq "Windows_NT") {
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:SQUIRREL_TEMP="C:/tmp"
+        $env:BUILD_ARCH=$env:buildArch
+        $env:npm_config_build_from_source=true
+        $ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL=$env:ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
+        $ATOM_WIN_CODE_SIGNING_CERT_PASSWORD=$env:ATOM_WIN_CODE_SIGNING_CERT_PASSWORD
+      }
+      if ($env:AGENT_OS -eq "Darwin") {
+        $ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL=$env:ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL
+        $ATOM_MAC_CODE_SIGNING_CERT_PASSWORD=$env:ATOM_MAC_CODE_SIGNING_CERT_PASSWORD
+        $ATOM_MAC_CODE_SIGNING_KEYCHAIN=$env:ATOM_MAC_CODE_SIGNING_KEYCHAIN
+        $ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD=$env:ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD
+        $AC_USER=$env:AC_USER
+        $AC_PASSWORD=$env:AC_PASSWORD
+      }
+      if ($env:AGENT_OS -eq "Linux") {
+        $env:CC=clang
+        $env:CXX=clang++
+        $env:npm_config_clang=1
+        $env:LinuxArgs="--create-debian-package --create-rpm-package"
+        $env:SHOULD_SIGN="false"
+      }
+
+      # Build Arguments
+      ## Creation of Windows Installaer
+      if ($env:AGENT_OS -eq "Windows_NT") {
         mkdir -f -p $env:SQUIRREL_TEMP
         if ($env:IS_RELEASE_BRANCH -eq "true") {
           $CreateWindowsInstallaer="--create-windows-installer"
-        } else {
-          $CreateWindowsInstallaer=""
         }
       }
+
+      ## Code Sign
       if ( ($env:SHOULD_SIGN -eq "true") -and (($env:IS_RELEASE_BRANCH -eq "true")  -or ($env:IS_SIGNED_ZIP_BRANCH -eq "true")) ) {
         $CodeSign="--code-sign"
-      } else {
-        $CodeSign=""
       }
+
+      # Build
       if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
-        node 'script\vsts\windows-run.js' 'script\build.cmd' --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
+        node 'script\vsts\windows-run.js' 'script\build.cmd' --no-bootstrap --compress-artifacts $CodeSign $CreateWindowsInstallaer
       } else {
-        script/build --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
+        script/build --no-bootstrap --compress-artifacts $env:LinuxArgs $CodeSign $CreateWindowsInstallaer
       }
     displayName: Build Atom
     env:
@@ -24,27 +50,6 @@ steps:
       IS_RELEASE_BRANCH: $(IsReleaseBranch)
       IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
       ATOM_RELEASE_VERSION: $(ReleaseVersion)
-      ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
-        SQUIRREL_TEMP: "C:/tmp"
-        BUILD_ARCH: $(buildArch)
-        ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
-        ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
-        npm_config_build_from_source: true
-        SHOULD_SIGN: $(SHOULD_SIGN)
-      ${{ if eq(variables['Agent.OS'], 'Darwin') }}:
-        ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
-        ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
-        ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
-        ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
-        AC_USER: $(AC_USER)
-        AC_PASSWORD: $(AC_PASSWORD)
-        SHOULD_SIGN: $(SHOULD_SIGN)
-      ${{ if eq(variables['Agent.OS'], 'Linux') }}:
-        CC: clang
-        CXX: clang++
-        npm_config_clang: 1
-        args: "--create-debian-package --create-rpm-package"
-        SHOULD_SIGN: "false"
 
   - script: |
       sudo chown root ./out/atom*-amd64/chrome-sandbox
