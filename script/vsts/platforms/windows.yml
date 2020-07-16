@@ -40,8 +40,10 @@ jobs:
       - pwsh: |
           if ($env:BUILD_ARCH -eq "x64") {
             $env:FileID="-x64"
-            echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+          } else {
+            $env:FileID=""
           }
+          echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
         env:
           BUILD_ARCH: $(buildArch)
         displayName: Set FileID based on the arch
