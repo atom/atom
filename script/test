@@ -60,7 +60,7 @@ if (process.platform === 'darwin') {
   assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
   executablePath = executablePaths[0]
 } else {
-  throw new Error('Running tests on this platform is not supported.')
+  throw new Error('##[error] Running tests on this platform is not supported.')
 }
 
 function prepareEnv (suiteName) {
@@ -91,7 +91,7 @@ function runCoreMainProcessTests (callback) {
 
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
-  console.log('Executing core main process tests'.bold.green)
+  console.log('##[command] Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process'}) })
@@ -105,7 +105,7 @@ for (let testFile of testFiles) {
   coreRenderProcessTestSuites.push( function (callback) {
 
     const testEnv = prepareEnv('core-render-process')
-    console.log(`Executing core render process tests for ${testFile}`.bold.green)
+    console.log(`##[command] Executing core render process tests for ${testFile}`.bold.green)
     const testArguments = [
       '--resource-path', resourcePath,
       '--test', testFile
@@ -145,7 +145,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
     let finalize = () => null
     if (require(pkgJsonPath).atomTestRunner) {
-      console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
+      console.log(`##[command] Installing test runner dependencies for ${packageName}`.bold.green)
       if (fs.existsSync(nodeModulesPath)) {
         const backup = backupNodeModules(repositoryPackagePath)
         finalize = backup.restore
@@ -153,9 +153,9 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
         finalize = () => fs.removeSync(nodeModulesPath)
       }
       runApmInstall(repositoryPackagePath)
-      console.log(`Executing ${packageName} tests`.green)
+      console.log(`##[command] Executing ${packageName} tests`.green)
     } else {
-      console.log(`Executing ${packageName} tests`.bold.green)
+      console.log(`##[command] Executing ${packageName} tests`.bold.green)
     }
     const cp = childProcess.spawn(executablePath, testArguments, {env: testEnv})
 
@@ -169,7 +169,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     })
     cp.on('close', exitCode => {
       if (exitCode !== 0) {
-        console.log(`Package tests failed for ${packageName}:`.red)
+        console.log(`##[error] Package tests failed for ${packageName}:`.red)
         console.log(stderrOutput)
       }
       finalize()
@@ -183,7 +183,7 @@ function runBenchmarkTests (callback) {
   const testArguments = ['--benchmark-test', benchmarksPath]
   const testEnv = prepareEnv('benchmark')
 
-  console.log('Executing benchmark tests'.bold.green)
+  console.log('##[command] Executing benchmark tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks'}) })
@@ -277,9 +277,9 @@ async.parallel(testSuitesToRun, function (err, results) {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
     if (failedSteps.length > 0) {
-      console.warn("\n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
+      console.warn("##[error] \n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
       for (const {step} of failedSteps) {
-        console.error(`Error! The '${step}' test step finished with a non-zero exit code`)
+        console.error(`##[error] The '${step}' test step finished with a non-zero exit code`)
       }
       process.exit(1)
     }
