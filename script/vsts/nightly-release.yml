@@ -32,10 +32,7 @@ jobs:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.4.0
-        displayName: Install Node.js 12.4.0
+      - template: platforms/templates/preparation.yml
 
        #This has to be done separately because VSTS inexplicably
        #exits the script block after `npm install` completes.
@@ -68,17 +65,9 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: platforms/templates/preparation.yml
 
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
-
-      - script: |
-          script/bootstrap
-        displayName: Bootstrap
+      - template: platforms/templates/bootstrap.yml
 
       - script: |
           cd script/lib
