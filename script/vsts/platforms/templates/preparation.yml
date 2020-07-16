@@ -28,6 +28,13 @@ steps:
   - script: npm install --global npm@6.12.1
     displayName: Update npm
 
+  - pwsh: |
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:BUILD_ARCH=$env:buildArch
+        echo "##vso[task.setvariable variable=BUILD_ARCH]$env:BUILD_ARCH" # Azure syntax
+      }
+      echo BUILD_ARCH: $env:BUILD_ARCH
+    displayName: Setting globally used env variables
 
   # Windows Specific
   - task: UsePythonVersion@0

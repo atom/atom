@@ -3,7 +3,6 @@ steps:
       # OS specific env variables
       if ($env:AGENT_OS -eq "Windows_NT") {
         $env:NPM_BIN_PATH="C:/hostedtoolcache/windows/node/12.13.1/x64/npm.cmd"
-        $env:BUILD_ARCH=$env:buildArch
         $env:npm_config_build_from_source=true
       }
       if ($env:AGENT_OS -eq "Darwin") {
