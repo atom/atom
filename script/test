@@ -205,28 +205,24 @@ function requestedTestSuites () {
 
 function testSuitesForPlatform (platform) {
   let suites = []
-  switch (platform) {
-    case 'darwin':
-      const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  if ((platform === 'darwin') || (platform === 'win32' && process.arch === 'x64'))  {
+    const PACKAGES_TO_TEST_IN_PARALLEL = 23
 
-      if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
-      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
-        suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
-      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
-        suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
-      } else {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
-      }
-      break
-    case 'win32':
-      suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
-      break
-    case 'linux':
-      suites = [runCoreMainProcessTests]
-      break
-    default:
-      console.log(`Unrecognized platform: ${platform}`)
+    if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
+      suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
+    } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
+      suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
+    } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
+      suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
+    } else {
+      suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+    }
+  }
+  else if ((platform === 'linux') || (platform === 'win32' && process.arch === 'x86')) {
+    suites = [runCoreMainProcessTests]
+  }
+  else {
+    console.log(`Unrecognized platform: ${platform}`)
   }
 
   if (argv.skipMainProcessTests) {
