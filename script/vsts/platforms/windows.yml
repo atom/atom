@@ -37,13 +37,11 @@ jobs:
 
       - template: templates/test.yml
 
-      - script: |
-          IF [%BUILD_ARCH%]==[x64] (
-            SET FileID=-x64
-          ) ELSE (
-            SET FileID=
-          )
-          echo FileID set to: %FileID%
+      - pwsh: |
+          if ($env:BUILD_ARCH -eq "x64") {
+            $env:FileID="-x64"
+            echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+          }
         env:
           BUILD_ARCH: $(buildArch)
         displayName: Set FileID based on the arch
