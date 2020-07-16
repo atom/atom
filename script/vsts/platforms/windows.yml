@@ -56,7 +56,7 @@ jobs:
           artifacts:
             - fileName: atom$(FileID)-windows.zip
               fileDir: $(Build.SourcesDirectory)/out
-              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+              condition: and( succeeded(), or( eq(variables['BUILD_ARCH'], 'x64'), ne(variables['Build.Reason'], 'PullRequest') ) )
             - fileName: AtomSetup$(FileID).exe
               fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
