@@ -21,6 +21,7 @@ steps:
       ATOM_JASMINE_REPORTER: list
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
       ATOM_RUN_CORE_TESTS: $(RunCoreTests)
+      ATOM_RUN_CORE_MAIN_TESTS: $(RunCoreMainTests)
       ATOM_RUN_CORE_RENDER_TESTS: $(RunCoreRendererTests)
       ATOM_RUN_PACKAGE_TESTS: $(RunPackageTests)
     displayName: Run tests

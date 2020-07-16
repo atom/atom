@@ -7,8 +7,10 @@ jobs:
       matrix:
         x64:
           BUILD_ARCH: x64
+          RunCoreMainTests: true
         x86:
           BUILD_ARCH: x86
+          RunCoreMainTests: true
 
     pool:
       vmImage: vs2017-win2016
@@ -78,11 +80,11 @@ jobs:
         x64_Renderer_Test1:
           RunCoreMainTests: false
           RunCoreRendererTests: 1
-          buildArch: x64
+          BUILD_ARCH: x64
         x64_Renderer_Test2:
           RunCoreMainTests: false
           RunCoreRendererTests: 2
-          buildArch: x64
+          BUILD_ARCH: x64
 
     pool:
       vmImage: vs2017-win2016
