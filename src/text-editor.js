@@ -2597,7 +2597,7 @@ module.exports = class TextEditor {
   // * __cursor__: Render a cursor at the head of the {DisplayMarker}. If multiple cursor decorations
   //     are created for the same marker, their class strings and style objects are combined
   //     into a single cursor. This decoration type may be used to style existing cursors
-  //     by passing in their markers or to render artificial cursors that don't actaully
+  //     by passing in their markers or to render artificial cursors that don't actually
   //     exist in the model by passing a marker that isn't associated with a real cursor.
   //
   // ## Arguments

@@ -58,3 +58,33 @@ jobs:
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
           PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
         displayName: Create Nightly Release
+  - job: bump_dependencies
+    displayName: Bump Dependencies
+    timeoutInMinutes: 180
+
+    pool:
+      vmImage: macos-10.14
+
+    steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 12.13.1
+        displayName: Install Node.js 12.13.1
+
+      - script: npm install --global npm@6.12.1
+        displayName: Update npm
+
+      - script: | 
+          script/bootstrap
+        displayName: Bootstrap
+      
+      - script: | 
+          cd script/lib
+          npm install
+        displayName: npm install
+      - script: | 
+          cd script/lib/update-dependency
+          node index.js
+        displayName: Bump depedencies
+        env:
+          AUTH_TOKEN: $(GITHUB_TOKEN)
