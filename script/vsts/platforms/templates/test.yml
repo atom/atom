@@ -1,5 +1,15 @@
 steps:
   - pwsh: |
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:BUILD_ARCH=$env:buildArch
+      }
+      if ($env:AGENT_OS -eq "Linux") {
+        $env:DISPLAY=":99.0"
+        $env:npm_config_build_from_source=true
+      }
+
+      # Test
       if ($env:AGENT_OS -eq "Darwin") {
         osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
         caffeinate -s script/test # Run with caffeinate to prevent screen saver
@@ -9,10 +19,6 @@ steps:
         script/test
       }
     env:
-      ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
-        BUILD_ARCH: $(buildArch)
-      ${{ if eq(variables['Agent.OS'], 'Linux') }}:
-        DISPLAY: :99.0
       CI: true
       CI_PROVIDER: VSTS
       ATOM_JASMINE_REPORTER: list
@@ -24,14 +30,17 @@ steps:
 
   # Test results
   - pwsh: |
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:BUILD_ARCH=$env:buildArch
+      }
+
       if (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\postprocess-junit-results.cmd' --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
       } else {
         script/postprocess-junit-results --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
       }
     env:
-      ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
-        BUILD_ARCH: $(buildArch)
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
     displayName: Post-process test results
     condition: ne(variables['Atom.SkipTests'], 'true')
