@@ -1,0 +1,54 @@
+steps:
+  - pwsh: |
+      if ($env:OS -eq "Windows_NT") {
+        mkdir -f -p $env:SQUIRREL_TEMP
+        if ($env:IS_RELEASE_BRANCH -eq "true") {
+          $CreateWindowsInstallaer="--create-windows-installer"
+        } else {
+          $CreateWindowsInstallaer=""
+        }
+      }
+      if ( ($env:SHOULD_SIGN -eq "true") -and (($env:IS_RELEASE_BRANCH -eq "true")  -or ($env:IS_SIGNED_ZIP_BRANCH -eq "true")) ) {
+        $CodeSign="--code-sign"
+      } else {
+        $CodeSign=""
+      }
+      if (($env:OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+        node 'script\vsts\windows-run.js' 'script\build.cmd' --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
+      } else {
+        script/build --no-bootstrap --compress-artifacts $env:args $CodeSign $CreateWindowsInstallaer
+      }
+    displayName: Build Atom
+    env:
+      OS: $(Agent.OS)
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      IS_RELEASE_BRANCH: $(IsReleaseBranch)
+      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
+      ATOM_RELEASE_VERSION: $(ReleaseVersion)
+      ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
+        SQUIRREL_TEMP: "C:/tmp"
+        BUILD_ARCH: $(buildArch)
+        ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
+        ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
+        npm_config_build_from_source: true
+        SHOULD_SIGN: $(SHOULD_SIGN)
+      ${{ if eq(variables['Agent.OS'], 'Darwin') }}:
+        ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
+        ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
+        ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
+        ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+        AC_USER: $(AC_USER)
+        AC_PASSWORD: $(AC_PASSWORD)
+        SHOULD_SIGN: $(SHOULD_SIGN)
+      ${{ if eq(variables['Agent.OS'], 'Linux') }}:
+        CC: clang
+        CXX: clang++
+        npm_config_clang: 1
+        args: "--create-debian-package --create-rpm-package"
+        SHOULD_SIGN: "false"
+
+  - script: |
+      sudo chown root ./out/atom*-amd64/chrome-sandbox
+      sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
+    displayName: Tweaking chrome-sandbox binary
+    condition: eq(variables['Agent.OS'], 'Linux')
