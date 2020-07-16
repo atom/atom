@@ -1,5 +1,5 @@
 jobs:
-  - job: Windows
+  - job: Windows_Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
     strategy:
@@ -67,3 +67,52 @@ jobs:
             - filename: RELEASES$(FileID)
               dir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+
+  - job: Windows_RendererTests
+    dependsOn: Windows_Build
+    timeoutInMinutes: 180
+    strategy:
+      maxParallel: 2
+      matrix:
+        x64_Renderer_Test1:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 1
+          buildArch: x64
+        x64_Renderer_Test2:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 2
+          buildArch: x64
+
+    pool:
+      vmImage: vs2017-win2016
+
+    variables:
+      AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: windows
+
+      # Downloading the build artifacts
+      - pwsh: |
+          if ($env:BUILD_ARCH -eq "x64") {
+            $env:FileID="-x64"
+            echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+          }
+        env:
+          BUILD_ARCH: $(buildArch)
+        displayName: Set FileID based on the arch
+
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            -  atom$(FileID)-windows.zip
+
+      #  Core renderer tests
+      - template: templates/test.yml
