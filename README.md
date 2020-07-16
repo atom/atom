@@ -59,7 +59,8 @@ An archive is available for people who don't want to install `atom` as root.
 This version enables you to install multiple Atom versions in parallel. It has been built on Ubuntu 64-bit,
 but should be compatible with other Linux distributions.
 
-1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python gvfs-bin xdg-utils libcap2`
+1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python3 gvfs-bin xdg-utils libcap2`
+   1. (If the `python3` package isn't available, or is too old (Python 3 should be >= 3.5), either `python2` or `python` (2.6 or 2.7) will work in its place.)
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
 4. Launch Atom using the installed `atom` command from the newly extracted directory.

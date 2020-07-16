@@ -1868,7 +1868,7 @@ module.exports = class TextEditorComponent {
   // keydown(code: X), keypress, keydown(code: X)
   //
   // The code X must be the same in the keydown events that bracket the
-  // keypress, meaning we're *holding* the _same_ key we intially pressed.
+  // keypress, meaning we're *holding* the _same_ key we initially pressed.
   // Got that?
   didKeydown(event) {
     // Stop dragging when user interacts with the keyboard. This prevents
@@ -1994,7 +1994,7 @@ module.exports = class TextEditorComponent {
       return;
     }
 
-    const allowMultiCursor = atom.config.get('core.editor.multiCursorOnClick');
+    const allowMultiCursor = atom.config.get('editor.multiCursorOnClick');
     const addOrRemoveSelection =
       allowMultiCursor && (metaKey || (ctrlKey && platform !== 'darwin'));
 
