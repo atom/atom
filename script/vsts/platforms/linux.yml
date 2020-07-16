@@ -20,7 +20,7 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - template: templates/linux-build.yml
+      - template: templates/build.yml
 
       - template: templates/linux-test.yml
 

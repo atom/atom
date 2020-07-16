@@ -23,7 +23,7 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - template: templates/macos-build.yml
+      - template: templates/build.yml
 
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)

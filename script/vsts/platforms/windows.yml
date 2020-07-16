@@ -33,7 +33,7 @@ jobs:
           BUILD_ARCH: $(buildArch)
         displayName: Run linter
 
-      - template: templates/windows-build.yml
+      - template: templates/build.yml
 
       - template: templates/windows-test.yml
 
