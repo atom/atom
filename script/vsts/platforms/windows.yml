@@ -101,6 +101,8 @@ jobs:
         parameters:
           OS: windows
 
+      - template: templates/bootstrap.yml
+
       # Downloading the build artifacts
       - pwsh: |
           if ($env:BUILD_ARCH -eq "x64") {
