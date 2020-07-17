@@ -94,7 +94,7 @@ function runCoreMainProcessTests (callback) {
   console.log('##[command] Executing core main process tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process'}) })
+  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
 }
 
 // Build an array of functions, each running tests for a different rendering test
@@ -112,7 +112,7 @@ for (let testFile of testFiles) {
     ]
     const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
     cp.on('error', error => { callback(error) })
-    cp.on('close', exitCode => { callback(null, {exitCode, step: `core-render-process for ${testFile}`}) })
+    cp.on('close', exitCode => { callback(null, {exitCode, step: `core-render-process for ${testFile}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
   })
 }
 
@@ -173,7 +173,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
         console.log(stderrOutput)
       }
       finalize()
-      callback(null, {exitCode, step: `package-${packageName}`})
+      callback(null, {exitCode, step: `package-${packageName}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`})
     })
   })
 }
@@ -186,7 +186,7 @@ function runBenchmarkTests (callback) {
   console.log('##[command] Executing benchmark tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
   cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks'}) })
+  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
 }
 
 let testSuitesToRun = requestedTestSuites(process.platform)
@@ -278,8 +278,8 @@ async.parallel(testSuitesToRun, function (err, results) {
 
     if (failedSteps.length > 0) {
       console.warn("##[error] \n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
-      for (const {step} of failedSteps) {
-        console.error(`##[error] The '${step}' test step finished with a non-zero exit code`)
+      for (const {step, testCommand} of failedSteps) {
+        console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
       }
       process.exit(1)
     }
