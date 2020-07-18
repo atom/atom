@@ -49,7 +49,7 @@ steps:
 
   # Crash Reports
   - pwsh: |
-      mkdir -f -p $env:ARTIFACT_STAGING_DIR/crash-reports
+      New-Item -Path $env:ARTIFACT_STAGING_DIR/crash-reports -Type Directory -Force
       if (($env:AGENT_OS -eq "Windows_NT") -and (Test-Path "$env:TEMP/Atom Crashes")) {
         cp "$env:TEMP/Atom Crashes/*.dmp"  $env:ARTIFACT_STAGING_DIR/crash-reports
       } else {
