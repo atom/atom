@@ -8,6 +8,7 @@ jobs:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
       IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      RunCoreMainTests: true
     pool:
       vmImage: macos-10.14
 
@@ -24,6 +25,9 @@ jobs:
         displayName: Run linter
 
       - template: templates/build.yml
+
+      # core main tests
+      - template: templates/test.yml
 
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
@@ -51,8 +55,8 @@ jobs:
     strategy:
       maxParallel: 3
       matrix:
-        core:
-          RunCoreTests: true
+        renderer:
+          RunCoreRendererTests: true
           RunPackageTests: false
         packages-1:
           RunCoreTests: false
