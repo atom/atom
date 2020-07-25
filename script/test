@@ -110,9 +110,21 @@ for (let testFile of testFiles) {
       '--resource-path', resourcePath,
       '--test', testFile
     ]
-    const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-    cp.on('error', error => { callback(error) })
-    cp.on('close', exitCode => { callback(null, {exitCode, step: `core-render-process for ${testFile}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
+    const cp = childProcess.spawn(executablePath, testArguments, { env: testEnv})
+    let stderrOutput = ''
+    cp.stderr.on('data', data => { stderrOutput += data })
+    cp.stdout.on('data', data => { stderrOutput += data })
+    cp.on('error', error => {
+      console.log(error, "error")
+      callback(error)
+    })
+    cp.on('close', exitCode => {
+      if (exitCode !== 0) {
+        console.log(`##[error] Renderer tests failed for ${testFile}:`.red)
+        console.log(stderrOutput)
+      }
+       callback(null, {exitCode, step: `core-render-process for ${testFile}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`})
+     })
   })
 }
 
@@ -269,7 +281,7 @@ function requestedTestSuites (platform) {
   return suites
 }
 
-async.parallel(testSuitesToRun, function (err, results) {
+async.series(testSuitesToRun, function (err, results) {
   if (err) {
     console.error(err)
     process.exit(1)
