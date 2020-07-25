@@ -4,6 +4,7 @@ const CSON = require('season');
 const fs = require('fs-plus');
 const { Emitter, CompositeDisposable } = require('event-kit');
 const dedent = require('dedent');
+const { performance } = require('perf_hooks');
 
 const CompileCache = require('./compile-cache');
 const ModuleCache = require('./module-cache');
@@ -77,9 +78,9 @@ module.exports = class Package {
   }
 
   measure(key, fn) {
-    const startTime = window.performance.now();
+    const startTime = performance.now();
     const value = fn();
-    this[key] = window.performance.now() - startTime;
+    this[key] = performance.now() - startTime;
     return value;
   }
 
