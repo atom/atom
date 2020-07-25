@@ -79,7 +79,7 @@ module.exports = class Package {
   measure(key, fn) {
     const startTime = window.performance.now();
     const value = fn();
-    this[key] = window.performance.now() - startTime;
+    this[key] = Math.round(window.performance.now() - startTime);
     return value;
   }
 
