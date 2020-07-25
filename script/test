@@ -281,7 +281,7 @@ function requestedTestSuites (platform) {
   return suites
 }
 
-async.parallel(testSuitesToRun, function (err, results) {
+async.series(testSuitesToRun, function (err, results) {
   if (err) {
     console.error(err)
     process.exit(1)
