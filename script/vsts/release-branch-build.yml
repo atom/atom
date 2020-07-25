@@ -25,7 +25,7 @@ jobs:
 
   - job: UploadArtifacts
     pool:
-      vmImage: vs2017-win2016
+      vmImage: 'ubuntu-latest'
 
     dependsOn:
       - GetReleaseVersion
