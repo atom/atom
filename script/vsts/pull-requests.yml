@@ -6,11 +6,11 @@ jobs:
       vmImage: 'ubuntu-latest'
     steps:
       # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
+      # exits the script block after `npm ci` completes.
       - script: |
           cd script/vsts
-          npm install
-        displayName: npm install
+          npm ci
+        displayName: npm ci
       - script: node script/vsts/get-release-version.js
         name: Version
         env:
