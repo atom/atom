@@ -4,6 +4,9 @@ const request = require('request-promise-native');
 const repositoryRootPath = path.resolve(__dirname, '..', '..');
 const appMetadata = require(path.join(repositoryRootPath, 'package.json'));
 
+const REPO_OWNER = process.env.REPO_OWNER;
+const NIGHTLY_RELEASE_REPO = process.env.NIGHTLY_RELEASE_REPO;
+
 const yargs = require('yargs');
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -26,7 +29,7 @@ async function getReleaseVersion() {
   let releaseVersion = process.env.ATOM_RELEASE_VERSION || appMetadata.version;
   if (argv.nightly) {
     const releases = await request({
-      url: 'https://api.github.com/repos/atom/atom-nightly-releases/releases',
+      url: `https://api.github.com/repos/${REPO_OWNER}/${NIGHTLY_RELEASE_REPO}/releases`,
       headers: {
         Accept: 'application/vnd.github.v3+json',
         'User-Agent': 'Atom Release Build'
@@ -78,6 +81,7 @@ async function getReleaseVersion() {
       buildBranch.startsWith('electron-') ||
       (buildBranch === 'master' &&
         !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER));
+  const SHOULD_SIGN = process.env.SHOULD_SIGN;
 
   console.log(
     `##vso[task.setvariable variable=AppName;isOutput=true]${getAppName(
@@ -89,6 +93,9 @@ async function getReleaseVersion() {
   );
   console.log(
     `##vso[task.setvariable variable=IsSignedZipBranch;isOutput=true]${isSignedZipBranch}`
+  );
+  console.log(
+    `##vso[task.setvariable variable=SHOULD_SIGN;isOutput=true]${SHOULD_SIGN}`
   );
 }
 

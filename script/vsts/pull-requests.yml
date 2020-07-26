@@ -2,6 +2,8 @@ trigger: none # No CI builds, only PR builds
 
 jobs:
   - job: GetReleaseVersion
+    pool:
+      vmImage: 'windows-latest'
     steps:
       # This has to be done separately because VSTS inexplicably
       # exits the script block after `npm install` completes.
@@ -11,6 +13,9 @@ jobs:
         displayName: npm install
       - script: node script\vsts\get-release-version.js
         name: Version
+        env:
+          REPO_OWNER: $(REPO_OWNER)
+          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
