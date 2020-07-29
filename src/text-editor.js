@@ -1425,7 +1425,7 @@ module.exports = class TextEditor {
   logScreenLines(start = 0, end = this.getLastScreenRow()) {
     for (let row = start; row <= end; row++) {
       const line = this.lineTextForScreenRow(row);
-      console.log(row, this.bufferRowForScreenRow(row), line, line.length);
+      //console.log(row, this.bufferRowForScreenRow(row), line, line.length);
     }
   }
 
@@ -2453,6 +2453,8 @@ module.exports = class TextEditor {
     screenRange = Range.fromObject(screenRange);
     const start = this.bufferPositionForScreenPosition(screenRange.start);
     const end = this.bufferPositionForScreenPosition(screenRange.end);
+    console.log("start : " , start) ; 
+    console.log("end : " , end) ; 
     return new Range(start, end);
   }
 
@@ -2642,6 +2644,7 @@ module.exports = class TextEditor {
   //
   // Returns the created {Decoration} object.
   decorateMarker(marker, decorationParams) {
+    console.log('decorateMarker called') ; 
     return this.decorationManager.decorateMarker(marker, decorationParams);
   }
 
@@ -3098,26 +3101,60 @@ module.exports = class TextEditor {
   //
   // * `lineCount` (optional) {Number} number of lines to move
   moveDown(lineCount) {
-    return this.moveCursors(cursor =>
+    return this.moveCursors(cursor =>{
+
       cursor.moveDown(lineCount, { moveToEndOfSelection: true })
+    }
     );
   }
 
   // Essential: Move every cursor left one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
-  moveLeft(columnCount) {
-    return this.moveCursors(cursor =>
-      cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+  // edit ::: this is a moveforward method not Left or right it depend on the RTL or LTR
+  moveLeft(columnCount) {  
+    //console.log("moveLeft called") ; 
+    return this.moveCursors(cursor =>{
+       //console.log(cursor.getNextChar() ) ; 
+       let prevCheck = cursor.checkPreviousChar() ; 
+       let nextCheck = cursor.checkNextChar() ; 
+       if(cursor.checkNextChar()){
+          cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+
+
+       }
+       else{
+          cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+          // if(cursor.checkNextChar() != cursor.checkPreviousChar())
+          //   cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+
+
+       }
+    }
     );
   }
 
   // Essential: Move every cursor right one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
+ 
+
+  // edit ::: this is a movebackrward method not Left or right it depend on the RTL or LTR
   moveRight(columnCount) {
-    return this.moveCursors(cursor =>
-      cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+    //console.log("moveRight called") ; 
+    return this.moveCursors(cursor =>{
+       //console.log(cursor.getNextChar() ) ; 
+       if(cursor.checkNextChar()){
+          cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+       }
+       else{
+          cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+
+       }
+    }
     );
   }
 
