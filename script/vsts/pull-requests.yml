@@ -3,15 +3,15 @@ trigger: none # No CI builds, only PR builds
 jobs:
   - job: GetReleaseVersion
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
     steps:
       # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
+      # exits the script block after `npm ci` completes.
       - script: |
-          cd script\vsts
-          npm install
-        displayName: npm install
-      - script: node script\vsts\get-release-version.js
+          cd script/vsts
+          npm ci
+        displayName: npm ci
+      - script: node script/vsts/get-release-version.js
         name: Version
         env:
           REPO_OWNER: $(REPO_OWNER)
