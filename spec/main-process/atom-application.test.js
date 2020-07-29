@@ -751,7 +751,7 @@ describe('AtomApplication', function() {
 
     it('truncates trailing whitespace and colons', async function() {
       await scenario.open(parseCommandLine('b/2.md::  '));
-      await scenario.assert('[_ 2.md]');
+      await scenario.assert('[_ 2.md::]');
 
       const w = scenario.getWindow(0);
       assert.lengthOf(w._locations, 1);
@@ -1406,7 +1406,7 @@ class LaunchScenario {
     );
 
     await Promise.all(
-      ['a/1.md', 'b/2.md'].map(
+      ['a/1.md', 'b/2.md', 'b/2.md::'].map(
         filePath =>
           new Promise((resolve, reject) => {
             const fullFilePath = path.join(this.root, filePath);
