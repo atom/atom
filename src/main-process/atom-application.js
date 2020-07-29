@@ -1895,7 +1895,6 @@ module.exports = class AtomApplication extends EventEmitter {
       return result;
     }
 
-    result.pathToOpen = result.pathToOpen.replace(/[:\s]+$/, '');
     const match = result.pathToOpen.match(LocationSuffixRegExp);
 
     if (match != null) {
