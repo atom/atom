@@ -5,7 +5,7 @@ const path = require('path');
 const download = require('download');
 const childProcess = require('child_process');
 
-const nodeVersion = '12.13.1';
+const nodeVersion = '12.4.0';
 const nodeFileName = `node-v${nodeVersion}-win-x86`;
 const extractedNodePath = `c:\\tmp\\${nodeFileName}`;
 
