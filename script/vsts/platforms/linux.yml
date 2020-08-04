@@ -5,7 +5,6 @@ jobs:
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     pool:
-      # This image is used to host the Docker container that runs the build
       vmImage: ubuntu-16.04
 
     steps:
