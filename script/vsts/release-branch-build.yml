@@ -17,9 +17,6 @@ jobs:
         displayName: npm ci
       - script: node script/vsts/get-release-version.js
         name: Version
-        env:
-          REPO_OWNER: $(REPO_OWNER)
-          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
 
   # Import OS-specific build definitions.
   - template: platforms/windows.yml
@@ -66,9 +63,6 @@ jobs:
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
           PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
-          REPO_OWNER: $(REPO_OWNER)
-          MAIN_REPO: $(MAIN_REPO)
-          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
         displayName: Create Draft Release
         condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
 
@@ -79,8 +73,5 @@ jobs:
           ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-          REPO_OWNER: $(REPO_OWNER)
-          MAIN_REPO: $(MAIN_REPO)
-          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
         displayName: Upload CI Artifacts to S3
         condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
