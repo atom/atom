@@ -5,21 +5,8 @@ trigger:
 pr: none # no PR triggers
 
 jobs:
-  - job: GetReleaseVersion
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm ci` completes.
-      - script: |
-          cd script/vsts
-          npm ci
-        displayName: npm ci
-      - script: node script/vsts/get-release-version.js
-        name: Version
-        env:
-          REPO_OWNER: $(REPO_OWNER)
-          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
+  # Import "GetReleaseVersion" job definition
+  - template: platforms/templates/get-release-version.yml
 
   # Import OS-specific build definitions.
   - template: platforms/windows.yml
