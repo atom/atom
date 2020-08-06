@@ -2807,7 +2807,6 @@ module.exports = class TextEditorComponent {
   }
 
   screenPositionForPixelPosition({ top, left }) {
-    console.log('screenPositionForPixelPosition called') ;
     const { model } = this.props;
 
     const row = Math.min(
@@ -5157,8 +5156,7 @@ class OverlayComponent {
 
 let rangeForMeasurement;
 function clientRectForRange(textNode, startIndex, endIndex) {
-  //console.log('textNode : ' , textNode) ; 
-  endIndex = Math.min(endIndex , textNode.length) ; 
+   endIndex = Math.min(endIndex , textNode.length) ; 
   if (!rangeForMeasurement) rangeForMeasurement = document.createRange();
   rangeForMeasurement.setStart(textNode, startIndex);
   rangeForMeasurement.setEnd(textNode, endIndex);
