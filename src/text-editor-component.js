@@ -1069,6 +1069,7 @@ module.exports = class TextEditorComponent {
   }
 
   addDecorationToRender(type, decoration, marker, screenRange, reversed) {
+    console.log('addDecorationToRender called') ; 
     if (Array.isArray(type)) {
       for (let i = 0, length = type.length; i < length; i++) {
         this.addDecorationToRender(
@@ -1122,6 +1123,7 @@ module.exports = class TextEditorComponent {
   }
 
   addLineDecorationToRender(type, decoration, screenRange, reversed) {
+    console.log('addLineDecorationToRender called') ; 
     let decorationsToRender;
     if (type === 'line') {
       decorationsToRender = this.decorationsToRender.lines;
@@ -1175,6 +1177,7 @@ module.exports = class TextEditorComponent {
   }
 
   addHighlightDecorationToMeasure(decoration, screenRange, key) {
+    console.log('addHighlightDecorationToMeasure called') ; 
     screenRange = constrainRangeToRows(
       screenRange,
       this.getRenderedStartRow(),
@@ -1208,6 +1211,12 @@ module.exports = class TextEditorComponent {
   }
 
   addCursorDecorationToMeasure(decoration, marker, screenRange, reversed) {
+    console.log('addCursorDecorationToMeasure') ; 
+    console.log('screenRange : ' , screenRange) ; 
+    var temp = screenRange.start ; 
+    screenRange.start = screenRange.end ; 
+    screenRange.end = temp ; 
+    
     const { model } = this.props;
     if (!model.getShowCursorOnSelection() && !screenRange.isEmpty()) return;
 
@@ -1327,6 +1336,7 @@ module.exports = class TextEditorComponent {
   }
 
   addTextDecorationToRender(decoration, screenRange, marker) {
+    console.log('addTextDecorationToRender') ; 
     if (screenRange.isEmpty()) return;
 
     let decorationsForMarker = this.textDecorationsByMarker.get(marker);
@@ -1346,6 +1356,8 @@ module.exports = class TextEditorComponent {
   }
 
   populateTextDecorationsToRender() {
+   
+
     // Sort all boundaries in ascending order of position
     this.textDecorationBoundaries.sort((a, b) =>
       a.position.compare(b.position)
@@ -1479,6 +1491,7 @@ module.exports = class TextEditorComponent {
   }
 
   updateHighlightsToRender() {
+    console.log('updateHighlightsToRender') ; 
     this.decorationsToRender.highlights.length = 0;
     for (let i = 0; i < this.decorationsToMeasure.highlights.length; i++) {
       const highlight = this.decorationsToMeasure.highlights[i];
@@ -2223,10 +2236,15 @@ module.exports = class TextEditorComponent {
     if (scrolled) this.updateSync();
   }
 
+  debugFun(){
+
+  }
   screenPositionForMouseEvent(event) {
-    return this.screenPositionForPixelPosition(
+     let state =  this.screenPositionForPixelPosition(
       this.pixelPositionForMouseEvent(event)
     );
+   this.debugFun() ; 
+    return state ; 
   }
 
   pixelPositionForMouseEvent({ clientX, clientY }) {
@@ -2634,8 +2652,8 @@ module.exports = class TextEditorComponent {
     let textNodeStartColumn = 0;
     let textNodesIndex = 0;
     let lastTextNodeRight = null;
+    
 
-    // positions.clear(); used for debugging
 
     // eslint-disable-next-line no-labels
     columnLoop: for (
@@ -2661,19 +2679,31 @@ module.exports = class TextEditorComponent {
           if (nextColumnToMeasure === textNodeStartColumn) {
             clientPixelPosition = clientRectForRange(textNode, textNode.textContent.length-1, textNode.textContent.length).right;
           } else {
-            if(!checkRTL(textNode.textContent)){
-              clientPixelPosition = clientRectForRange(
+
+            let charToMeasure = textNode.textContent[nextColumnToMeasure]
+
+
+            if(!checkRTL(charToMeasure)){
+
+              let range = clientRectForRange(
                 textNode,
-                0,
-                nextColumnToMeasure - textNodeStartColumn
-              ).right;
+                textNode.textContent.length,
+                 nextColumnToMeasure 
+              );
+              clientPixelPosition = range.right;
+
+
             }else{
-              clientPixelPosition = clientRectForRange(
+
+              let range = clientRectForRange(
                 textNode,
                 0,
                 nextColumnToMeasure - textNodeStartColumn
-              ).left;
+              );
+              clientPixelPosition = range.left;
+
             }
+
           }
 
           if (lineNodeClientLeft === -1) {
@@ -2709,7 +2739,6 @@ module.exports = class TextEditorComponent {
         Math.round(lastTextNodeRight - lineNodeClientLeft)
       );
     }
-    console.log(positions);
   }
 
   rowForPixelPosition(pixelPosition) {
@@ -2751,6 +2780,45 @@ module.exports = class TextEditorComponent {
     }
   }
 
+
+  binarySearchForLTRSegmant(low,high,containingTextNode , targetClientLeft){
+
+    let characterIndex = -1 ; 
+    while(low<=high){
+      let charIndex = low + ((high - low) >> 1);
+      let nextCharIndex = charIndex+1 ; 
+      let rangeRect = clientRectForRange(
+        containingTextNode,
+        charIndex,
+        nextCharIndex
+      );
+
+      if(targetClientLeft>rangeRect.right){
+        low = nextCharIndex ; 
+      }
+      else if (targetClientLeft<rangeRect.left){
+        high = charIndex-1 ; 
+
+      }
+      else{
+
+
+        let betweentTheTwoCharacters = (rangeRect.left + rangeRect.right) / 2 ; 
+        if(targetClientLeft<= betweentTheTwoCharacters){
+            characterIndex =   charIndex ;  
+        }
+        else{
+            characterIndex =  nextCharIndex  ; 
+        }
+
+        break ; 
+      }
+    }
+    
+    return characterIndex ; 
+
+  }
+
   screenPositionForPixelPosition({ top, left }) {
     const { model } = this.props;
 
@@ -2770,6 +2838,7 @@ module.exports = class TextEditorComponent {
     const linesClientLeft = this.refs.lineTiles.getBoundingClientRect().left;
     const targetClientLeft = linesClientLeft + Math.max(0, left);
     const { textNodes } = this.lineComponentsByScreenLineId.get(screenLine.id);
+
 
     let containingTextNodeIndex;
     {
@@ -2793,60 +2862,70 @@ module.exports = class TextEditorComponent {
       }
     }
     const containingTextNode = textNodes[containingTextNodeIndex];
-    const rtl = checkRTL(containingTextNode.data);
+    let rtl = checkRTL(containingTextNode.data);
+
+
 
     let characterIndex = 0;
     {
       let low = 0;
       let high = containingTextNode.length - 1;
+     
       while (low <= high) {
         const charIndex = low + ((high - low) >> 1);
         const nextCharIndex = isPairedCharacter(
           containingTextNode.textContent,
           charIndex
         )
-          ? charIndex + 2
-          : charIndex + 1;
+        ? charIndex + 2
+        : charIndex + 1;
+        let char = containingTextNode.textContent[charIndex] ; 
+        let charNext = containingTextNode.textContent[nextCharIndex] ; 
 
-        const rangeRect = clientRectForRange(
+
+
+        rtl = checkRTL(char) ; 
+        let rangeRect = clientRectForRange(
           containingTextNode,
           charIndex,
           nextCharIndex
         );
-        if (targetClientLeft < rangeRect.left && !rtl) {
-          high = charIndex - 1;
-          characterIndex = Math.max(0, charIndex - 1);
-        } else if (targetClientLeft > rangeRect.right && !rtl) {
-          low = nextCharIndex;
-          characterIndex = Math.min(
-            containingTextNode.textContent.length,
-            nextCharIndex
-          );
-        } else if (targetClientLeft > rangeRect.right && rtl) {
-          high = charIndex - 1;
-          characterIndex = Math.max(0, charIndex - 1);
-        } else if (targetClientLeft < rangeRect.left && rtl) {
-          low = nextCharIndex;
-          characterIndex = Math.min(
-            containingTextNode.textContent.length,
-            nextCharIndex
-          );
-        } else {
-          if (!rtl){
-            if (targetClientLeft <= (rangeRect.left + rangeRect.right) / 2) {
-              characterIndex = charIndex;
-            } else {
-              characterIndex = nextCharIndex;
-            }
-          }else{
-            if (targetClientLeft <= (rangeRect.left + rangeRect.right) / 2) {
-              characterIndex = nextCharIndex;
-            } else {
-              characterIndex = charIndex;
-            }
+
+        if(targetClientLeft > rangeRect.right){
+          // check if the continouse segmant is LTR ----------------
+
+          let Ind = this.binarySearchForLTRSegmant(low , high , containingTextNode , targetClientLeft) ; 
+          if(Ind!=-1){
+            characterIndex = Ind ; 
+            break ; 
           }
-          break;
+          // continue the original binary search 
+          high = charIndex - 1 ; 
         }
+        else if (targetClientLeft < rangeRect.left){
+
+
+          // check if the continouse segmant is LTR 
+          let Ind = this.binarySearchForLTRSegmant(low , high , containingTextNode , targetClientLeft) ; 
+
+          if(Ind!=-1){
+              characterIndex = Ind ; 
+              break ; 
+          }
+           // continue the original binary search 
+          low = nextCharIndex ;
+        }
+        else{
+            let betweentTheTwoCharacters = (rangeRect.left + rangeRect.right) / 2 ; 
+            if(targetClientLeft<= betweentTheTwoCharacters){
+                characterIndex =  rtl ? nextCharIndex : charIndex ;  
+            }
+            else{
+                characterIndex =  !rtl ? nextCharIndex : charIndex ; 
+            }
+            break ;
+        }
+
       }
     }
 
@@ -2855,7 +2934,7 @@ module.exports = class TextEditorComponent {
       textNodeStartColumn = textNodeStartColumn + textNodes[i].length;
     }
     const column = textNodeStartColumn + characterIndex;
-    console.log(row, column);
+
     return Point(row, column);
   }
 
@@ -5090,6 +5169,7 @@ class OverlayComponent {
 
 let rangeForMeasurement;
 function clientRectForRange(textNode, startIndex, endIndex) {
+   endIndex = Math.min(endIndex , textNode.length) ; 
   if (!rangeForMeasurement) rangeForMeasurement = document.createRange();
   rangeForMeasurement.setStart(textNode, startIndex);
   rangeForMeasurement.setEnd(textNode, endIndex);
@@ -5259,6 +5339,7 @@ function ceilToPhysicalPixelBoundary(virtualPixelPosition) {
 }
 
 function checkRTL(s){
+  //if(s==" " || s=="")return true ; 
     var ltrChars    = 'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590\u0800-\u1FFF'+'\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF',
         rtlChars    = '\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC',
         rtlDirCheck = new RegExp('^[^'+ltrChars+']*['+rtlChars+']');

@@ -289,6 +289,7 @@ module.exports = class TextEditor {
     this.decorateMarkerLayer(this.selectionsMarkerLayer, { type: 'cursor' });
     if (!this.isMini()) this.decorateCursorLine();
 
+    console.log(292) ; 
     this.decorateMarkerLayer(this.displayLayer.foldsMarkerLayer, {
       type: 'line-number',
       class: 'folded'
@@ -354,6 +355,7 @@ module.exports = class TextEditor {
   }
 
   decorateCursorLine() {
+    console.log('decorateCursorLine') ; 
     this.cursorLineDecorations = [
       this.decorateMarkerLayer(this.selectionsMarkerLayer, {
         type: 'line',
@@ -1425,7 +1427,7 @@ module.exports = class TextEditor {
   logScreenLines(start = 0, end = this.getLastScreenRow()) {
     for (let row = start; row <= end; row++) {
       const line = this.lineTextForScreenRow(row);
-      console.log(row, this.bufferRowForScreenRow(row), line, line.length);
+      //console.log(row, this.bufferRowForScreenRow(row), line, line.length);
     }
   }
 
@@ -2453,6 +2455,8 @@ module.exports = class TextEditor {
     screenRange = Range.fromObject(screenRange);
     const start = this.bufferPositionForScreenPosition(screenRange.start);
     const end = this.bufferPositionForScreenPosition(screenRange.end);
+    //console.log("start : " , start) ; 
+    //console.log("end : " , end) ; 
     return new Range(start, end);
   }
 
@@ -2642,6 +2646,7 @@ module.exports = class TextEditor {
   //
   // Returns the created {Decoration} object.
   decorateMarker(marker, decorationParams) {
+    console.log('decorateMarker called') ; 
     return this.decorationManager.decorateMarker(marker, decorationParams);
   }
 
@@ -2655,6 +2660,7 @@ module.exports = class TextEditor {
   //
   // Returns a {LayerDecoration}.
   decorateMarkerLayer(markerLayer, decorationParams) {
+    
     return this.decorationManager.decorateMarkerLayer(
       markerLayer,
       decorationParams
@@ -2771,6 +2777,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markBufferRange(bufferRange, options) {
+    console.log('markBufferRange called') ; 
     return this.defaultMarkerLayer.markBufferRange(bufferRange, options);
   }
 
@@ -2805,6 +2812,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markScreenRange(screenRange, options) {
+    console.log('markScreenRange called') ; 
     return this.defaultMarkerLayer.markScreenRange(screenRange, options);
   }
 
@@ -2831,6 +2839,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markBufferPosition(bufferPosition, options) {
+    console.log('markBufferPosition called' ) ;
     return this.defaultMarkerLayer.markBufferPosition(bufferPosition, options);
   }
 
@@ -2862,6 +2871,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markScreenPosition(screenPosition, options) {
+    console.log('markScreenPosition called') ; 
     return this.defaultMarkerLayer.markScreenPosition(screenPosition, options);
   }
 
@@ -2896,6 +2906,7 @@ module.exports = class TextEditor {
   //
   // * `id` {Number} id of the marker
   getMarker(id) {
+    console.log('getMarker : ' , id) ; 
     return this.defaultMarkerLayer.getMarker(id);
   }
 
@@ -3058,6 +3069,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtBufferPosition(bufferPosition, options) {
+    console.log('addCursorAtBufferPosition called') ; 
     this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {
       invalidate: 'never'
     });
@@ -3072,6 +3084,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtScreenPosition(screenPosition, options) {
+    console.log('addCursorAtScreenPosition called ') ; 
     this.selectionsMarkerLayer.markScreenPosition(screenPosition, {
       invalidate: 'never'
     });
@@ -3098,26 +3111,60 @@ module.exports = class TextEditor {
   //
   // * `lineCount` (optional) {Number} number of lines to move
   moveDown(lineCount) {
-    return this.moveCursors(cursor =>
+    return this.moveCursors(cursor =>{
+
       cursor.moveDown(lineCount, { moveToEndOfSelection: true })
+    }
     );
   }
 
   // Essential: Move every cursor left one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
-  moveLeft(columnCount) {
-    return this.moveCursors(cursor =>
-      cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+  // edit ::: this is a moveforward method not Left or right it depend on the RTL or LTR
+  moveLeft(columnCount) {  
+    //console.log("moveLeft called") ; 
+    return this.moveCursors(cursor =>{
+       //console.log(cursor.getNextChar() ) ; 
+       let prevCheck = cursor.checkPreviousChar() ; 
+       let nextCheck = cursor.checkNextChar() ; 
+       if(cursor.checkNextChar()){
+          cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+
+
+       }
+       else{
+          cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+          // if(cursor.checkNextChar() != cursor.checkPreviousChar())
+          //   cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+
+
+       }
+    }
     );
   }
 
   // Essential: Move every cursor right one column.
   //
   // * `columnCount` (optional) {Number} number of columns to move (default: 1)
+ 
+
+  // edit ::: this is a movebackrward method not Left or right it depend on the RTL or LTR
   moveRight(columnCount) {
-    return this.moveCursors(cursor =>
-      cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+    //console.log("moveRight called") ; 
+    return this.moveCursors(cursor =>{
+       //console.log(cursor.getNextChar() ) ; 
+       if(cursor.checkNextChar()){
+          cursor.moveLeft(columnCount, { moveToEndOfSelection: true })
+
+       }
+       else{
+          cursor.moveRight(columnCount, { moveToEndOfSelection: true })
+
+       }
+    }
     );
   }
 

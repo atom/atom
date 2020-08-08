@@ -1160,7 +1160,7 @@ describe('TextEditorComponent', () => {
           for (var j = 0; j < 5; j++) {
             const k = random(100);
             const range = getRandomBufferRange(random, editor.buffer);
-
+            
             if (k < 10) {
               editor.setSoftWrapped(!editor.isSoftWrapped());
             } else if (k < 15) {
@@ -1171,6 +1171,7 @@ describe('TextEditorComponent', () => {
               editor.backspace();
             } else if (k < 80) {
               const linesToInsert = buildRandomLines(random, 5);
+              //console.log('linesToInsert : ' , linesToInsert) ; 
               editor.setCursorBufferPosition(range.start);
               editor.insertText(linesToInsert);
             } else if (k < 90) {
