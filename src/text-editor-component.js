@@ -1069,6 +1069,7 @@ module.exports = class TextEditorComponent {
   }
 
   addDecorationToRender(type, decoration, marker, screenRange, reversed) {
+    console.log('addDecorationToRender called') ; 
     if (Array.isArray(type)) {
       for (let i = 0, length = type.length; i < length; i++) {
         this.addDecorationToRender(
@@ -1122,6 +1123,7 @@ module.exports = class TextEditorComponent {
   }
 
   addLineDecorationToRender(type, decoration, screenRange, reversed) {
+    console.log('addLineDecorationToRender called') ; 
     let decorationsToRender;
     if (type === 'line') {
       decorationsToRender = this.decorationsToRender.lines;
@@ -1175,6 +1177,7 @@ module.exports = class TextEditorComponent {
   }
 
   addHighlightDecorationToMeasure(decoration, screenRange, key) {
+    console.log('addHighlightDecorationToMeasure called') ; 
     screenRange = constrainRangeToRows(
       screenRange,
       this.getRenderedStartRow(),
@@ -1208,6 +1211,12 @@ module.exports = class TextEditorComponent {
   }
 
   addCursorDecorationToMeasure(decoration, marker, screenRange, reversed) {
+    console.log('addCursorDecorationToMeasure') ; 
+    console.log('screenRange : ' , screenRange) ; 
+    var temp = screenRange.start ; 
+    screenRange.start = screenRange.end ; 
+    screenRange.end = temp ; 
+    
     const { model } = this.props;
     if (!model.getShowCursorOnSelection() && !screenRange.isEmpty()) return;
 
@@ -1327,6 +1336,7 @@ module.exports = class TextEditorComponent {
   }
 
   addTextDecorationToRender(decoration, screenRange, marker) {
+    console.log('addTextDecorationToRender') ; 
     if (screenRange.isEmpty()) return;
 
     let decorationsForMarker = this.textDecorationsByMarker.get(marker);
@@ -1346,6 +1356,8 @@ module.exports = class TextEditorComponent {
   }
 
   populateTextDecorationsToRender() {
+   
+
     // Sort all boundaries in ascending order of position
     this.textDecorationBoundaries.sort((a, b) =>
       a.position.compare(b.position)
@@ -1479,6 +1491,7 @@ module.exports = class TextEditorComponent {
   }
 
   updateHighlightsToRender() {
+    console.log('updateHighlightsToRender') ; 
     this.decorationsToRender.highlights.length = 0;
     for (let i = 0; i < this.decorationsToMeasure.highlights.length; i++) {
       const highlight = this.decorationsToMeasure.highlights[i];

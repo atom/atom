@@ -289,6 +289,7 @@ module.exports = class TextEditor {
     this.decorateMarkerLayer(this.selectionsMarkerLayer, { type: 'cursor' });
     if (!this.isMini()) this.decorateCursorLine();
 
+    console.log(292) ; 
     this.decorateMarkerLayer(this.displayLayer.foldsMarkerLayer, {
       type: 'line-number',
       class: 'folded'
@@ -354,6 +355,7 @@ module.exports = class TextEditor {
   }
 
   decorateCursorLine() {
+    console.log('decorateCursorLine') ; 
     this.cursorLineDecorations = [
       this.decorateMarkerLayer(this.selectionsMarkerLayer, {
         type: 'line',
@@ -2453,8 +2455,8 @@ module.exports = class TextEditor {
     screenRange = Range.fromObject(screenRange);
     const start = this.bufferPositionForScreenPosition(screenRange.start);
     const end = this.bufferPositionForScreenPosition(screenRange.end);
-    console.log("start : " , start) ; 
-    console.log("end : " , end) ; 
+    //console.log("start : " , start) ; 
+    //console.log("end : " , end) ; 
     return new Range(start, end);
   }
 
@@ -2658,6 +2660,7 @@ module.exports = class TextEditor {
   //
   // Returns a {LayerDecoration}.
   decorateMarkerLayer(markerLayer, decorationParams) {
+    
     return this.decorationManager.decorateMarkerLayer(
       markerLayer,
       decorationParams
@@ -2774,6 +2777,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markBufferRange(bufferRange, options) {
+    console.log('markBufferRange called') ; 
     return this.defaultMarkerLayer.markBufferRange(bufferRange, options);
   }
 
@@ -2808,6 +2812,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markScreenRange(screenRange, options) {
+    console.log('markScreenRange called') ; 
     return this.defaultMarkerLayer.markScreenRange(screenRange, options);
   }
 
@@ -2834,6 +2839,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markBufferPosition(bufferPosition, options) {
+    console.log('markBufferPosition called' ) ;
     return this.defaultMarkerLayer.markBufferPosition(bufferPosition, options);
   }
 
@@ -2865,6 +2871,7 @@ module.exports = class TextEditor {
   //
   // Returns a {DisplayMarker}.
   markScreenPosition(screenPosition, options) {
+    console.log('markScreenPosition called') ; 
     return this.defaultMarkerLayer.markScreenPosition(screenPosition, options);
   }
 
@@ -2899,6 +2906,7 @@ module.exports = class TextEditor {
   //
   // * `id` {Number} id of the marker
   getMarker(id) {
+    console.log('getMarker : ' , id) ; 
     return this.defaultMarkerLayer.getMarker(id);
   }
 
@@ -3061,6 +3069,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtBufferPosition(bufferPosition, options) {
+    console.log('addCursorAtBufferPosition called') ; 
     this.selectionsMarkerLayer.markBufferPosition(bufferPosition, {
       invalidate: 'never'
     });
@@ -3075,6 +3084,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Cursor}.
   addCursorAtScreenPosition(screenPosition, options) {
+    console.log('addCursorAtScreenPosition called ') ; 
     this.selectionsMarkerLayer.markScreenPosition(screenPosition, {
       invalidate: 'never'
     });
