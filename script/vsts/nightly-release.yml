@@ -1,6 +1,8 @@
 jobs:
-  # Import "GetReleaseVersion" job definition
+  # Import "GetReleaseVersion" job definition, with the "NightlyFlag" parameter set
   - template: platforms/templates/get-release-version.yml
+    parameters:
+      NightlyFlag: --nightly
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
