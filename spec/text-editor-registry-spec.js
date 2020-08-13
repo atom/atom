@@ -75,10 +75,17 @@ describe('TextEditorRegistry', function() {
 
       atom.config.set('editor.tabLength', 8, { scope: '.source.js' });
 
+      const buffer = new TextBuffer({ filePath: 'test.js'})
+      atom.grammars.assignLanguageMode(buffer, 'source.js')
+
       const editor = registry.build({
-        buffer: new TextBuffer({ filePath: 'test.js' })
+        buffer
       });
+
       expect(editor.getTabLength()).toBe(8);
+      expect(editor.getRootScopeDescriptor().getScopesArray()).toEqual([
+        'source.js'
+      ]);
     });
   });
 
