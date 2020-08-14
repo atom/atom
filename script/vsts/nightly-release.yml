@@ -16,7 +16,7 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
-      - Windows
+      - Windows_RendererTests
       - Linux
       - macOS_tests
 
@@ -26,8 +26,6 @@ jobs:
     steps:
       - template: platforms/templates/preparation.yml
 
-       #This has to be done separately because VSTS inexplicably
-       #exits the script block after `npm ci` completes.
       - script: |
           cd script/vsts
           npm ci
@@ -48,9 +46,6 @@ jobs:
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
           PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
-          REPO_OWNER: $(REPO_OWNER)
-          MAIN_REPO: $(MAIN_REPO)
-          NIGHTLY_RELEASE_REPO: $(NIGHTLY_RELEASE_REPO)
         displayName: Create Nightly Release
   - job: bump_dependencies
     displayName: Bump Dependencies
