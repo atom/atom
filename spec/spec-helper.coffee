@@ -48,12 +48,12 @@ jasmine.getEnv().addEqualityTester (a, b) ->
   # Match jasmine.any's equality matching logic
   return a.jasmineMatches(b) if a?.jasmineMatches?
   return b.jasmineMatches(a) if b?.jasmineMatches?
-  
+
   # Use underscore's definition of equality for toEqual assertions
   _.isEqual(a, b)
 
 if process.env.CI
-  jasmine.getEnv().defaultTimeoutInterval = 60000
+  jasmine.getEnv().defaultTimeoutInterval = 120000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
