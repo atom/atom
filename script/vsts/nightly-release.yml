@@ -1,13 +1,8 @@
 jobs:
-  - job: GetReleaseVersion
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      - script: |
-          cd script/vsts
-          npm ci
-          node get-release-version.js --nightly
-        name: Version
+  # GetReleaseVersion for nightly release
+  - template: platforms/templates/get-release-version.yml
+    parameters:
+      NightlyFlag: --nightly
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml

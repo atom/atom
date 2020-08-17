@@ -5,15 +5,8 @@ trigger:
 pr: none # no PR triggers
 
 jobs:
-  - job: GetReleaseVersion
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      - script: |
-          cd script/vsts
-          npm ci
-          node get-release-version.js
-        name: Version
+  # GetReleaseVersion
+  - template: platforms/templates/get-release-version.yml
 
   # Import OS-specific build definitions.
   - template: platforms/windows.yml
