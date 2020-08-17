@@ -1,5 +1,5 @@
 jobs:
-  # Import "GetReleaseVersion" job definition, with the "NightlyFlag" parameter set
+  # GetReleaseVersion for nightly release
   - template: platforms/templates/get-release-version.yml
     parameters:
       NightlyFlag: --nightly

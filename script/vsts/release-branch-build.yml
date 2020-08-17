@@ -5,7 +5,7 @@ trigger:
 pr: none # no PR triggers
 
 jobs:
-  # Import "GetReleaseVersion" job definition
+  # GetReleaseVersion
   - template: platforms/templates/get-release-version.yml
 
   # Import OS-specific build definitions.
