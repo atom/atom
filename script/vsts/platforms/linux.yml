@@ -24,10 +24,10 @@ jobs:
 
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+          versionSpec: 12.4.0
+        displayName: Install Node.js 12.4.0
 
-      - script: npm install --global npm@6.12.1
+      - script: npm install --global npm@6.9.0
         displayName: Update npm
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1

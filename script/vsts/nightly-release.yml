@@ -32,8 +32,8 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+          versionSpec: 12.4.0
+        displayName: Install Node.js 12.4.0
 
        #This has to be done separately because VSTS inexplicably
        #exits the script block after `npm install` completes.

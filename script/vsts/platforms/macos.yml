@@ -14,11 +14,8 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
-
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+          versionSpec: 12.4.0
+        displayName: Install Node.js 12.4.0
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache
@@ -32,7 +29,7 @@ jobs:
         env:
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
+          NPM_BIN_PATH: /Users/runner/hostedtoolcache/node/12.4.0/x64/bin/npm
           npm_config_build_from_source: true
         condition: ne(variables['CacheRestored'], 'true')
 
@@ -115,11 +112,8 @@ jobs:
     steps:
       - task: NodeTool@0
         inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
-
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+          versionSpec: 12.4.0
+        displayName: Install Node.js 12.4.0
 
       - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
         displayName: Restore node_modules cache
@@ -135,7 +129,7 @@ jobs:
         env:
           CI: true
           CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
+          NPM_BIN_PATH: /Users/runner/hostedtoolcache/node/12.4.0/x64/bin/npm
           npm_config_build_from_source: true
 
         condition: ne(variables['CacheRestored'], 'true')
