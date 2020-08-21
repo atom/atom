@@ -102,6 +102,8 @@ function runCoreMainProcessTests (callback) {
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
 }
 
+function getCoreRenderProcessTestSuites() {
+
 // Build an array of functions, each running tests for a different rendering test
 const coreRenderProcessTestSuites = []
 const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
@@ -131,6 +133,9 @@ for (let testFile of testFiles) {
        callback(null, {exitCode, step: `core-render-process for ${testFile}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`})
      })
   })
+}
+
+	return coreRenderProcessTestSuites
 }
 
 // Build an array of functions, each running tests for a different bundled package
@@ -231,7 +236,7 @@ function requestedTestSuites (platform) {
   let suites = []
   // Core tess
   if (coreAll) {
-    suites.push(...[runCoreMainProcessTests, ...coreRenderProcessTestSuites])
+    suites.push(...[runCoreMainProcessTests, ...getCoreRenderProcessTestSuites()])
   } else {
 
     // Core main tests
@@ -241,14 +246,14 @@ function requestedTestSuites (platform) {
 
     // Core renderer tests
     if (coreRenderer) {
-      suites.push(...coreRenderProcessTestSuites)
+      suites.push(...getCoreRenderProcessTestSuites())
     } else {
       // split
       if (coreRenderer1) {
-        suites.push(...coreRenderProcessTestSuites.slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
+        suites.push(...getCoreRenderProcessTestSuites().slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
       if (coreRenderer2) {
-        suites.push(...coreRenderProcessTestSuites.slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
+        suites.push(...getCoreRenderProcessTestSuites().slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
     }
 
