@@ -138,6 +138,9 @@ for (let testFile of testFiles) {
 	return coreRenderProcessTestSuites
 }
 
+
+function getPackageTestSuites() {
+	
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
@@ -200,6 +203,10 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   })
 }
 
+	return packageTestSuites
+}
+
+
 function runBenchmarkTests (callback) {
   const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
   const testArguments = ['--benchmark-test', benchmarksPath]
@@ -260,15 +267,15 @@ function requestedTestSuites (platform) {
   }
 
   // Package tests
-  if (packageAll) {
-    suites.push(...packageTestSuites)
+	if (packageAll) {
+	  suites.push(...getPackageTestSuites())
   } else {
     // split
     if (packages1) {
-      suites.push(...packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
+      suites.push(...getPackageTestSuites().slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
     }
     if (packages2) {
-      suites.push(...packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL))
+      suites.push(...getPackageTestSuites().slice(PACKAGES_TO_TEST_IN_PARALLEL))
     }
   }
 
