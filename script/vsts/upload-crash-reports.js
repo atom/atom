@@ -40,9 +40,19 @@ async function uploadCrashReports() {
   }
 }
 
-// Wrap the call the async function and catch errors from its promise because
-// Node.js doesn't yet allow use of await at the script scope
-uploadCrashReports().catch(err => {
-  console.error('An error occurred while uploading crash reports:\n\n', err);
-  process.exit(1);
-});
+if (
+  process.env.ATOM_RELEASES_S3_KEY &&
+  process.env.ATOM_RELEASES_S3_SECRET &&
+  process.env.ATOM_RELEASES_S3_BUCKET
+) {
+  // Wrap the call the async function and catch errors from its promise because
+  // Node.js doesn't yet allow use of await at the script scope
+  uploadCrashReports().catch(err => {
+    console.error('An error occurred while uploading crash reports:\n\n', err);
+    process.exit(1);
+  });
+} else {
+  console.log(
+    '\n\nEnvironment variables "ATOM_RELEASES_S3_BUCKET", "ATOM_RELEASES_S3_KEY" and/or "ATOM_RELEASES_S3_SECRET" are not set, skipping S3 upload.'
+  );
+}
