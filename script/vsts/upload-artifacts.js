@@ -65,27 +65,43 @@ async function uploadArtifacts() {
     return;
   }
 
-  console.log(
-    `Uploading ${
-      assets.length
-    } release assets for ${releaseVersion} to S3 under '${bucketPath}'`
-  );
+  if (
+    process.env.ATOM_RELEASES_S3_KEY &&
+    process.env.ATOM_RELEASES_S3_SECRET &&
+    process.env.ATOM_RELEASES_S3_BUCKET
+  ) {
+    console.log(
+      `Uploading ${
+        assets.length
+      } release assets for ${releaseVersion} to S3 under '${bucketPath}'`
+    );
 
-  await uploadToS3(
-    process.env.ATOM_RELEASES_S3_KEY,
-    process.env.ATOM_RELEASES_S3_SECRET,
-    process.env.ATOM_RELEASES_S3_BUCKET,
-    bucketPath,
-    assets
-  );
-
-  if (argv.linuxRepoName) {
-    await uploadLinuxPackages(
-      argv.linuxRepoName,
-      process.env.PACKAGE_CLOUD_API_KEY,
-      releaseVersion,
+    await uploadToS3(
+      process.env.ATOM_RELEASES_S3_KEY,
+      process.env.ATOM_RELEASES_S3_SECRET,
+      process.env.ATOM_RELEASES_S3_BUCKET,
+      bucketPath,
       assets
     );
+  } else {
+    console.log(
+      '\nEnvironment variables "ATOM_RELEASES_S3_BUCKET", "ATOM_RELEASES_S3_KEY" and/or "ATOM_RELEASES_S3_SECRET" are not set, skipping S3 upload.'
+    );
+  }
+
+  if (argv.linuxRepoName) {
+    if (process.env.PACKAGE_CLOUD_API_KEY) {
+      await uploadLinuxPackages(
+        argv.linuxRepoName,
+        process.env.PACKAGE_CLOUD_API_KEY,
+        releaseVersion,
+        assets
+      );
+    } else {
+      console.log(
+        '\nEnvironment variable "PACKAGE_CLOUD_API_KEY" is not set, skipping PackageCloud upload.'
+      );
+    }
   } else {
     console.log(
       '\nNo Linux package repo name specified, skipping Linux package upload.'

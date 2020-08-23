@@ -102,6 +102,8 @@ function runCoreMainProcessTests (callback) {
   cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
 }
 
+function getCoreRenderProcessTestSuites() {
+
 // Build an array of functions, each running tests for a different rendering test
 const coreRenderProcessTestSuites = []
 const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
@@ -133,6 +135,12 @@ for (let testFile of testFiles) {
   })
 }
 
+	return coreRenderProcessTestSuites
+}
+
+
+function getPackageTestSuites() {
+	
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
@@ -195,6 +203,10 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
   })
 }
 
+	return packageTestSuites
+}
+
+
 function runBenchmarkTests (callback) {
   const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
   const testArguments = ['--benchmark-test', benchmarksPath]
@@ -231,7 +243,7 @@ function requestedTestSuites (platform) {
   let suites = []
   // Core tess
   if (coreAll) {
-    suites.push(...[runCoreMainProcessTests, ...coreRenderProcessTestSuites])
+    suites.push(...[runCoreMainProcessTests, ...getCoreRenderProcessTestSuites()])
   } else {
 
     // Core main tests
@@ -241,29 +253,29 @@ function requestedTestSuites (platform) {
 
     // Core renderer tests
     if (coreRenderer) {
-      suites.push(...coreRenderProcessTestSuites)
+      suites.push(...getCoreRenderProcessTestSuites())
     } else {
       // split
       if (coreRenderer1) {
-        suites.push(...coreRenderProcessTestSuites.slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
+        suites.push(...getCoreRenderProcessTestSuites().slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
       if (coreRenderer2) {
-        suites.push(...coreRenderProcessTestSuites.slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
+        suites.push(...getCoreRenderProcessTestSuites().slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
     }
 
   }
 
   // Package tests
-  if (packageAll) {
-    suites.push(...packageTestSuites)
+	if (packageAll) {
+	  suites.push(...getPackageTestSuites())
   } else {
     // split
     if (packages1) {
-      suites.push(...packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
+      suites.push(...getPackageTestSuites().slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
     }
     if (packages2) {
-      suites.push(...packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL))
+      suites.push(...getPackageTestSuites().slice(PACKAGES_TO_TEST_IN_PARALLEL))
     }
   }
 
