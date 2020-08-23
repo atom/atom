@@ -1905,15 +1905,11 @@ describe('PackageManager', () => {
         'package-symlinked'
       );
       if (!fs.isDirectorySync(destination)) {
-        fs.symlinkSync(
-          packageSymLinkedSource,
-          destination,
-          'junction'
-        );
+        fs.symlinkSync(packageSymLinkedSource, destination, 'junction');
       }
       const availablePackages = atom.packages.getAvailablePackageNames();
       expect(availablePackages.includes('package-symlinked')).toBe(true);
-      fs.removeSync(destination)
+      fs.removeSync(destination);
     });
   });
 });
