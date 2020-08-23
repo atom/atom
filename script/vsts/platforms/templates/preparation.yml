@@ -56,7 +56,7 @@ steps:
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
-      npm install --global --production windows-build-tools@4.0
+      npm install --global --production windows-build-tools@5.2.2
     displayName: Install windows build tools
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
