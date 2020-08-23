@@ -25,7 +25,7 @@ steps:
       versionSpec: 12.4.0
     displayName: Install Node.js 12.4.0
 
-  - script: npm install --global npm@6.9.0
+  - script: npm install --global npm@6.14.8
     displayName: Update npm
     condition: ne(variables['Agent.OS'], 'Darwin')
 
@@ -51,8 +51,8 @@ steps:
 
   - script: |
       ECHO Upgrading npm
-      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.9.0
-    displayName: Install npm 6.9.0
+      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.14.8
+    displayName: Install npm 6.14.8
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
