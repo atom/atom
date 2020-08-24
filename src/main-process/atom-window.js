@@ -52,7 +52,8 @@ module.exports = class AtomWindow extends EventEmitter {
         webviewTag: true,
         // multi-threading
         nodeIntegrationInWorker: true
-      }
+      },
+      simpleFullscreen: this.getSimpleFullscreen()
     };
 
     // Don't set icon on Windows so the exe's ico will be used as window and
@@ -364,6 +365,10 @@ module.exports = class AtomWindow extends EventEmitter {
     const [x, y] = Array.from(this.browserWindow.getPosition());
     const [width, height] = Array.from(this.browserWindow.getSize());
     return { x, y, width, height };
+  }
+
+  getSimpleFullscreen() {
+    return this.atomApplication.config.get('core.simpleFullScreenWindows');
   }
 
   shouldAddCustomTitleBar() {
