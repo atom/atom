@@ -71,7 +71,7 @@ jobs:
               dir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
 
-  - job: Windows_RendererTests
+  - job: Windows_Tests
     displayName: Windows
     dependsOn: Windows_build
     timeoutInMinutes: 180
@@ -82,13 +82,20 @@ jobs:
           RunCoreMainTests: false
           RunCoreRendererTests: 1
           buildArch: x64
+          os: windows-2019
         x64_Renderer_Test2:
           RunCoreMainTests: false
           RunCoreRendererTests: 2
           buildArch: x64
+          os: windows-2019
+        2016_Main_Test:
+          RunCoreMainTests: true
+          RunCoreRendererTests: false
+          buildArch: x64
+          os: vs2017-win2016
 
     pool:
-      vmImage: windows-2019
+      vmImage: $(os)
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
@@ -120,5 +127,5 @@ jobs:
           artifacts:
             -  atom$(FileID)-windows.zip
 
-      #  Core renderer tests
+      #  tests
       - template: templates/test.yml

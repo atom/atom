@@ -23,7 +23,7 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
-      - Windows_RendererTests
+      - Windows_Tests
       - Linux
       - macOS_tests
 
