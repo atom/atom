@@ -637,6 +637,13 @@ if (process.platform === 'darwin') {
     description:
       'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   };
+
+  configSchema.core.properties.simpleFullScreenWindows = {
+    type: 'boolean',
+    default: false,
+    description:
+      'Use pre-Lion fullscreen on macOS. This does not create a new desktop space for the atom on fullscreen mode.'
+  };
 }
 
 module.exports = configSchema;

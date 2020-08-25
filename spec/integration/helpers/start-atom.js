@@ -199,7 +199,7 @@ Logs:\n${chromedriverLogs.join('\n')}`);
       }
       finish();
     },
-    30000
+    60000
   );
 
   waitsFor('webdriver to stop', chromeDriverDown, 15000);
