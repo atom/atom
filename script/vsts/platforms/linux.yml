@@ -20,20 +20,20 @@ jobs:
         env:
           CI: true
           CI_PROVIDER: VSTS
-          CC: clang-5.0
-          CXX: clang++-5.0
+          CC: clang
+          CXX: clang++
           npm_config_clang: 1
         condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - script: script/lint
         displayName: Run linter
-      
+
       - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          CC: clang-5.0
-          CXX: clang++-5.0
+          CC: clang
+          CXX: clang++
           npm_config_clang: 1
         displayName: Build Atom
 
