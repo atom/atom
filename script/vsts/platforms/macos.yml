@@ -17,12 +17,9 @@ jobs:
           versionSpec: 12.4.0
         displayName: Install Node.js 12.4.0
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
 
       - script: script/bootstrap
         displayName: Bootstrap build environment
@@ -31,14 +28,7 @@ jobs:
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /Users/runner/hostedtoolcache/node/12.4.0/x64/bin/npm
           npm_config_build_from_source: true
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - script: script/lint
         displayName: Run linter
@@ -115,12 +105,9 @@ jobs:
           versionSpec: 12.4.0
         displayName: Install Node.js 12.4.0
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.
@@ -131,8 +118,7 @@ jobs:
           CI_PROVIDER: VSTS
           NPM_BIN_PATH: /Users/runner/hostedtoolcache/node/12.4.0/x64/bin/npm
           npm_config_build_from_source: true
-
-        condition: ne(variables['CacheRestored'], 'true')
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - task: DownloadBuildArtifacts@0
         displayName: Download atom-mac.zip

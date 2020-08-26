@@ -30,12 +30,9 @@ jobs:
       - script: npm install --global npm@6.9.0
         displayName: Update npm
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+      - template: templates/cache.yml
+        parameters:
+          OS: linux
 
       - script: script/bootstrap
         displayName: Bootstrap build environment
@@ -45,14 +42,7 @@ jobs:
           CC: clang-5.0
           CXX: clang++-5.0
           npm_config_clang: 1
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/linux.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+        condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
 
       - script: script/lint
         displayName: Run linter
