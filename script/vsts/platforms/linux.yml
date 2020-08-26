@@ -7,7 +7,6 @@ jobs:
     pool:
       # This image is used to host the Docker container that runs the build
       vmImage: ubuntu-16.04
-    container: ubuntu:trusty
 
     steps:
       - template: templates/preparation.yml
