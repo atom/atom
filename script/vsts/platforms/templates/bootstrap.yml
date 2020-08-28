@@ -20,7 +20,7 @@ steps:
       ${{ if in(variables['Agent.OS'], 'Darwin', 'Windows_NT') }}:
         npm_config_build_from_source: true
       ${{ if eq(variables['Agent.OS'], 'Linux') }}:
-        CC: clang-5.0
-        CXX: clang++-5.0
+        CC: clang
+        CXX: clang++
         npm_config_clang: 1
       condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
