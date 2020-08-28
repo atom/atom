@@ -1,15 +1,15 @@
 steps:
   - pwsh: |
       # OS specific env variables
-      if ($env:OS -eq "Windows_NT") {
+      if ($env:AGENT_OS -eq "Windows_NT") {
         $env:NPM_BIN_PATH="C:/hostedtoolcache/windows/node/12.4.0/x64/npm.cmd"
         $env:npm_config_build_from_source=true
       }
-      if ($env:OS -eq "Darwin") {
+      if ($env:AGENT_OS -eq "Darwin") {
         $env:NPM_BIN_PATH="/usr/local/bin/npm"
         $env:npm_config_build_from_source=true
       }
-      if ($env:OS -eq "Linux") {
+      if ($env:AGENT_OS -eq "Linux") {
         $env:NPM_BIN_PATH="/usr/local/bin/npm"
         $env:CC=clang
         $env:CXX=clang++
@@ -17,7 +17,7 @@ steps:
       }
 
       # Bootstrap
-      if (($env:OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
+      if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\bootstrap.cmd'
       }
       else {
@@ -26,7 +26,6 @@ steps:
     displayName: Bootstrap build environment
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
-      OS: $(Agent.OS)
       CI: true
       CI_PROVIDER: VSTS
     condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
