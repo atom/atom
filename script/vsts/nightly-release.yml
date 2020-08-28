@@ -4,11 +4,11 @@ jobs:
       vmImage: 'ubuntu-latest'
     steps:
       # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm ci` completes.
+      # exits the script block after `npm install` completes.
       - script: |
           cd script/vsts
-          npm ci
-        displayName: npm ci
+          npm install
+        displayName: npm install
       - script: node script/vsts/get-release-version.js --nightly
         name: Version
 
@@ -38,11 +38,11 @@ jobs:
         displayName: Install Node.js 12.4.0
 
        #This has to be done separately because VSTS inexplicably
-       #exits the script block after `npm ci` completes.
+       #exits the script block after `npm install` completes.
       - script: |
           cd script/vsts
-          npm ci
-        displayName: npm ci
+          npm install
+        displayName: npm install
 
       - task: DownloadBuildArtifacts@0
         inputs:
@@ -76,14 +76,14 @@ jobs:
       - script: npm install --global npm@6.12.1
         displayName: Update npm
 
-      - script: | 
+      - script: |
           script/bootstrap
         displayName: Bootstrap
-      
-      - script: | 
+
+      - script: |
           cd script/lib
-          npm ci
-        displayName: npm ci
+          npm install
+        displayName: npm install
       - script: |
           cd script/lib/update-dependency
           node index.js
