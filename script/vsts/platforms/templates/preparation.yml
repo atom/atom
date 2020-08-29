@@ -25,7 +25,7 @@ steps:
       versionSpec: 12.16.3
     displayName: Install Node.js 12.16.3
 
-  - script: npm install --global npm@6.9.0
+  - script: npm install --global npm@6.14.8
     displayName: Update npm
 
   # Windows Specific
