@@ -43,7 +43,7 @@ steps:
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
-      npm install --global --production @aminya/windows-build-tools
+      npm install --global --production windows-build-tools@4
     displayName: Install windows build tools
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
