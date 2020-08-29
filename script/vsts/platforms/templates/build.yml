@@ -3,7 +3,6 @@ steps:
       # OS specific env variables
       if ($env:AGENT_OS -eq "Windows_NT") {
         $env:SQUIRREL_TEMP="C:/tmp"
-        $env:BUILD_ARCH=$env:buildArch
         $env:npm_config_build_from_source=true
         $ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL=$env:ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL
         $ATOM_WIN_CODE_SIGNING_CERT_PASSWORD=$env:ATOM_WIN_CODE_SIGNING_CERT_PASSWORD
