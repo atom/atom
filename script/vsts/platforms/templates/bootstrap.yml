@@ -6,7 +6,7 @@ steps:
         $env:npm_config_build_from_source=true
       }
       if ($env:AGENT_OS -eq "Darwin") {
-        $env:NPM_BIN_PATH="/Users/runner/hostedtoolcache/node/12.4.0/x64/bin/npm"
+        $env:NPM_BIN_PATH="/usr/local/bin/npm"
         $env:npm_config_build_from_source=true
       }
       if ($env:AGENT_OS -eq "Linux") {

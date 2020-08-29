@@ -38,10 +38,10 @@ jobs:
     steps:
       - script: |
           cd script/vsts
-          npm ci
+          npm install
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
-        displayName: npm ci
+        displayName: npm install
 
       - task: DownloadBuildArtifacts@0
         inputs:

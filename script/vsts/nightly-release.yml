@@ -35,8 +35,8 @@ jobs:
 
       - script: |
           cd script/vsts
-          npm ci
-        displayName: npm ci
+          npm install
+        displayName: npm install
 
       - task: DownloadBuildArtifacts@0
         inputs:
@@ -68,8 +68,8 @@ jobs:
 
       - script: |
           cd script/lib
-          npm ci
-        displayName: npm ci
+          npm install
+        displayName: npm install
       - script: |
           cd script/lib/update-dependency
           node index.js
