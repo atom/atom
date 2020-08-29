@@ -1,9 +1,6 @@
 steps:
   - pwsh: |
       # OS specific env variables
-      if ($env:AGENT_OS -eq "Windows_NT") {
-        $env:BUILD_ARCH=$env:buildArch
-      }
       if ($env:AGENT_OS -eq "Linux") {
         $env:DISPLAY=":99.0"
         $env:npm_config_build_from_source=true
@@ -30,11 +27,6 @@ steps:
 
   # Test results
   - pwsh: |
-      # OS specific env variables
-      if ($env:AGENT_OS -eq "Windows_NT") {
-        $env:BUILD_ARCH=$env:buildArch
-      }
-
       if (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
         node 'script\vsts\windows-run.js' 'script\postprocess-junit-results.cmd' --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
       } else {
@@ -52,7 +44,7 @@ steps:
       searchFolder: $(Common.TestResultsDirectory)/junit
       testResultsFiles: '**/*.xml'
       mergeTestResults: true
-      testRunTitle: $(Agent.OS) $(buildArch)
+      testRunTitle: $(Agent.OS) $(BUILD_ARCH)
     condition: ne(variables['Atom.SkipTests'], 'true')
 
   # Crash Reports
