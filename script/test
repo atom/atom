@@ -134,6 +134,11 @@ function retryOrFailTest(stderrOutput, executablePath, testArguments, options, c
     console.log(stderrOutput)
   }
 }
+
+// creates a key that is specific to a certain test
+function createTestKey(executablePath, testArguments, testName) {
+  return `${executablePath} ${testArguments.join(' ')} ${testName}`
+}
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
