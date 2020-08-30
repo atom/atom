@@ -87,9 +87,11 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
   const cp = childProcess.spawn(executablePath, testArguments, options)
 
   // collect outputs and errors
-  let stderrOutput = ''
-  cp.stderr.on('data', data => { stderrOutput += data })
-  cp.stdout.on('data', data => { stderrOutput += data })
+	let stderrOutput = ''
+	if (cp.stdout) {
+	  cp.stderr.on('data', data => { stderrOutput += data })
+	  cp.stdout.on('data', data => { stderrOutput += data })
+	}
 
   // on error
   cp.on('error', error => {
