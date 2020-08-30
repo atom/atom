@@ -102,16 +102,15 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
 
 	// on close
   cp.on('close', exitCode => {
-    if (exitCode !== 0) {
-      console.log(`##[error] Tests for ${testName} failed.`.red)
-      console.log(stderrOutput)
-    }
-    if (finalize) { finalize() } 		// if finalizer provided
-    callback(null, {
-      exitCode,
-      step: testName,
-      testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
-    })
+   if (finalize) { finalize() } 		// if finalizer provided
+   callback(null, {
+     exitCode,
+     step: testName,
+     testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+   })
+   if (exitCode !== 0) {
+     retryOrFailTest(stderrOutput, executablePath, testArguments, options, callback, testName, finalize)
+   }
   })
 
 }
