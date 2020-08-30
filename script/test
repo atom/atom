@@ -83,6 +83,37 @@ function prepareEnv (suiteName) {
   return env
 }
 
+function spawnTest(executablePath, testArguments, options, callback, testName, finalize = null) {
+  const cp = childProcess.spawn(executablePath, testArguments, options)
+
+  // collect outputs and errors
+  let stderrOutput = ''
+  cp.stderr.on('data', data => { stderrOutput += data })
+  cp.stdout.on('data', data => { stderrOutput += data })
+
+  // on error
+  cp.on('error', error => {
+    console.log(error, "error")
+    if (finalize) { finalize() } 		// if finalizer provided
+    callback(error)
+  })
+
+	// on close
+  cp.on('close', exitCode => {
+    if (exitCode !== 0) {
+      console.log(`##[error] Tests for ${testName} failed.`.red)
+      console.log(stderrOutput)
+    }
+    if (finalize) { finalize() } 		// if finalizer provided
+    callback(null, {
+      exitCode,
+      step: testName,
+      testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+    })
+  })
+
+}
+
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
@@ -97,9 +128,7 @@ function runCoreMainProcessTests (callback) {
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
   console.log('##[command] Executing core main process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
+  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, 'core-main-process')
 }
 
 function getCoreRenderProcessTestSuites() {
@@ -117,21 +146,7 @@ for (let testFile of testFiles) {
       '--resource-path', resourcePath,
       '--test', testFile
     ]
-    const cp = childProcess.spawn(executablePath, testArguments, { env: testEnv})
-    let stderrOutput = ''
-    cp.stderr.on('data', data => { stderrOutput += data })
-    cp.stdout.on('data', data => { stderrOutput += data })
-    cp.on('error', error => {
-      console.log(error, "error")
-      callback(error)
-    })
-    cp.on('close', exitCode => {
-      if (exitCode !== 0) {
-        console.log(`##[error] Renderer tests failed for ${testFile}:`.red)
-        console.log(stderrOutput)
-      }
-       callback(null, {exitCode, step: `core-render-process for ${testFile}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`})
-     })
+    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `core-render-process in ${testFile}.`)
   })
 }
 
@@ -140,7 +155,7 @@ for (let testFile of testFiles) {
 
 
 function getPackageTestSuites() {
-	
+
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
 for (let packageName in CONFIG.appMetadata.packageDependencies) {
@@ -182,24 +197,7 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
     } else {
       console.log(`##[command] Executing ${packageName} tests`.bold.green)
     }
-    const cp = childProcess.spawn(executablePath, testArguments, {env: testEnv})
-
-    let stderrOutput = ''
-    cp.stderr.on('data', data => { stderrOutput += data })
-    cp.stdout.on('data', data => { stderrOutput += data })
-    cp.on('error', error => {
-      console.log(error, "error")
-      finalize()
-      callback(error)
-    })
-    cp.on('close', exitCode => {
-      if (exitCode !== 0) {
-        console.log(`##[error] Package tests failed for ${packageName}:`.red)
-        console.log(stderrOutput)
-      }
-      finalize()
-      callback(null, {exitCode, step: `package-${packageName}.`, testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`})
-    })
+    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `${packageName} package`, finalize)
   })
 }
 
@@ -214,8 +212,7 @@ function runBenchmarkTests (callback) {
 
   console.log('##[command] Executing benchmark tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks', testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`}) })
+  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, `core-benchmarks`)
 }
 
 let testSuitesToRun = requestedTestSuites(process.platform)
