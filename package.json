@@ -6,7 +6,7 @@
   "main": "./src/main-process/main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheDrawingCoder-Gamer/atom-title-bar.git"
+    "url": "https://github.com/TheDrawingCoder-Gamer/atom.git"
   },
   "bugs": {
     "url": "https://github.com/TheDrawingCoder-Gamer/atom/issues"
