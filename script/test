@@ -139,6 +139,15 @@ function retryOrFailTest(stderrOutput, executablePath, testArguments, options, c
 function createTestKey(executablePath, testArguments, testName) {
   return `${executablePath} ${testArguments.join(' ')} ${testName}`
 }
+
+// check if a test is timed out
+function isTimedOut(stderrOutput) {
+  if (stderrOutput) {
+    return ( stderrOutput.includes("timeout: timed out after") )
+  } else {
+    return false
+  }
+}
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
