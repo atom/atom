@@ -27,14 +27,13 @@ steps:
 
   - script: npm install --global npm@6.14.8
     displayName: Update npm
-    condition: ne(variables['Agent.OS'], 'Darwin')
 
+  # Use Azure Syntax to set env variables for all shells and steps
   - pwsh: |
       if ($env:AGENT_OS -eq "Windows_NT") {
         $env:BUILD_ARCH=$env:buildArch
-        echo "##vso[task.setvariable variable=BUILD_ARCH]$env:BUILD_ARCH" # Azure syntax
+        echo "##vso[task.setvariable variable=BUILD_ARCH]$env:BUILD_ARCH"
       }
-      echo BUILD_ARCH: $env:BUILD_ARCH
     displayName: Setting globally used env variables
 
   # Windows Specific
@@ -58,5 +57,5 @@ steps:
   - script: |
       cd script\vsts
       npm install
-    displayName: Install Windows build dependencies
+    displayName: Install script/vsts dependencies on Windows
     condition: eq(variables['Agent.OS'], 'Windows_NT')
