@@ -46,6 +46,13 @@ const configSchema = {
         description:
           'List of names of installed packages which are not loaded at startup.'
       },
+      titleBar: {
+        type: 'string',
+        default: 'native',
+        enum: ['native', 'hidden'],
+        description:
+          'Experimental:  The title bar can  be completely `hidden`.<br>This setting will require a relaunch of Atom to take effect.'
+      },
       versionPinnedPackages: {
         type: 'array',
         default: [],
@@ -637,7 +644,6 @@ if (process.platform === 'darwin') {
     description:
       'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
   };
-
   configSchema.core.properties.simpleFullScreenWindows = {
     type: 'boolean',
     default: false,

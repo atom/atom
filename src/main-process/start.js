@@ -1,5 +1,4 @@
 const { app } = require('electron');
-const nslog = require('nslog');
 const path = require('path');
 const temp = require('temp').track();
 const parseCommandLine = require('./parse-command-line');
@@ -37,8 +36,6 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
     }
   });
 
-  const previousConsoleLog = console.log;
-  console.log = nslog;
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
@@ -62,7 +59,6 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
       'userData',
       temp.mkdirSync('atom-user-data-dir-for-main-process-tests')
     );
-    console.log = previousConsoleLog;
     app.on('ready', function() {
       const testRunner = require(path.join(
         args.resourcePath,
