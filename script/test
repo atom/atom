@@ -148,6 +148,17 @@ function isTimedOut(stderrOutput) {
     return false
   }
 }
+
+// check if a tests should be tried again
+function shouldTryAgain(testKey) {
+  if (retriedTests.has(testKey)) {
+    return (retriedTests.get(testKey) < retryNumber)
+  } else {
+    return true
+  }
+}
+
+
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
