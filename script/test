@@ -305,7 +305,7 @@ async.series(testSuitesToRun, function (err, results) {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
     if (failedSteps.length > 0) {
-      console.warn("##[error] \n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
+      console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
       for (const {step, testCommand} of failedSteps) {
         console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
       }
