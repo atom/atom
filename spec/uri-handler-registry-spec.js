@@ -48,7 +48,7 @@ describe('URIHandlerRegistry', () => {
       'atom://fake/nothing',
       'atom://two/other/stuff',
       'atom://one/more/thing',
-      'atom://two/more/stuff'
+      'atom://two/more/stuff',
     ];
 
     for (const u of uris) {
@@ -63,7 +63,7 @@ describe('URIHandlerRegistry', () => {
             id: idx + 1,
             uri: u,
             handled: !u.match(/fake/),
-            host: url.parse(u).host
+            host: url.parse(u).host,
           };
         })
         .reverse()
@@ -82,7 +82,7 @@ describe('URIHandlerRegistry', () => {
       'atom:package/path',
       'atom:8080://package/path',
       'user:pass@atom://package/path',
-      'smth://package/path'
+      'smth://package/path',
     ];
 
     let numErrors = 0;

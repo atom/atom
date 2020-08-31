@@ -20,7 +20,7 @@ export async function conditionPromise(
 }
 
 export function timeoutPromise(timeout) {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     global.setTimeout(resolve, timeout);
   });
 }

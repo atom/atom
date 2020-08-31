@@ -16,7 +16,7 @@ module.exports = class PaneContainer {
       notificationManager,
       deserializerManager,
       viewRegistry: this.viewRegistry,
-      location: this.location
+      location: this.location,
     } = params);
     this.emitter = new Emitter();
     this.subscriptions = new CompositeDisposable();
@@ -31,7 +31,7 @@ module.exports = class PaneContainer {
         applicationDelegate,
         notificationManager,
         deserializerManager,
-        viewRegistry: this.viewRegistry
+        viewRegistry: this.viewRegistry,
       })
     );
     this.didActivatePane(this.getRoot());
@@ -45,7 +45,7 @@ module.exports = class PaneContainer {
     return this.element != null
       ? this.element
       : (this.element = new PaneContainerElement().initialize(this, {
-          views: this.viewRegistry
+          views: this.viewRegistry,
         }));
   }
 
@@ -72,7 +72,7 @@ module.exports = class PaneContainer {
       deserializer: 'PaneContainer',
       version: SERIALIZATION_VERSION,
       root: this.root ? this.root.serialize() : null,
-      activePaneId: this.activePane.id
+      activePaneId: this.activePane.id,
     };
   }
 
@@ -81,8 +81,10 @@ module.exports = class PaneContainer {
     this.itemRegistry = new ItemRegistry();
     this.setRoot(deserializerManager.deserialize(state.root));
     this.activePane =
-      find(this.getRoot().getPanes(), pane => pane.id === state.activePaneId) ||
-      this.getPanes()[0];
+      find(
+        this.getRoot().getPanes(),
+        (pane) => pane.id === state.activePaneId
+      ) || this.getPanes()[0];
     if (this.config.get('core.destroyEmptyPanes')) this.destroyEmptyPanes();
   }
 
@@ -201,11 +203,11 @@ module.exports = class PaneContainer {
   }
 
   paneForURI(uri) {
-    return find(this.getPanes(), pane => pane.itemForURI(uri) != null);
+    return find(this.getPanes(), (pane) => pane.itemForURI(uri) != null);
   }
 
   paneForItem(item) {
-    return find(this.getPanes(), pane => pane.getItems().includes(item));
+    return find(this.getPanes(), (pane) => pane.getItems().includes(item));
   }
 
   saveAll() {
@@ -221,7 +223,7 @@ module.exports = class PaneContainer {
         promises.push(pane.promptToSaveItem(item, options));
       }
     }
-    return Promise.all(promises).then(results => !results.includes(false));
+    return Promise.all(promises).then((results) => !results.includes(false));
   }
 
   activateNextPane() {

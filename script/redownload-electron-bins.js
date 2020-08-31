@@ -22,7 +22,7 @@ if (process.env.ELECTRON_CUSTOM_VERSION !== electronVersion) {
   const downloadMksnapshot = spawn('node', [downloadMksnapshotPath]);
   var exitStatus;
 
-  downloadChromedriver.on('close', code => {
+  downloadChromedriver.on('close', (code) => {
     if (code === 0) {
       exitStatus = 'success';
     } else {
@@ -34,7 +34,7 @@ if (process.env.ELECTRON_CUSTOM_VERSION !== electronVersion) {
     );
   });
 
-  downloadMksnapshot.on('close', code => {
+  downloadMksnapshot.on('close', (code) => {
     if (code === 0) {
       exitStatus = 'success';
     } else {

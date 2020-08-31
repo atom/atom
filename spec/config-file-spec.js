@@ -39,7 +39,7 @@ describe('ConfigFile', () => {
       configFile = new ConfigFile(filePath);
       subscription = await configFile.watch();
 
-      const event = new Promise(resolve => configFile.onDidChange(resolve));
+      const event = new Promise((resolve) => configFile.onDidChange(resolve));
 
       writeFileSync(
         filePath,
@@ -54,12 +54,12 @@ describe('ConfigFile', () => {
 
       expect(await event).toEqual({
         '*': { foo: 'bar' },
-        javascript: { foo: 'baz' }
+        javascript: { foo: 'baz' },
       });
 
       expect(configFile.get()).toEqual({
         '*': { foo: 'bar' },
-        javascript: { foo: 'baz' }
+        javascript: { foo: 'baz' },
       });
     });
   });
@@ -69,7 +69,7 @@ describe('ConfigFile', () => {
       configFile = new ConfigFile(filePath);
       subscription = await configFile.watch();
 
-      const message = new Promise(resolve => configFile.onDidError(resolve));
+      const message = new Promise((resolve) => configFile.onDidError(resolve));
 
       writeFileSync(
         filePath,
@@ -81,7 +81,7 @@ describe('ConfigFile', () => {
 
       expect(await message).toContain('Failed to load `the-config.cson`');
 
-      const event = new Promise(resolve => configFile.onDidChange(resolve));
+      const event = new Promise((resolve) => configFile.onDidChange(resolve));
 
       writeFileSync(
         filePath,
@@ -97,7 +97,7 @@ describe('ConfigFile', () => {
 
       expect(await event).toEqual({
         '*': { foo: 'bar' },
-        javascript: { foo: 'baz' }
+        javascript: { foo: 'baz' },
       });
     });
   });

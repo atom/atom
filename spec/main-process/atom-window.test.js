@@ -11,30 +11,30 @@ const dedent = require('dedent');
 const AtomWindow = require('../../src/main-process/atom-window');
 const { emitterEventPromise } = require('../async-spec-helpers');
 
-describe('AtomWindow', function() {
+describe('AtomWindow', function () {
   let sinon, app, service;
 
-  beforeEach(function() {
+  beforeEach(function () {
     sinon = sandbox.create();
     app = new StubApplication(sinon);
     service = new StubRecoveryService(sinon);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     sinon.restore();
   });
 
-  describe('creating a real window', function() {
+  describe('creating a real window', function () {
     let resourcePath, windowInitializationScript, atomHome;
     let original;
 
     this.timeout(10 * 1000);
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       original = {
         ATOM_HOME: process.env.ATOM_HOME,
         ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT:
-          process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+          process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT,
       };
 
       resourcePath = path.resolve(__dirname, '../..');
@@ -67,7 +67,7 @@ describe('AtomWindow', function() {
           path.join(atomHome, 'config.cson'),
           config,
           { encoding: 'utf8' },
-          err => {
+          (err) => {
             if (err) {
               reject(err);
             } else {
@@ -81,18 +81,18 @@ describe('AtomWindow', function() {
       process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT = 'true';
     });
 
-    afterEach(async function() {
+    afterEach(async function () {
       process.env.ATOM_HOME = original.ATOM_HOME;
       process.env.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT =
         original.ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT;
     });
 
-    it('creates a real, properly configured BrowserWindow', async function() {
+    it('creates a real, properly configured BrowserWindow', async function () {
       const w = new AtomWindow(app, service, {
         resourcePath,
         windowInitializationScript,
         headless: true,
-        extra: 'extra-load-setting'
+        extra: 'extra-load-setting',
       });
       const { browserWindow } = w;
 
@@ -115,95 +115,95 @@ describe('AtomWindow', function() {
         url.format({
           protocol: 'file',
           pathname: `${resourcePath.replace(/\\/g, '/')}/static/index.html`,
-          slashes: true
+          slashes: true,
         })
       );
     });
   });
 
-  describe('launch behavior', function() {
+  describe('launch behavior', function () {
     if (process.platform === 'darwin') {
-      it('sets titleBarStyle to "hidden" for a custom title bar on non-spec windows', function() {
+      it('sets titleBarStyle to "hidden" for a custom title bar on non-spec windows', function () {
         app.config['core.titleBar'] = 'custom';
 
         const { browserWindow: w0 } = new AtomWindow(app, service, {
-          browserWindowConstructor: StubBrowserWindow
+          browserWindowConstructor: StubBrowserWindow,
         });
         assert.strictEqual(w0.options.titleBarStyle, 'hidden');
 
         const { browserWindow: w1 } = new AtomWindow(app, service, {
           browserWindowConstructor: StubBrowserWindow,
-          isSpec: true
+          isSpec: true,
         });
         assert.isUndefined(w1.options.titleBarStyle);
       });
 
-      it('sets titleBarStyle to "hiddenInset" for a custom inset title bar on non-spec windows', function() {
+      it('sets titleBarStyle to "hiddenInset" for a custom inset title bar on non-spec windows', function () {
         app.config['core.titleBar'] = 'custom-inset';
 
         const { browserWindow: w0 } = new AtomWindow(app, service, {
-          browserWindowConstructor: StubBrowserWindow
+          browserWindowConstructor: StubBrowserWindow,
         });
         assert.strictEqual(w0.options.titleBarStyle, 'hiddenInset');
 
         const { browserWindow: w1 } = new AtomWindow(app, service, {
           browserWindowConstructor: StubBrowserWindow,
-          isSpec: true
+          isSpec: true,
         });
         assert.isUndefined(w1.options.titleBarStyle);
       });
-      it('sets frame to "false" for a hidden title bar on non-spec windows', function() {
+      it('sets frame to "false" for a hidden title bar on non-spec windows', function () {
         app.config['core.titleBar'] = 'hidden';
 
         const { browserWindow: w0 } = new AtomWindow(app, service, {
-          browserWindowConstructor: StubBrowserWindow
+          browserWindowConstructor: StubBrowserWindow,
         });
         assert.isFalse(w0.options.frame);
 
         const { browserWindow: w1 } = new AtomWindow(app, service, {
           browserWindowConstructor: StubBrowserWindow,
-          isSpec: true
+          isSpec: true,
         });
         assert.isUndefined(w1.options.frame);
       });
     } else {
-      it('sets frame to "false" for a hidden title bar on non-spec windows', function() {
+      it('sets frame to "false" for a hidden title bar on non-spec windows', function () {
         app.config['core.titleBar'] = 'hidden';
 
         const { browserWindow: w0 } = new AtomWindow(app, service, {
-          browserWindowConstructor: StubBrowserWindow
+          browserWindowConstructor: StubBrowserWindow,
         });
         assert.isFalse(w0.options.frame);
 
         const { browserWindow: w1 } = new AtomWindow(app, service, {
           browserWindowConstructor: StubBrowserWindow,
-          isSpec: true
+          isSpec: true,
         });
         assert.isUndefined(w1.options.frame);
       });
     }
 
-    it('opens initial locations', async function() {
+    it('opens initial locations', async function () {
       const locationsToOpen = [
         {
           pathToOpen: 'file.txt',
           initialLine: 1,
           initialColumn: 2,
           isDirectory: false,
-          hasWaitSession: false
+          hasWaitSession: false,
         },
         {
           pathToOpen: '/directory',
           initialLine: null,
           initialColumn: null,
           isDirectory: true,
-          hasWaitSession: false
-        }
+          hasWaitSession: false,
+        },
       ];
 
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
       assert.deepEqual(w.projectRoots, ['/directory']);
 
@@ -212,14 +212,14 @@ describe('AtomWindow', function() {
       await loadPromise;
 
       assert.deepEqual(w.browserWindow.sent, [
-        ['message', 'open-locations', locationsToOpen]
+        ['message', 'open-locations', locationsToOpen],
       ]);
     });
 
-    it('does not open an initial null location', async function() {
+    it('does not open an initial null location', async function () {
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen: [{ pathToOpen: null }]
+        locationsToOpen: [{ pathToOpen: null }],
       });
 
       const loadPromise = emitterEventPromise(w, 'window:loaded');
@@ -229,11 +229,11 @@ describe('AtomWindow', function() {
       assert.lengthOf(w.browserWindow.sent, 0);
     });
 
-    it('does not open initial locations in spec mode', async function() {
+    it('does not open initial locations in spec mode', async function () {
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
         locationsToOpen: [{ pathToOpen: 'file.txt' }],
-        isSpec: true
+        isSpec: true,
       });
 
       const loadPromise = emitterEventPromise(w, 'window:loaded');
@@ -243,58 +243,58 @@ describe('AtomWindow', function() {
       assert.lengthOf(w.browserWindow.sent, 0);
     });
 
-    it('focuses the webView for specs', function() {
+    it('focuses the webView for specs', function () {
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        isSpec: true
+        isSpec: true,
       });
 
       assert.isTrue(w.browserWindow.behavior.focusOnWebView);
     });
   });
 
-  describe('project root tracking', function() {
-    it('knows when it has no roots', function() {
+  describe('project root tracking', function () {
+    it('knows when it has no roots', function () {
       const w = new AtomWindow(app, service, {
-        browserWindowConstructor: StubBrowserWindow
+        browserWindowConstructor: StubBrowserWindow,
       });
       assert.isFalse(w.hasProjectPaths());
     });
 
-    it('is initialized from directories in the initial locationsToOpen', function() {
+    it('is initialized from directories in the initial locationsToOpen', function () {
       const locationsToOpen = [
         { pathToOpen: 'file.txt', exists: true, isFile: true },
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
         { pathToOpen: 'directory1', exists: true, isDirectory: true },
         { pathToOpen: 'new-file.txt' },
-        { pathToOpen: null }
+        { pathToOpen: null },
       ];
 
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.deepEqual(w.projectRoots, ['directory0', 'directory1']);
       assert.isTrue(w.loadSettings.hasOpenFiles);
       assert.deepEqual(w.loadSettings.initialProjectRoots, [
         'directory0',
-        'directory1'
+        'directory1',
       ]);
       assert.isTrue(w.hasProjectPaths());
     });
 
-    it('is updated synchronously by openLocations', async function() {
+    it('is updated synchronously by openLocations', async function () {
       const locationsToOpen = [
         { pathToOpen: 'file.txt', isFile: true },
         { pathToOpen: 'directory1', isDirectory: true },
         { pathToOpen: 'directory0', isDirectory: true },
         { pathToOpen: 'directory0', isDirectory: true },
-        { pathToOpen: 'new-file.txt' }
+        { pathToOpen: 'new-file.txt' },
       ];
 
       const w = new AtomWindow(app, service, {
-        browserWindowConstructor: StubBrowserWindow
+        browserWindowConstructor: StubBrowserWindow,
       });
       assert.deepEqual(w.projectRoots, []);
 
@@ -304,14 +304,14 @@ describe('AtomWindow', function() {
       await promise;
     });
 
-    it('is updated by setProjectRoots', function() {
+    it('is updated by setProjectRoots', function () {
       const locationsToOpen = [
-        { pathToOpen: 'directory0', exists: true, isDirectory: true }
+        { pathToOpen: 'directory0', exists: true, isDirectory: true },
       ];
 
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
       assert.deepEqual(w.projectRoots, ['directory0']);
       assert.deepEqual(w.loadSettings.initialProjectRoots, ['directory0']);
@@ -320,134 +320,134 @@ describe('AtomWindow', function() {
       assert.deepEqual(w.projectRoots, [
         'directory0',
         'directory1',
-        'directory2'
+        'directory2',
       ]);
       assert.deepEqual(w.loadSettings.initialProjectRoots, [
         'directory0',
         'directory1',
-        'directory2'
+        'directory2',
       ]);
     });
 
-    it('never reports that it owns the empty path', function() {
+    it('never reports that it owns the empty path', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
         { pathToOpen: 'directory1', exists: true, isDirectory: true },
-        { pathToOpen: null }
+        { pathToOpen: null },
       ];
 
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
       assert.isFalse(w.containsLocation({ pathToOpen: null }));
     });
 
-    it('discovers an exact path match', function() {
+    it('discovers an exact path match', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
-        { pathToOpen: 'directory1', exists: true, isDirectory: true }
+        { pathToOpen: 'directory1', exists: true, isDirectory: true },
       ];
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.isTrue(w.containsLocation({ pathToOpen: 'directory0' }));
       assert.isFalse(w.containsLocation({ pathToOpen: 'directory2' }));
     });
 
-    it('discovers the path of a file within any project root', function() {
+    it('discovers the path of a file within any project root', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
-        { pathToOpen: 'directory1', exists: true, isDirectory: true }
+        { pathToOpen: 'directory1', exists: true, isDirectory: true },
       ];
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.isTrue(
         w.containsLocation({
           pathToOpen: path.join('directory0/file-0.txt'),
           exists: true,
-          isFile: true
+          isFile: true,
         })
       );
       assert.isTrue(
         w.containsLocation({
           pathToOpen: path.join('directory0/deep/file-0.txt'),
           exists: true,
-          isFile: true
+          isFile: true,
         })
       );
       assert.isFalse(
         w.containsLocation({
           pathToOpen: path.join('directory2/file-9.txt'),
           exists: true,
-          isFile: true
+          isFile: true,
         })
       );
       assert.isFalse(
         w.containsLocation({
           pathToOpen: path.join('directory2/deep/file-9.txt'),
           exists: true,
-          isFile: true
+          isFile: true,
         })
       );
     });
 
-    it('reports that it owns nonexistent paths within a project root', function() {
+    it('reports that it owns nonexistent paths within a project root', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
-        { pathToOpen: 'directory1', exists: true, isDirectory: true }
+        { pathToOpen: 'directory1', exists: true, isDirectory: true },
       ];
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.isTrue(
         w.containsLocation({
           pathToOpen: path.join('directory0/file-1.txt'),
-          exists: false
+          exists: false,
         })
       );
       assert.isTrue(
         w.containsLocation({
           pathToOpen: path.join('directory1/subdir/file-0.txt'),
-          exists: false
+          exists: false,
         })
       );
     });
 
-    it('never reports that it owns directories within a project root', function() {
+    it('never reports that it owns directories within a project root', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
-        { pathToOpen: 'directory1', exists: true, isDirectory: true }
+        { pathToOpen: 'directory1', exists: true, isDirectory: true },
       ];
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.isFalse(
         w.containsLocation({
           pathToOpen: path.join('directory0/subdir-0'),
           exists: true,
-          isDirectory: true
+          isDirectory: true,
         })
       );
     });
 
-    it('checks a full list of paths and reports if it owns all of them', function() {
+    it('checks a full list of paths and reports if it owns all of them', function () {
       const locationsToOpen = [
         { pathToOpen: 'directory0', exists: true, isDirectory: true },
-        { pathToOpen: 'directory1', exists: true, isDirectory: true }
+        { pathToOpen: 'directory1', exists: true, isDirectory: true },
       ];
       const w = new AtomWindow(app, service, {
         browserWindowConstructor: StubBrowserWindow,
-        locationsToOpen
+        locationsToOpen,
       });
 
       assert.isTrue(
@@ -456,20 +456,20 @@ describe('AtomWindow', function() {
           {
             pathToOpen: path.join('directory1/file-0.txt'),
             exists: true,
-            isFile: true
-          }
+            isFile: true,
+          },
         ])
       );
       assert.isFalse(
         w.containsLocations([
           { pathToOpen: 'directory2' },
-          { pathToOpen: 'directory0' }
+          { pathToOpen: 'directory0' },
         ])
       );
       assert.isFalse(
         w.containsLocations([
           { pathToOpen: 'directory2' },
-          { pathToOpen: 'directory1' }
+          { pathToOpen: 'directory1' },
         ])
       );
     });
@@ -480,12 +480,12 @@ class StubApplication {
   constructor(sinon) {
     this.config = {
       'core.titleBar': 'native',
-      get: key => this.config[key] || null
+      get: (key) => this.config[key] || null,
     };
     this.configFile = {
       get() {
         return 'stub-config';
-      }
+      },
     };
 
     this.removeWindow = sinon.spy();
@@ -506,7 +506,7 @@ class StubBrowserWindow extends EventEmitter {
     this.options = options;
     this.sent = [];
     this.behavior = {
-      focusOnWebView: false
+      focusOnWebView: false,
     };
 
     this.webContents = new EventEmitter();

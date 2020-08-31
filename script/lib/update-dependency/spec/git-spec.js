@@ -8,17 +8,19 @@ const {
   makeBranch,
   publishBranch,
   createCommit,
-  deleteBranch
+  deleteBranch,
 } = require('../git')(git, repositoryRootPath);
 
 describe('GIT', () => {
   async function findBranch(branch) {
     const { branches } = await git.branch();
-    return Object.keys(branches).find(_branch => _branch.indexOf(branch) > -1);
+    return Object.keys(branches).find(
+      (_branch) => _branch.indexOf(branch) > -1
+    );
   }
   const dependency = {
     moduleName: 'atom',
-    latest: '2.0.0'
+    latest: '2.0.0',
   };
   const branch = `${dependency.moduleName}-${dependency.latest}`;
 
@@ -71,7 +73,7 @@ describe('GIT', () => {
     await createCommit(dependency);
     expect(git.add).toHaveBeenCalledWith([
       packageJsonFilePath,
-      packageLockFilePath
+      packageLockFilePath,
     ]);
     expect(git.commit).toHaveBeenCalledWith(
       `${`:arrow_up: ${dependency.moduleName}@${dependency.latest}`}`

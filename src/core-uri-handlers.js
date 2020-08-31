@@ -13,7 +13,7 @@ function openFile(atom, { query }) {
   atom.workspace.open(filename, {
     initialLine: getLineColNumber(line),
     initialColumn: getLineColNumber(column),
-    searchAllPanes: true
+    searchAllPanes: true,
   });
 }
 
@@ -21,17 +21,17 @@ function windowShouldOpenFile({ query }) {
   const { filename } = query;
   const stat = fs.statSyncNoException(filename);
 
-  return win =>
+  return (win) =>
     win.containsLocation({
       pathToOpen: filename,
       exists: Boolean(stat),
       isFile: stat.isFile(),
-      isDirectory: stat.isDirectory()
+      isDirectory: stat.isDirectory(),
     });
 }
 
 const ROUTER = {
-  '/open/file': { handler: openFile, getWindowPredicate: windowShouldOpenFile }
+  '/open/file': { handler: openFile, getWindowPredicate: windowShouldOpenFile },
 };
 
 module.exports = {
@@ -51,5 +51,5 @@ module.exports = {
     } else {
       return () => true;
     }
-  }
+  },
 };

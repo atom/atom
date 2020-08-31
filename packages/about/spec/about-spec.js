@@ -7,7 +7,7 @@ describe('About', () => {
     spyOn(window.localStorage, 'setItem').andCallFake((key, value) => {
       storage[key] = value;
     });
-    spyOn(window.localStorage, 'getItem').andCallFake(key => {
+    spyOn(window.localStorage, 'getItem').andCallFake((key) => {
       return storage[key];
     });
 
@@ -18,7 +18,7 @@ describe('About', () => {
   it('deserializes correctly', () => {
     let deserializedAboutView = atom.deserializers.deserialize({
       deserializer: 'AboutView',
-      uri: 'atom://about'
+      uri: 'atom://about',
     });
 
     expect(deserializedAboutView).toBeTruthy();

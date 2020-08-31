@@ -13,7 +13,7 @@ function parse(selector) {
     : selector;
 }
 
-const always = scope => true;
+const always = (scope) => true;
 
 // Essential: Return a matcher function for a selector.
 //
@@ -23,7 +23,7 @@ const always = scope => true;
 function matcherForSelector(selector) {
   const parts = parse(selector);
   if (typeof parts === 'function') return parts;
-  return selector ? scope => isSubset(parts, parse(scope)) : always;
+  return selector ? (scope) => isSubset(parts, parse(scope)) : always;
 }
 
 // Essential: Return true iff the selector matches any provided scope.

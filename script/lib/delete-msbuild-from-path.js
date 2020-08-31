@@ -3,10 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 
-module.exports = function() {
+module.exports = function () {
   process.env['PATH'] = process.env['PATH']
     .split(';')
-    .filter(function(p) {
+    .filter(function (p) {
       if (fs.existsSync(path.join(p, 'msbuild.exe'))) {
         console.log(
           'Excluding "' +

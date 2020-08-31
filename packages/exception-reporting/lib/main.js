@@ -38,7 +38,7 @@ export default {
 
     if (atom.onDidFailAssertion != null) {
       this.subscriptions.add(
-        atom.onDidFailAssertion(error => {
+        atom.onDidFailAssertion((error) => {
           try {
             getReporter().reportFailedAssertion(error);
           } catch (secondaryException) {
@@ -53,5 +53,5 @@ export default {
         })
       );
     }
-  }
+  },
 };

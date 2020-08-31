@@ -8,7 +8,7 @@ const template = require('lodash.template');
 
 const CONFIG = require('../config');
 
-module.exports = function(packagedAppPath) {
+module.exports = function (packagedAppPath) {
   console.log(`Creating Debian package for "${packagedAppPath}"`);
   const atomExecutableName =
     CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
@@ -135,7 +135,7 @@ module.exports = function(packagedAppPath) {
     version: appVersion,
     arch: arch,
     installedSize: packageSizeInKilobytes,
-    description: appDescription
+    description: appDescription,
   });
   fs.writeFileSync(
     path.join(debianPackageConfigPath, 'control'),
@@ -158,7 +158,7 @@ module.exports = function(packagedAppPath) {
     appFileName: atomExecutableName,
     description: appDescription,
     installDir: '/usr',
-    iconPath: atomExecutableName
+    iconPath: atomExecutableName,
   });
   fs.writeFileSync(
     path.join(
@@ -201,7 +201,7 @@ module.exports = function(packagedAppPath) {
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`);
   spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
 
   console.log(

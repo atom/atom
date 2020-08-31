@@ -15,7 +15,7 @@ describe('TextEditor', () => {
     editor = await atom.workspace.open('sample.js');
     buffer = editor.buffer;
     editor.update({ autoIndent: false });
-    lineLengths = buffer.getLines().map(line => line.length);
+    lineLengths = buffer.getLines().map((line) => line.length);
     await atom.packages.activatePackage('language-javascript');
   });
 
@@ -32,8 +32,17 @@ describe('TextEditor', () => {
 
   describe('when the editor is deserialized', () => {
     it('restores selections and folds based on markers in the buffer', async () => {
-      editor.setSelectedBufferRange([[1, 2], [3, 4]]);
-      editor.addSelectionForBufferRange([[5, 6], [7, 5]], { reversed: true });
+      editor.setSelectedBufferRange([
+        [1, 2],
+        [3, 4],
+      ]);
+      editor.addSelectionForBufferRange(
+        [
+          [5, 6],
+          [7, 5],
+        ],
+        { reversed: true }
+      );
       editor.foldBufferRow(4);
       expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
 
@@ -44,15 +53,21 @@ describe('TextEditor', () => {
         project: {
           bufferForIdSync() {
             return buffer2;
-          }
-        }
+          },
+        },
       });
 
       expect(editor2.id).toBe(editor.id);
       expect(editor2.getBuffer().getPath()).toBe(editor.getBuffer().getPath());
       expect(editor2.getSelectedBufferRanges()).toEqual([
-        [[1, 2], [3, 4]],
-        [[5, 6], [7, 5]]
+        [
+          [1, 2],
+          [3, 4],
+        ],
+        [
+          [5, 6],
+          [7, 5],
+        ],
       ]);
       expect(editor2.getSelections()[1].isReversed()).toBeTruthy();
       expect(editor2.isFoldedAtBufferRow(4)).toBeTruthy();
@@ -69,7 +84,7 @@ describe('TextEditor', () => {
         softWrapHangingIndentLength: 8,
         invisibles: { space: 'S' },
         showInvisibles: true,
-        editorWidthInChars: 120
+        editorWidthInChars: 120,
       });
 
       // Force buffer and display layer to be deserialized as well, rather than
@@ -81,8 +96,8 @@ describe('TextEditor', () => {
         project: {
           bufferForIdSync() {
             return buffer2;
-          }
-        }
+          },
+        },
       });
 
       expect(editor2.getSoftTabs()).toBe(editor.getSoftTabs());
@@ -109,8 +124,8 @@ describe('TextEditor', () => {
         project: {
           bufferForIdSync() {
             return null;
-          }
-        }
+          },
+        },
       });
 
       expect(editor2).toBeNull();
@@ -129,8 +144,17 @@ describe('TextEditor', () => {
       jasmine.attachToDOM(element);
 
       editor.update({ showCursorOnSelection: false });
-      editor.setSelectedBufferRange([[1, 2], [3, 4]]);
-      editor.addSelectionForBufferRange([[5, 6], [7, 8]], { reversed: true });
+      editor.setSelectedBufferRange([
+        [1, 2],
+        [3, 4],
+      ]);
+      editor.addSelectionForBufferRange(
+        [
+          [5, 6],
+          [7, 8],
+        ],
+        { reversed: true }
+      );
       editor.setScrollTopRow(3);
       expect(editor.getScrollTopRow()).toBe(3);
       editor.setScrollLeftColumn(4);
@@ -156,7 +180,10 @@ describe('TextEditor', () => {
       expect(editor2.getShowCursorOnSelection()).toBeFalsy();
 
       // editor2 can now diverge from its origin edit session
-      editor2.getLastSelection().setBufferRange([[2, 1], [4, 3]]);
+      editor2.getLastSelection().setBufferRange([
+        [2, 1],
+        [4, 3],
+      ]);
       expect(editor2.getSelectedBufferRanges()).not.toEqual(
         editor.getSelectedBufferRanges()
       );
@@ -185,7 +212,7 @@ describe('TextEditor', () => {
         lineNumberGutterVisible: false,
         scrollPastEnd: true,
         autoHeight: false,
-        maxScreenLineLength: 1000
+        maxScreenLineLength: 1000,
       });
 
       expect(returnedPromise).toBe(element.component.getNextUpdatePromise());
@@ -263,7 +290,7 @@ describe('TextEditor', () => {
 
     it('notifies ::onDidChangeTitle observers when the underlying buffer path changes', () => {
       const observed = [];
-      editor.onDidChangeTitle(title => observed.push(title));
+      editor.onDidChangeTitle((title) => observed.push(title));
 
       buffer.setPath('/foo/bar/baz.txt');
       buffer.setPath(undefined);
@@ -275,7 +302,7 @@ describe('TextEditor', () => {
   describe('path', () => {
     it('notifies ::onDidChangePath observers when the underlying buffer path changes', () => {
       const observed = [];
-      editor.onDidChangePath(filePath => observed.push(filePath));
+      editor.onDidChangePath((filePath) => observed.push(filePath));
 
       buffer.setPath(__filename);
       buffer.setPath(undefined);
@@ -287,7 +314,7 @@ describe('TextEditor', () => {
   describe('encoding', () => {
     it('notifies ::onDidChangeEncoding observers when the editor encoding changes', () => {
       const observed = [];
-      editor.onDidChangeEncoding(encoding => observed.push(encoding));
+      editor.onDidChangeEncoding((encoding) => observed.push(encoding));
 
       editor.setEncoding('utf16le');
       editor.setEncoding('utf16le');
@@ -428,7 +455,12 @@ describe('TextEditor', () => {
       });
 
       describe('when there is a selection', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[4, 9], [5, 10]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [4, 9],
+            [5, 10],
+          ])
+        );
 
         it('moves above the selection', () => {
           const cursor = editor.getLastCursor();
@@ -489,12 +521,12 @@ describe('TextEditor', () => {
 
           editor.setCursorScreenPosition({
             row: lastLineIndex,
-            column: editor.getTabLength()
+            column: editor.getTabLength(),
           });
           editor.moveDown();
           expect(editor.getCursorScreenPosition()).toEqual({
             row: lastLineIndex,
-            column: lastLine.length
+            column: lastLine.length,
           });
 
           editor.moveUp();
@@ -528,7 +560,12 @@ describe('TextEditor', () => {
       });
 
       describe('when there is a selection', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[4, 9], [5, 10]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [4, 9],
+            [5, 10],
+          ])
+        );
 
         it('moves below the selection', () => {
           const cursor = editor.getLastCursor();
@@ -580,7 +617,7 @@ describe('TextEditor', () => {
             editor.moveLeft();
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 0,
-              column: buffer.lineForRow(0).length
+              column: buffer.lineForRow(0).length,
             });
           });
 
@@ -619,7 +656,7 @@ describe('TextEditor', () => {
             editor.moveLeft();
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 0,
-              column: 0
+              column: 0,
             });
           });
 
@@ -641,7 +678,12 @@ describe('TextEditor', () => {
       });
 
       describe('when there is a selection', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[5, 22], [5, 27]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [5, 22],
+            [5, 27],
+          ])
+        );
 
         it('moves to the left of the selection', () => {
           const cursor = editor.getLastCursor();
@@ -720,7 +762,7 @@ describe('TextEditor', () => {
 
             const lastPosition = {
               row: lastLineIndex,
-              column: lastLine.length
+              column: lastLine.length,
             };
             editor.setCursorScreenPosition(lastPosition);
             editor.moveRight();
@@ -731,7 +773,12 @@ describe('TextEditor', () => {
       });
 
       describe('when there is a selection', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[5, 22], [5, 27]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [5, 22],
+            [5, 27],
+          ])
+        );
 
         it('moves to the left of the selection', () => {
           const cursor = editor.getLastCursor();
@@ -906,9 +953,16 @@ describe('TextEditor', () => {
         describe('when invisible characters are enabled with hard tabs', () => {
           it('moves to the first character of the current line without being confused by the invisible characters', () => {
             editor.update({ showInvisibles: true });
-            buffer.setTextInRange([[1, 0], [1, Infinity]], '\t\t\ta', {
-              normalizeLineEndings: false
-            });
+            buffer.setTextInRange(
+              [
+                [1, 0],
+                [1, Infinity],
+              ],
+              '\t\t\ta',
+              {
+                normalizeLineEndings: false,
+              }
+            );
 
             editor.setCursorScreenPosition([1, 7]);
             editor.moveToFirstCharacterOfLine();
@@ -1409,19 +1463,19 @@ describe('TextEditor', () => {
         editor.setCursorBufferPosition([1, 7]);
         expect(editor.getCurrentParagraphBufferRange()).toEqual([
           [0, 0],
-          [2, 8]
+          [2, 8],
         ]);
 
         editor.setCursorBufferPosition([7, 1]);
         expect(editor.getCurrentParagraphBufferRange()).toEqual([
           [5, 0],
-          [7, 3]
+          [7, 3],
         ]);
 
         editor.setCursorBufferPosition([9, 10]);
         expect(editor.getCurrentParagraphBufferRange()).toEqual([
           [9, 0],
-          [10, 32]
+          [10, 32],
         ]);
 
         // between paragraphs
@@ -1461,22 +1515,64 @@ describe('TextEditor', () => {
           return editor.getLastCursor().getCurrentParagraphBufferRange();
         }
 
-        expect(paragraphBufferRangeForRow(0)).toEqual([[0, 0], [0, 29]]);
-        expect(paragraphBufferRangeForRow(1)).toEqual([[1, 0], [1, 33]]);
-        expect(paragraphBufferRangeForRow(2)).toEqual([[2, 0], [2, 32]]);
+        expect(paragraphBufferRangeForRow(0)).toEqual([
+          [0, 0],
+          [0, 29],
+        ]);
+        expect(paragraphBufferRangeForRow(1)).toEqual([
+          [1, 0],
+          [1, 33],
+        ]);
+        expect(paragraphBufferRangeForRow(2)).toEqual([
+          [2, 0],
+          [2, 32],
+        ]);
         expect(paragraphBufferRangeForRow(3)).toBeFalsy();
-        expect(paragraphBufferRangeForRow(4)).toEqual([[4, 0], [7, 4]]);
-        expect(paragraphBufferRangeForRow(5)).toEqual([[4, 0], [7, 4]]);
-        expect(paragraphBufferRangeForRow(6)).toEqual([[4, 0], [7, 4]]);
-        expect(paragraphBufferRangeForRow(7)).toEqual([[4, 0], [7, 4]]);
-        expect(paragraphBufferRangeForRow(8)).toEqual([[8, 0], [8, 32]]);
+        expect(paragraphBufferRangeForRow(4)).toEqual([
+          [4, 0],
+          [7, 4],
+        ]);
+        expect(paragraphBufferRangeForRow(5)).toEqual([
+          [4, 0],
+          [7, 4],
+        ]);
+        expect(paragraphBufferRangeForRow(6)).toEqual([
+          [4, 0],
+          [7, 4],
+        ]);
+        expect(paragraphBufferRangeForRow(7)).toEqual([
+          [4, 0],
+          [7, 4],
+        ]);
+        expect(paragraphBufferRangeForRow(8)).toEqual([
+          [8, 0],
+          [8, 32],
+        ]);
         expect(paragraphBufferRangeForRow(9)).toBeFalsy();
-        expect(paragraphBufferRangeForRow(10)).toEqual([[10, 0], [13, 10]]);
-        expect(paragraphBufferRangeForRow(11)).toEqual([[10, 0], [13, 10]]);
-        expect(paragraphBufferRangeForRow(12)).toEqual([[10, 0], [13, 10]]);
-        expect(paragraphBufferRangeForRow(14)).toEqual([[14, 0], [14, 32]]);
-        expect(paragraphBufferRangeForRow(15)).toEqual([[15, 0], [15, 26]]);
-        expect(paragraphBufferRangeForRow(18)).toEqual([[17, 0], [19, 3]]);
+        expect(paragraphBufferRangeForRow(10)).toEqual([
+          [10, 0],
+          [13, 10],
+        ]);
+        expect(paragraphBufferRangeForRow(11)).toEqual([
+          [10, 0],
+          [13, 10],
+        ]);
+        expect(paragraphBufferRangeForRow(12)).toEqual([
+          [10, 0],
+          [13, 10],
+        ]);
+        expect(paragraphBufferRangeForRow(14)).toEqual([
+          [14, 0],
+          [14, 32],
+        ]);
+        expect(paragraphBufferRangeForRow(15)).toEqual([
+          [15, 0],
+          [15, 26],
+        ]);
+        expect(paragraphBufferRangeForRow(18)).toEqual([
+          [17, 0],
+          [19, 3],
+        ]);
       });
     });
 
@@ -1499,7 +1595,7 @@ describe('TextEditor', () => {
         expect(editor.getCursorScreenPositions()).toEqual([
           [0, 0],
           [5, 5],
-          [3, 5]
+          [3, 5],
         ]);
       });
     });
@@ -1512,7 +1608,7 @@ describe('TextEditor', () => {
         expect(editor.getCursorsOrderedByBufferPosition()).toEqual([
           originalCursor,
           cursor2,
-          cursor1
+          cursor1,
         ]);
       });
     });
@@ -1557,20 +1653,20 @@ describe('TextEditor', () => {
         editor.getLastSelection().destroy();
         expect(editor.getLastSelection().getBufferRange()).toEqual([
           [0, 0],
-          [0, 0]
+          [0, 0],
         ]);
       });
 
       it("doesn't get stuck in a infinite loop when called from ::onDidAddCursor after the last selection has been destroyed (regression)", () => {
         let callCount = 0;
         editor.getLastSelection().destroy();
-        editor.onDidAddCursor(function(cursor) {
+        editor.onDidAddCursor(function (cursor) {
           callCount++;
           editor.getLastSelection();
         });
         expect(editor.getLastSelection().getBufferRange()).toEqual([
           [0, 0],
-          [0, 0]
+          [0, 0],
         ]);
         expect(callCount).toBe(1);
       });
@@ -1581,7 +1677,7 @@ describe('TextEditor', () => {
         editor.getLastSelection().destroy();
         expect(editor.getSelections()[0].getBufferRange()).toEqual([
           [0, 0],
-          [0, 0]
+          [0, 0],
         ]);
       });
     });
@@ -1589,7 +1685,10 @@ describe('TextEditor', () => {
     describe('when the selection range changes', () => {
       it('emits an event with the old range, new range, and the selection that moved', () => {
         let rangeChangedHandler;
-        editor.setSelectedBufferRange([[3, 0], [4, 5]]);
+        editor.setSelectedBufferRange([
+          [3, 0],
+          [4, 5],
+        ]);
 
         editor.onDidChangeSelectionRange(
           (rangeChangedHandler = jasmine.createSpy())
@@ -1599,54 +1698,120 @@ describe('TextEditor', () => {
         expect(rangeChangedHandler).toHaveBeenCalled();
         const eventObject = rangeChangedHandler.mostRecentCall.args[0];
 
-        expect(eventObject.oldBufferRange).toEqual([[3, 0], [4, 5]]);
-        expect(eventObject.oldScreenRange).toEqual([[3, 0], [4, 5]]);
-        expect(eventObject.newBufferRange).toEqual([[3, 0], [6, 2]]);
-        expect(eventObject.newScreenRange).toEqual([[3, 0], [6, 2]]);
+        expect(eventObject.oldBufferRange).toEqual([
+          [3, 0],
+          [4, 5],
+        ]);
+        expect(eventObject.oldScreenRange).toEqual([
+          [3, 0],
+          [4, 5],
+        ]);
+        expect(eventObject.newBufferRange).toEqual([
+          [3, 0],
+          [6, 2],
+        ]);
+        expect(eventObject.newScreenRange).toEqual([
+          [3, 0],
+          [6, 2],
+        ]);
         expect(eventObject.selection).toBe(selection);
       });
     });
 
     describe('.selectUp/Down/Left/Right()', () => {
       it("expands each selection to its cursor's new location", () => {
-        editor.setSelectedBufferRanges([[[0, 9], [0, 13]], [[3, 16], [3, 21]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 9],
+            [0, 13],
+          ],
+          [
+            [3, 16],
+            [3, 21],
+          ],
+        ]);
         const [selection1, selection2] = editor.getSelections();
 
         editor.selectRight();
-        expect(selection1.getBufferRange()).toEqual([[0, 9], [0, 14]]);
-        expect(selection2.getBufferRange()).toEqual([[3, 16], [3, 22]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 9],
+          [0, 14],
+        ]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 16],
+          [3, 22],
+        ]);
 
         editor.selectLeft();
         editor.selectLeft();
-        expect(selection1.getBufferRange()).toEqual([[0, 9], [0, 12]]);
-        expect(selection2.getBufferRange()).toEqual([[3, 16], [3, 20]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 9],
+          [0, 12],
+        ]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 16],
+          [3, 20],
+        ]);
 
         editor.selectDown();
-        expect(selection1.getBufferRange()).toEqual([[0, 9], [1, 12]]);
-        expect(selection2.getBufferRange()).toEqual([[3, 16], [4, 20]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 9],
+          [1, 12],
+        ]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 16],
+          [4, 20],
+        ]);
 
         editor.selectUp();
-        expect(selection1.getBufferRange()).toEqual([[0, 9], [0, 12]]);
-        expect(selection2.getBufferRange()).toEqual([[3, 16], [3, 20]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 9],
+          [0, 12],
+        ]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 16],
+          [3, 20],
+        ]);
       });
 
       it('merges selections when they intersect when moving down', () => {
         editor.setSelectedBufferRanges([
-          [[0, 9], [0, 13]],
-          [[1, 10], [1, 20]],
-          [[2, 15], [3, 25]]
+          [
+            [0, 9],
+            [0, 13],
+          ],
+          [
+            [1, 10],
+            [1, 20],
+          ],
+          [
+            [2, 15],
+            [3, 25],
+          ],
         ]);
         const [selection1] = editor.getSelections();
 
         editor.selectDown();
         expect(editor.getSelections()).toEqual([selection1]);
-        expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [0, 9],
+          [4, 25],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
       });
 
       it('merges selections when they intersect when moving up', () => {
         editor.setSelectedBufferRanges(
-          [[[0, 9], [0, 13]], [[1, 10], [1, 20]]],
+          [
+            [
+              [0, 9],
+              [0, 13],
+            ],
+            [
+              [1, 10],
+              [1, 20],
+            ],
+          ],
           { reversed: true }
         );
         const [selection1] = editor.getSelections();
@@ -1654,85 +1819,160 @@ describe('TextEditor', () => {
         editor.selectUp();
         expect(editor.getSelections().length).toBe(1);
         expect(editor.getSelections()).toEqual([selection1]);
-        expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [0, 0],
+          [1, 20],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
       });
 
       it('merges selections when they intersect when moving left', () => {
         editor.setSelectedBufferRanges(
-          [[[0, 9], [0, 13]], [[0, 13], [1, 20]]],
+          [
+            [
+              [0, 9],
+              [0, 13],
+            ],
+            [
+              [0, 13],
+              [1, 20],
+            ],
+          ],
           { reversed: true }
         );
         const [selection1] = editor.getSelections();
 
         editor.selectLeft();
         expect(editor.getSelections()).toEqual([selection1]);
-        expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [0, 8],
+          [1, 20],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
       });
 
       it('merges selections when they intersect when moving right', () => {
-        editor.setSelectedBufferRanges([[[0, 9], [0, 14]], [[0, 14], [1, 20]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 9],
+            [0, 14],
+          ],
+          [
+            [0, 14],
+            [1, 20],
+          ],
+        ]);
         const [selection1] = editor.getSelections();
 
         editor.selectRight();
         expect(editor.getSelections()).toEqual([selection1]);
-        expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [0, 9],
+          [1, 21],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
       });
 
       describe('when counts are passed into the selection functions', () => {
         it("expands each selection to its cursor's new location", () => {
           editor.setSelectedBufferRanges([
-            [[0, 9], [0, 13]],
-            [[3, 16], [3, 21]]
+            [
+              [0, 9],
+              [0, 13],
+            ],
+            [
+              [3, 16],
+              [3, 21],
+            ],
           ]);
           const [selection1, selection2] = editor.getSelections();
 
           editor.selectRight(2);
-          expect(selection1.getBufferRange()).toEqual([[0, 9], [0, 15]]);
-          expect(selection2.getBufferRange()).toEqual([[3, 16], [3, 23]]);
+          expect(selection1.getBufferRange()).toEqual([
+            [0, 9],
+            [0, 15],
+          ]);
+          expect(selection2.getBufferRange()).toEqual([
+            [3, 16],
+            [3, 23],
+          ]);
 
           editor.selectLeft(3);
-          expect(selection1.getBufferRange()).toEqual([[0, 9], [0, 12]]);
-          expect(selection2.getBufferRange()).toEqual([[3, 16], [3, 20]]);
+          expect(selection1.getBufferRange()).toEqual([
+            [0, 9],
+            [0, 12],
+          ]);
+          expect(selection2.getBufferRange()).toEqual([
+            [3, 16],
+            [3, 20],
+          ]);
 
           editor.selectDown(3);
-          expect(selection1.getBufferRange()).toEqual([[0, 9], [3, 12]]);
-          expect(selection2.getBufferRange()).toEqual([[3, 16], [6, 20]]);
+          expect(selection1.getBufferRange()).toEqual([
+            [0, 9],
+            [3, 12],
+          ]);
+          expect(selection2.getBufferRange()).toEqual([
+            [3, 16],
+            [6, 20],
+          ]);
 
           editor.selectUp(2);
-          expect(selection1.getBufferRange()).toEqual([[0, 9], [1, 12]]);
-          expect(selection2.getBufferRange()).toEqual([[3, 16], [4, 20]]);
+          expect(selection1.getBufferRange()).toEqual([
+            [0, 9],
+            [1, 12],
+          ]);
+          expect(selection2.getBufferRange()).toEqual([
+            [3, 16],
+            [4, 20],
+          ]);
         });
       });
     });
 
     describe('.selectToBufferPosition(bufferPosition)', () => {
       it('expands the last selection to the given position', () => {
-        editor.setSelectedBufferRange([[3, 0], [4, 5]]);
+        editor.setSelectedBufferRange([
+          [3, 0],
+          [4, 5],
+        ]);
         editor.addCursorAtBufferPosition([5, 6]);
         editor.selectToBufferPosition([6, 2]);
 
         const selections = editor.getSelections();
         expect(selections.length).toBe(2);
         const [selection1, selection2] = selections;
-        expect(selection1.getBufferRange()).toEqual([[3, 0], [4, 5]]);
-        expect(selection2.getBufferRange()).toEqual([[5, 6], [6, 2]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [3, 0],
+          [4, 5],
+        ]);
+        expect(selection2.getBufferRange()).toEqual([
+          [5, 6],
+          [6, 2],
+        ]);
       });
     });
 
     describe('.selectToScreenPosition(screenPosition)', () => {
       it('expands the last selection to the given position', () => {
-        editor.setSelectedBufferRange([[3, 0], [4, 5]]);
+        editor.setSelectedBufferRange([
+          [3, 0],
+          [4, 5],
+        ]);
         editor.addCursorAtScreenPosition([5, 6]);
         editor.selectToScreenPosition([6, 2]);
 
         const selections = editor.getSelections();
         expect(selections.length).toBe(2);
         const [selection1, selection2] = selections;
-        expect(selection1.getScreenRange()).toEqual([[3, 0], [4, 5]]);
-        expect(selection2.getScreenRange()).toEqual([[5, 6], [6, 2]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [3, 0],
+          [4, 5],
+        ]);
+        expect(selection2.getScreenRange()).toEqual([
+          [5, 6],
+          [6, 2],
+        ]);
       });
 
       describe('when selecting with an initial screen range', () => {
@@ -1749,7 +1989,10 @@ describe('TextEditor', () => {
 
     describe('.selectToBeginningOfNextParagraph()', () => {
       it('selects from the cursor to first line of the next paragraph', () => {
-        editor.setSelectedBufferRange([[3, 0], [4, 5]]);
+        editor.setSelectedBufferRange([
+          [3, 0],
+          [4, 5],
+        ]);
         editor.addCursorAtScreenPosition([5, 6]);
         editor.selectToScreenPosition([6, 2]);
 
@@ -1757,13 +2000,19 @@ describe('TextEditor', () => {
 
         const selections = editor.getSelections();
         expect(selections.length).toBe(1);
-        expect(selections[0].getScreenRange()).toEqual([[3, 0], [10, 0]]);
+        expect(selections[0].getScreenRange()).toEqual([
+          [3, 0],
+          [10, 0],
+        ]);
       });
     });
 
     describe('.selectToBeginningOfPreviousParagraph()', () => {
       it('selects from the cursor to the first line of the previous paragraph', () => {
-        editor.setSelectedBufferRange([[3, 0], [4, 5]]);
+        editor.setSelectedBufferRange([
+          [3, 0],
+          [4, 5],
+        ]);
         editor.addCursorAtScreenPosition([5, 6]);
         editor.selectToScreenPosition([6, 2]);
 
@@ -1771,7 +2020,10 @@ describe('TextEditor', () => {
 
         const selections = editor.getSelections();
         expect(selections.length).toBe(1);
-        expect(selections[0].getScreenRange()).toEqual([[0, 0], [5, 6]]);
+        expect(selections[0].getScreenRange()).toEqual([
+          [0, 0],
+          [5, 6],
+        ]);
       });
 
       it('merges selections if they intersect, maintaining the directionality of the last selection', () => {
@@ -1783,7 +2035,10 @@ describe('TextEditor', () => {
         let selections = editor.getSelections();
         expect(selections.length).toBe(1);
         let [selection1] = selections;
-        expect(selection1.getScreenRange()).toEqual([[3, 10], [6, 27]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [3, 10],
+          [6, 27],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
 
         editor.addCursorAtScreenPosition([7, 4]);
@@ -1792,7 +2047,10 @@ describe('TextEditor', () => {
         selections = editor.getSelections();
         expect(selections.length).toBe(1);
         [selection1] = selections;
-        expect(selection1.getScreenRange()).toEqual([[3, 10], [7, 4]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [3, 10],
+          [7, 4],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
       });
     });
@@ -1806,7 +2064,7 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([0, 0]);
         expect(editor.getLastSelection().getBufferRange()).toEqual([
           [0, 0],
-          [11, 2]
+          [11, 2],
         ]);
         expect(editor.getLastSelection().isReversed()).toBeTruthy();
       });
@@ -1821,7 +2079,7 @@ describe('TextEditor', () => {
         expect(editor.getCursorBufferPosition()).toEqual([12, 2]);
         expect(editor.getLastSelection().getBufferRange()).toEqual([
           [9, 3],
-          [12, 2]
+          [12, 2],
         ]);
         expect(editor.getLastSelection().isReversed()).toBeFalsy();
       });
@@ -1850,9 +2108,15 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         const [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[12, 0], [12, 2]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [12, 0],
+          [12, 2],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[11, 0], [11, 3]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [11, 0],
+          [11, 3],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
       });
     });
@@ -1871,9 +2135,15 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         const [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[12, 0], [12, 2]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [12, 0],
+          [12, 2],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
-        expect(selection2.getBufferRange()).toEqual([[11, 3], [11, 44]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [11, 3],
+          [11, 44],
+        ]);
         expect(selection2.isReversed()).toBeFalsy();
       });
     });
@@ -1882,27 +2152,42 @@ describe('TextEditor', () => {
       it('selects to the entire line (including newlines) at given row', () => {
         editor.setCursorScreenPosition([1, 2]);
         editor.selectLinesContainingCursors();
-        expect(editor.getSelectedBufferRange()).toEqual([[1, 0], [2, 0]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [1, 0],
+          [2, 0],
+        ]);
         expect(editor.getSelectedText()).toBe(
           '  var sort = function(items) {\n'
         );
 
         editor.setCursorScreenPosition([12, 2]);
         editor.selectLinesContainingCursors();
-        expect(editor.getSelectedBufferRange()).toEqual([[12, 0], [12, 2]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [12, 0],
+          [12, 2],
+        ]);
 
         editor.setCursorBufferPosition([0, 2]);
         editor.selectLinesContainingCursors();
         editor.selectLinesContainingCursors();
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [2, 0]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 0],
+          [2, 0],
+        ]);
       });
 
       describe('when the selection spans multiple row', () => {
         it('selects from the beginning of the first line to the last line', () => {
           selection = editor.getLastSelection();
-          selection.setBufferRange([[1, 10], [3, 20]]);
+          selection.setBufferRange([
+            [1, 10],
+            [3, 20],
+          ]);
           editor.selectLinesContainingCursors();
-          expect(editor.getSelectedBufferRange()).toEqual([[1, 0], [4, 0]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [1, 0],
+            [4, 0],
+          ]);
         });
       });
     });
@@ -1921,9 +2206,15 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         const [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 4], [0, 13]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 4],
+          [0, 13],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[3, 47], [3, 49]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 47],
+          [3, 49],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
       });
     });
@@ -1942,9 +2233,15 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         const [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 4], [0, 13]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 4],
+          [0, 13],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
-        expect(selection2.getBufferRange()).toEqual([[3, 48], [3, 50]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 48],
+          [3, 50],
+        ]);
         expect(selection2.isReversed()).toBeFalsy();
       });
     });
@@ -1963,9 +2260,15 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         const [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 4], [0, 14]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 4],
+          [0, 14],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
-        expect(selection2.getBufferRange()).toEqual([[3, 48], [3, 51]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [3, 48],
+          [3, 51],
+        ]);
         expect(selection2.isReversed()).toBeFalsy();
       });
     });
@@ -1984,15 +2287,27 @@ describe('TextEditor', () => {
           selection1,
           selection2,
           selection3,
-          selection4
+          selection4,
         ] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 8], [0, 4]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 8],
+          [0, 4],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[2, 0], [1, 30]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [2, 0],
+          [1, 30],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
-        expect(selection3.getBufferRange()).toEqual([[3, 4], [3, 0]]);
+        expect(selection3.getBufferRange()).toEqual([
+          [3, 4],
+          [3, 0],
+        ]);
         expect(selection3.isReversed()).toBeTruthy();
-        expect(selection4.getBufferRange()).toEqual([[3, 14], [3, 13]]);
+        expect(selection4.getBufferRange()).toEqual([
+          [3, 14],
+          [3, 13],
+        ]);
         expect(selection4.isReversed()).toBeTruthy();
       });
     });
@@ -2011,15 +2326,27 @@ describe('TextEditor', () => {
           selection1,
           selection2,
           selection3,
-          selection4
+          selection4,
         ] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 8], [0, 13]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 8],
+          [0, 13],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
-        expect(selection2.getBufferRange()).toEqual([[2, 40], [3, 0]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [2, 40],
+          [3, 0],
+        ]);
         expect(selection2.isReversed()).toBeFalsy();
-        expect(selection3.getBufferRange()).toEqual([[4, 0], [4, 4]]);
+        expect(selection3.getBufferRange()).toEqual([
+          [4, 0],
+          [4, 4],
+        ]);
         expect(selection3.isReversed()).toBeFalsy();
-        expect(selection4.getBufferRange()).toEqual([[3, 30], [3, 31]]);
+        expect(selection4.getBufferRange()).toEqual([
+          [3, 30],
+          [3, 31],
+        ]);
         expect(selection4.isReversed()).toBeFalsy();
       });
     });
@@ -2039,17 +2366,29 @@ describe('TextEditor', () => {
           selection1,
           selection2,
           selection3,
-          selection4
+          selection4,
         ] = editor.getSelections();
 
         editor.selectToPreviousSubwordBoundary();
-        expect(selection1.getBufferRange()).toEqual([[0, 1], [0, 5]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 1],
+          [0, 5],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[1, 4], [1, 7]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [1, 4],
+          [1, 7],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
-        expect(selection3.getBufferRange()).toEqual([[2, 3], [2, 5]]);
+        expect(selection3.getBufferRange()).toEqual([
+          [2, 3],
+          [2, 5],
+        ]);
         expect(selection3.isReversed()).toBeTruthy();
-        expect(selection4.getBufferRange()).toEqual([[3, 1], [3, 3]]);
+        expect(selection4.getBufferRange()).toEqual([
+          [3, 1],
+          [3, 3],
+        ]);
         expect(selection4.isReversed()).toBeTruthy();
       });
     });
@@ -2069,17 +2408,29 @@ describe('TextEditor', () => {
           selection1,
           selection2,
           selection3,
-          selection4
+          selection4,
         ] = editor.getSelections();
 
         editor.selectToNextSubwordBoundary();
-        expect(selection1.getBufferRange()).toEqual([[0, 1], [0, 4]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 1],
+          [0, 4],
+        ]);
         expect(selection1.isReversed()).toBeFalsy();
-        expect(selection2.getBufferRange()).toEqual([[1, 7], [1, 11]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [1, 7],
+          [1, 11],
+        ]);
         expect(selection2.isReversed()).toBeFalsy();
-        expect(selection3.getBufferRange()).toEqual([[2, 2], [2, 5]]);
+        expect(selection3.getBufferRange()).toEqual([
+          [2, 2],
+          [2, 5],
+        ]);
         expect(selection3.isReversed()).toBeFalsy();
-        expect(selection4.getBufferRange()).toEqual([[3, 1], [3, 3]]);
+        expect(selection4.getBufferRange()).toEqual([
+          [3, 1],
+          [3, 3],
+        ]);
         expect(selection4.isReversed()).toBeFalsy();
       });
     });
@@ -2193,11 +2544,17 @@ describe('TextEditor', () => {
         it('selects the whitespace region', () => {
           editor.setCursorScreenPosition([5, 2]);
           editor.selectWordsContainingCursors();
-          expect(editor.getSelectedBufferRange()).toEqual([[5, 0], [5, 6]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [5, 0],
+            [5, 6],
+          ]);
 
           editor.setCursorScreenPosition([5, 0]);
           editor.selectWordsContainingCursors();
-          expect(editor.getSelectedBufferRange()).toEqual([[5, 0], [5, 6]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [5, 0],
+            [5, 6],
+          ]);
         });
       });
 
@@ -2206,7 +2563,10 @@ describe('TextEditor', () => {
           editor.buffer.append('word');
           editor.moveToBottom();
           editor.selectWordsContainingCursors();
-          expect(editor.getSelectedBufferRange()).toEqual([[12, 2], [12, 6]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [12, 2],
+            [12, 6],
+          ]);
         });
       });
 
@@ -2218,22 +2578,22 @@ describe('TextEditor', () => {
 
         const scopeDescriptors = editor
           .getCursors()
-          .map(c => c.getScopeDescriptor());
+          .map((c) => c.getScopeDescriptor());
         expect(scopeDescriptors[0].getScopesArray()).toEqual(['source.js']);
         expect(scopeDescriptors[1].getScopesArray()).toEqual([
           'source.js',
-          'string.quoted'
+          'string.quoted',
         ]);
 
         spyOn(
           editor.getBuffer().getLanguageMode(),
           'getNonWordCharacters'
-        ).andCallFake(function(position) {
+        ).andCallFake(function (position) {
           const result = '/()"\':,.;<>~!@#$%^&*|+=[]{}`?';
           const scopes = this.scopeDescriptorForPosition(
             position
           ).getScopesArray();
-          if (scopes.some(scope => scope.startsWith('string'))) {
+          if (scopes.some((scope) => scope.startsWith('string'))) {
             return result;
           } else {
             return result + '-';
@@ -2260,81 +2620,189 @@ describe('TextEditor', () => {
 
         expect(editor.getSelections().length).toBe(2);
         let [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 0], [0, 5]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 0],
+          [0, 5],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[1, 2], [1, 7]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [1, 2],
+          [1, 7],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
 
         editor.selectToFirstCharacterOfLine();
         [selection1, selection2] = editor.getSelections();
-        expect(selection1.getBufferRange()).toEqual([[0, 0], [0, 5]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [0, 0],
+          [0, 5],
+        ]);
         expect(selection1.isReversed()).toBeTruthy();
-        expect(selection2.getBufferRange()).toEqual([[1, 0], [1, 7]]);
+        expect(selection2.getBufferRange()).toEqual([
+          [1, 0],
+          [1, 7],
+        ]);
         expect(selection2.isReversed()).toBeTruthy();
       });
     });
 
     describe('.setSelectedBufferRanges(ranges)', () => {
       it('clears existing selections and creates selections for each of the given ranges', () => {
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [4, 4],
+            [5, 5],
+          ],
+        ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[2, 2], [3, 3]],
-          [[4, 4], [5, 5]]
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [4, 4],
+            [5, 5],
+          ],
         ]);
 
-        editor.setSelectedBufferRanges([[[5, 5], [6, 6]]]);
-        expect(editor.getSelectedBufferRanges()).toEqual([[[5, 5], [6, 6]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [5, 5],
+            [6, 6],
+          ],
+        ]);
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [
+            [5, 5],
+            [6, 6],
+          ],
+        ]);
       });
 
       it('merges intersecting selections', () => {
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]]);
-        expect(editor.getSelectedBufferRanges()).toEqual([[[2, 2], [5, 5]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [3, 0],
+            [5, 5],
+          ],
+        ]);
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [
+            [2, 2],
+            [5, 5],
+          ],
+        ]);
       });
 
       it('does not merge non-empty adjacent selections', () => {
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 3], [5, 5]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [3, 3],
+            [5, 5],
+          ],
+        ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[2, 2], [3, 3]],
-          [[3, 3], [5, 5]]
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [3, 3],
+            [5, 5],
+          ],
         ]);
       });
 
       it('recycles existing selection instances', () => {
         selection = editor.getLastSelection();
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [4, 4],
+            [5, 5],
+          ],
+        ]);
 
         const [selection1] = editor.getSelections();
         expect(selection1).toBe(selection);
-        expect(selection1.getBufferRange()).toEqual([[2, 2], [3, 3]]);
+        expect(selection1.getBufferRange()).toEqual([
+          [2, 2],
+          [3, 3],
+        ]);
       });
 
       describe("when the 'preserveFolds' option is false (the default)", () => {
         it("removes folds that contain one or both of the selection's end points", () => {
-          editor.setSelectedBufferRange([[0, 0], [0, 0]]);
+          editor.setSelectedBufferRange([
+            [0, 0],
+            [0, 0],
+          ]);
           editor.foldBufferRowRange(1, 4);
           editor.foldBufferRowRange(2, 3);
           editor.foldBufferRowRange(6, 8);
           editor.foldBufferRowRange(10, 11);
 
-          editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]]);
+          editor.setSelectedBufferRanges([
+            [
+              [2, 2],
+              [3, 3],
+            ],
+            [
+              [6, 6],
+              [7, 7],
+            ],
+          ]);
           expect(editor.isFoldedAtScreenRow(1)).toBeFalsy();
           expect(editor.isFoldedAtScreenRow(2)).toBeFalsy();
           expect(editor.isFoldedAtScreenRow(6)).toBeFalsy();
           expect(editor.isFoldedAtScreenRow(10)).toBeTruthy();
 
-          editor.setSelectedBufferRange([[10, 0], [12, 0]]);
+          editor.setSelectedBufferRange([
+            [10, 0],
+            [12, 0],
+          ]);
           expect(editor.isFoldedAtScreenRow(10)).toBeTruthy();
         });
       });
 
       describe("when the 'preserveFolds' option is true", () => {
         it('does not remove folds that contain the selections', () => {
-          editor.setSelectedBufferRange([[0, 0], [0, 0]]);
+          editor.setSelectedBufferRange([
+            [0, 0],
+            [0, 0],
+          ]);
           editor.foldBufferRowRange(1, 4);
           editor.foldBufferRowRange(6, 8);
-          editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 0], [6, 1]]], {
-            preserveFolds: true
-          });
+          editor.setSelectedBufferRanges(
+            [
+              [
+                [2, 2],
+                [3, 3],
+              ],
+              [
+                [6, 0],
+                [6, 1],
+              ],
+            ],
+            {
+              preserveFolds: true,
+            }
+          );
           expect(editor.isFoldedAtBufferRow(1)).toBeTruthy();
           expect(editor.isFoldedAtBufferRow(6)).toBeTruthy();
         });
@@ -2345,59 +2813,134 @@ describe('TextEditor', () => {
       beforeEach(() => editor.foldBufferRow(4));
 
       it('clears existing selections and creates selections for each of the given ranges', () => {
-        editor.setSelectedScreenRanges([[[3, 4], [3, 7]], [[5, 4], [5, 7]]]);
+        editor.setSelectedScreenRanges([
+          [
+            [3, 4],
+            [3, 7],
+          ],
+          [
+            [5, 4],
+            [5, 7],
+          ],
+        ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[3, 4], [3, 7]],
-          [[8, 4], [8, 7]]
+          [
+            [3, 4],
+            [3, 7],
+          ],
+          [
+            [8, 4],
+            [8, 7],
+          ],
         ]);
 
-        editor.setSelectedScreenRanges([[[6, 2], [6, 4]]]);
-        expect(editor.getSelectedScreenRanges()).toEqual([[[6, 2], [6, 4]]]);
+        editor.setSelectedScreenRanges([
+          [
+            [6, 2],
+            [6, 4],
+          ],
+        ]);
+        expect(editor.getSelectedScreenRanges()).toEqual([
+          [
+            [6, 2],
+            [6, 4],
+          ],
+        ]);
       });
 
       it('merges intersecting selections and unfolds the fold which contain them', () => {
         editor.foldBufferRow(0);
 
         // Use buffer ranges because only the first line is on screen
-        editor.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]]);
-        expect(editor.getSelectedBufferRanges()).toEqual([[[2, 2], [5, 5]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [2, 2],
+            [3, 3],
+          ],
+          [
+            [3, 0],
+            [5, 5],
+          ],
+        ]);
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [
+            [2, 2],
+            [5, 5],
+          ],
+        ]);
       });
 
       it('recycles existing selection instances', () => {
         selection = editor.getLastSelection();
-        editor.setSelectedScreenRanges([[[2, 2], [3, 4]], [[4, 4], [5, 5]]]);
+        editor.setSelectedScreenRanges([
+          [
+            [2, 2],
+            [3, 4],
+          ],
+          [
+            [4, 4],
+            [5, 5],
+          ],
+        ]);
 
         const [selection1] = editor.getSelections();
         expect(selection1).toBe(selection);
-        expect(selection1.getScreenRange()).toEqual([[2, 2], [3, 4]]);
+        expect(selection1.getScreenRange()).toEqual([
+          [2, 2],
+          [3, 4],
+        ]);
       });
     });
 
     describe('.selectMarker(marker)', () => {
       describe('if the marker is valid', () => {
         it("selects the marker's range and returns the selected range", () => {
-          const marker = editor.markBufferRange([[0, 1], [3, 3]]);
-          expect(editor.selectMarker(marker)).toEqual([[0, 1], [3, 3]]);
-          expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [3, 3]]);
+          const marker = editor.markBufferRange([
+            [0, 1],
+            [3, 3],
+          ]);
+          expect(editor.selectMarker(marker)).toEqual([
+            [0, 1],
+            [3, 3],
+          ]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [0, 1],
+            [3, 3],
+          ]);
         });
       });
 
       describe('if the marker is invalid', () => {
         it('does not change the selection and returns a falsy value', () => {
-          const marker = editor.markBufferRange([[0, 1], [3, 3]]);
+          const marker = editor.markBufferRange([
+            [0, 1],
+            [3, 3],
+          ]);
           marker.destroy();
           expect(editor.selectMarker(marker)).toBeFalsy();
-          expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [0, 0]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [0, 0],
+            [0, 0],
+          ]);
         });
       });
     });
 
     describe('.addSelectionForBufferRange(bufferRange)', () => {
       it('adds a selection for the specified buffer range', () => {
-        editor.addSelectionForBufferRange([[3, 4], [5, 6]]);
+        editor.addSelectionForBufferRange([
+          [3, 4],
+          [5, 6],
+        ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 0], [0, 0]],
-          [[3, 4], [5, 6]]
+          [
+            [0, 0],
+            [0, 0],
+          ],
+          [
+            [3, 4],
+            [5, 6],
+          ],
         ]);
       });
     });
@@ -2405,57 +2948,123 @@ describe('TextEditor', () => {
     describe('.addSelectionBelow()', () => {
       describe('when the selection is non-empty', () => {
         it('selects the same region of the line below current selections if possible', () => {
-          editor.setSelectedBufferRange([[3, 16], [3, 21]]);
-          editor.addSelectionForBufferRange([[3, 25], [3, 34]]);
+          editor.setSelectedBufferRange([
+            [3, 16],
+            [3, 21],
+          ]);
+          editor.addSelectionForBufferRange([
+            [3, 25],
+            [3, 34],
+          ]);
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 16], [3, 21]],
-            [[3, 25], [3, 34]],
-            [[4, 16], [4, 21]],
-            [[4, 25], [4, 29]]
+            [
+              [3, 16],
+              [3, 21],
+            ],
+            [
+              [3, 25],
+              [3, 34],
+            ],
+            [
+              [4, 16],
+              [4, 21],
+            ],
+            [
+              [4, 25],
+              [4, 29],
+            ],
           ]);
         });
 
         it('skips lines that are too short to create a non-empty selection', () => {
-          editor.setSelectedBufferRange([[3, 31], [3, 38]]);
+          editor.setSelectedBufferRange([
+            [3, 31],
+            [3, 38],
+          ]);
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 31], [3, 38]],
-            [[6, 31], [6, 38]]
+            [
+              [3, 31],
+              [3, 38],
+            ],
+            [
+              [6, 31],
+              [6, 38],
+            ],
           ]);
         });
 
         it("honors the original selection's range (goal range) when adding across shorter lines", () => {
-          editor.setSelectedBufferRange([[3, 22], [3, 38]]);
+          editor.setSelectedBufferRange([
+            [3, 22],
+            [3, 38],
+          ]);
           editor.addSelectionBelow();
           editor.addSelectionBelow();
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 22], [3, 38]],
-            [[4, 22], [4, 29]],
-            [[5, 22], [5, 30]],
-            [[6, 22], [6, 38]]
+            [
+              [3, 22],
+              [3, 38],
+            ],
+            [
+              [4, 22],
+              [4, 29],
+            ],
+            [
+              [5, 22],
+              [5, 30],
+            ],
+            [
+              [6, 22],
+              [6, 38],
+            ],
           ]);
         });
 
         it('clears selection goal ranges when the selection changes', () => {
-          editor.setSelectedBufferRange([[3, 22], [3, 38]]);
+          editor.setSelectedBufferRange([
+            [3, 22],
+            [3, 38],
+          ]);
           editor.addSelectionBelow();
           editor.selectLeft();
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 22], [3, 37]],
-            [[4, 22], [4, 29]],
-            [[5, 22], [5, 28]]
+            [
+              [3, 22],
+              [3, 37],
+            ],
+            [
+              [4, 22],
+              [4, 29],
+            ],
+            [
+              [5, 22],
+              [5, 28],
+            ],
           ]);
 
           // goal range from previous add selection is honored next time
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 22], [3, 37]],
-            [[4, 22], [4, 29]],
-            [[5, 22], [5, 30]], // select to end of line 5 because line 4's goal range was reset by line 3 previously
-            [[6, 22], [6, 28]]
+            [
+              [3, 22],
+              [3, 37],
+            ],
+            [
+              [4, 22],
+              [4, 29],
+            ],
+            [
+              [5, 22],
+              [5, 30],
+            ], // select to end of line 5 because line 4's goal range was reset by line 3 previously
+            [
+              [6, 22],
+              [6, 28],
+            ],
           ]);
         });
 
@@ -2464,11 +3073,20 @@ describe('TextEditor', () => {
           editor.setEditorWidthInChars(40);
           editor.setDefaultCharWidth(1);
 
-          editor.setSelectedScreenRange([[3, 10], [3, 15]]);
+          editor.setSelectedScreenRange([
+            [3, 10],
+            [3, 15],
+          ]);
           editor.addSelectionBelow();
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [[3, 10], [3, 15]],
-            [[4, 10], [4, 15]]
+            [
+              [3, 10],
+              [3, 15],
+            ],
+            [
+              [4, 10],
+              [4, 15],
+            ],
           ]);
         });
 
@@ -2477,11 +3095,20 @@ describe('TextEditor', () => {
             'sample-with-tabs-and-leading-comment.coffee',
             { autoIndent: false }
           );
-          editor.setSelectedBufferRange([[2, 1], [2, 3]]);
+          editor.setSelectedBufferRange([
+            [2, 1],
+            [2, 3],
+          ]);
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[2, 1], [2, 3]],
-            [[3, 1], [3, 2]]
+            [
+              [2, 1],
+              [2, 3],
+            ],
+            [
+              [3, 1],
+              [3, 2],
+            ],
           ]);
         });
       });
@@ -2499,8 +3126,14 @@ describe('TextEditor', () => {
             editor.addSelectionBelow();
 
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [[3, 0], [3, 0]],
-              [[4, 4], [4, 4]]
+              [
+                [3, 0],
+                [3, 0],
+              ],
+              [
+                [4, 4],
+                [4, 4],
+              ],
             ]);
           });
 
@@ -2509,8 +3142,14 @@ describe('TextEditor', () => {
             editor.addSelectionBelow();
 
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [[3, 37], [3, 37]],
-              [[4, 26], [4, 26]]
+              [
+                [3, 37],
+                [3, 37],
+              ],
+              [
+                [4, 26],
+                [4, 26],
+              ],
             ]);
           });
         });
@@ -2521,10 +3160,22 @@ describe('TextEditor', () => {
           editor.addSelectionBelow();
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 36], [3, 36]],
-            [[4, 29], [4, 29]],
-            [[5, 30], [5, 30]],
-            [[6, 36], [6, 36]]
+            [
+              [3, 36],
+              [3, 36],
+            ],
+            [
+              [4, 29],
+              [4, 29],
+            ],
+            [
+              [5, 30],
+              [5, 30],
+            ],
+            [
+              [6, 36],
+              [6, 36],
+            ],
           ]);
         });
 
@@ -2532,8 +3183,14 @@ describe('TextEditor', () => {
           editor.setCursorBufferPosition([9, 4]);
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[9, 4], [9, 4]],
-            [[11, 4], [11, 4]]
+            [
+              [9, 4],
+              [9, 4],
+            ],
+            [
+              [11, 4],
+              [11, 4],
+            ],
           ]);
         });
 
@@ -2541,8 +3198,14 @@ describe('TextEditor', () => {
           editor.setCursorBufferPosition([9, 0]);
           editor.addSelectionBelow();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[9, 0], [9, 0]],
-            [[10, 0], [10, 0]]
+            [
+              [9, 0],
+              [9, 0],
+            ],
+            [
+              [10, 0],
+              [10, 0],
+            ],
           ]);
         });
       });
@@ -2566,36 +3229,78 @@ describe('TextEditor', () => {
     describe('.addSelectionAbove()', () => {
       describe('when the selection is non-empty', () => {
         it('selects the same region of the line above current selections if possible', () => {
-          editor.setSelectedBufferRange([[3, 16], [3, 21]]);
-          editor.addSelectionForBufferRange([[3, 37], [3, 44]]);
+          editor.setSelectedBufferRange([
+            [3, 16],
+            [3, 21],
+          ]);
+          editor.addSelectionForBufferRange([
+            [3, 37],
+            [3, 44],
+          ]);
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 16], [3, 21]],
-            [[3, 37], [3, 44]],
-            [[2, 16], [2, 21]],
-            [[2, 37], [2, 40]]
+            [
+              [3, 16],
+              [3, 21],
+            ],
+            [
+              [3, 37],
+              [3, 44],
+            ],
+            [
+              [2, 16],
+              [2, 21],
+            ],
+            [
+              [2, 37],
+              [2, 40],
+            ],
           ]);
         });
 
         it('skips lines that are too short to create a non-empty selection', () => {
-          editor.setSelectedBufferRange([[6, 31], [6, 38]]);
+          editor.setSelectedBufferRange([
+            [6, 31],
+            [6, 38],
+          ]);
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[6, 31], [6, 38]],
-            [[3, 31], [3, 38]]
+            [
+              [6, 31],
+              [6, 38],
+            ],
+            [
+              [3, 31],
+              [3, 38],
+            ],
           ]);
         });
 
         it("honors the original selection's range (goal range) when adding across shorter lines", () => {
-          editor.setSelectedBufferRange([[6, 22], [6, 38]]);
+          editor.setSelectedBufferRange([
+            [6, 22],
+            [6, 38],
+          ]);
           editor.addSelectionAbove();
           editor.addSelectionAbove();
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[6, 22], [6, 38]],
-            [[5, 22], [5, 30]],
-            [[4, 22], [4, 29]],
-            [[3, 22], [3, 38]]
+            [
+              [6, 22],
+              [6, 38],
+            ],
+            [
+              [5, 22],
+              [5, 30],
+            ],
+            [
+              [4, 22],
+              [4, 29],
+            ],
+            [
+              [3, 22],
+              [3, 38],
+            ],
           ]);
         });
 
@@ -2604,11 +3309,20 @@ describe('TextEditor', () => {
           editor.setDefaultCharWidth(1);
           editor.setEditorWidthInChars(40);
 
-          editor.setSelectedScreenRange([[4, 10], [4, 15]]);
+          editor.setSelectedScreenRange([
+            [4, 10],
+            [4, 15],
+          ]);
           editor.addSelectionAbove();
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [[4, 10], [4, 15]],
-            [[3, 10], [3, 15]]
+            [
+              [4, 10],
+              [4, 15],
+            ],
+            [
+              [3, 10],
+              [3, 15],
+            ],
           ]);
         });
 
@@ -2617,11 +3331,20 @@ describe('TextEditor', () => {
             'sample-with-tabs-and-leading-comment.coffee',
             { autoIndent: false }
           );
-          editor.setSelectedBufferRange([[3, 1], [3, 2]]);
+          editor.setSelectedBufferRange([
+            [3, 1],
+            [3, 2],
+          ]);
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[3, 1], [3, 2]],
-            [[2, 1], [2, 3]]
+            [
+              [3, 1],
+              [3, 2],
+            ],
+            [
+              [2, 1],
+              [2, 3],
+            ],
           ]);
         });
       });
@@ -2639,8 +3362,14 @@ describe('TextEditor', () => {
             editor.addSelectionAbove();
 
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [[5, 0], [5, 0]],
-              [[4, 4], [4, 4]]
+              [
+                [5, 0],
+                [5, 0],
+              ],
+              [
+                [4, 4],
+                [4, 4],
+              ],
             ]);
           });
 
@@ -2649,8 +3378,14 @@ describe('TextEditor', () => {
             editor.addSelectionAbove();
 
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [[5, 29], [5, 29]],
-              [[4, 26], [4, 26]]
+              [
+                [5, 29],
+                [5, 29],
+              ],
+              [
+                [4, 26],
+                [4, 26],
+              ],
             ]);
           });
         });
@@ -2661,10 +3396,22 @@ describe('TextEditor', () => {
           editor.addSelectionAbove();
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[6, 36], [6, 36]],
-            [[5, 30], [5, 30]],
-            [[4, 29], [4, 29]],
-            [[3, 36], [3, 36]]
+            [
+              [6, 36],
+              [6, 36],
+            ],
+            [
+              [5, 30],
+              [5, 30],
+            ],
+            [
+              [4, 29],
+              [4, 29],
+            ],
+            [
+              [3, 36],
+              [3, 36],
+            ],
           ]);
         });
 
@@ -2672,8 +3419,14 @@ describe('TextEditor', () => {
           editor.setCursorBufferPosition([11, 4]);
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[11, 4], [11, 4]],
-            [[9, 4], [9, 4]]
+            [
+              [11, 4],
+              [11, 4],
+            ],
+            [
+              [9, 4],
+              [9, 4],
+            ],
           ]);
         });
 
@@ -2681,8 +3434,14 @@ describe('TextEditor', () => {
           editor.setCursorBufferPosition([10, 0]);
           editor.addSelectionAbove();
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[10, 0], [10, 0]],
-            [[9, 0], [9, 0]]
+            [
+              [10, 0],
+              [10, 0],
+            ],
+            [
+              [9, 0],
+              [9, 0],
+            ],
           ]);
         });
       });
@@ -2705,41 +3464,79 @@ describe('TextEditor', () => {
 
     describe('.splitSelectionsIntoLines()', () => {
       it('splits all multi-line selections into one selection per line', () => {
-        editor.setSelectedBufferRange([[0, 3], [2, 4]]);
+        editor.setSelectedBufferRange([
+          [0, 3],
+          [2, 4],
+        ]);
         editor.splitSelectionsIntoLines();
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 29]],
-          [[1, 0], [1, 30]],
-          [[2, 0], [2, 4]]
+          [
+            [0, 3],
+            [0, 29],
+          ],
+          [
+            [1, 0],
+            [1, 30],
+          ],
+          [
+            [2, 0],
+            [2, 4],
+          ],
         ]);
 
-        editor.setSelectedBufferRange([[0, 3], [1, 10]]);
+        editor.setSelectedBufferRange([
+          [0, 3],
+          [1, 10],
+        ]);
         editor.splitSelectionsIntoLines();
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 29]],
-          [[1, 0], [1, 10]]
+          [
+            [0, 3],
+            [0, 29],
+          ],
+          [
+            [1, 0],
+            [1, 10],
+          ],
         ]);
 
-        editor.setSelectedBufferRange([[0, 0], [0, 3]]);
+        editor.setSelectedBufferRange([
+          [0, 0],
+          [0, 3],
+        ]);
         editor.splitSelectionsIntoLines();
-        expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [0, 3]]]);
+        expect(editor.getSelectedBufferRanges()).toEqual([
+          [
+            [0, 0],
+            [0, 3],
+          ],
+        ]);
       });
     });
 
     describe('::consolidateSelections()', () => {
       const makeMultipleSelections = () => {
-        selection.setBufferRange([[3, 16], [3, 21]]);
+        selection.setBufferRange([
+          [3, 16],
+          [3, 21],
+        ]);
         const selection2 = editor.addSelectionForBufferRange([
           [3, 25],
-          [3, 34]
+          [3, 34],
         ]);
-        const selection3 = editor.addSelectionForBufferRange([[8, 4], [8, 10]]);
-        const selection4 = editor.addSelectionForBufferRange([[1, 6], [1, 10]]);
+        const selection3 = editor.addSelectionForBufferRange([
+          [8, 4],
+          [8, 10],
+        ]);
+        const selection4 = editor.addSelectionForBufferRange([
+          [1, 6],
+          [1, 10],
+        ]);
         expect(editor.getSelections()).toEqual([
           selection,
           selection2,
           selection3,
-          selection4
+          selection4,
         ]);
         return [selection, selection2, selection3, selection4];
       };
@@ -2748,7 +3545,7 @@ describe('TextEditor', () => {
         const [selection1] = makeMultipleSelections();
 
         const autoscrollEvents = [];
-        editor.onDidRequestAutoscroll(event => autoscrollEvents.push(event));
+        editor.onDidRequestAutoscroll((event) => autoscrollEvents.push(event));
 
         expect(editor.consolidateSelections()).toBeTruthy();
         expect(editor.getSelections()).toEqual([selection1]);
@@ -2759,14 +3556,18 @@ describe('TextEditor', () => {
         expect(autoscrollEvents).toEqual([
           {
             screenRange: selection1.getScreenRange(),
-            options: { center: true, reversed: false }
-          }
+            options: { center: true, reversed: false },
+          },
         ]);
       });
     });
 
     describe('when the cursor is moved while there is a selection', () => {
-      const makeSelection = () => selection.setBufferRange([[1, 2], [1, 5]]);
+      const makeSelection = () =>
+        selection.setBufferRange([
+          [1, 2],
+          [1, 5],
+        ]);
 
       it('clears the selection', () => {
         makeSelection();
@@ -2796,8 +3597,26 @@ describe('TextEditor', () => {
       const editor2 = await atom.workspace.open(editor.getPath());
 
       expect(editor2.getText()).toBe(editor.getText());
-      editor.setSelectedBufferRanges([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]);
-      editor2.setSelectedBufferRanges([[[8, 7], [6, 5]], [[4, 3], [2, 1]]]);
+      editor.setSelectedBufferRanges([
+        [
+          [1, 2],
+          [3, 4],
+        ],
+        [
+          [5, 6],
+          [7, 8],
+        ],
+      ]);
+      editor2.setSelectedBufferRanges([
+        [
+          [8, 7],
+          [6, 5],
+        ],
+        [
+          [4, 3],
+          [2, 1],
+        ],
+      ]);
       expect(editor2.getSelectedBufferRanges()).not.toEqual(
         editor.getSelectedBufferRanges()
       );
@@ -2809,9 +3628,12 @@ describe('TextEditor', () => {
       it('moves the line under the cursor up', () => {
         editor.setCursorBufferPosition([1, 0]);
         editor.moveLineUp();
-        expect(editor.getTextInBufferRange([[0, 0], [0, 30]])).toBe(
-          '  var sort = function(items) {'
-        );
+        expect(
+          editor.getTextInBufferRange([
+            [0, 0],
+            [0, 30],
+          ])
+        ).toBe('  var sort = function(items) {');
         expect(editor.indentationForBufferRow(0)).toBe(1);
         expect(editor.indentationForBufferRow(1)).toBe(0);
       });
@@ -2835,10 +3657,16 @@ describe('TextEditor', () => {
                 '    var pivot = items.shift(), current, left = [], right = [];'
               );
 
-              editor.setSelectedBufferRange([[3, 2], [3, 9]]);
+              editor.setSelectedBufferRange([
+                [3, 2],
+                [3, 9],
+              ]);
               editor.moveLineUp();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [2, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [2, 2],
+                [2, 9],
+              ]);
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '    var pivot = items.shift(), current, left = [], right = [];'
               );
@@ -2854,10 +3682,19 @@ describe('TextEditor', () => {
               );
 
               editor.foldBufferRowRange(4, 7);
-              editor.setSelectedBufferRange([[4, 2], [4, 9]], {
-                preserveFolds: true
-              });
-              expect(editor.getSelectedBufferRange()).toEqual([[4, 2], [4, 9]]);
+              editor.setSelectedBufferRange(
+                [
+                  [4, 2],
+                  [4, 9],
+                ],
+                {
+                  preserveFolds: true,
+                }
+              );
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [4, 2],
+                [4, 9],
+              ]);
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy();
@@ -2867,7 +3704,10 @@ describe('TextEditor', () => {
 
               editor.moveLineUp();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [3, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [3, 2],
+                [3, 9],
+              ]);
               expect(editor.lineTextForBufferRow(3)).toBe(
                 '    while(items.length > 0) {'
               );
@@ -2897,10 +3737,16 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy();
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
-              editor.setSelectedBufferRange([[8, 0], [8, 4]]);
+              editor.setSelectedBufferRange([
+                [8, 0],
+                [8, 4],
+              ]);
               editor.moveLineUp();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [4, 4]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [4, 0],
+                [4, 4],
+              ]);
               expect(editor.lineTextForBufferRow(4)).toBe(
                 '    return sort(left).concat(pivot).concat(sort(right));'
               );
@@ -2927,10 +3773,16 @@ describe('TextEditor', () => {
               '    while(items.length > 0) {'
             );
 
-            editor.setSelectedBufferRange([[3, 2], [4, 9]]);
+            editor.setSelectedBufferRange([
+              [3, 2],
+              [4, 9],
+            ]);
             editor.moveLineUp();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 9]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [2, 2],
+              [3, 9],
+            ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    var pivot = items.shift(), current, left = [], right = [];'
             );
@@ -2949,9 +3801,15 @@ describe('TextEditor', () => {
               );
 
               editor.foldBufferRowRange(4, 7);
-              editor.setSelectedBufferRange([[3, 2], [4, 9]], {
-                preserveFolds: true
-              });
+              editor.setSelectedBufferRange(
+                [
+                  [3, 2],
+                  [4, 9],
+                ],
+                {
+                  preserveFolds: true,
+                }
+              );
 
               expect(editor.isFoldedAtBufferRow(3)).toBeFalsy();
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
@@ -2962,7 +3820,10 @@ describe('TextEditor', () => {
 
               editor.moveLineUp();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [2, 2],
+                [3, 9],
+              ]);
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '    var pivot = items.shift(), current, left = [], right = [];'
               );
@@ -2988,9 +3849,15 @@ describe('TextEditor', () => {
               );
 
               editor.foldBufferRowRange(4, 7);
-              editor.setSelectedBufferRange([[4, 2], [8, 9]], {
-                preserveFolds: true
-              });
+              editor.setSelectedBufferRange(
+                [
+                  [4, 2],
+                  [8, 9],
+                ],
+                {
+                  preserveFolds: true,
+                }
+              );
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy();
@@ -3001,7 +3868,10 @@ describe('TextEditor', () => {
 
               editor.moveLineUp();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [7, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [3, 2],
+                [7, 9],
+              ]);
               expect(editor.lineTextForBufferRow(3)).toBe(
                 '    while(items.length > 0) {'
               );
@@ -3033,10 +3903,16 @@ describe('TextEditor', () => {
               '    while(items.length > 0) {'
             );
 
-            editor.setSelectedBufferRange([[3, 2], [4, 0]]);
+            editor.setSelectedBufferRange([
+              [3, 2],
+              [4, 0],
+            ]);
             editor.moveLineUp();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[2, 2], [3, 0]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [2, 2],
+              [3, 0],
+            ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    var pivot = items.shift(), current, left = [], right = [];'
             );
@@ -3063,10 +3939,16 @@ describe('TextEditor', () => {
             expect(editor.isFoldedAtBufferRow(7)).toBeTruthy();
             expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
-            editor.setSelectedBufferRange([[8, 0], [9, 2]]);
+            editor.setSelectedBufferRange([
+              [8, 0],
+              [9, 2],
+            ]);
             editor.moveLineUp();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [5, 2]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [4, 0],
+              [5, 2],
+            ]);
             expect(editor.lineTextForBufferRow(4)).toBe(
               '    return sort(left).concat(pivot).concat(sort(right));'
             );
@@ -3089,16 +3971,34 @@ describe('TextEditor', () => {
           describe('when there is no folds', () =>
             it('moves all lines that are spanned by a selection to the preceding row', () => {
               editor.setSelectedBufferRanges([
-                [[1, 2], [1, 9]],
-                [[3, 2], [3, 9]],
-                [[5, 2], [5, 9]]
+                [
+                  [1, 2],
+                  [1, 9],
+                ],
+                [
+                  [3, 2],
+                  [3, 9],
+                ],
+                [
+                  [5, 2],
+                  [5, 9],
+                ],
               ]);
               editor.moveLineUp();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[0, 2], [0, 9]],
-                [[2, 2], [2, 9]],
-                [[4, 2], [4, 9]]
+                [
+                  [0, 2],
+                  [0, 9],
+                ],
+                [
+                  [2, 2],
+                  [2, 9],
+                ],
+                [
+                  [4, 2],
+                  [4, 9],
+                ],
               ]);
               expect(editor.lineTextForBufferRow(0)).toBe(
                 '  var sort = function(items) {'
@@ -3128,7 +4028,16 @@ describe('TextEditor', () => {
 
               editor.foldBufferRowRange(4, 7);
               editor.setSelectedBufferRanges(
-                [[[2, 2], [2, 9]], [[4, 2], [4, 9]]],
+                [
+                  [
+                    [2, 2],
+                    [2, 9],
+                  ],
+                  [
+                    [4, 2],
+                    [4, 9],
+                  ],
+                ],
                 { preserveFolds: true }
               );
 
@@ -3144,8 +4053,14 @@ describe('TextEditor', () => {
               editor.moveLineUp();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[1, 2], [1, 9]],
-                [[3, 2], [3, 9]]
+                [
+                  [1, 2],
+                  [1, 9],
+                ],
+                [
+                  [3, 2],
+                  [3, 9],
+                ],
               ]);
 
               expect(editor.lineTextForBufferRow(1)).toBe(
@@ -3182,14 +4097,26 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
               editor.setSelectedBufferRanges([
-                [[8, 0], [8, 3]],
-                [[11, 0], [11, 5]]
+                [
+                  [8, 0],
+                  [8, 3],
+                ],
+                [
+                  [11, 0],
+                  [11, 5],
+                ],
               ]);
               editor.moveLineUp();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[4, 0], [4, 3]],
-                [[10, 0], [10, 5]]
+                [
+                  [4, 0],
+                  [4, 3],
+                ],
+                [
+                  [10, 0],
+                  [10, 5],
+                ],
               ]);
               expect(editor.lineTextForBufferRow(4)).toBe(
                 '    return sort(left).concat(pivot).concat(sort(right));'
@@ -3208,7 +4135,7 @@ describe('TextEditor', () => {
         describe('when there are many folds', () => {
           beforeEach(async () => {
             editor = await atom.workspace.open('sample-with-many-folds.js', {
-              autoIndent: false
+              autoIndent: false,
             });
           });
 
@@ -3218,7 +4145,16 @@ describe('TextEditor', () => {
               editor.foldBufferRowRange(7, 9);
 
               editor.setSelectedBufferRanges(
-                [[[1, 0], [5, 4]], [[7, 0], [7, 4]]],
+                [
+                  [
+                    [1, 0],
+                    [5, 4],
+                  ],
+                  [
+                    [7, 0],
+                    [7, 4],
+                  ],
+                ],
                 { preserveFolds: true }
               );
 
@@ -3245,14 +4181,26 @@ describe('TextEditor', () => {
         describe('when some of the selections span the same lines', () => {
           it('moves lines that contain multiple selections correctly', () => {
             editor.setSelectedBufferRanges([
-              [[3, 2], [3, 9]],
-              [[3, 12], [3, 13]]
+              [
+                [3, 2],
+                [3, 9],
+              ],
+              [
+                [3, 12],
+                [3, 13],
+              ],
             ]);
             editor.moveLineUp();
 
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[2, 2], [2, 9]],
-              [[2, 12], [2, 13]]
+              [
+                [2, 2],
+                [2, 9],
+              ],
+              [
+                [2, 12],
+                [2, 13],
+              ],
             ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    var pivot = items.shift(), current, left = [], right = [];'
@@ -3263,17 +4211,35 @@ describe('TextEditor', () => {
         describe('when one of the selections spans line 0', () => {
           it("doesn't move any lines, since line 0 can't move", () => {
             editor.setSelectedBufferRanges([
-              [[0, 2], [1, 9]],
-              [[2, 2], [2, 9]],
-              [[4, 2], [4, 9]]
+              [
+                [0, 2],
+                [1, 9],
+              ],
+              [
+                [2, 2],
+                [2, 9],
+              ],
+              [
+                [4, 2],
+                [4, 9],
+              ],
             ]);
 
             editor.moveLineUp();
 
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[0, 2], [1, 9]],
-              [[2, 2], [2, 9]],
-              [[4, 2], [4, 9]]
+              [
+                [0, 2],
+                [1, 9],
+              ],
+              [
+                [2, 2],
+                [2, 9],
+              ],
+              [
+                [4, 2],
+                [4, 9],
+              ],
             ]);
             expect(buffer.isModified()).toBe(false);
           });
@@ -3283,17 +4249,35 @@ describe('TextEditor', () => {
           it("doesn't move any lines, since the last line can't move", () => {
             buffer.append('\n');
             editor.setSelectedBufferRanges([
-              [[0, 2], [1, 9]],
-              [[2, 2], [2, 9]],
-              [[13, 0], [13, 0]]
+              [
+                [0, 2],
+                [1, 9],
+              ],
+              [
+                [2, 2],
+                [2, 9],
+              ],
+              [
+                [13, 0],
+                [13, 0],
+              ],
             ]);
 
             editor.moveLineUp();
 
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[0, 2], [1, 9]],
-              [[2, 2], [2, 9]],
-              [[13, 0], [13, 0]]
+              [
+                [0, 2],
+                [1, 9],
+              ],
+              [
+                [2, 2],
+                [2, 9],
+              ],
+              [
+                [13, 0],
+                [13, 0],
+              ],
             ]);
           });
         });
@@ -3304,9 +4288,12 @@ describe('TextEditor', () => {
       it('moves the line under the cursor down', () => {
         editor.setCursorBufferPosition([0, 0]);
         editor.moveLineDown();
-        expect(editor.getTextInBufferRange([[1, 0], [1, 31]])).toBe(
-          'var quicksort = function () {'
-        );
+        expect(
+          editor.getTextInBufferRange([
+            [1, 0],
+            [1, 31],
+          ])
+        ).toBe('var quicksort = function () {');
         expect(editor.indentationForBufferRow(0)).toBe(1);
         expect(editor.indentationForBufferRow(1)).toBe(0);
       });
@@ -3330,10 +4317,16 @@ describe('TextEditor', () => {
                 '    var pivot = items.shift(), current, left = [], right = [];'
               );
 
-              editor.setSelectedBufferRange([[2, 2], [2, 9]]);
+              editor.setSelectedBufferRange([
+                [2, 2],
+                [2, 9],
+              ]);
               editor.moveLineDown();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [3, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [3, 2],
+                [3, 9],
+              ]);
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '    var pivot = items.shift(), current, left = [], right = [];'
               );
@@ -3349,9 +4342,15 @@ describe('TextEditor', () => {
               );
 
               editor.foldBufferRowRange(4, 7);
-              editor.setSelectedBufferRange([[4, 2], [4, 9]], {
-                preserveFolds: true
-              });
+              editor.setSelectedBufferRange(
+                [
+                  [4, 2],
+                  [4, 9],
+                ],
+                {
+                  preserveFolds: true,
+                }
+              );
 
               expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
               expect(editor.isFoldedAtBufferRow(5)).toBeTruthy();
@@ -3361,7 +4360,10 @@ describe('TextEditor', () => {
 
               editor.moveLineDown();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[5, 2], [5, 9]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [5, 2],
+                [5, 9],
+              ]);
               expect(editor.lineTextForBufferRow(4)).toBe(
                 '    return sort(left).concat(pivot).concat(sort(right));'
               );
@@ -3393,10 +4395,16 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(7)).toBeTruthy();
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
-              editor.setSelectedBufferRange([[3, 0], [3, 4]]);
+              editor.setSelectedBufferRange([
+                [3, 0],
+                [3, 4],
+              ]);
               editor.moveLineDown();
 
-              expect(editor.getSelectedBufferRange()).toEqual([[7, 0], [7, 4]]);
+              expect(editor.getSelectedBufferRange()).toEqual([
+                [7, 0],
+                [7, 4],
+              ]);
               expect(editor.lineTextForBufferRow(3)).toBe(
                 '    while(items.length > 0) {'
               );
@@ -3424,10 +4432,16 @@ describe('TextEditor', () => {
               '    while(items.length > 0) {'
             );
 
-            editor.setSelectedBufferRange([[2, 2], [3, 9]]);
+            editor.setSelectedBufferRange([
+              [2, 2],
+              [3, 9],
+            ]);
             editor.moveLineDown();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [4, 9]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [3, 2],
+              [4, 9],
+            ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    while(items.length > 0) {'
             );
@@ -3452,10 +4466,16 @@ describe('TextEditor', () => {
               '    while(items.length > 0) {'
             );
 
-            editor.setSelectedBufferRange([[2, 2], [3, 0]]);
+            editor.setSelectedBufferRange([
+              [2, 2],
+              [3, 0],
+            ]);
             editor.moveLineDown();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[3, 2], [4, 0]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [3, 2],
+              [4, 0],
+            ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    var pivot = items.shift(), current, left = [], right = [];'
             );
@@ -3475,9 +4495,15 @@ describe('TextEditor', () => {
             );
 
             editor.foldBufferRowRange(4, 7);
-            editor.setSelectedBufferRange([[3, 2], [4, 9]], {
-              preserveFolds: true
-            });
+            editor.setSelectedBufferRange(
+              [
+                [3, 2],
+                [4, 9],
+              ],
+              {
+                preserveFolds: true,
+              }
+            );
 
             expect(editor.isFoldedAtBufferRow(3)).toBeFalsy();
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
@@ -3488,7 +4514,10 @@ describe('TextEditor', () => {
 
             editor.moveLineDown();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[4, 2], [5, 9]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [4, 2],
+              [5, 9],
+            ]);
             expect(editor.lineTextForBufferRow(3)).toBe(
               '    return sort(left).concat(pivot).concat(sort(right));'
             );
@@ -3515,9 +4544,15 @@ describe('TextEditor', () => {
             );
 
             editor.foldBufferRowRange(4, 7);
-            editor.setSelectedBufferRange([[4, 2], [8, 9]], {
-              preserveFolds: true
-            });
+            editor.setSelectedBufferRange(
+              [
+                [4, 2],
+                [8, 9],
+              ],
+              {
+                preserveFolds: true,
+              }
+            );
 
             expect(editor.isFoldedAtBufferRow(4)).toBeTruthy();
             expect(editor.isFoldedAtBufferRow(5)).toBeTruthy();
@@ -3528,7 +4563,10 @@ describe('TextEditor', () => {
 
             editor.moveLineDown();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[5, 2], [9, 9]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [5, 2],
+              [9, 9],
+            ]);
             expect(editor.lineTextForBufferRow(4)).toBe('  };');
             expect(editor.lineTextForBufferRow(5)).toBe(
               '    while(items.length > 0) {'
@@ -3563,10 +4601,16 @@ describe('TextEditor', () => {
             expect(editor.isFoldedAtBufferRow(7)).toBeTruthy();
             expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
-            editor.setSelectedBufferRange([[2, 0], [3, 2]]);
+            editor.setSelectedBufferRange([
+              [2, 0],
+              [3, 2],
+            ]);
             editor.moveLineDown();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[6, 0], [7, 2]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [6, 0],
+              [7, 2],
+            ]);
             expect(editor.lineTextForBufferRow(2)).toBe(
               '    while(items.length > 0) {'
             );
@@ -3591,10 +4635,16 @@ describe('TextEditor', () => {
             );
             expect(editor.lineTextForBufferRow(12)).toBe('};');
 
-            editor.setSelectedBufferRange([[10, 0], [12, 2]]);
+            editor.setSelectedBufferRange([
+              [10, 0],
+              [12, 2],
+            ]);
             editor.moveLineUp();
 
-            expect(editor.getSelectedBufferRange()).toEqual([[9, 0], [11, 2]]);
+            expect(editor.getSelectedBufferRange()).toEqual([
+              [9, 0],
+              [11, 2],
+            ]);
             expect(editor.lineTextForBufferRow(9)).toBe('');
             expect(editor.lineTextForBufferRow(10)).toBe(
               '  return sort(Array.apply(this, arguments));'
@@ -3610,16 +4660,34 @@ describe('TextEditor', () => {
           describe('when there is no folds', () =>
             it('moves all lines that are spanned by a selection to the following row', () => {
               editor.setSelectedBufferRanges([
-                [[1, 2], [1, 9]],
-                [[3, 2], [3, 9]],
-                [[5, 2], [5, 9]]
+                [
+                  [1, 2],
+                  [1, 9],
+                ],
+                [
+                  [3, 2],
+                  [3, 9],
+                ],
+                [
+                  [5, 2],
+                  [5, 9],
+                ],
               ]);
               editor.moveLineDown();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[6, 2], [6, 9]],
-                [[4, 2], [4, 9]],
-                [[2, 2], [2, 9]]
+                [
+                  [6, 2],
+                  [6, 9],
+                ],
+                [
+                  [4, 2],
+                  [4, 9],
+                ],
+                [
+                  [2, 2],
+                  [2, 9],
+                ],
               ]);
               expect(editor.lineTextForBufferRow(1)).toBe(
                 '    if (items.length <= 1) return items;'
@@ -3644,7 +4712,7 @@ describe('TextEditor', () => {
           describe('when there are many folds', () => {
             beforeEach(async () => {
               editor = await atom.workspace.open('sample-with-many-folds.js', {
-                autoIndent: false
+                autoIndent: false,
               });
             });
 
@@ -3654,7 +4722,16 @@ describe('TextEditor', () => {
                 editor.foldBufferRowRange(7, 9);
 
                 editor.setSelectedBufferRanges(
-                  [[[2, 0], [2, 4]], [[6, 0], [10, 4]]],
+                  [
+                    [
+                      [2, 0],
+                      [2, 4],
+                    ],
+                    [
+                      [6, 0],
+                      [10, 4],
+                    ],
+                  ],
                   { preserveFolds: true }
                 );
 
@@ -3695,16 +4772,34 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
               editor.setSelectedBufferRanges([
-                [[1, 2], [1, 6]],
-                [[3, 0], [3, 4]],
-                [[8, 0], [8, 3]]
+                [
+                  [1, 2],
+                  [1, 6],
+                ],
+                [
+                  [3, 0],
+                  [3, 4],
+                ],
+                [
+                  [8, 0],
+                  [8, 3],
+                ],
               ]);
               editor.moveLineDown();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[9, 0], [9, 3]],
-                [[7, 0], [7, 4]],
-                [[2, 2], [2, 6]]
+                [
+                  [9, 0],
+                  [9, 3],
+                ],
+                [
+                  [7, 0],
+                  [7, 4],
+                ],
+                [
+                  [2, 2],
+                  [2, 6],
+                ],
               ]);
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '  var sort = function(items) {'
@@ -3733,14 +4828,26 @@ describe('TextEditor', () => {
               expect(editor.isFoldedAtBufferRow(8)).toBeFalsy();
 
               editor.setSelectedBufferRanges([
-                [[2, 2], [2, 6]],
-                [[3, 0], [3, 4]]
+                [
+                  [2, 2],
+                  [2, 6],
+                ],
+                [
+                  [3, 0],
+                  [3, 4],
+                ],
               ]);
               editor.moveLineDown();
 
               expect(editor.getSelectedBufferRanges()).toEqual([
-                [[7, 0], [7, 4]],
-                [[6, 2], [6, 6]]
+                [
+                  [7, 0],
+                  [7, 4],
+                ],
+                [
+                  [6, 2],
+                  [6, 6],
+                ],
               ]);
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '    while(items.length > 0) {'
@@ -3767,7 +4874,16 @@ describe('TextEditor', () => {
 
             editor.foldBufferRowRange(4, 7);
             editor.setSelectedBufferRanges(
-              [[[2, 2], [2, 9]], [[4, 2], [4, 9]]],
+              [
+                [
+                  [2, 2],
+                  [2, 9],
+                ],
+                [
+                  [4, 2],
+                  [4, 9],
+                ],
+              ],
               { preserveFolds: true }
             );
 
@@ -3783,8 +4899,14 @@ describe('TextEditor', () => {
             editor.moveLineDown();
 
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[5, 2], [5, 9]],
-              [[3, 2], [3, 9]]
+              [
+                [5, 2],
+                [5, 9],
+              ],
+              [
+                [3, 2],
+                [3, 9],
+              ],
             ]);
 
             expect(editor.lineTextForBufferRow(2)).toBe(
@@ -3816,14 +4938,26 @@ describe('TextEditor', () => {
         describe('when some of the selections span the same lines', () => {
           it('moves lines that contain multiple selections correctly', () => {
             editor.setSelectedBufferRanges([
-              [[3, 2], [3, 9]],
-              [[3, 12], [3, 13]]
+              [
+                [3, 2],
+                [3, 9],
+              ],
+              [
+                [3, 12],
+                [3, 13],
+              ],
             ]);
             editor.moveLineDown();
 
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[4, 12], [4, 13]],
-              [[4, 2], [4, 9]]
+              [
+                [4, 12],
+                [4, 13],
+              ],
+              [
+                [4, 2],
+                [4, 9],
+              ],
             ]);
             expect(editor.lineTextForBufferRow(3)).toBe(
               '    while(items.length > 0) {'
@@ -3846,8 +4980,14 @@ describe('TextEditor', () => {
 
           it('moves the lines past the soft wrapped line', () => {
             editor.setSelectedBufferRanges([
-              [[0, 0], [0, 0]],
-              [[1, 0], [1, 0]]
+              [
+                [0, 0],
+                [0, 0],
+              ],
+              [
+                [1, 0],
+                [1, 0],
+              ],
             ]);
 
             editor.moveLineDown();
@@ -3871,11 +5011,21 @@ describe('TextEditor', () => {
 
     describe('.insertText(text)', () => {
       describe('when there is a single selection', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[1, 0], [1, 2]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [1, 0],
+            [1, 2],
+          ])
+        );
 
         it('replaces the selection with the given text', () => {
           const range = editor.insertText('xxx');
-          expect(range).toEqual([[[1, 0], [1, 3]]]);
+          expect(range).toEqual([
+            [
+              [1, 0],
+              [1, 3],
+            ],
+          ]);
           expect(buffer.lineForRow(1)).toBe('xxxvar sort = function(items) {');
         });
       });
@@ -3923,8 +5073,14 @@ describe('TextEditor', () => {
         describe('when the selections are on the same line', () => {
           it('replaces each selection range with the inserted characters', () => {
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[0, 22], [0, 24]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [0, 22],
+                [0, 24],
+              ],
             ]);
             editor.insertText('x');
 
@@ -3943,8 +5099,14 @@ describe('TextEditor', () => {
         describe('when the selections are on different lines', () => {
           it("replaces each selection with the given text, clears the selections, and places the cursor at the end of each selection's inserted text", () => {
             editor.setSelectedBufferRanges([
-              [[1, 0], [1, 2]],
-              [[2, 0], [2, 4]]
+              [
+                [1, 0],
+                [1, 2],
+              ],
+              [
+                [2, 0],
+                [2, 4],
+              ],
             ]);
 
             editor.insertText('xxx');
@@ -3968,14 +5130,22 @@ describe('TextEditor', () => {
       describe('when there is a selection that ends on a folded line', () => {
         it('destroys the selection', () => {
           editor.foldBufferRowRange(2, 4);
-          editor.setSelectedBufferRange([[1, 0], [2, 0]]);
+          editor.setSelectedBufferRange([
+            [1, 0],
+            [2, 0],
+          ]);
           editor.insertText('holy cow');
           expect(editor.isFoldedAtScreenRow(2)).toBeFalsy();
         });
       });
 
       describe('when there are ::onWillInsertText and ::onDidInsertText observers', () => {
-        beforeEach(() => editor.setSelectedBufferRange([[1, 0], [1, 2]]));
+        beforeEach(() =>
+          editor.setSelectedBufferRange([
+            [1, 0],
+            [1, 2],
+          ])
+        );
 
         it('notifies the observers when inserting text', () => {
           const willInsertSpy = jasmine
@@ -4031,7 +5201,16 @@ describe('TextEditor', () => {
 
       describe("when the undo option is set to 'skip'", () => {
         it('groups the change with the previous change for purposes of undo and redo', () => {
-          editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 0]]]);
+          editor.setSelectedBufferRanges([
+            [
+              [0, 0],
+              [0, 0],
+            ],
+            [
+              [1, 0],
+              [1, 0],
+            ],
+          ]);
           editor.insertText('x');
           editor.insertText('y', { undo: 'skip' });
           editor.undo();
@@ -4052,7 +5231,7 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(1)).toBe('');
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 2,
-              column: 0
+              column: 0,
             });
           });
         });
@@ -4070,7 +5249,7 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(3)).toBe(lineBelowOriginalLine);
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 2,
-              column: 0
+              column: 0,
             });
           });
         });
@@ -4079,7 +5258,7 @@ describe('TextEditor', () => {
           it('inserts an empty line after it', () => {
             editor.setCursorScreenPosition({
               row: 1,
-              column: buffer.lineForRow(1).length
+              column: buffer.lineForRow(1).length,
             });
 
             editor.insertNewline();
@@ -4087,7 +5266,7 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(2)).toBe('');
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 2,
-              column: 0
+              column: 0,
             });
           });
         });
@@ -4311,7 +5490,7 @@ describe('TextEditor', () => {
             expect(line).toBe('  var ort = function(items) {');
             expect(editor.getCursorScreenPosition()).toEqual({
               row: 1,
-              column: 6
+              column: 6,
             });
             expect(changeScreenRangeHandler).toHaveBeenCalled();
           });
@@ -4334,7 +5513,7 @@ describe('TextEditor', () => {
             expect(line1).toBe('    if (items.length <= 1) return items;');
             expect(editor.getCursorScreenPosition()).toEqual([
               0,
-              originalLine0.length
+              originalLine0.length,
             ]);
 
             expect(changeScreenRangeHandler).toHaveBeenCalled();
@@ -4350,7 +5529,10 @@ describe('TextEditor', () => {
 
         describe('when the cursor is after a fold', () => {
           it('deletes the folded range', () => {
-            editor.foldBufferRange([[4, 7], [5, 8]]);
+            editor.foldBufferRange([
+              [4, 7],
+              [5, 8],
+            ]);
             editor.setCursorBufferPosition([5, 8]);
             editor.backspace();
 
@@ -4459,14 +5641,20 @@ describe('TextEditor', () => {
 
       describe('when there is a single selection', () => {
         it('deletes the selection, but not the character before it', () => {
-          editor.setSelectedBufferRange([[0, 5], [0, 9]]);
+          editor.setSelectedBufferRange([
+            [0, 5],
+            [0, 9],
+          ]);
           editor.backspace();
           expect(editor.buffer.lineForRow(0)).toBe('var qsort = function () {');
         });
 
         describe('when the selection ends on a folded line', () => {
           it('preserves the fold', () => {
-            editor.setSelectedBufferRange([[3, 0], [4, 0]]);
+            editor.setSelectedBufferRange([
+              [3, 0],
+              [4, 0],
+            ]);
             editor.foldBufferRow(4);
             editor.backspace();
 
@@ -4479,8 +5667,14 @@ describe('TextEditor', () => {
       describe('when there are multiple selections', () => {
         it('removes all selected text', () => {
           editor.setSelectedBufferRanges([
-            [[0, 4], [0, 13]],
-            [[0, 16], [0, 24]]
+            [
+              [0, 4],
+              [0, 13],
+            ],
+            [
+              [0, 16],
+              [0, 24],
+            ],
           ]);
           editor.backspace();
           expect(editor.lineTextForBufferRow(0)).toBe('var  =  () {');
@@ -4511,7 +5705,10 @@ describe('TextEditor', () => {
 
       describe('when text is selected', () => {
         it('deletes only selected text', () => {
-          editor.setSelectedBufferRange([[1, 24], [1, 27]]);
+          editor.setSelectedBufferRange([
+            [1, 24],
+            [1, 27],
+          ]);
           editor.deleteToPreviousWordBoundary();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
         });
@@ -4547,7 +5744,10 @@ describe('TextEditor', () => {
 
       describe('when text is selected', () => {
         it('deletes only selected text', () => {
-          editor.setSelectedBufferRange([[1, 24], [1, 27]]);
+          editor.setSelectedBufferRange([
+            [1, 24],
+            [1, 27],
+          ]);
           editor.deleteToNextWordBoundary();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
         });
@@ -4595,8 +5795,14 @@ describe('TextEditor', () => {
       describe('when text is selected', () => {
         it('deletes only selected text', () => {
           editor.setSelectedBufferRanges([
-            [[1, 24], [1, 27]],
-            [[2, 0], [2, 4]]
+            [
+              [1, 24],
+              [1, 27],
+            ],
+            [
+              [2, 0],
+              [2, 4],
+            ],
           ]);
           editor.deleteToBeginningOfWord();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
@@ -4635,8 +5841,14 @@ describe('TextEditor', () => {
       describe('when text is selected', () => {
         it('deletes only the text in the selection', () => {
           editor.setSelectedBufferRanges([
-            [[1, 24], [1, 27]],
-            [[2, 0], [2, 4]]
+            [
+              [1, 24],
+              [1, 27],
+            ],
+            [
+              [2, 0],
+              [2, 4],
+            ],
           ]);
           editor.deleteToEndOfLine();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
@@ -4677,8 +5889,14 @@ describe('TextEditor', () => {
       describe('when text is selected', () => {
         it('still deletes all text to beginning of the line', () => {
           editor.setSelectedBufferRanges([
-            [[1, 24], [1, 27]],
-            [[2, 0], [2, 4]]
+            [
+              [1, 24],
+              [1, 27],
+            ],
+            [
+              [2, 0],
+              [2, 4],
+            ],
           ]);
           editor.deleteToBeginningOfLine();
           expect(buffer.lineForRow(1)).toBe('ems) {');
@@ -4719,7 +5937,10 @@ describe('TextEditor', () => {
 
         describe('when the cursor is before a fold', () => {
           it('only deletes the lines inside the fold', () => {
-            editor.foldBufferRange([[3, 6], [4, 8]]);
+            editor.foldBufferRange([
+              [3, 6],
+              [4, 8],
+            ]);
             editor.setCursorScreenPosition([3, 6]);
             const cursorPositionBefore = editor.getCursorScreenPosition();
 
@@ -4749,7 +5970,10 @@ describe('TextEditor', () => {
 
         describe('when the cursor is inside a fold', () => {
           it('removes the folded content after the cursor', () => {
-            editor.foldBufferRange([[2, 6], [6, 21]]);
+            editor.foldBufferRange([
+              [2, 6],
+              [6, 21],
+            ]);
             editor.setCursorBufferPosition([4, 9]);
 
             editor.delete();
@@ -4836,8 +6060,14 @@ describe('TextEditor', () => {
       describe('when there is a single selection', () => {
         it('deletes the selection, but not the character following it', () => {
           editor.setSelectedBufferRanges([
-            [[1, 24], [1, 27]],
-            [[2, 0], [2, 4]]
+            [
+              [1, 24],
+              [1, 27],
+            ],
+            [
+              [2, 0],
+              [2, 4],
+            ],
           ]);
           editor.delete();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
@@ -4852,8 +6082,14 @@ describe('TextEditor', () => {
         describe('when selections are on the same line', () => {
           it('removes all selected text', () => {
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[0, 16], [0, 24]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [0, 16],
+                [0, 24],
+              ],
             ]);
             editor.delete();
             expect(editor.lineTextForBufferRow(0)).toBe('var  =  () {');
@@ -4888,7 +6124,10 @@ describe('TextEditor', () => {
 
       describe('when text is selected', () => {
         it('deletes only selected text', () => {
-          editor.setSelectedBufferRange([[1, 24], [1, 27]]);
+          editor.setSelectedBufferRange([
+            [1, 24],
+            [1, 27],
+          ]);
           editor.deleteToEndOfWord();
           expect(buffer.lineForRow(1)).toBe('  var sort = function(it) {');
         });
@@ -5010,7 +6249,10 @@ describe('TextEditor', () => {
 
       describe('when the selection is not empty', () => {
         it('indents the selected lines', () => {
-          editor.setSelectedBufferRange([[0, 0], [10, 0]]);
+          editor.setSelectedBufferRange([
+            [0, 0],
+            [10, 0],
+          ]);
           const selection = editor.getLastSelection();
           spyOn(selection, 'indentSelectedRows');
           editor.indent();
@@ -5027,7 +6269,7 @@ describe('TextEditor', () => {
           expect(editor.getCursorBufferPosition()).toEqual([0, 1]);
           expect(editor.getCursorScreenPosition()).toEqual([
             0,
-            editor.getTabLength()
+            editor.getTabLength(),
           ]);
 
           editor.indent();
@@ -5035,7 +6277,7 @@ describe('TextEditor', () => {
           expect(editor.getCursorBufferPosition()).toEqual([0, 2]);
           expect(editor.getCursorScreenPosition()).toEqual([
             0,
-            editor.getTabLength() * 2
+            editor.getTabLength() * 2,
           ]);
         });
       });
@@ -5045,8 +6287,14 @@ describe('TextEditor', () => {
       describe('.cutSelectedText()', () => {
         it('removes the selected text from the buffer and places it on the clipboard', () => {
           editor.setSelectedBufferRanges([
-            [[0, 4], [0, 13]],
-            [[1, 6], [1, 10]]
+            [
+              [0, 4],
+              [0, 13],
+            ],
+            [
+              [1, 6],
+              [1, 10],
+            ],
           ]);
           editor.cutSelectedText();
           expect(buffer.lineForRow(0)).toBe('var  = function () {');
@@ -5056,7 +6304,16 @@ describe('TextEditor', () => {
 
         describe('when no text is selected', () => {
           beforeEach(() =>
-            editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[5, 0], [5, 0]]])
+            editor.setSelectedBufferRanges([
+              [
+                [0, 0],
+                [0, 0],
+              ],
+              [
+                [5, 0],
+                [5, 0],
+              ],
+            ])
           );
 
           it('cuts the lines on which there are cursors', () => {
@@ -5073,7 +6330,7 @@ describe('TextEditor', () => {
                 'var quicksort = function () {',
                 '',
                 '      current = items.shift();',
-                ''
+                '',
               ].join('\n')
             );
           });
@@ -5082,9 +6339,18 @@ describe('TextEditor', () => {
         describe('when many selections get added in shuffle order', () => {
           it('cuts them in order', () => {
             editor.setSelectedBufferRanges([
-              [[2, 8], [2, 13]],
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]]
+              [
+                [2, 8],
+                [2, 13],
+              ],
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
             ]);
             editor.cutSelectedText();
             expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`);
@@ -5122,8 +6388,14 @@ describe('TextEditor', () => {
           describe('when text is selected', () =>
             it('only cuts the selected text, not to the end of the line', () => {
               editor.setSelectedBufferRanges([
-                [[2, 20], [2, 30]],
-                [[3, 20], [3, 20]]
+                [
+                  [2, 20],
+                  [2, 30],
+                ],
+                [
+                  [3, 20],
+                  [3, 20],
+                ],
               ]);
               editor.cutToEndOfLine();
               expect(buffer.lineForRow(2)).toBe(
@@ -5159,8 +6431,14 @@ describe('TextEditor', () => {
         describe('when text is selected', () => {
           it('only cuts the selected text, not to the end of the buffer line', () => {
             editor.setSelectedBufferRanges([
-              [[2, 20], [2, 30]],
-              [[3, 20], [3, 20]]
+              [
+                [2, 20],
+                [2, 30],
+              ],
+              [
+                [3, 20],
+                [3, 20],
+              ],
             ]);
             editor.cutToEndOfBufferLine();
             expect(buffer.lineForRow(2)).toBe('    if (items.lengthurn items;');
@@ -5175,9 +6453,18 @@ describe('TextEditor', () => {
       describe('.copySelectedText()', () => {
         it('copies selected text onto the clipboard', () => {
           editor.setSelectedBufferRanges([
-            [[0, 4], [0, 13]],
-            [[1, 6], [1, 10]],
-            [[2, 8], [2, 13]]
+            [
+              [0, 4],
+              [0, 13],
+            ],
+            [
+              [1, 6],
+              [1, 10],
+            ],
+            [
+              [2, 8],
+              [2, 13],
+            ],
           ]);
           editor.copySelectedText();
 
@@ -5193,8 +6480,14 @@ describe('TextEditor', () => {
         describe('when no text is selected', () => {
           beforeEach(() => {
             editor.setSelectedBufferRanges([
-              [[1, 5], [1, 5]],
-              [[5, 8], [5, 8]]
+              [
+                [1, 5],
+                [1, 5],
+              ],
+              [
+                [5, 8],
+                [5, 8],
+              ],
             ]);
           });
 
@@ -5203,12 +6496,18 @@ describe('TextEditor', () => {
             expect(atom.clipboard.read()).toEqual(
               [
                 '  var sort = function(items) {\n',
-                '      current = items.shift();\n'
+                '      current = items.shift();\n',
               ].join('\n')
             );
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[1, 5], [1, 5]],
-              [[5, 8], [5, 8]]
+              [
+                [1, 5],
+                [1, 5],
+              ],
+              [
+                [5, 8],
+                [5, 8],
+              ],
             ]);
           });
         });
@@ -5216,9 +6515,18 @@ describe('TextEditor', () => {
         describe('when many selections get added in shuffle order', () => {
           it('copies them in order', () => {
             editor.setSelectedBufferRanges([
-              [[2, 8], [2, 13]],
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]]
+              [
+                [2, 8],
+                [2, 13],
+              ],
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
             ]);
             editor.copySelectedText();
             expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`);
@@ -5230,9 +6538,18 @@ describe('TextEditor', () => {
         describe('when thee are multiple selections', () => {
           it('copies selected text onto the clipboard', () => {
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]],
-              [[2, 8], [2, 13]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
+              [
+                [2, 8],
+                [2, 13],
+              ],
             ]);
 
             editor.copyOnlySelectedText();
@@ -5258,8 +6575,14 @@ describe('TextEditor', () => {
       describe('.pasteText()', () => {
         it('pastes text into the buffer', () => {
           editor.setSelectedBufferRanges([
-            [[0, 4], [0, 13]],
-            [[1, 6], [1, 10]]
+            [
+              [0, 4],
+              [0, 13],
+            ],
+            [
+              [1, 6],
+              [1, 10],
+            ],
           ]);
           atom.clipboard.write('first');
           editor.pasteText();
@@ -5273,7 +6596,7 @@ describe('TextEditor', () => {
 
         it('notifies ::onWillInsertText observers', () => {
           const insertedStrings = [];
-          editor.onWillInsertText(function({ text, cancel }) {
+          editor.onWillInsertText(function ({ text, cancel }) {
             insertedStrings.push(text);
             cancel();
           });
@@ -5302,7 +6625,7 @@ describe('TextEditor', () => {
           describe('when pasting multiple lines before any non-whitespace characters', () => {
             it('auto-indents the lines spanned by the pasted text, based on the first pasted line', () => {
               atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {
-                indentBasis: 0
+                indentBasis: 0,
               });
               editor.setCursorBufferPosition([5, 0]);
               editor.pasteText();
@@ -5323,7 +6646,7 @@ describe('TextEditor', () => {
               expect(editor.indentationForBufferRow(5)).toBe(3);
 
               atom.clipboard.write('/**\n\t * testing\n\t * indent\n\t **/\n', {
-                indentBasis: 1
+                indentBasis: 1,
               });
               editor.setCursorBufferPosition([5, 0]);
               editor.pasteText();
@@ -5339,7 +6662,7 @@ describe('TextEditor', () => {
           describe('when pasting line(s) above a line that matches the decreaseIndentPattern', () =>
             it('auto-indents based on the pasted line(s) only', () => {
               atom.clipboard.write('a(x);\n  b(x);\n    c(x);\n', {
-                indentBasis: 0
+                indentBasis: 0,
               });
               editor.setCursorBufferPosition([7, 0]);
               editor.pasteText();
@@ -5388,7 +6711,10 @@ describe('TextEditor', () => {
 
           describe('when the cursor is indented further than the original copied text', () =>
             it('increases the indentation of the copied lines to match', () => {
-              editor.setSelectedBufferRange([[1, 2], [3, 0]]);
+              editor.setSelectedBufferRange([
+                [1, 2],
+                [3, 0],
+              ]);
               editor.copySelectedText();
 
               editor.setCursorBufferPosition([5, 6]);
@@ -5404,7 +6730,10 @@ describe('TextEditor', () => {
 
           describe('when the cursor is indented less far than the original copied text', () =>
             it('decreases the indentation of the copied lines to match', () => {
-              editor.setSelectedBufferRange([[6, 6], [8, 0]]);
+              editor.setSelectedBufferRange([
+                [6, 6],
+                [8, 0],
+              ]);
               editor.copySelectedText();
 
               editor.setCursorBufferPosition([1, 2]);
@@ -5418,7 +6747,10 @@ describe('TextEditor', () => {
 
           describe('when the first copied line has leading whitespace', () =>
             it("preserves the line's leading whitespace", () => {
-              editor.setSelectedBufferRange([[4, 0], [6, 0]]);
+              editor.setSelectedBufferRange([
+                [4, 0],
+                [6, 0],
+              ]);
               editor.copySelectedText();
 
               editor.setCursorBufferPosition([0, 0]);
@@ -5437,16 +6769,28 @@ describe('TextEditor', () => {
           beforeEach(() => {
             editor.update({ autoIndentOnPaste: false });
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
             ]);
             editor.copySelectedText();
           });
 
           it('pastes each selection in order separately into the buffer', () => {
             editor.setSelectedBufferRanges([
-              [[1, 6], [1, 10]],
-              [[0, 4], [0, 13]]
+              [
+                [1, 6],
+                [1, 10],
+              ],
+              [
+                [0, 4],
+                [0, 13],
+              ],
             ]);
 
             editor.moveRight();
@@ -5462,7 +6806,12 @@ describe('TextEditor', () => {
 
           describe('and the selections count does not match', () => {
             beforeEach(() =>
-              editor.setSelectedBufferRanges([[[0, 4], [0, 13]]])
+              editor.setSelectedBufferRanges([
+                [
+                  [0, 4],
+                  [0, 13],
+                ],
+              ])
             );
 
             it('pastes the whole text into the buffer', () => {
@@ -5502,7 +6851,10 @@ describe('TextEditor', () => {
 
           describe('when there is a selection', () =>
             it('overwrites the selection as with any copied text', () => {
-              editor.setSelectedBufferRange([[1, 2], [1, Infinity]]);
+              editor.setSelectedBufferRange([
+                [1, 2],
+                [1, Infinity],
+              ]);
               editor.pasteText();
               expect(editor.lineTextForBufferRow(1)).toBe(
                 '  if (items.length <= 1) return items;'
@@ -5535,7 +6887,7 @@ describe('TextEditor', () => {
           editor.pasteText({
             autoIndent: false,
             preserveTrailingLineIndentation: true,
-            normalizeLineEndings: false
+            normalizeLineEndings: false,
           });
 
           expect(editor.lineTextForBufferRow(5)).toBe('  a(x);');
@@ -5553,14 +6905,17 @@ describe('TextEditor', () => {
       describe('when nothing is selected', () => {
         describe('when softTabs is enabled', () => {
           it('indents line and retains selection', () => {
-            editor.setSelectedBufferRange([[0, 3], [0, 3]]);
+            editor.setSelectedBufferRange([
+              [0, 3],
+              [0, 3],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(0)).toBe(
               '  var quicksort = function () {'
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [0, 3 + editor.getTabLength()],
-              [0, 3 + editor.getTabLength()]
+              [0, 3 + editor.getTabLength()],
             ]);
           });
         });
@@ -5569,14 +6924,17 @@ describe('TextEditor', () => {
           it('indents line and retains selection', () => {
             convertToHardTabs(buffer);
             editor.setSoftTabs(false);
-            editor.setSelectedBufferRange([[0, 3], [0, 3]]);
+            editor.setSelectedBufferRange([
+              [0, 3],
+              [0, 3],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(0)).toBe(
               '\tvar quicksort = function () {'
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [0, 3 + 1],
-              [0, 3 + 1]
+              [0, 3 + 1],
             ]);
           });
         });
@@ -5585,14 +6943,17 @@ describe('TextEditor', () => {
       describe('when one line is selected', () => {
         describe('when softTabs is enabled', () => {
           it('indents line and retains selection', () => {
-            editor.setSelectedBufferRange([[0, 4], [0, 14]]);
+            editor.setSelectedBufferRange([
+              [0, 4],
+              [0, 14],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(0)).toBe(
               `${editor.getTabText()}var quicksort = function () {`
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [0, 4 + editor.getTabLength()],
-              [0, 14 + editor.getTabLength()]
+              [0, 14 + editor.getTabLength()],
             ]);
           });
         });
@@ -5601,14 +6962,17 @@ describe('TextEditor', () => {
           it('indents line and retains selection', () => {
             convertToHardTabs(buffer);
             editor.setSoftTabs(false);
-            editor.setSelectedBufferRange([[0, 4], [0, 14]]);
+            editor.setSelectedBufferRange([
+              [0, 4],
+              [0, 14],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(0)).toBe(
               '\tvar quicksort = function () {'
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [0, 4 + 1],
-              [0, 14 + 1]
+              [0, 14 + 1],
             ]);
           });
         });
@@ -5617,7 +6981,10 @@ describe('TextEditor', () => {
       describe('when multiple lines are selected', () => {
         describe('when softTabs is enabled', () => {
           it('indents selected lines (that are not empty) and retains selection', () => {
-            editor.setSelectedBufferRange([[9, 1], [11, 15]]);
+            editor.setSelectedBufferRange([
+              [9, 1],
+              [11, 15],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(9)).toBe('    };');
             expect(buffer.lineForRow(10)).toBe('');
@@ -5626,12 +6993,15 @@ describe('TextEditor', () => {
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [9, 1 + editor.getTabLength()],
-              [11, 15 + editor.getTabLength()]
+              [11, 15 + editor.getTabLength()],
             ]);
           });
 
           it('does not indent the last row if the selection ends at column 0', () => {
-            editor.setSelectedBufferRange([[9, 1], [11, 0]]);
+            editor.setSelectedBufferRange([
+              [9, 1],
+              [11, 0],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(9)).toBe('    };');
             expect(buffer.lineForRow(10)).toBe('');
@@ -5640,7 +7010,7 @@ describe('TextEditor', () => {
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [9, 1 + editor.getTabLength()],
-              [11, 0]
+              [11, 0],
             ]);
           });
         });
@@ -5649,7 +7019,10 @@ describe('TextEditor', () => {
           it('indents selected lines (that are not empty) and retains selection', () => {
             convertToHardTabs(buffer);
             editor.setSoftTabs(false);
-            editor.setSelectedBufferRange([[9, 1], [11, 15]]);
+            editor.setSelectedBufferRange([
+              [9, 1],
+              [11, 15],
+            ]);
             editor.indentSelectedRows();
             expect(buffer.lineForRow(9)).toBe('\t\t};');
             expect(buffer.lineForRow(10)).toBe('');
@@ -5658,7 +7031,7 @@ describe('TextEditor', () => {
             );
             expect(editor.getSelectedBufferRange()).toEqual([
               [9, 1 + 1],
-              [11, 15 + 1]
+              [11, 15 + 1],
             ]);
           });
         });
@@ -5668,12 +7041,15 @@ describe('TextEditor', () => {
     describe('.outdentSelectedRows()', () => {
       describe('when nothing is selected', () => {
         it('outdents line and retains selection', () => {
-          editor.setSelectedBufferRange([[1, 3], [1, 3]]);
+          editor.setSelectedBufferRange([
+            [1, 3],
+            [1, 3],
+          ]);
           editor.outdentSelectedRows();
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {');
           expect(editor.getSelectedBufferRange()).toEqual([
             [1, 3 - editor.getTabLength()],
-            [1, 3 - editor.getTabLength()]
+            [1, 3 - editor.getTabLength()],
           ]);
         });
 
@@ -5720,19 +7096,25 @@ describe('TextEditor', () => {
 
       describe('when one line is selected', () => {
         it('outdents line and retains editor', () => {
-          editor.setSelectedBufferRange([[1, 4], [1, 14]]);
+          editor.setSelectedBufferRange([
+            [1, 4],
+            [1, 14],
+          ]);
           editor.outdentSelectedRows();
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {');
           expect(editor.getSelectedBufferRange()).toEqual([
             [1, 4 - editor.getTabLength()],
-            [1, 14 - editor.getTabLength()]
+            [1, 14 - editor.getTabLength()],
           ]);
         });
       });
 
       describe('when multiple lines are selected', () => {
         it('outdents selected lines and retains editor', () => {
-          editor.setSelectedBufferRange([[0, 1], [3, 15]]);
+          editor.setSelectedBufferRange([
+            [0, 1],
+            [3, 15],
+          ]);
           editor.outdentSelectedRows();
           expect(buffer.lineForRow(0)).toBe('var quicksort = function () {');
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {');
@@ -5744,12 +7126,15 @@ describe('TextEditor', () => {
           );
           expect(editor.getSelectedBufferRange()).toEqual([
             [0, 1],
-            [3, 15 - editor.getTabLength()]
+            [3, 15 - editor.getTabLength()],
           ]);
         });
 
         it('does not outdent the last line of the selection if it ends at column 0', () => {
-          editor.setSelectedBufferRange([[0, 1], [3, 0]]);
+          editor.setSelectedBufferRange([
+            [0, 1],
+            [3, 0],
+          ]);
           editor.outdentSelectedRows();
           expect(buffer.lineForRow(0)).toBe('var quicksort = function () {');
           expect(buffer.lineForRow(1)).toBe('var sort = function(items) {');
@@ -5760,7 +7145,10 @@ describe('TextEditor', () => {
             '    var pivot = items.shift(), current, left = [], right = [];'
           );
 
-          expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [3, 0]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [0, 1],
+            [3, 0],
+          ]);
         });
       });
     });
@@ -5769,7 +7157,10 @@ describe('TextEditor', () => {
       it('auto-indents the selection', () => {
         editor.setCursorBufferPosition([2, 0]);
         editor.insertText('function() {\ninside=true\n}\n  i=1\n');
-        editor.getLastSelection().setBufferRange([[2, 0], [6, 0]]);
+        editor.getLastSelection().setBufferRange([
+          [2, 0],
+          [6, 0],
+        ]);
         editor.autoIndentSelectedRows();
 
         expect(editor.lineTextForBufferRow(2)).toBe('    function() {');
@@ -5811,96 +7202,198 @@ describe('TextEditor', () => {
       });
 
       it('restores cursors and selections to their states before and after undone and redone changes', () => {
-        editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 3]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 0],
+            [0, 0],
+          ],
+          [
+            [1, 0],
+            [1, 3],
+          ],
+        ]);
         editor.insertText('abc');
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 3]],
-          [[1, 3], [1, 3]]
+          [
+            [0, 3],
+            [0, 3],
+          ],
+          [
+            [1, 3],
+            [1, 3],
+          ],
         ]);
 
         editor.setCursorBufferPosition([0, 0]);
         editor.setSelectedBufferRanges([
-          [[2, 0], [2, 0]],
-          [[3, 0], [3, 0]],
-          [[4, 0], [4, 3]]
+          [
+            [2, 0],
+            [2, 0],
+          ],
+          [
+            [3, 0],
+            [3, 0],
+          ],
+          [
+            [4, 0],
+            [4, 3],
+          ],
         ]);
         editor.insertText('def');
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[2, 3], [2, 3]],
-          [[3, 3], [3, 3]],
-          [[4, 3], [4, 3]]
+          [
+            [2, 3],
+            [2, 3],
+          ],
+          [
+            [3, 3],
+            [3, 3],
+          ],
+          [
+            [4, 3],
+            [4, 3],
+          ],
         ]);
 
         editor.setCursorBufferPosition([0, 0]);
         editor.undo();
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[2, 0], [2, 0]],
-          [[3, 0], [3, 0]],
-          [[4, 0], [4, 3]]
+          [
+            [2, 0],
+            [2, 0],
+          ],
+          [
+            [3, 0],
+            [3, 0],
+          ],
+          [
+            [4, 0],
+            [4, 3],
+          ],
         ]);
 
         editor.undo();
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 0], [0, 0]],
-          [[1, 0], [1, 3]]
+          [
+            [0, 0],
+            [0, 0],
+          ],
+          [
+            [1, 0],
+            [1, 3],
+          ],
         ]);
 
         editor.redo();
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 3]],
-          [[1, 3], [1, 3]]
+          [
+            [0, 3],
+            [0, 3],
+          ],
+          [
+            [1, 3],
+            [1, 3],
+          ],
         ]);
 
         editor.redo();
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[2, 3], [2, 3]],
-          [[3, 3], [3, 3]],
-          [[4, 3], [4, 3]]
+          [
+            [2, 3],
+            [2, 3],
+          ],
+          [
+            [3, 3],
+            [3, 3],
+          ],
+          [
+            [4, 3],
+            [4, 3],
+          ],
         ]);
       });
 
       it('restores the selected ranges after undo and redo', () => {
-        editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [1, 6],
+            [1, 10],
+          ],
+          [
+            [1, 22],
+            [1, 27],
+          ],
+        ]);
         editor.delete();
         editor.delete();
 
         expect(buffer.lineForRow(1)).toBe('  var = function( {');
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[1, 6], [1, 6]],
-          [[1, 17], [1, 17]]
+          [
+            [1, 6],
+            [1, 6],
+          ],
+          [
+            [1, 17],
+            [1, 17],
+          ],
         ]);
 
         editor.undo();
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[1, 6], [1, 6]],
-          [[1, 18], [1, 18]]
+          [
+            [1, 6],
+            [1, 6],
+          ],
+          [
+            [1, 18],
+            [1, 18],
+          ],
         ]);
 
         editor.undo();
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[1, 6], [1, 10]],
-          [[1, 22], [1, 27]]
+          [
+            [1, 6],
+            [1, 10],
+          ],
+          [
+            [1, 22],
+            [1, 27],
+          ],
         ]);
 
         editor.redo();
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[1, 6], [1, 6]],
-          [[1, 18], [1, 18]]
+          [
+            [1, 6],
+            [1, 6],
+          ],
+          [
+            [1, 18],
+            [1, 18],
+          ],
         ]);
       });
 
       xit('restores folds after undo and redo', () => {
         editor.foldBufferRow(1);
-        editor.setSelectedBufferRange([[1, 0], [10, Infinity]], {
-          preserveFolds: true
-        });
+        editor.setSelectedBufferRange(
+          [
+            [1, 0],
+            [10, Infinity],
+          ],
+          {
+            preserveFolds: true,
+          }
+        );
         expect(editor.isFoldedAtBufferRow(1)).toBeTruthy();
 
         editor.insertText(dedent`\
@@ -5926,7 +7419,10 @@ describe('TextEditor', () => {
     describe('::transact', () => {
       it('restores the selection when the transaction is undone/redone', () => {
         buffer.setText('1234');
-        editor.setSelectedBufferRange([[0, 1], [0, 3]]);
+        editor.setSelectedBufferRange([
+          [0, 1],
+          [0, 3],
+        ]);
 
         editor.transact(() => {
           editor.delete();
@@ -5937,11 +7433,17 @@ describe('TextEditor', () => {
 
         editor.undo();
         expect(buffer.getText()).toBe('1234');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [0, 3]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 1],
+          [0, 3],
+        ]);
 
         editor.redo();
         expect(buffer.getText()).toBe('145');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 3], [0, 3]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 3],
+          [0, 3],
+        ]);
       });
     });
 
@@ -6107,14 +7609,26 @@ describe('TextEditor', () => {
       it('does not destroy cursors or selections when a change encompasses them', () => {
         const cursor = editor.getLastCursor();
         cursor.setBufferPosition([3, 3]);
-        editor.buffer.delete([[3, 1], [3, 5]]);
+        editor.buffer.delete([
+          [3, 1],
+          [3, 5],
+        ]);
         expect(cursor.getBufferPosition()).toEqual([3, 1]);
         expect(editor.getCursors().indexOf(cursor)).not.toBe(-1);
 
         const selection = editor.getLastSelection();
-        selection.setBufferRange([[3, 5], [3, 10]]);
-        editor.buffer.delete([[3, 3], [3, 8]]);
-        expect(selection.getBufferRange()).toEqual([[3, 3], [3, 5]]);
+        selection.setBufferRange([
+          [3, 5],
+          [3, 10],
+        ]);
+        editor.buffer.delete([
+          [3, 3],
+          [3, 8],
+        ]);
+        expect(selection.getBufferRange()).toEqual([
+          [3, 3],
+          [3, 5],
+        ]);
         expect(editor.getSelections().indexOf(selection)).not.toBe(-1);
       });
 
@@ -6126,7 +7640,10 @@ describe('TextEditor', () => {
         const [cursor1, , cursor3] = editor.getCursors();
         expect(editor.getCursors().length).toBe(3);
 
-        buffer.delete([[0, 0], [0, 2]]);
+        buffer.delete([
+          [0, 0],
+          [0, 2],
+        ]);
 
         expect(editor.getCursors().length).toBe(2);
         expect(editor.getCursors()).toEqual([cursor1, cursor3]);
@@ -6137,17 +7654,32 @@ describe('TextEditor', () => {
 
     describe('.moveSelectionLeft()', () => {
       it('moves one active selection on one line one column to the left', () => {
-        editor.setSelectedBufferRange([[0, 4], [0, 13]]);
+        editor.setSelectedBufferRange([
+          [0, 4],
+          [0, 13],
+        ]);
         expect(editor.getSelectedText()).toBe('quicksort');
 
         editor.moveSelectionLeft();
 
         expect(editor.getSelectedText()).toBe('quicksort');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 3], [0, 12]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 3],
+          [0, 12],
+        ]);
       });
 
       it('moves multiple active selections on one line one column to the left', () => {
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 16], [0, 24]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 4],
+            [0, 13],
+          ],
+          [
+            [0, 16],
+            [0, 24],
+          ],
+        ]);
         const selections = editor.getSelections();
 
         expect(selections[0].getText()).toBe('quicksort');
@@ -6158,13 +7690,28 @@ describe('TextEditor', () => {
         expect(selections[0].getText()).toBe('quicksort');
         expect(selections[1].getText()).toBe('function');
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 12]],
-          [[0, 15], [0, 23]]
+          [
+            [0, 3],
+            [0, 12],
+          ],
+          [
+            [0, 15],
+            [0, 23],
+          ],
         ]);
       });
 
       it('moves multiple active selections on multiple lines one column to the left', () => {
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 4],
+            [0, 13],
+          ],
+          [
+            [1, 6],
+            [1, 10],
+          ],
+        ]);
         const selections = editor.getSelections();
 
         expect(selections[0].getText()).toBe('quicksort');
@@ -6175,14 +7722,29 @@ describe('TextEditor', () => {
         expect(selections[0].getText()).toBe('quicksort');
         expect(selections[1].getText()).toBe('sort');
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 3], [0, 12]],
-          [[1, 5], [1, 9]]
+          [
+            [0, 3],
+            [0, 12],
+          ],
+          [
+            [1, 5],
+            [1, 9],
+          ],
         ]);
       });
 
       describe('when a selection is at the first column of a line', () => {
         it('does not change the selection', () => {
-          editor.setSelectedBufferRanges([[[0, 0], [0, 3]], [[1, 0], [1, 3]]]);
+          editor.setSelectedBufferRanges([
+            [
+              [0, 0],
+              [0, 3],
+            ],
+            [
+              [1, 0],
+              [1, 3],
+            ],
+          ]);
           const selections = editor.getSelections();
 
           expect(selections[0].getText()).toBe('var');
@@ -6194,16 +7756,28 @@ describe('TextEditor', () => {
           expect(selections[0].getText()).toBe('var');
           expect(selections[1].getText()).toBe('  v');
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[0, 0], [0, 3]],
-            [[1, 0], [1, 3]]
+            [
+              [0, 0],
+              [0, 3],
+            ],
+            [
+              [1, 0],
+              [1, 3],
+            ],
           ]);
         });
 
         describe('when multiple selections are active on one line', () => {
           it('does not change the selection', () => {
             editor.setSelectedBufferRanges([
-              [[0, 0], [0, 3]],
-              [[0, 4], [0, 13]]
+              [
+                [0, 0],
+                [0, 3],
+              ],
+              [
+                [0, 4],
+                [0, 13],
+              ],
             ]);
             const selections = editor.getSelections();
 
@@ -6215,8 +7789,14 @@ describe('TextEditor', () => {
             expect(selections[0].getText()).toBe('var');
             expect(selections[1].getText()).toBe('quicksort');
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[0, 0], [0, 3]],
-              [[0, 4], [0, 13]]
+              [
+                [0, 0],
+                [0, 3],
+              ],
+              [
+                [0, 4],
+                [0, 13],
+              ],
             ]);
           });
         });
@@ -6225,17 +7805,32 @@ describe('TextEditor', () => {
 
     describe('.moveSelectionRight()', () => {
       it('moves one active selection on one line one column to the right', () => {
-        editor.setSelectedBufferRange([[0, 4], [0, 13]]);
+        editor.setSelectedBufferRange([
+          [0, 4],
+          [0, 13],
+        ]);
         expect(editor.getSelectedText()).toBe('quicksort');
 
         editor.moveSelectionRight();
 
         expect(editor.getSelectedText()).toBe('quicksort');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 5], [0, 14]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 5],
+          [0, 14],
+        ]);
       });
 
       it('moves multiple active selections on one line one column to the right', () => {
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[0, 16], [0, 24]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 4],
+            [0, 13],
+          ],
+          [
+            [0, 16],
+            [0, 24],
+          ],
+        ]);
         const selections = editor.getSelections();
 
         expect(selections[0].getText()).toBe('quicksort');
@@ -6246,13 +7841,28 @@ describe('TextEditor', () => {
         expect(selections[0].getText()).toBe('quicksort');
         expect(selections[1].getText()).toBe('function');
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 5], [0, 14]],
-          [[0, 17], [0, 25]]
+          [
+            [0, 5],
+            [0, 14],
+          ],
+          [
+            [0, 17],
+            [0, 25],
+          ],
         ]);
       });
 
       it('moves multiple active selections on multiple lines one column to the right', () => {
-        editor.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]]);
+        editor.setSelectedBufferRanges([
+          [
+            [0, 4],
+            [0, 13],
+          ],
+          [
+            [1, 6],
+            [1, 10],
+          ],
+        ]);
         const selections = editor.getSelections();
 
         expect(selections[0].getText()).toBe('quicksort');
@@ -6263,16 +7873,28 @@ describe('TextEditor', () => {
         expect(selections[0].getText()).toBe('quicksort');
         expect(selections[1].getText()).toBe('sort');
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [[0, 5], [0, 14]],
-          [[1, 7], [1, 11]]
+          [
+            [0, 5],
+            [0, 14],
+          ],
+          [
+            [1, 7],
+            [1, 11],
+          ],
         ]);
       });
 
       describe('when a selection is at the last column of a line', () => {
         it('does not change the selection', () => {
           editor.setSelectedBufferRanges([
-            [[2, 34], [2, 40]],
-            [[5, 22], [5, 30]]
+            [
+              [2, 34],
+              [2, 40],
+            ],
+            [
+              [5, 22],
+              [5, 30],
+            ],
           ]);
           const selections = editor.getSelections();
 
@@ -6285,16 +7907,28 @@ describe('TextEditor', () => {
           expect(selections[0].getText()).toBe('items;');
           expect(selections[1].getText()).toBe('shift();');
           expect(editor.getSelectedBufferRanges()).toEqual([
-            [[2, 34], [2, 40]],
-            [[5, 22], [5, 30]]
+            [
+              [2, 34],
+              [2, 40],
+            ],
+            [
+              [5, 22],
+              [5, 30],
+            ],
           ]);
         });
 
         describe('when multiple selections are active on one line', () => {
           it('does not change the selection', () => {
             editor.setSelectedBufferRanges([
-              [[2, 27], [2, 33]],
-              [[2, 34], [2, 40]]
+              [
+                [2, 27],
+                [2, 33],
+              ],
+              [
+                [2, 34],
+                [2, 40],
+              ],
             ]);
             const selections = editor.getSelections();
 
@@ -6306,8 +7940,14 @@ describe('TextEditor', () => {
             expect(selections[0].getText()).toBe('return');
             expect(selections[1].getText()).toBe('items;');
             expect(editor.getSelectedBufferRanges()).toEqual([
-              [[2, 27], [2, 33]],
-              [[2, 34], [2, 40]]
+              [
+                [2, 27],
+                [2, 33],
+              ],
+              [
+                [2, 34],
+                [2, 40],
+              ],
             ]);
           });
         });
@@ -6325,162 +7965,186 @@ describe('TextEditor', () => {
           op: (opts = {}) => {
             editor.setCursorBufferPosition([1, 0]);
             editor.moveLineUp(opts);
-          }
+          },
         },
         {
           name: 'moveLineDown',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([0, 0]);
             editor.moveLineDown(opts);
-          }
+          },
         },
         {
           name: 'insertText',
           op: (opts = {}) => {
-            editor.setSelectedBufferRange([[1, 0], [1, 2]]);
+            editor.setSelectedBufferRange([
+              [1, 0],
+              [1, 2],
+            ]);
             editor.insertText('xxx', opts);
-          }
+          },
         },
         {
           name: 'insertNewline',
           op: (opts = {}) => {
             editor.setCursorScreenPosition({ row: 1, column: 0 });
             editor.insertNewline(opts);
-          }
+          },
         },
         {
           name: 'insertNewlineBelow',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([0, 2]);
             editor.insertNewlineBelow(opts);
-          }
+          },
         },
         {
           name: 'insertNewlineAbove',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([0]);
             editor.insertNewlineAbove(opts);
-          }
+          },
         },
         {
           name: 'backspace',
           op: (opts = {}) => {
             editor.setCursorScreenPosition({ row: 1, column: 7 });
             editor.backspace(opts);
-          }
+          },
         },
         {
           name: 'deleteToPreviousWordBoundary',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([0, 16]);
             editor.deleteToPreviousWordBoundary(opts);
-          }
+          },
         },
         {
           name: 'deleteToNextWordBoundary',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([0, 15]);
             editor.deleteToNextWordBoundary(opts);
-          }
+          },
         },
         {
           name: 'deleteToBeginningOfWord',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([1, 24]);
             editor.deleteToBeginningOfWord(opts);
-          }
+          },
         },
         {
           name: 'deleteToEndOfLine',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([1, 24]);
             editor.deleteToEndOfLine(opts);
-          }
+          },
         },
         {
           name: 'deleteToBeginningOfLine',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([1, 24]);
             editor.deleteToBeginningOfLine(opts);
-          }
+          },
         },
         {
           name: 'delete',
           op: (opts = {}) => {
             editor.setCursorScreenPosition([1, 6]);
             editor.delete(opts);
-          }
+          },
         },
         {
           name: 'deleteToEndOfWord',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([1, 24]);
             editor.deleteToEndOfWord(opts);
-          }
+          },
         },
         {
           name: 'indent',
           op: (opts = {}) => {
             editor.indent(opts);
-          }
+          },
         },
         {
           name: 'cutSelectedText',
           op: (opts = {}) => {
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
             ]);
             editor.cutSelectedText(opts);
-          }
+          },
         },
         {
           name: 'cutToEndOfLine',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([2, 20]);
             editor.cutToEndOfLine(opts);
-          }
+          },
         },
         {
           name: 'cutToEndOfBufferLine',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([2, 20]);
             editor.cutToEndOfBufferLine(opts);
-          }
+          },
         },
         {
           name: 'pasteText',
           op: (opts = {}) => {
             editor.setSelectedBufferRanges([
-              [[0, 4], [0, 13]],
-              [[1, 6], [1, 10]]
+              [
+                [0, 4],
+                [0, 13],
+              ],
+              [
+                [1, 6],
+                [1, 10],
+              ],
             ]);
             atom.clipboard.write('first');
             editor.pasteText(opts);
-          }
+          },
         },
         {
           name: 'indentSelectedRows',
           op: (opts = {}) => {
-            editor.setSelectedBufferRange([[0, 3], [0, 3]]);
+            editor.setSelectedBufferRange([
+              [0, 3],
+              [0, 3],
+            ]);
             editor.indentSelectedRows(opts);
-          }
+          },
         },
         {
           name: 'outdentSelectedRows',
           op: (opts = {}) => {
-            editor.setSelectedBufferRange([[1, 3], [1, 3]]);
+            editor.setSelectedBufferRange([
+              [1, 3],
+              [1, 3],
+            ]);
             editor.outdentSelectedRows(opts);
-          }
+          },
         },
         {
           name: 'autoIndentSelectedRows',
           op: (opts = {}) => {
             editor.setCursorBufferPosition([2, 0]);
             editor.insertText('function() {\ninside=true\n}\n  i=1\n', opts);
-            editor.getLastSelection().setBufferRange([[2, 0], [6, 0]]);
+            editor.getLastSelection().setBufferRange([
+              [2, 0],
+              [6, 0],
+            ]);
             editor.autoIndentSelectedRows(opts);
-          }
+          },
         },
         {
           name: 'undo/redo',
@@ -6488,8 +8152,8 @@ describe('TextEditor', () => {
             editor.insertText('foo', opts);
             editor.undo(opts);
             editor.redo(opts);
-          }
-        }
+          },
+        },
       ];
 
       describe('without bypassReadOnly', () => {
@@ -6544,7 +8208,10 @@ describe('TextEditor', () => {
     });
 
     it('deletes whole lines when partial lines are selected', () => {
-      editor.setSelectedBufferRange([[0, 2], [1, 2]]);
+      editor.setSelectedBufferRange([
+        [0, 2],
+        [1, 2],
+      ]);
       const line2 = buffer.lineForRow(2);
       const count = buffer.getLineCount();
       expect(buffer.lineForRow(0)).not.toBe(line2);
@@ -6570,7 +8237,16 @@ describe('TextEditor', () => {
     it('restores cursor position for multiple selections', () => {
       const line = '0123456789'.repeat(8);
       editor.setText((line + '\n').repeat(5));
-      editor.setSelectedBufferRanges([[[0, 5], [0, 8]], [[2, 4], [2, 15]]]);
+      editor.setSelectedBufferRanges([
+        [
+          [0, 5],
+          [0, 8],
+        ],
+        [
+          [2, 4],
+          [2, 15],
+        ],
+      ]);
       editor.deleteLine();
 
       const cursors = editor.getCursors();
@@ -6582,7 +8258,16 @@ describe('TextEditor', () => {
     it('deletes a line only once when multiple selections are on the same line', () => {
       const line1 = buffer.lineForRow(1);
       const count = buffer.getLineCount();
-      editor.setSelectedBufferRanges([[[0, 1], [0, 2]], [[0, 4], [0, 5]]]);
+      editor.setSelectedBufferRanges([
+        [
+          [0, 1],
+          [0, 2],
+        ],
+        [
+          [0, 4],
+          [0, 5],
+        ],
+      ]);
       expect(buffer.lineForRow(0)).not.toBe(line1);
 
       editor.deleteLine();
@@ -6592,7 +8277,10 @@ describe('TextEditor', () => {
     });
 
     it('only deletes first line if only newline is selected on second line', () => {
-      editor.setSelectedBufferRange([[0, 2], [1, 0]]);
+      editor.setSelectedBufferRange([
+        [0, 2],
+        [1, 0],
+      ]);
       const line1 = buffer.lineForRow(1);
       const count = buffer.getLineCount();
       expect(buffer.lineForRow(0)).not.toBe(line1);
@@ -6683,16 +8371,25 @@ describe('TextEditor', () => {
 
     describe('when text is selected', () => {
       it('replaces the selected text with the text returned from the function', () => {
-        editor.setSelectedBufferRange([[0, 1], [0, 3]]);
+        editor.setSelectedBufferRange([
+          [0, 1],
+          [0, 3],
+        ]);
         editor.replaceSelectedText({}, () => 'ia');
         expect(buffer.lineForRow(0)).toBe('via quicksort = function () {');
       });
 
       it('replaces the selected text and selects the replacement text', () => {
-        editor.setSelectedBufferRange([[0, 4], [0, 9]]);
+        editor.setSelectedBufferRange([
+          [0, 4],
+          [0, 9],
+        ]);
         editor.replaceSelectedText({}, () => 'whatnot');
         expect(buffer.lineForRow(0)).toBe('var whatnotsort = function () {');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 4], [0, 11]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 4],
+          [0, 11],
+        ]);
       });
     });
   });
@@ -6707,7 +8404,10 @@ describe('TextEditor', () => {
 
     it('reverses a selection', () => {
       editor.buffer.setText('xabcz');
-      editor.setSelectedBufferRange([[0, 1], [0, 4]]);
+      editor.setSelectedBufferRange([
+        [0, 1],
+        [0, 4],
+      ]);
       editor.transpose();
       expect(editor.lineTextForBufferRow(0)).toBe('xcbaz');
     });
@@ -6720,17 +8420,26 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([0, 1]);
         editor.upperCase();
         expect(editor.lineTextForBufferRow(0)).toBe('ABC');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [0, 3]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 0],
+          [0, 3],
+        ]);
       });
     });
 
     describe('when there is a selection', () => {
       it('upper cases the current selection', () => {
         editor.buffer.setText('abc');
-        editor.setSelectedBufferRange([[0, 0], [0, 2]]);
+        editor.setSelectedBufferRange([
+          [0, 0],
+          [0, 2],
+        ]);
         editor.upperCase();
         expect(editor.lineTextForBufferRow(0)).toBe('ABc');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [0, 2]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 0],
+          [0, 2],
+        ]);
       });
     });
   });
@@ -6742,17 +8451,26 @@ describe('TextEditor', () => {
         editor.setCursorScreenPosition([0, 1]);
         editor.lowerCase();
         expect(editor.lineTextForBufferRow(0)).toBe('abc');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [0, 3]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 0],
+          [0, 3],
+        ]);
       });
     });
 
     describe('when there is a selection', () => {
       it('lower cases the current selection', () => {
         editor.buffer.setText('ABC');
-        editor.setSelectedBufferRange([[0, 0], [0, 2]]);
+        editor.setSelectedBufferRange([
+          [0, 0],
+          [0, 2],
+        ]);
         editor.lowerCase();
         expect(editor.lineTextForBufferRow(0)).toBe('abC');
-        expect(editor.getSelectedBufferRange()).toEqual([[0, 0], [0, 2]]);
+        expect(editor.getSelectedBufferRange()).toEqual([
+          [0, 0],
+          [0, 2],
+        ]);
       });
     });
   });
@@ -6814,7 +8532,7 @@ describe('TextEditor', () => {
       jasmine.attachToDOM(editor.getElement());
 
       const events = [];
-      editor.onDidTokenize(event => events.push(event));
+      editor.onDidTokenize((event) => events.push(event));
 
       await atom.packages.activatePackage('language-c');
       expect(
@@ -6826,7 +8544,7 @@ describe('TextEditor', () => {
 
     it('notifies onDidChangeGrammar observers', async () => {
       const events = [];
-      editor.onDidChangeGrammar(grammar => events.push(grammar));
+      editor.onDidChangeGrammar((grammar) => events.push(grammar));
 
       await atom.packages.activatePackage('language-c');
       expect(
@@ -7105,23 +8823,35 @@ describe('TextEditor', () => {
     describe('when text is selected', () => {
       describe('when the selection does not span multiple lines', () => {
         it('joins the line below with the current line separated by a space and retains the selected text', () => {
-          editor.setSelectedBufferRange([[0, 1], [0, 3]]);
+          editor.setSelectedBufferRange([
+            [0, 1],
+            [0, 3],
+          ]);
           editor.joinLines();
           expect(editor.lineTextForBufferRow(0)).toBe(
             'var quicksort = function () { var sort = function(items) {'
           );
-          expect(editor.getSelectedBufferRange()).toEqual([[0, 1], [0, 3]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [0, 1],
+            [0, 3],
+          ]);
         });
       });
 
       describe('when the selection spans multiple lines', () => {
         it('joins all selected lines separated by a space and retains the selected text', () => {
-          editor.setSelectedBufferRange([[9, 3], [12, 1]]);
+          editor.setSelectedBufferRange([
+            [9, 3],
+            [12, 1],
+          ]);
           editor.joinLines();
           expect(editor.lineTextForBufferRow(9)).toBe(
             '  }; return sort(Array.apply(this, arguments)); };'
           );
-          expect(editor.getSelectedBufferRange()).toEqual([[9, 3], [9, 49]]);
+          expect(editor.getSelectedBufferRange()).toEqual([
+            [9, 3],
+            [9, 49],
+          ]);
         });
       });
     });
@@ -7131,13 +8861,24 @@ describe('TextEditor', () => {
     it('for each selection, duplicates all buffer lines intersected by the selection', () => {
       editor.foldBufferRow(4);
       editor.setCursorBufferPosition([2, 5]);
-      editor.addSelectionForBufferRange([[3, 0], [8, 0]], {
-        preserveFolds: true
-      });
+      editor.addSelectionForBufferRange(
+        [
+          [3, 0],
+          [8, 0],
+        ],
+        {
+          preserveFolds: true,
+        }
+      );
 
       editor.duplicateLines();
 
-      expect(editor.getTextInBufferRange([[2, 0], [13, 5]])).toBe(
+      expect(
+        editor.getTextInBufferRange([
+          [2, 0],
+          [13, 5],
+        ])
+      ).toBe(
         dedent`
         if (items.length <= 1) return items;
         if (items.length <= 1) return items;
@@ -7153,12 +8894,18 @@ describe('TextEditor', () => {
         }\
       `
           .split('\n')
-          .map(l => `    ${l}`)
+          .map((l) => `    ${l}`)
           .join('\n')
       );
       expect(editor.getSelectedBufferRanges()).toEqual([
-        [[3, 5], [3, 5]],
-        [[9, 0], [14, 0]]
+        [
+          [3, 5],
+          [3, 5],
+        ],
+        [
+          [9, 0],
+          [14, 0],
+        ],
       ]);
 
       // folds are also duplicated
@@ -7178,7 +8925,12 @@ describe('TextEditor', () => {
 
       editor.duplicateLines();
 
-      expect(editor.getTextInBufferRange([[2, 0], [11, 5]])).toBe(
+      expect(
+        editor.getTextInBufferRange([
+          [2, 0],
+          [11, 5],
+        ])
+      ).toBe(
         dedent`
         if (items.length <= 1) return items;
         var pivot = items.shift(), current, left = [], right = [];
@@ -7192,16 +8944,27 @@ describe('TextEditor', () => {
         }
       `
           .split('\n')
-          .map(l => `    ${l}`)
+          .map((l) => `    ${l}`)
           .join('\n')
       );
-      expect(editor.getSelectedBufferRange()).toEqual([[8, 0], [8, 0]]);
+      expect(editor.getSelectedBufferRange()).toEqual([
+        [8, 0],
+        [8, 0],
+      ]);
     });
 
     it('can duplicate the last line of the buffer', () => {
-      editor.setSelectedBufferRange([[11, 0], [12, 2]]);
+      editor.setSelectedBufferRange([
+        [11, 0],
+        [12, 2],
+      ]);
       editor.duplicateLines();
-      expect(editor.getTextInBufferRange([[11, 0], [14, 2]])).toBe(
+      expect(
+        editor.getTextInBufferRange([
+          [11, 0],
+          [14, 2],
+        ])
+      ).toBe(
         '  ' +
           dedent`
           return sort(Array.apply(this, arguments));
@@ -7210,7 +8973,10 @@ describe('TextEditor', () => {
         };
       `.trim()
       );
-      expect(editor.getSelectedBufferRange()).toEqual([[13, 0], [14, 2]]);
+      expect(editor.getSelectedBufferRange()).toEqual([
+        [13, 0],
+        [14, 2],
+      ]);
     });
 
     it('only duplicates lines containing multiple selections once', () => {
@@ -7221,11 +8987,26 @@ describe('TextEditor', () => {
         dddddd
       `);
       editor.setSelectedBufferRanges([
-        [[0, 1], [0, 2]],
-        [[0, 3], [0, 4]],
-        [[2, 1], [2, 2]],
-        [[2, 3], [3, 1]],
-        [[3, 3], [3, 4]]
+        [
+          [0, 1],
+          [0, 2],
+        ],
+        [
+          [0, 3],
+          [0, 4],
+        ],
+        [
+          [2, 1],
+          [2, 2],
+        ],
+        [
+          [2, 3],
+          [3, 1],
+        ],
+        [
+          [3, 3],
+          [3, 4],
+        ],
       ]);
       editor.duplicateLines();
       expect(editor.getText()).toBe(dedent`
@@ -7238,11 +9019,26 @@ describe('TextEditor', () => {
         dddddd
       `);
       expect(editor.getSelectedBufferRanges()).toEqual([
-        [[1, 1], [1, 2]],
-        [[1, 3], [1, 4]],
-        [[5, 1], [5, 2]],
-        [[5, 3], [6, 1]],
-        [[6, 3], [6, 4]]
+        [
+          [1, 1],
+          [1, 2],
+        ],
+        [
+          [1, 3],
+          [1, 4],
+        ],
+        [
+          [5, 1],
+          [5, 2],
+        ],
+        [
+          [5, 3],
+          [6, 1],
+        ],
+        [
+          [6, 3],
+          [6, 4],
+        ],
       ]);
     });
   });
@@ -7381,7 +9177,7 @@ describe('TextEditor', () => {
       expect(tokens[6].scopes).toEqual([
         'source.js',
         'comment.line.double-slash.js',
-        'markup.underline.link.http.hyperlink'
+        'markup.underline.link.http.hyperlink',
       ]);
     });
 
@@ -7396,16 +9192,16 @@ describe('TextEditor', () => {
             scopes: [
               'syntax--source syntax--js',
               'syntax--comment syntax--line syntax--double-slash syntax--js',
-              'syntax--punctuation syntax--definition syntax--comment syntax--js'
-            ]
+              'syntax--punctuation syntax--definition syntax--comment syntax--js',
+            ],
           },
           {
             text: ' http://github.com',
             scopes: [
               'syntax--source syntax--js',
-              'syntax--comment syntax--line syntax--double-slash syntax--js'
-            ]
-          }
+              'syntax--comment syntax--line syntax--double-slash syntax--js',
+            ],
+          },
         ]);
 
         await atom.packages.activatePackage('language-hyperlink');
@@ -7416,24 +9212,24 @@ describe('TextEditor', () => {
             scopes: [
               'syntax--source syntax--js',
               'syntax--comment syntax--line syntax--double-slash syntax--js',
-              'syntax--punctuation syntax--definition syntax--comment syntax--js'
-            ]
+              'syntax--punctuation syntax--definition syntax--comment syntax--js',
+            ],
           },
           {
             text: ' ',
             scopes: [
               'syntax--source syntax--js',
-              'syntax--comment syntax--line syntax--double-slash syntax--js'
-            ]
+              'syntax--comment syntax--line syntax--double-slash syntax--js',
+            ],
           },
           {
             text: 'http://github.com',
             scopes: [
               'syntax--source syntax--js',
               'syntax--comment syntax--line syntax--double-slash syntax--js',
-              'syntax--markup syntax--underline syntax--link syntax--http syntax--hyperlink'
-            ]
-          }
+              'syntax--markup syntax--underline syntax--link syntax--http syntax--hyperlink',
+            ],
+          },
         ]);
       });
 
@@ -7448,16 +9244,16 @@ describe('TextEditor', () => {
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--punctuation syntax--definition syntax--comment syntax--js'
-              ]
+                'syntax--punctuation syntax--definition syntax--comment syntax--js',
+              ],
             },
             {
               text: ' SELECT * FROM OCTOCATS',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
-            }
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
+            },
           ]);
 
           await atom.packages.activatePackage(
@@ -7470,16 +9266,16 @@ describe('TextEditor', () => {
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--punctuation syntax--definition syntax--comment syntax--js'
-              ]
+                'syntax--punctuation syntax--definition syntax--comment syntax--js',
+              ],
             },
             {
               text: ' SELECT * FROM OCTOCATS',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
-            }
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
+            },
           ]);
 
           await atom.packages.activatePackage('language-sql');
@@ -7490,61 +9286,61 @@ describe('TextEditor', () => {
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--punctuation syntax--definition syntax--comment syntax--js'
-              ]
+                'syntax--punctuation syntax--definition syntax--comment syntax--js',
+              ],
             },
             {
               text: ' ',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
             },
             {
               text: 'SELECT',
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--keyword syntax--other syntax--DML syntax--sql'
-              ]
+                'syntax--keyword syntax--other syntax--DML syntax--sql',
+              ],
             },
             {
               text: ' ',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
             },
             {
               text: '*',
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--keyword syntax--operator syntax--star syntax--sql'
-              ]
+                'syntax--keyword syntax--operator syntax--star syntax--sql',
+              ],
             },
             {
               text: ' ',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
             },
             {
               text: 'FROM',
               scopes: [
                 'syntax--source syntax--js',
                 'syntax--comment syntax--line syntax--double-slash syntax--js',
-                'syntax--keyword syntax--other syntax--DML syntax--sql'
-              ]
+                'syntax--keyword syntax--other syntax--DML syntax--sql',
+              ],
             },
             {
               text: ' OCTOCATS',
               scopes: [
                 'syntax--source syntax--js',
-                'syntax--comment syntax--line syntax--double-slash syntax--js'
-              ]
-            }
+                'syntax--comment syntax--line syntax--double-slash syntax--js',
+              ],
+            },
           ]);
         });
       });
@@ -7556,15 +9352,24 @@ describe('TextEditor', () => {
       editor.setTabLength(1);
       editor.setSoftTabs(true);
       editor.setText('\t\t\t');
-      editor.normalizeTabsInBufferRange([[0, 0], [0, 1]]);
+      editor.normalizeTabsInBufferRange([
+        [0, 0],
+        [0, 1],
+      ]);
       expect(editor.getText()).toBe(' \t\t');
 
       editor.setTabLength(2);
-      editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]]);
+      editor.normalizeTabsInBufferRange([
+        [0, 0],
+        [Infinity, Infinity],
+      ]);
       expect(editor.getText()).toBe('     ');
 
       editor.setSoftTabs(false);
-      editor.normalizeTabsInBufferRange([[0, 0], [Infinity, Infinity]]);
+      editor.normalizeTabsInBufferRange([
+        [0, 0],
+        [Infinity, Infinity],
+      ]);
       expect(editor.getText()).toBe('     ');
     });
   });
@@ -7604,23 +9409,53 @@ describe('TextEditor', () => {
       expect(editor.getCursorBufferPosition().row).toBe(0);
 
       editor.selectPageDown();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [5, 0]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [0, 0],
+          [5, 0],
+        ],
+      ]);
 
       editor.selectPageDown();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [10, 0]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [0, 0],
+          [10, 0],
+        ],
+      ]);
 
       editor.selectPageDown();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [12, 2]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [0, 0],
+          [12, 2],
+        ],
+      ]);
 
       editor.moveToBottom();
       editor.selectPageUp();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[7, 0], [12, 2]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [7, 0],
+          [12, 2],
+        ],
+      ]);
 
       editor.selectPageUp();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[2, 0], [12, 2]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [2, 0],
+          [12, 2],
+        ],
+      ]);
 
       editor.selectPageUp();
-      expect(editor.getSelectedBufferRanges()).toEqual([[[0, 0], [12, 2]]]);
+      expect(editor.getSelectedBufferRanges()).toEqual([
+        [
+          [0, 0],
+          [12, 2],
+        ],
+      ]);
     });
   });
 
@@ -7634,16 +9469,25 @@ describe('TextEditor', () => {
       editor.scrollToScreenPosition([8, 20], { center: false, reversed: true });
 
       expect(scrollSpy).toHaveBeenCalledWith({
-        screenRange: [[8, 20], [8, 20]],
-        options: {}
+        screenRange: [
+          [8, 20],
+          [8, 20],
+        ],
+        options: {},
       });
       expect(scrollSpy).toHaveBeenCalledWith({
-        screenRange: [[8, 20], [8, 20]],
-        options: { center: true }
+        screenRange: [
+          [8, 20],
+          [8, 20],
+        ],
+        options: { center: true },
       });
       expect(scrollSpy).toHaveBeenCalledWith({
-        screenRange: [[8, 20], [8, 20]],
-        options: { center: false, reversed: true }
+        screenRange: [
+          [8, 20],
+          [8, 20],
+        ],
+        options: { center: false, reversed: true },
       });
     });
   });
@@ -7691,7 +9535,7 @@ describe('TextEditor', () => {
     it('can be created with placeholderText', () => {
       const newEditor = new TextEditor({
         mini: true,
-        placeholderText: 'yep'
+        placeholderText: 'yep',
       });
       expect(newEditor.getPlaceholderText()).toBe('yep');
     });
@@ -7723,7 +9567,7 @@ describe('TextEditor', () => {
         expect(editor.getGutters().length).toBe(1); // line-number gutter
         const options = {
           name: 'test-gutter',
-          priority: 1
+          priority: 1,
         };
         const gutter = editor.addGutter(options);
         expect(editor.getGutters().length).toBe(2);
@@ -7736,7 +9580,7 @@ describe('TextEditor', () => {
         const options = {
           name: 'another-gutter',
           priority: 2,
-          type: 'line-number'
+          type: 'line-number',
         };
         const gutter = editor.addGutter(options);
         expect(editor.getGutters().length).toBe(2);
@@ -7753,17 +9597,23 @@ describe('TextEditor', () => {
     describe('::decorateMarker', () => {
       let marker;
 
-      beforeEach(() => (marker = editor.markBufferRange([[1, 0], [1, 0]])));
+      beforeEach(
+        () =>
+          (marker = editor.markBufferRange([
+            [1, 0],
+            [1, 0],
+          ]))
+      );
 
       it('reflects an added decoration when one of its custom gutters is decorated.', () => {
         const gutter = editor.addGutter({ name: 'custom-gutter' });
         const decoration = gutter.decorateMarker(marker, {
-          class: 'custom-class'
+          class: 'custom-class',
         });
         const gutterDecorations = editor.getDecorations({
           type: 'gutter',
           gutterName: 'custom-gutter',
-          class: 'custom-class'
+          class: 'custom-class',
         });
         expect(gutterDecorations.length).toBe(1);
         expect(gutterDecorations[0]).toBe(decoration);
@@ -7776,7 +9626,7 @@ describe('TextEditor', () => {
         const gutterDecorations = editor.getDecorations({
           type: 'line-number',
           gutterName: 'line-number',
-          class: 'test-class'
+          class: 'test-class',
         });
         expect(gutterDecorations.length).toBe(1);
         expect(gutterDecorations[0]).toBe(decoration);
@@ -7788,7 +9638,7 @@ describe('TextEditor', () => {
 
       beforeEach(() => {
         payloads = [];
-        callback = payload => payloads.push(payload);
+        callback = (payload) => payloads.push(payload);
       });
 
       it('calls the callback immediately with each existing gutter, and with each added gutter after that.', () => {
@@ -7823,7 +9673,7 @@ describe('TextEditor', () => {
 
       beforeEach(() => {
         payloads = [];
-        callback = payload => payloads.push(payload);
+        callback = (payload) => payloads.push(payload);
       });
 
       it('calls the callback with each newly-added gutter, but not with existing gutters.', () => {
@@ -7847,7 +9697,7 @@ describe('TextEditor', () => {
 
       beforeEach(() => {
         payloads = [];
-        callback = payload => payloads.push(payload);
+        callback = (payload) => payloads.push(payload);
       });
 
       it('calls the callback when a gutter is removed.', () => {
@@ -7871,10 +9721,13 @@ describe('TextEditor', () => {
   describe('decorations', () => {
     describe('::decorateMarker', () => {
       it('includes the decoration in the object returned from ::decorationsStateForScreenRowRange', () => {
-        const marker = editor.markBufferRange([[2, 4], [6, 8]]);
+        const marker = editor.markBufferRange([
+          [2, 4],
+          [6, 8],
+        ]);
         const decoration = editor.decorateMarker(marker, {
           type: 'highlight',
-          class: 'foo'
+          class: 'foo',
         });
         expect(
           editor.decorationsStateForScreenRowRange(0, 5)[decoration.id]
@@ -7883,17 +9736,20 @@ describe('TextEditor', () => {
             id: decoration.id,
             order: Infinity,
             type: 'highlight',
-            class: 'foo'
+            class: 'foo',
           },
           screenRange: marker.getScreenRange(),
           bufferRange: marker.getBufferRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
       });
 
       it("does not throw errors after the marker's containing layer is destroyed", () => {
         const layer = editor.addMarkerLayer();
-        layer.markBufferRange([[2, 4], [6, 8]]);
+        layer.markBufferRange([
+          [2, 4],
+          [6, 8],
+        ]);
 
         layer.destroy();
         editor.decorationsStateForScreenRowRange(0, 5);
@@ -7903,22 +9759,31 @@ describe('TextEditor', () => {
     describe('::decorateMarkerLayer', () => {
       it('based on the markers in the layer, includes multiple decoration objects with the same properties and different ranges in the object returned from ::decorationsStateForScreenRowRange', () => {
         const layer1 = editor.getBuffer().addMarkerLayer();
-        const marker1 = layer1.markRange([[2, 4], [6, 8]]);
-        const marker2 = layer1.markRange([[11, 0], [11, 12]]);
+        const marker1 = layer1.markRange([
+          [2, 4],
+          [6, 8],
+        ]);
+        const marker2 = layer1.markRange([
+          [11, 0],
+          [11, 12],
+        ]);
         const layer2 = editor.getBuffer().addMarkerLayer();
-        const marker3 = layer2.markRange([[8, 0], [9, 0]]);
+        const marker3 = layer2.markRange([
+          [8, 0],
+          [9, 0],
+        ]);
 
         const layer1Decoration1 = editor.decorateMarkerLayer(layer1, {
           type: 'highlight',
-          class: 'foo'
+          class: 'foo',
         });
         const layer1Decoration2 = editor.decorateMarkerLayer(layer1, {
           type: 'highlight',
-          class: 'bar'
+          class: 'bar',
         });
         const layer2Decoration = editor.decorateMarkerLayer(layer2, {
           type: 'highlight',
-          class: 'baz'
+          class: 'baz',
         });
 
         let decorationState = editor.decorationsStateForScreenRowRange(0, 13);
@@ -7929,7 +9794,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'foo' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(
           decorationState[`${layer1Decoration1.id}-${marker2.id}`]
@@ -7937,7 +9802,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'foo' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(
           decorationState[`${layer1Decoration2.id}-${marker1.id}`]
@@ -7945,7 +9810,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(
           decorationState[`${layer1Decoration2.id}-${marker2.id}`]
@@ -7953,14 +9818,14 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'bar' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual(
           {
             properties: { type: 'highlight', class: 'baz' },
             screenRange: marker3.getRange(),
             bufferRange: marker3.getRange(),
-            rangeIsReversed: false
+            rangeIsReversed: false,
           }
         );
 
@@ -7979,7 +9844,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(
           decorationState[`${layer1Decoration2.id}-${marker2.id}`]
@@ -7987,20 +9852,20 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'bar' },
           screenRange: marker2.getRange(),
           bufferRange: marker2.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
         expect(decorationState[`${layer2Decoration.id}-${marker3.id}`]).toEqual(
           {
             properties: { type: 'highlight', class: 'baz' },
             screenRange: marker3.getRange(),
             bufferRange: marker3.getRange(),
-            rangeIsReversed: false
+            rangeIsReversed: false,
           }
         );
 
         layer1Decoration2.setPropertiesForMarker(marker1, {
           type: 'highlight',
-          class: 'quux'
+          class: 'quux',
         });
         decorationState = editor.decorationsStateForScreenRowRange(0, 12);
         expect(
@@ -8009,7 +9874,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'quux' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
 
         layer1Decoration2.setPropertiesForMarker(marker1, null);
@@ -8020,7 +9885,7 @@ describe('TextEditor', () => {
           properties: { type: 'highlight', class: 'bar' },
           screenRange: marker1.getRange(),
           bufferRange: marker1.getRange(),
-          rangeIsReversed: false
+          rangeIsReversed: false,
         });
       });
     });
@@ -8054,13 +9919,13 @@ describe('TextEditor', () => {
       expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
         {
           text: '  ',
-          scopes: ['syntax--source syntax--js', 'leading-whitespace']
+          scopes: ['syntax--source syntax--js', 'leading-whitespace'],
         },
         {
           text: 'var',
-          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type'],
         },
-        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] },
       ]);
 
       editor.update({ showIndentGuide: true });
@@ -8069,27 +9934,27 @@ describe('TextEditor', () => {
           text: '  ',
           scopes: [
             'syntax--source syntax--js',
-            'leading-whitespace indent-guide'
-          ]
+            'leading-whitespace indent-guide',
+          ],
         },
         {
           text: 'var',
-          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type'],
         },
-        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] },
       ]);
 
       editor.setMini(true);
       expect(editor.tokensForScreenRow(1).slice(0, 3)).toEqual([
         {
           text: '  ',
-          scopes: ['syntax--source syntax--js', 'leading-whitespace']
+          scopes: ['syntax--source syntax--js', 'leading-whitespace'],
         },
         {
           text: 'var',
-          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type']
+          scopes: ['syntax--source syntax--js', 'syntax--storage syntax--type'],
         },
-        { text: ' sort ', scopes: ['syntax--source syntax--js'] }
+        { text: ' sort ', scopes: ['syntax--source syntax--js'] },
       ]);
     });
   });
@@ -8100,7 +9965,7 @@ describe('TextEditor', () => {
         editorWidthInChars: 30,
         softWrapped: true,
         softWrapAtPreferredLineLength: true,
-        preferredLineLength: 20
+        preferredLineLength: 20,
       });
 
       expect(editor.lineTextForScreenRow(0)).toBe('var quicksort = ');
@@ -8121,7 +9986,7 @@ describe('TextEditor', () => {
       editor.update({
         editorWidthInChars: 8,
         softWrapped: true,
-        softWrapHangingIndentLength: 2
+        softWrapHangingIndentLength: 2,
       });
       expect(editor.lineTextForScreenRow(1)).toEqual('  9');
 
@@ -8139,7 +10004,7 @@ describe('TextEditor', () => {
     it('sets the maximum line length in the editor before soft wrapping is forced', () => {
       expect(editor.getSoftWrapColumn()).toBe(500);
       editor.update({
-        maxScreenLineLength: 1500
+        maxScreenLineLength: 1500,
       });
       expect(editor.getSoftWrapColumn()).toBe(1500);
     });
@@ -8171,7 +10036,7 @@ describe('TextEditor', () => {
 
       let languageMode = new TextMateLanguageMode({
         buffer,
-        grammar: atom.grammars.grammarForScopeName('source.js')
+        grammar: atom.grammars.grammarForScopeName('source.js'),
       });
 
       buffer.setLanguageMode(languageMode);
@@ -8186,7 +10051,7 @@ describe('TextEditor', () => {
       );
       expect(syntaxTreeeScopeDescriptor.getScopesArray()).toEqual([
         'source.js',
-        'support.variable.property.js'
+        'support.variable.property.js',
       ]);
     });
 
@@ -8199,7 +10064,7 @@ describe('TextEditor', () => {
       buffer.setLanguageMode(
         new TreeSitterLanguageMode({
           buffer,
-          grammar: atom.grammars.grammarForScopeName('source.js')
+          grammar: atom.grammars.grammarForScopeName('source.js'),
         })
       );
 
@@ -8221,7 +10086,7 @@ describe('TextEditor', () => {
         'parenthesized_expression',
         'binary_expression',
         'member_expression',
-        'property_identifier'
+        'property_identifier',
       ]);
     });
   });
@@ -8244,7 +10109,7 @@ describe('TextEditor', () => {
 
       atom.workspace.getActivePane().splitRight();
       const editor2 = await atom.workspace.open('sample.js', {
-        autoIndent: false
+        autoIndent: false,
       });
       expect(editor.shouldPromptToSave()).toBeFalsy();
 
@@ -8263,15 +10128,15 @@ describe('TextEditor', () => {
       expect(
         editor.shouldPromptToSave({
           windowCloseRequested: true,
-          projectHasPaths: true
+          projectHasPaths: true,
         })
       ).toBeFalsy();
 
-      await new Promise(resolve => editor.onDidConflict(resolve));
+      await new Promise((resolve) => editor.onDidConflict(resolve));
       expect(
         editor.shouldPromptToSave({
           windowCloseRequested: true,
-          projectHasPaths: true
+          projectHasPaths: true,
         })
       ).toBeTruthy();
     });
@@ -8281,7 +10146,7 @@ describe('TextEditor', () => {
       expect(
         editor.shouldPromptToSave({
           windowCloseRequested: true,
-          projectHasPaths: true
+          projectHasPaths: true,
         })
       ).toBeFalsy();
     });
@@ -8291,7 +10156,7 @@ describe('TextEditor', () => {
       expect(
         editor.shouldPromptToSave({
           windowCloseRequested: true,
-          projectHasPaths: false
+          projectHasPaths: false,
         })
       ).toBeTruthy();
     });
@@ -8304,7 +10169,10 @@ describe('TextEditor', () => {
     });
 
     it('toggles comments on the selected lines', () => {
-      editor.setSelectedBufferRange([[4, 5], [7, 5]]);
+      editor.setSelectedBufferRange([
+        [4, 5],
+        [7, 5],
+      ]);
       editor.toggleLineCommentsInSelection();
 
       expect(editor.lineTextForBufferRow(4)).toBe(
@@ -8317,7 +10185,10 @@ describe('TextEditor', () => {
         '    //   current < pivot ? left.push(current) : right.push(current);'
       );
       expect(editor.lineTextForBufferRow(7)).toBe('    // }');
-      expect(editor.getSelectedBufferRange()).toEqual([[4, 8], [7, 8]]);
+      expect(editor.getSelectedBufferRange()).toEqual([
+        [4, 8],
+        [7, 8],
+      ]);
 
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(4)).toBe(
@@ -8333,7 +10204,10 @@ describe('TextEditor', () => {
     });
 
     it('does not comment the last line of a non-empty selection if it ends at column 0', () => {
-      editor.setSelectedBufferRange([[4, 5], [7, 0]]);
+      editor.setSelectedBufferRange([
+        [4, 5],
+        [7, 0],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(4)).toBe(
         '    // while(items.length > 0) {'
@@ -8348,13 +10222,19 @@ describe('TextEditor', () => {
     });
 
     it('uncomments lines if all lines match the comment regex', () => {
-      editor.setSelectedBufferRange([[0, 0], [0, 1]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [0, 1],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         '// var quicksort = function () {'
       );
 
-      editor.setSelectedBufferRange([[0, 0], [2, Infinity]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [2, Infinity],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         '// // var quicksort = function () {'
@@ -8366,7 +10246,10 @@ describe('TextEditor', () => {
         '//     if (items.length <= 1) return items;'
       );
 
-      editor.setSelectedBufferRange([[0, 0], [2, Infinity]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [2, Infinity],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         '// var quicksort = function () {'
@@ -8378,7 +10261,10 @@ describe('TextEditor', () => {
         '    if (items.length <= 1) return items;'
       );
 
-      editor.setSelectedBufferRange([[0, 0], [0, Infinity]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [0, Infinity],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         'var quicksort = function () {'
@@ -8386,7 +10272,10 @@ describe('TextEditor', () => {
     });
 
     it('uncomments commented lines separated by an empty line', () => {
-      editor.setSelectedBufferRange([[0, 0], [1, Infinity]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [1, Infinity],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         '// var quicksort = function () {'
@@ -8397,7 +10286,10 @@ describe('TextEditor', () => {
 
       editor.getBuffer().insert([0, Infinity], '\n');
 
-      editor.setSelectedBufferRange([[0, 0], [2, Infinity]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [2, Infinity],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe(
         'var quicksort = function () {'
@@ -8416,9 +10308,12 @@ describe('TextEditor', () => {
 
     it('does not explode if the current language mode has no comment regex', () => {
       const editor = new TextEditor({
-        buffer: new TextBuffer({ text: 'hello' })
+        buffer: new TextBuffer({ text: 'hello' }),
       });
-      editor.setSelectedBufferRange([[0, 0], [0, 5]]);
+      editor.setSelectedBufferRange([
+        [0, 0],
+        [0, 5],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(0)).toBe('hello');
     });
@@ -8435,13 +10330,19 @@ describe('TextEditor', () => {
       editor.toggleLineCommentsInSelection();
 
       expect(editor.lineTextForBufferRow(10)).toBe('// ');
-      expect(editor.getSelectedBufferRange()).toEqual([[10, 3], [10, 3]]);
+      expect(editor.getSelectedBufferRange()).toEqual([
+        [10, 3],
+        [10, 3],
+      ]);
       editor.backspace();
       expect(editor.lineTextForBufferRow(10)).toBe('//');
 
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(10)).toBe('');
-      expect(editor.getSelectedBufferRange()).toEqual([[10, 0], [10, 0]]);
+      expect(editor.getSelectedBufferRange()).toEqual([
+        [10, 0],
+        [10, 0],
+      ]);
     });
 
     it('uncomments when the line has leading whitespace', () => {
@@ -8451,7 +10352,10 @@ describe('TextEditor', () => {
       expect(editor.lineTextForBufferRow(10)).toBe('// ');
       editor.moveToBeginningOfLine();
       editor.insertText('  ');
-      editor.setSelectedBufferRange([[10, 0], [10, 0]]);
+      editor.setSelectedBufferRange([
+        [10, 0],
+        [10, 0],
+      ]);
       editor.toggleLineCommentsInSelection();
       expect(editor.lineTextForBufferRow(10)).toBe('  ');
     });
@@ -8475,7 +10379,7 @@ describe('TextEditor', () => {
         let delimLength = '<!--'.length;
         let selection = editor.addSelectionForBufferRange([
           [0, delimLength],
-          [0, delimLength]
+          [0, delimLength],
         ]);
 
         {
@@ -8497,7 +10401,7 @@ describe('TextEditor', () => {
         {
           selection.setBufferRange([
             [0, delimLength],
-            [0, delimLength + 1 + 'test'.length]
+            [0, delimLength + 1 + 'test'.length],
           ]);
           selection.toggleLineComments();
 
@@ -8516,7 +10420,10 @@ describe('TextEditor', () => {
 
         {
           editor.setText('    test');
-          selection.setBufferRange([[0, 4], [0, 4]]);
+          selection.setBufferRange([
+            [0, 4],
+            [0, 4],
+          ]);
           selection.toggleLineComments();
 
           const range = selection.getBufferRange();
@@ -8526,7 +10433,10 @@ describe('TextEditor', () => {
 
         {
           editor.setText('    test');
-          selection.setBufferRange([[0, 8], [0, 8]]);
+          selection.setBufferRange([
+            [0, 8],
+            [0, 8],
+          ]);
           selection.selectToBeginningOfWord();
           selection.toggleLineComments();
 
@@ -8584,7 +10494,10 @@ describe('TextEditor', () => {
 
       it('uncomments lines with leading whitespace', () => {
         editor.setTextInBufferRange(
-          [[2, 0], [2, Infinity]],
+          [
+            [2, 0],
+            [2, Infinity],
+          ],
           '  /* width: 110%; */'
         );
         editor.toggleLineCommentsForBufferRows(2, 2);
@@ -8593,7 +10506,10 @@ describe('TextEditor', () => {
 
       it('uncomments lines with trailing whitespace', () => {
         editor.setTextInBufferRange(
-          [[2, 0], [2, Infinity]],
+          [
+            [2, 0],
+            [2, Infinity],
+          ],
           '/* width: 110%; */  '
         );
         editor.toggleLineCommentsForBufferRows(2, 2);
@@ -8602,7 +10518,10 @@ describe('TextEditor', () => {
 
       it('uncomments lines with leading and trailing whitespace', () => {
         editor.setTextInBufferRange(
-          [[2, 0], [2, Infinity]],
+          [
+            [2, 0],
+            [2, Infinity],
+          ],
           '   /* width: 110%; */ '
         );
         editor.toggleLineCommentsForBufferRows(2, 2);
@@ -8740,7 +10659,7 @@ describe('TextEditor', () => {
 
       it('unfolds every folded line with comments', async () => {
         editor = await atom.workspace.open('sample-with-comments.js', {
-          autoIndent: false
+          autoIndent: false,
         });
 
         const initialScreenLineCount = editor.getScreenLineCount();
@@ -8862,7 +10781,7 @@ describe('TextEditor', () => {
 
       it('does not fold anything but the indentLevel', async () => {
         editor = await atom.workspace.open('sample-with-comments.js', {
-          autoIndent: false
+          autoIndent: false,
         });
 
         editor.foldAllAtIndentLevel(0);

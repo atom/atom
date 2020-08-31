@@ -44,7 +44,7 @@ module.exports = {
 
   realpath(path) {
     return new Promise((resolve, reject) => {
-      fs.realpath(path, function(error, realpath) {
+      fs.realpath(path, function (error, realpath) {
         if (error) {
           reject(error);
         } else {
@@ -52,5 +52,5 @@ module.exports = {
         }
       });
     });
-  }
+  },
 };

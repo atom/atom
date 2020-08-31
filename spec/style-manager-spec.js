@@ -6,18 +6,18 @@ describe('StyleManager', () => {
 
   beforeEach(() => {
     styleManager = new StyleManager({
-      configDirPath: temp.mkdirSync('atom-config')
+      configDirPath: temp.mkdirSync('atom-config'),
     });
     addEvents = [];
     removeEvents = [];
     updateEvents = [];
-    styleManager.onDidAddStyleElement(event => {
+    styleManager.onDidAddStyleElement((event) => {
       addEvents.push(event);
     });
-    styleManager.onDidRemoveStyleElement(event => {
+    styleManager.onDidRemoveStyleElement((event) => {
       removeEvents.push(event);
     });
-    styleManager.onDidUpdateStyleElement(event => {
+    styleManager.onDidUpdateStyleElement((event) => {
       updateEvents.push(event);
     });
   });
@@ -47,7 +47,7 @@ describe('StyleManager', () => {
     describe('atom-text-editor shadow DOM selectors upgrades', () => {
       beforeEach(() => {
         // attach styles element to the DOM to parse CSS rules
-        styleManager.onDidAddStyleElement(styleElement => {
+        styleManager.onDidAddStyleElement((styleElement) => {
           jasmine.attachToDOM(styleElement);
         });
       });
@@ -62,14 +62,14 @@ describe('StyleManager', () => {
         `);
         expect(
           Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map(
-            r => r.selectorText
+            (r) => r.selectorText
           )
         ).toEqual([
           'atom-text-editor.editor .class-1, atom-text-editor.editor .class-2',
           'atom-text-editor.editor > .class-3',
           'atom-text-editor .class-4',
           'atom-text-editor[data-grammar*="js"].editor .class-6',
-          'atom-text-editor[mini].is-focused.editor .class-7'
+          'atom-text-editor[mini].is-focused.editor .class-7',
         ]);
       });
 
@@ -86,13 +86,13 @@ describe('StyleManager', () => {
           );
           expect(
             Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map(
-              r => r.selectorText
+              (r) => r.selectorText
             )
           ).toEqual([
             '.class-1',
             '.syntax--source > .syntax--js, .syntax--source.syntax--coffee',
             '.syntax--source',
-            '#id-1'
+            '#id-1',
           ]);
 
           styleManager.addStyleSheet(`
@@ -103,13 +103,13 @@ describe('StyleManager', () => {
           `);
           expect(
             Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map(
-              r => r.selectorText
+              (r) => r.selectorText
             )
           ).toEqual([
             '.source > .js, .source.coffee',
             'atom-text-editor.editor .syntax--source > .syntax--js',
             'atom-text-editor[mini].is-focused.editor .syntax--source > .syntax--js',
-            'atom-text-editor .source > .js'
+            'atom-text-editor .source > .js',
           ]);
         });
       });
@@ -120,7 +120,7 @@ describe('StyleManager', () => {
         );
         expect(
           Array.from(styleManager.getStyleElements()[0].sheet.cssRules).map(
-            r => r.selectorText
+            (r) => r.selectorText
           )
         ).toEqual([':host .class-1, :host .class-2']);
         styleManager.addStyleSheet(
@@ -129,14 +129,14 @@ describe('StyleManager', () => {
         );
         expect(
           Array.from(styleManager.getStyleElements()[1].sheet.cssRules).map(
-            r => r.selectorText
+            (r) => r.selectorText
           )
         ).toEqual(['atom-text-editor .class-1, atom-text-editor .class-2']);
       });
 
       it('does not throw exceptions on rules with no selectors', () => {
         styleManager.addStyleSheet('@media screen {font-size: 10px}', {
-          context: 'atom-text-editor'
+          context: 'atom-text-editor',
         });
       });
     });
@@ -144,13 +144,13 @@ describe('StyleManager', () => {
     describe('when a sourcePath parameter is specified', () => {
       it('ensures a maximum of one style element for the given source path, updating a previous if it exists', () => {
         styleManager.addStyleSheet('a {color: red}', {
-          sourcePath: '/foo/bar'
+          sourcePath: '/foo/bar',
         });
         expect(addEvents.length).toBe(1);
         expect(addEvents[0].getAttribute('source-path')).toBe('/foo/bar');
 
         const disposable2 = styleManager.addStyleSheet('a {color: blue}', {
-          sourcePath: '/foo/bar'
+          sourcePath: '/foo/bar',
         });
         expect(addEvents.length).toBe(1);
         expect(updateEvents.length).toBe(1);
@@ -160,7 +160,7 @@ describe('StyleManager', () => {
 
         addEvents = [];
         styleManager.addStyleSheet('a {color: yellow}', {
-          sourcePath: '/foo/bar'
+          sourcePath: '/foo/bar',
         });
         expect(addEvents.length).toBe(1);
         expect(addEvents[0].getAttribute('source-path')).toBe('/foo/bar');
@@ -175,12 +175,12 @@ describe('StyleManager', () => {
         styleManager.addStyleSheet('a {color: green}', { priority: 2 });
         styleManager.addStyleSheet('a {color: yellow}', { priority: 1 });
         expect(
-          styleManager.getStyleElements().map(elt => elt.textContent)
+          styleManager.getStyleElements().map((elt) => elt.textContent)
         ).toEqual([
           'a {color: blue}',
           'a {color: red}',
           'a {color: yellow}',
-          'a {color: green}'
+          'a {color: green}',
         ]);
       });
     });

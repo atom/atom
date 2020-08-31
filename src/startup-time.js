@@ -29,5 +29,5 @@ module.exports = {
   deleteData() {
     startTime = undefined;
     markers = [];
-  }
+  },
 };

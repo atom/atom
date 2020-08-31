@@ -9,7 +9,7 @@ describe('AutoUpdateManager (renderer)', () => {
 
   beforeEach(() => {
     autoUpdateManager = new AutoUpdateManager({
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
     });
     autoUpdateManager.initialize();
   });

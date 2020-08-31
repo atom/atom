@@ -28,10 +28,7 @@ module.exports = class Clipboard {
   //
   // Returns a hashed {String}.
   md5(text) {
-    return crypto
-      .createHash('md5')
-      .update(text, 'utf8')
-      .digest('hex');
+    return crypto.createHash('md5').update(text, 'utf8').digest('hex');
   }
 
   // Public: Write the given text to the clipboard.

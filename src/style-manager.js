@@ -154,7 +154,7 @@ module.exports = class StyleManager {
       styleElement.textContent = transformed.source;
       if (transformed.deprecationMessage) {
         this.deprecationsBySourcePath[params.sourcePath] = {
-          message: transformed.deprecationMessage
+          message: transformed.deprecationMessage,
         };
         this.emitter.emit('did-update-deprecations');
       }
@@ -293,9 +293,9 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
   }
 
   if (transformedSource) {
-    transformedSource.walkRules(rule => {
-      const transformedSelector = selectorParser(selectors => {
-        selectors.each(selector => {
+    transformedSource.walkRules((rule) => {
+      const transformedSelector = selectorParser((selectors) => {
+        selectors.each((selector) => {
           const firstNode = selector.nodes[0];
           if (
             context === 'atom-text-editor' &&
@@ -303,7 +303,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
             firstNode.value === ':host'
           ) {
             const atomTextEditorElementNode = selectorParser.tag({
-              value: 'atom-text-editor'
+              value: 'atom-text-editor',
             });
             firstNode.replaceWith(atomTextEditorElementNode);
           }
@@ -311,7 +311,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
           let previousNodeIsAtomTextEditor = false;
           let targetsAtomTextEditorShadow = context === 'atom-text-editor';
           let previousNode;
-          selector.each(node => {
+          selector.each((node) => {
             if (targetsAtomTextEditorShadow && node.type === 'class') {
               if (DEPRECATED_SYNTAX_SELECTORS.has(node.value)) {
                 node.value = `syntax--${node.value}`;
@@ -343,7 +343,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
       if (transformedSelector !== rule.selector) {
         transformedSelectors.push({
           before: rule.selector,
-          after: transformedSelector
+          after: transformedSelector,
         });
         rule.selector = transformedSelector;
       }
@@ -363,7 +363,9 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
       deprecationMessage += 'upgrade the following selectors:\n\n';
       deprecationMessage +=
         transformedSelectors
-          .map(selector => `* \`${selector.before}\` => \`${selector.after}\``)
+          .map(
+            (selector) => `* \`${selector.before}\` => \`${selector.after}\``
+          )
           .join('\n\n') + '\n\n';
       deprecationMessage +=
         'Automatic translation of selectors will be removed in a few release cycles to minimize startup time. ';

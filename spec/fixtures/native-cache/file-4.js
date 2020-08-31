@@ -1,1 +1,3 @@
-module.exports = function () { return "file-4" }
+module.exports = function () {
+  return 'file-4';
+};

@@ -1,10 +1,10 @@
 const spawnSync = require('./spawn-sync');
 
-module.exports = function(packagedAppPath) {
+module.exports = function (packagedAppPath) {
   const result = spawnSync('security', [
     'find-certificate',
     '-c',
-    'Mac Developer'
+    'Mac Developer',
   ]);
 
   const certMatch = (result.stdout || '')
@@ -28,7 +28,7 @@ module.exports = function(packagedAppPath) {
         '--verbose',
         '--sign',
         certMatch[1],
-        packagedAppPath
+        packagedAppPath,
       ],
       { stdio: 'inherit' }
     );

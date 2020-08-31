@@ -14,7 +14,7 @@ module.exports = class BaseThemeWatcher extends Watcher {
   watch() {
     const filePaths = fs
       .readdirSync(this.stylesheetsPath)
-      .filter(filePath => path.extname(filePath).includes('less'));
+      .filter((filePath) => path.extname(filePath).includes('less'));
 
     for (const filePath of filePaths) {
       this.watchFile(path.join(this.stylesheetsPath, filePath));

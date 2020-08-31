@@ -5,7 +5,7 @@ const {
   setValueAtKeyPath,
   deleteValueAtKeyPath,
   pushKeyPath,
-  splitKeyPath
+  splitKeyPath,
 } = require('key-path-helpers');
 const Color = require('./color');
 const ScopedPropertyStore = require('scoped-property-store');
@@ -447,7 +447,7 @@ class Config {
     this.emitter = new Emitter();
     this.schema = {
       type: 'object',
-      properties: {}
+      properties: {},
     };
 
     this.defaultSettings = {};
@@ -500,7 +500,8 @@ class Config {
       [keyPath, callback] = args;
     } else if (
       args.length === 3 &&
-      (_.isString(args[0]) && _.isObject(args[1]))
+      _.isString(args[0]) &&
+      _.isObject(args[1])
     ) {
       [keyPath, options, callback] = args;
       scopeDescriptor = options.scope;
@@ -803,7 +804,7 @@ class Config {
             this.set(null, settings, {
               scopeSelector,
               source,
-              priority: this.priorityForSource(source)
+              priority: this.priorityForSource(source),
             });
           }
 
@@ -918,7 +919,7 @@ class Config {
     let endTransaction;
     this.beginTransaction();
     try {
-      endTransaction = fn => (...args) => {
+      endTransaction = (fn) => (...args) => {
         this.endTransaction();
         return fn(...args);
       };
@@ -1132,7 +1133,9 @@ class Config {
 
   observeKeyPath(keyPath, options, callback) {
     callback(this.get(keyPath));
-    return this.onDidChangeKeyPath(keyPath, event => callback(event.newValue));
+    return this.onDidChangeKeyPath(keyPath, (event) =>
+      callback(event.newValue)
+    );
   }
 
   onDidChangeKeyPath(keyPath, callback) {
@@ -1195,7 +1198,7 @@ class Config {
     if (object instanceof Color) {
       return object.clone();
     } else if (Array.isArray(object)) {
-      return object.map(value => this.deepClone(value));
+      return object.map((value) => this.deepClone(value));
     } else if (isPlainObject(object)) {
       return _.mapObject(object, (key, value) => [key, this.deepClone(value)]);
     } else {
@@ -1307,7 +1310,7 @@ class Config {
     }
     return this.transact(() => {
       this.settings = this.makeValueConformToSchema(null, this.settings, {
-        suppressException: true
+        suppressException: true,
       });
       const selectorsAndSettings = this.scopedSettingsStore.propertiesForSource(
         source
@@ -1316,7 +1319,7 @@ class Config {
       for (let scopeSelector in selectorsAndSettings) {
         let settings = selectorsAndSettings[scopeSelector];
         settings = this.makeValueConformToSchema(null, settings, {
-          suppressException: true
+          suppressException: true,
         });
         this.setRawScopedValue(null, settings, source, scopeSelector);
       }
@@ -1352,13 +1355,13 @@ class Config {
     for (let scopeSelector in newScopedSettings) {
       let settings = newScopedSettings[scopeSelector];
       settings = this.makeValueConformToSchema(null, settings, {
-        suppressException: true
+        suppressException: true,
       });
       const validatedSettings = {};
       validatedSettings[scopeSelector] = withoutEmptyObjects(settings);
       if (validatedSettings[scopeSelector] != null) {
         this.scopedSettingsStore.addProperties(source, validatedSettings, {
-          priority
+          priority,
         });
       }
     }
@@ -1376,7 +1379,7 @@ class Config {
     const settingsBySelector = {};
     settingsBySelector[selector] = value;
     this.scopedSettingsStore.addProperties(source, settingsBySelector, {
-      priority: this.priorityForSource(source)
+      priority: this.priorityForSource(source),
     });
     return this.emitChangeEvent();
   }
@@ -1405,7 +1408,7 @@ class Config {
 
   observeScopedKeyPath(scope, keyPath, callback) {
     callback(this.get(keyPath, { scope }));
-    return this.onDidChangeScopedKeyPath(scope, keyPath, event =>
+    return this.onDidChangeScopedKeyPath(scope, keyPath, (event) =>
       callback(event.newValue)
     );
   }
@@ -1435,7 +1438,7 @@ Config.addSchemaEnforcers({
   any: {
     coerce(keyPath, value, schema) {
       return value;
-    }
+    },
   },
 
   integer: {
@@ -1449,7 +1452,7 @@ Config.addSchemaEnforcers({
         );
       }
       return value;
-    }
+    },
   },
 
   number: {
@@ -1463,7 +1466,7 @@ Config.addSchemaEnforcers({
         );
       }
       return value;
-    }
+    },
   },
 
   boolean: {
@@ -1490,7 +1493,7 @@ Config.addSchemaEnforcers({
             )} must be a boolean or the string 'true' or 'false'`
           );
       }
-    }
+    },
   },
 
   string: {
@@ -1514,7 +1517,7 @@ Config.addSchemaEnforcers({
       } else {
         return value;
       }
-    }
+    },
   },
 
   null: {
@@ -1528,7 +1531,7 @@ Config.addSchemaEnforcers({
         );
       }
       return value;
-    }
+    },
   },
 
   object: {
@@ -1579,7 +1582,7 @@ Config.addSchemaEnforcers({
       }
 
       return newValue;
-    }
+    },
   },
 
   array: {
@@ -1607,7 +1610,7 @@ Config.addSchemaEnforcers({
       } else {
         return value;
       }
-    }
+    },
   },
 
   color: {
@@ -1621,7 +1624,7 @@ Config.addSchemaEnforcers({
         );
       }
       return color;
-    }
+    },
   },
 
   '*': {
@@ -1642,7 +1645,7 @@ Config.addSchemaEnforcers({
       let possibleValues = schema.enum;
 
       if (Array.isArray(possibleValues)) {
-        possibleValues = possibleValues.map(value => {
+        possibleValues = possibleValues.map((value) => {
           if (value.hasOwnProperty('value')) {
             return value.value;
           } else {
@@ -1671,18 +1674,18 @@ Config.addSchemaEnforcers({
           value
         )} is not one of ${JSON.stringify(possibleValues)}`
       );
-    }
-  }
+    },
+  },
 });
 
-let isPlainObject = value =>
+let isPlainObject = (value) =>
   _.isObject(value) &&
   !Array.isArray(value) &&
   !_.isFunction(value) &&
   !_.isString(value) &&
   !(value instanceof Color);
 
-let sortObject = value => {
+let sortObject = (value) => {
   if (!isPlainObject(value)) {
     return value;
   }
@@ -1693,7 +1696,7 @@ let sortObject = value => {
   return result;
 };
 
-const withoutEmptyObjects = object => {
+const withoutEmptyObjects = (object) => {
   let resultObject;
   if (isPlainObject(object)) {
     for (let key in object) {

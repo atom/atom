@@ -51,11 +51,11 @@ module.exports = class TooltipManager {
       container: 'body',
       html: true,
       placement: 'auto top',
-      viewportPadding: 2
+      viewportPadding: 2,
     };
 
     this.hoverDefaults = {
-      delay: { show: 1000, hide: 100 }
+      delay: { show: 1000, hide: 100 },
     };
 
     this.keymapManager = keymapManager;
@@ -128,7 +128,7 @@ module.exports = class TooltipManager {
     if (keyBindingCommand != null) {
       const bindings = this.keymapManager.findKeyBindings({
         command: keyBindingCommand,
-        target: keyBindingTarget
+        target: keyBindingTarget,
       });
       const keystroke = getKeystroke(bindings);
       if (options.title != null && keystroke != null) {
@@ -151,7 +151,7 @@ module.exports = class TooltipManager {
     }
     this.tooltips.get(target).push(tooltip);
 
-    const hideTooltip = function() {
+    const hideTooltip = function () {
       tooltip.leave({ currentTarget: target });
       tooltip.hide();
     };
@@ -196,7 +196,7 @@ module.exports = class TooltipManager {
 
 function humanizeKeystrokes(keystroke) {
   let keystrokes = keystroke.split(' ');
-  keystrokes = keystrokes.map(stroke => _.humanizeKeystroke(stroke));
+  keystrokes = keystrokes.map((stroke) => _.humanizeKeystroke(stroke));
   return keystrokes.join(' ');
 }
 

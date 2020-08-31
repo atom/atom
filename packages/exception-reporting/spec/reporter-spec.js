@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs-plus');
 let osVersion = `${os.platform()}-${os.arch()}-${os.release()}`;
 
-let getReleaseChannel = version => {
+let getReleaseChannel = (version) => {
   return version.indexOf('beta') > -1
     ? 'beta'
     : version.indexOf('dev') > -1
@@ -24,7 +24,7 @@ describe('Reporter', () => {
     reporter = new Reporter({
       request: (url, options) => requests.push(Object.assign({ url }, options)),
       alwaysReport: true,
-      reportPreviousErrors: false
+      reportPreviousErrors: false,
     });
     requests = [];
     mockActivePackages = [];
@@ -51,7 +51,7 @@ describe('Reporter', () => {
           requests.push(Object.assign({ url }, options)),
         alwaysReport: true,
         reportPreviousErrors: false,
-        resourcePath: repositoryRootPath
+        resourcePath: repositoryRootPath,
       });
 
       let error = new Error();
@@ -60,7 +60,7 @@ describe('Reporter', () => {
       let [lineNumber, columnNumber] = error.stack
         .match(/.js:(\d+):(\d+)/)
         .slice(1)
-        .map(s => parseInt(s));
+        .map((s) => parseInt(s));
 
       expect(requests.length).toBe(1);
       let [request] = requests;
@@ -77,7 +77,7 @@ describe('Reporter', () => {
         notifier: {
           name: 'Atom',
           version: Reporter.LIB_VERSION,
-          url: 'https://www.atom.io'
+          url: 'https://www.atom.io',
         },
         events: [
           {
@@ -93,22 +93,22 @@ describe('Reporter', () => {
                       : '<anonymous>',
                     file: 'spec/reporter-spec.js',
                     lineNumber: lineNumber,
-                    columnNumber: columnNumber
-                  }
-                ]
-              }
+                    columnNumber: columnNumber,
+                  },
+                ],
+              },
             ],
             severity: 'error',
             user: {},
             app: {
               version: atom.getVersion(),
-              releaseStage: getReleaseChannel(atom.getVersion())
+              releaseStage: getReleaseChannel(atom.getVersion()),
             },
             device: {
-              osVersion: osVersion
-            }
-          }
-        ]
+              osVersion: osVersion,
+            },
+          },
+        ],
       });
     });
 
@@ -121,7 +121,7 @@ describe('Reporter', () => {
       let [lineNumber, columnNumber] = error.stack
         .match(/.js:(\d+):(\d+)/)
         .slice(1)
-        .map(s => parseInt(s));
+        .map((s) => parseInt(s));
 
       expect(requests.length).toBe(1);
       let [request] = requests;
@@ -138,7 +138,7 @@ describe('Reporter', () => {
         notifier: {
           name: 'Atom',
           version: Reporter.LIB_VERSION,
-          url: 'https://www.atom.io'
+          url: 'https://www.atom.io',
         },
         events: [
           {
@@ -154,22 +154,22 @@ describe('Reporter', () => {
                       : '<anonymous>',
                     file: '~/exception-reporting/spec/reporter-spec.js',
                     lineNumber: lineNumber,
-                    columnNumber: columnNumber
-                  }
-                ]
-              }
+                    columnNumber: columnNumber,
+                  },
+                ],
+              },
             ],
             severity: 'error',
             user: {},
             app: {
               version: atom.getVersion(),
-              releaseStage: getReleaseChannel(atom.getVersion())
+              releaseStage: getReleaseChannel(atom.getVersion()),
             },
             device: {
-              osVersion: osVersion
-            }
-          }
-        ]
+              osVersion: osVersion,
+            },
+          },
+        ],
       });
     });
 
@@ -254,25 +254,25 @@ describe('Reporter', () => {
         {
           name: 'user-1',
           path: '/Users/user/.atom/packages/user-1',
-          metadata: { version: '1.0.0' }
+          metadata: { version: '1.0.0' },
         },
         {
           name: 'user-2',
           path: '/Users/user/.atom/packages/user-2',
-          metadata: { version: '1.2.0' }
+          metadata: { version: '1.2.0' },
         },
         {
           name: 'bundled-1',
           path:
             '/Applications/Atom.app/Contents/Resources/app.asar/node_modules/bundled-1',
-          metadata: { version: '1.0.0' }
+          metadata: { version: '1.0.0' },
         },
         {
           name: 'bundled-2',
           path:
             '/Applications/Atom.app/Contents/Resources/app.asar/node_modules/bundled-2',
-          metadata: { version: '1.2.0' }
-        }
+          metadata: { version: '1.2.0' },
+        },
       ];
 
       const packageDirPaths = ['/Users/user/.atom/packages'];
@@ -285,11 +285,11 @@ describe('Reporter', () => {
 
       expect(error.metadata.userPackages).toEqual({
         'user-1': '1.0.0',
-        'user-2': '1.2.0'
+        'user-2': '1.2.0',
       });
       expect(error.metadata.bundledPackages).toEqual({
         'bundled-1': '1.0.0',
-        'bundled-2': '1.2.0'
+        'bundled-2': '1.2.0',
       });
     });
 
@@ -312,7 +312,7 @@ describe('Reporter', () => {
       expect(body.events[0].metaData.previousErrors).toEqual(['A', 'B']);
       expect(body.events[0].metaData.previousAssertionFailures).toEqual([
         'X',
-        'Y'
+        'Y',
       ]);
     });
   });
@@ -327,7 +327,7 @@ describe('Reporter', () => {
       let [lineNumber, columnNumber] = error.stack
         .match(/.js:(\d+):(\d+)/)
         .slice(1)
-        .map(s => parseInt(s));
+        .map((s) => parseInt(s));
 
       expect(requests.length).toBe(1);
       let [request] = requests;
@@ -344,7 +344,7 @@ describe('Reporter', () => {
         notifier: {
           name: 'Atom',
           version: Reporter.LIB_VERSION,
-          url: 'https://www.atom.io'
+          url: 'https://www.atom.io',
         },
         events: [
           {
@@ -360,22 +360,22 @@ describe('Reporter', () => {
                       : '<anonymous>',
                     file: '~/exception-reporting/spec/reporter-spec.js',
                     lineNumber: lineNumber,
-                    columnNumber: columnNumber
-                  }
-                ]
-              }
+                    columnNumber: columnNumber,
+                  },
+                ],
+              },
             ],
             severity: 'warning',
             user: {},
             app: {
               version: atom.getVersion(),
-              releaseStage: getReleaseChannel(atom.getVersion())
+              releaseStage: getReleaseChannel(atom.getVersion()),
             },
             device: {
-              osVersion: osVersion
-            }
-          }
-        ]
+              osVersion: osVersion,
+            },
+          },
+        ],
       });
     });
 
@@ -460,7 +460,7 @@ describe('Reporter', () => {
           (key, value) => (fakeStorage[key] = value)
         );
         spyOn(global.localStorage, 'getItem').andCallFake(
-          key => fakeStorage[key]
+          (key) => fakeStorage[key]
         );
 
         error.privateMetadataRequestName = 'foo';
@@ -488,25 +488,25 @@ describe('Reporter', () => {
         {
           name: 'user-1',
           path: '/Users/user/.atom/packages/user-1',
-          metadata: { version: '1.0.0' }
+          metadata: { version: '1.0.0' },
         },
         {
           name: 'user-2',
           path: '/Users/user/.atom/packages/user-2',
-          metadata: { version: '1.2.0' }
+          metadata: { version: '1.2.0' },
         },
         {
           name: 'bundled-1',
           path:
             '/Applications/Atom.app/Contents/Resources/app.asar/node_modules/bundled-1',
-          metadata: { version: '1.0.0' }
+          metadata: { version: '1.0.0' },
         },
         {
           name: 'bundled-2',
           path:
             '/Applications/Atom.app/Contents/Resources/app.asar/node_modules/bundled-2',
-          metadata: { version: '1.2.0' }
-        }
+          metadata: { version: '1.2.0' },
+        },
       ];
 
       const packageDirPaths = ['/Users/user/.atom/packages'];
@@ -519,11 +519,11 @@ describe('Reporter', () => {
 
       expect(error.metadata.userPackages).toEqual({
         'user-1': '1.0.0',
-        'user-2': '1.2.0'
+        'user-2': '1.2.0',
       });
       expect(error.metadata.bundledPackages).toEqual({
         'bundled-1': '1.0.0',
-        'bundled-2': '1.2.0'
+        'bundled-2': '1.2.0',
       });
     });
 
@@ -545,7 +545,7 @@ describe('Reporter', () => {
       expect(body.events[0].metaData.previousErrors).toEqual(['A', 'B']);
       expect(body.events[0].metaData.previousAssertionFailures).toEqual([
         'X',
-        'Y'
+        'Y',
       ]);
     });
   });

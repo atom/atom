@@ -12,7 +12,7 @@ module.exports = class AboutStatusBar extends EtchComponent {
     this.subscriptions.add(
       atom.tooltips.add(this.element, {
         title:
-          'An update will be installed the next time Atom is relaunched.<br/><br/>Click the squirrel icon for more information.'
+          'An update will be installed the next time Atom is relaunched.<br/><br/>Click the squirrel icon for more information.',
       })
     );
   }
@@ -25,7 +25,7 @@ module.exports = class AboutStatusBar extends EtchComponent {
     return $.div(
       {
         className: 'about-release-notes inline-block',
-        onclick: this.handleClick.bind(this)
+        onclick: this.handleClick.bind(this),
       },
       $.span({ type: 'button', className: 'icon icon-squirrel' })
     );

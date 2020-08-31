@@ -14,7 +14,7 @@ describe('Update Package Dependencies', () => {
     let { command, args, stderr, exit, options } = {};
     beforeEach(() => {
       spyOn(updatePackageDependencies, 'runBufferedProcess').andCallFake(
-        params => {
+        (params) => {
           ({ command, args, stderr, exit, options } = params);
           return true; // so that this.process isn't null
         }
@@ -73,7 +73,9 @@ describe('Update Package Dependencies', () => {
 
       let tile = statusBar.mainModule.statusBar
         .getRightTiles()
-        .find(tile => tile.item.matches('update-package-dependencies-status'));
+        .find((tile) =>
+          tile.item.matches('update-package-dependencies-status')
+        );
       expect(
         tile.item.classList.contains('update-package-dependencies-status')
       ).toBe(true);
@@ -83,7 +85,9 @@ describe('Update Package Dependencies', () => {
 
       tile = statusBar.mainModule.statusBar
         .getRightTiles()
-        .find(tile => tile.item.matches('update-package-dependencies-status'));
+        .find((tile) =>
+          tile.item.matches('update-package-dependencies-status')
+        );
       expect(tile).toBeUndefined();
     });
 

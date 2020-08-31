@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 
-module.exports = function(packagePath) {
+module.exports = function (packagePath) {
   const nodeModulesPath = path.join(packagePath, 'node_modules');
   const nodeModulesBackupPath = path.join(packagePath, 'node_modules.bak');
 

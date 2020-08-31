@@ -19,12 +19,12 @@ describe('contextMenu', () => {
       const items = [
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       const expected = [
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -40,12 +40,12 @@ describe('contextMenu', () => {
         { command: 'core:one' },
         { type: 'separator' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       const expected = [
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -59,13 +59,13 @@ describe('contextMenu', () => {
         { command: 'core:two' },
         { type: 'separator' },
         { command: 'core:three', after: ['core:one'] },
-        { type: 'separator' }
+        { type: 'separator' },
       ];
       const expected = [
         { command: 'core:one' },
         { command: 'core:three', after: ['core:one'] },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -78,14 +78,14 @@ describe('contextMenu', () => {
         { type: 'separator' },
         { command: 'core:three', after: ['core:one'] },
         { command: 'core:four' },
-        { type: 'separator' }
+        { type: 'separator' },
       ];
       const expected = [
         { command: 'core:one' },
         { command: 'core:three', after: ['core:one'] },
         { command: 'core:four' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -98,14 +98,14 @@ describe('contextMenu', () => {
         { type: 'separator' },
         { command: 'core:three', after: ['core:does-not-exist'] },
         { command: 'core:four', after: ['core:one'] },
-        { type: 'separator' }
+        { type: 'separator' },
       ];
       const expected = [
         { command: 'core:one' },
         { command: 'core:three', after: ['core:does-not-exist'] },
         { command: 'core:four', after: ['core:one'] },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -114,12 +114,12 @@ describe('contextMenu', () => {
       const items = [
         { command: 'core:one', after: ['core:three'] },
         { command: 'core:two', before: ['core:one'] },
-        { command: 'core:three' }
+        { command: 'core:three' },
       ];
       const expected = [
         { command: 'core:three' },
         { command: 'core:two', before: ['core:one'] },
-        { command: 'core:one', after: ['core:three'] }
+        { command: 'core:one', after: ['core:three'] },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -130,12 +130,12 @@ describe('contextMenu', () => {
         { type: 'separator' },
         { command: 'core:two' },
         { type: 'separator' },
-        { command: 'core:three', after: ['core:one', 'core:two'] }
+        { command: 'core:three', after: ['core:one', 'core:two'] },
       ];
       const expected = [
         { command: 'core:two' },
         { command: 'core:one' },
-        { command: 'core:three', after: ['core:one', 'core:two'] }
+        { command: 'core:three', after: ['core:one', 'core:two'] },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -146,12 +146,12 @@ describe('contextMenu', () => {
         { type: 'separator' },
         { command: 'core:two' },
         { type: 'separator' },
-        { command: 'core:three', after: ['core:one'], before: ['core:two'] }
+        { command: 'core:three', after: ['core:one'], before: ['core:two'] },
       ];
       const expected = [
         { command: 'core:one' },
         { command: 'core:three', after: ['core:one'], before: ['core:two'] },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual(expected);
     });
@@ -161,22 +161,22 @@ describe('contextMenu', () => {
     it('does a simple sort', () => {
       const items = [
         { command: 'core:two', after: ['core:one'] },
-        { command: 'core:one' }
+        { command: 'core:one' },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:one' },
-        { command: 'core:two', after: ['core:one'] }
+        { command: 'core:two', after: ['core:one'] },
       ]);
     });
 
     it('resolves cycles by ignoring things that conflict', () => {
       const items = [
         { command: 'core:two', after: ['core:one'] },
-        { command: 'core:one', after: ['core:two'] }
+        { command: 'core:one', after: ['core:two'] },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:one', after: ['core:two'] },
-        { command: 'core:two', after: ['core:one'] }
+        { command: 'core:two', after: ['core:one'] },
       ]);
     });
   });
@@ -186,12 +186,12 @@ describe('contextMenu', () => {
       const items = [
         { command: 'core:two', afterGroupContaining: ['core:one'] },
         { type: 'separator' },
-        { command: 'core:one' }
+        { command: 'core:one' },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two', afterGroupContaining: ['core:one'] }
+        { command: 'core:two', afterGroupContaining: ['core:one'] },
       ]);
     });
 
@@ -199,12 +199,12 @@ describe('contextMenu', () => {
       const items = [
         { command: 'core:two', afterGroupContaining: ['core:one'] },
         { type: 'separator' },
-        { command: 'core:one', afterGroupContaining: ['core:two'] }
+        { command: 'core:one', afterGroupContaining: ['core:two'] },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:one', afterGroupContaining: ['core:two'] },
         { type: 'separator' },
-        { command: 'core:two', afterGroupContaining: ['core:one'] }
+        { command: 'core:two', afterGroupContaining: ['core:one'] },
       ]);
     });
 
@@ -214,13 +214,13 @@ describe('contextMenu', () => {
         { type: 'separator' },
         {
           command: 'core:two',
-          afterGroupContaining: ['core:does-not-exist']
-        }
+          afterGroupContaining: ['core:does-not-exist'],
+        },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two', afterGroupContaining: ['core:does-not-exist'] }
+        { command: 'core:two', afterGroupContaining: ['core:does-not-exist'] },
       ]);
     });
 
@@ -231,7 +231,7 @@ describe('contextMenu', () => {
         { command: 'core:three', beforeGroupContaining: ['core:one'] },
         { command: 'core:four', afterGroupContaining: ['core:two'] },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ];
       expect(sortMenuItems(items)).toEqual([
         { command: 'core:three', beforeGroupContaining: ['core:one'] },
@@ -239,7 +239,7 @@ describe('contextMenu', () => {
         { type: 'separator' },
         { command: 'core:one' },
         { type: 'separator' },
-        { command: 'core:two' }
+        { command: 'core:two' },
       ]);
     });
   });

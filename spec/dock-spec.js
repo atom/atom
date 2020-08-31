@@ -16,10 +16,7 @@ describe('Dock', () => {
 
       expect(dock.isVisible()).toBe(false);
       expect(document.activeElement).toBe(
-        atom.workspace
-          .getCenter()
-          .getActivePane()
-          .getElement()
+        atom.workspace.getCenter().getActivePane().getElement()
       );
       dock.activate();
       expect(dock.isVisible()).toBe(true);
@@ -41,10 +38,7 @@ describe('Dock', () => {
 
       dock.hide();
       expect(document.activeElement).toBe(
-        atom.workspace
-          .getCenter()
-          .getActivePane()
-          .getElement()
+        atom.workspace.getCenter().getActivePane().getElement()
       );
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false);
 
@@ -54,10 +48,7 @@ describe('Dock', () => {
 
       dock.toggle();
       expect(document.activeElement).toBe(
-        atom.workspace
-          .getCenter()
-          .getActivePane()
-          .getElement()
+        atom.workspace.getCenter().getActivePane().getElement()
       );
       expect(didChangeVisibleSpy.mostRecentCall.args[0]).toBe(false);
 
@@ -84,16 +75,13 @@ describe('Dock', () => {
         element: document.createElement('div'),
         getDefaultLocation() {
           return 'left';
-        }
+        },
       };
 
       await atom.workspace.open(item, { activatePane: false });
       expect(atom.workspace.getLeftDock().isVisible()).toBe(false);
 
-      atom.workspace
-        .getLeftDock()
-        .getPanes()[0]
-        .activate();
+      atom.workspace.getLeftDock().getPanes()[0].activate();
       expect(atom.workspace.getLeftDock().isVisible()).toBe(true);
     });
   });
@@ -177,7 +165,7 @@ describe('Dock', () => {
           },
           getPreferredHeight() {
             return 122;
-          }
+          },
         };
 
         await atom.workspace.open(item);
@@ -208,7 +196,7 @@ describe('Dock', () => {
           },
           getPreferredHeight() {
             return 142;
-          }
+          },
         };
 
         await atom.workspace.open(item);
@@ -241,7 +229,7 @@ describe('Dock', () => {
           },
           getPreferredHeight() {
             return 142;
-          }
+          },
         };
 
         await atom.workspace.open(item, { activatePane: false });
@@ -267,14 +255,14 @@ describe('Dock', () => {
       it('is takes the preferred size of the item', async () => {
         jasmine.attachToDOM(atom.workspace.getElement());
 
-        const createItem = preferredWidth => ({
+        const createItem = (preferredWidth) => ({
           element: document.createElement('div'),
           getDefaultLocation() {
             return 'left';
           },
           getPreferredWidth() {
             return preferredWidth;
-          }
+          },
         });
 
         const dock = atom.workspace.getLeftDock();
@@ -310,7 +298,7 @@ describe('Dock', () => {
           element: document.createElement('div'),
           getDefaultLocation() {
             return 'left';
-          }
+          },
         };
         const dock = atom.workspace.getLeftDock();
         expect(dock.getPaneItems()).toHaveLength(0);
@@ -334,11 +322,11 @@ describe('Dock', () => {
         getPreferredWidth() {
           return 122;
         },
-        serialize: () => ({ deserializer: 'DockTestItem' })
+        serialize: () => ({ deserializer: 'DockTestItem' }),
       };
       atom.deserializers.add({
         name: 'DockTestItem',
-        deserialize: () => item
+        deserialize: () => item,
       });
       const dock = atom.workspace.getLeftDock();
       const dockElement = dock.getElement();
@@ -364,7 +352,7 @@ describe('Dock', () => {
         },
         getPreferredWidth() {
           return 122;
-        }
+        },
       };
       const dock = atom.workspace.getLeftDock();
 
@@ -390,7 +378,7 @@ describe('Dock', () => {
         },
         getPreferredWidth() {
           return 144;
-        }
+        },
       };
 
       const dragEvent = new DragEvent('dragstart');

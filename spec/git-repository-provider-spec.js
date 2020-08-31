@@ -18,7 +18,7 @@ describe('GitRepositoryProvider', () => {
 
   afterEach(() => {
     if (provider) {
-      Object.keys(provider.pathToRepository).forEach(key => {
+      Object.keys(provider.pathToRepository).forEach((key) => {
         provider.pathToRepository[key].destroy();
       });
     }
@@ -36,7 +36,7 @@ describe('GitRepositoryProvider', () => {
         expect(result.getType()).toBe('git');
 
         // Refresh should be started
-        await new Promise(resolve => result.onDidChangeStatuses(resolve));
+        await new Promise((resolve) => result.onDidChangeStatuses(resolve));
       });
 
       it('resolves with the same GitRepository for different Directory objects in the same repo', async () => {
@@ -126,7 +126,7 @@ describe('GitRepositoryProvider', () => {
           getSubdirectory() {},
           isRoot() {
             return true;
-          }
+          },
         };
         spyOn(directory, 'getSubdirectory').andReturn(subdirectory);
       });
@@ -151,7 +151,7 @@ describe('GitRepositoryProvider', () => {
         expect(result.getType()).toBe('git');
 
         // Refresh should be started
-        await new Promise(resolve => result.onDidChangeStatuses(resolve));
+        await new Promise((resolve) => result.onDidChangeStatuses(resolve));
       });
 
       it('resolves with the same GitRepository for different Directory objects in the same repo', () => {
@@ -241,7 +241,7 @@ describe('GitRepositoryProvider', () => {
           getSubdirectory() {},
           isRoot() {
             return true;
-          }
+          },
         };
         spyOn(directory, 'getSubdirectory').andReturn(subdirectory);
       });

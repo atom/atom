@@ -81,7 +81,7 @@ module.exports = {
       currentElectronVersion: process.versions.electron,
       currentChromeVersion: process.versions.chrome,
       currentNodeVersion: process.version,
-      updateManager: updateManager
+      updateManager: updateManager,
     });
   },
 
@@ -100,10 +100,10 @@ module.exports = {
 
       this.statusBarTile = this.statusBar.addRightTile({
         item: statusBarView,
-        priority: -100
+        priority: -100,
       });
 
       return this.statusBarTile;
     }
-  }
+  },
 };

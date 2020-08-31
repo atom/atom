@@ -5,13 +5,13 @@ const packageJsonFilePath = path.join(repositoryRootPath, 'package.json');
 const { updatePackageJson } = require('../util')(repositoryRootPath);
 const { coreDependencies, nativeDependencies } = require('./helpers');
 
-describe('Update-dependency', function() {
+describe('Update-dependency', function () {
   const oldPackageJson = JSON.parse(
     JSON.stringify(require(packageJsonFilePath))
   );
   var packageJson;
 
-  it('bumps package.json properly', async function() {
+  it('bumps package.json properly', async function () {
     const dependencies = [...coreDependencies, ...nativeDependencies];
     for (const dependency of dependencies) {
       await updatePackageJson(dependency);

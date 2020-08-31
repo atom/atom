@@ -2,7 +2,7 @@
 // Generated on Sun Nov 22 2015 22:10:47 GMT+0800 (CST)
 require('babel-core/register');
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '.',
@@ -12,18 +12,15 @@ module.exports = function(config) {
     frameworks: ['mocha'],
 
     // list of files / patterns to load in the browser
-    files: [
-      './test/**/*.spec.js'
-    ],
+    files: ['./test/**/*.spec.js'],
 
     // list of files to exclude
-    exclude: [
-    ],
+    exclude: [],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'test/**/*.spec.js': ['webpack', 'sourcemap']
+      'test/**/*.spec.js': ['webpack', 'sourcemap'],
     },
 
     // test results reporter to use
@@ -32,34 +29,35 @@ module.exports = function(config) {
     reporters: ['progress'],
 
     coverageReporter: {
-      reporters: [
-        {type: 'text'},
-        {type: 'html', dir: 'coverage'},
-      ]
+      reporters: [{ type: 'text' }, { type: 'html', dir: 'coverage' }],
     },
 
     webpackMiddleware: {
-      stats: 'minimal'
+      stats: 'minimal',
     },
 
     webpack: {
       cache: true,
       devtool: 'inline-source-map',
       module: {
-        loaders: [{
-          test: /\.jsx?$/,
-          loader: 'babel-loader',
-          exclude: /node_modules/
-        }],
-        postLoaders: [{
-          test: /\.js/,
-          exclude: /(test|node_modules)/,
-          loader: 'istanbul-instrumenter'
-        }],
+        loaders: [
+          {
+            test: /\.jsx?$/,
+            loader: 'babel-loader',
+            exclude: /node_modules/,
+          },
+        ],
+        postLoaders: [
+          {
+            test: /\.js/,
+            exclude: /(test|node_modules)/,
+            loader: 'istanbul-instrumenter',
+          },
+        ],
       },
       resolve: {
-        extensions: ['', '.js', '.jsx']
-      }
+        extensions: ['', '.js', '.jsx'],
+      },
     },
 
     // web server port
@@ -88,5 +86,5 @@ module.exports = function(config) {
     // concurrency: Infinity,
 
     // plugins: ['karma-phantomjs-launcher', 'karma-sourcemap-loader', 'karma-webpack']
-  })
-}
+  });
+};

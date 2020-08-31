@@ -94,7 +94,9 @@ function cloneMenuItem(item) {
     'afterGroupContaining'
   );
   if (item.submenu != null) {
-    item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
+    item.submenu = item.submenu.map((submenuItem) =>
+      cloneMenuItem(submenuItem)
+    );
   }
   return item;
 }
@@ -110,12 +112,9 @@ function acceleratorForKeystroke(keystroke) {
     return null;
   }
   let modifiers = keystroke.split(/-(?=.)/);
-  const key = modifiers
-    .pop()
-    .toUpperCase()
-    .replace('+', 'Plus');
+  const key = modifiers.pop().toUpperCase().replace('+', 'Plus');
 
-  modifiers = modifiers.map(modifier =>
+  modifiers = modifiers.map((modifier) =>
     modifier
       .replace(/shift/gi, 'Shift')
       .replace(/cmd/gi, 'Command')
@@ -132,5 +131,5 @@ module.exports = {
   unmerge,
   normalizeLabel,
   cloneMenuItem,
-  acceleratorForKeystroke
+  acceleratorForKeystroke,
 };

@@ -9,7 +9,7 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   const generatedJSONPath = path.join(CONFIG.docsOutputPath, 'atom-api.json');
   console.log(`Generating API docs at ${generatedJSONPath}`);
 
@@ -25,7 +25,7 @@ module.exports = function() {
   const metadata = {
     repository: coffeeMetadata.repository,
     version: coffeeMetadata.version,
-    files: Object.assign(coffeeMetadata.files, jsMetadata.files)
+    files: Object.assign(coffeeMetadata.files, jsMetadata.files),
   };
 
   const api = tello.digest([metadata]);

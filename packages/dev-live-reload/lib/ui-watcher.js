@@ -43,11 +43,11 @@ module.exports = class UIWatcher {
     );
 
     this.subscriptions.add(
-      atom.packages.onDidActivatePackage(pack => this.watchPackage(pack))
+      atom.packages.onDidActivatePackage((pack) => this.watchPackage(pack))
     );
 
     this.subscriptions.add(
-      atom.packages.onDidDeactivatePackage(pack => {
+      atom.packages.onDidDeactivatePackage((pack) => {
         // This only handles packages - onDidChangeActiveThemes handles themes
         const watcher = this.watchedPackages.get(pack.name);
         if (watcher) watcher.destroy();

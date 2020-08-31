@@ -7,7 +7,7 @@ class DeprecationCopPackage {
   activate() {
     this.disposables = new CompositeDisposable();
     this.disposables.add(
-      atom.workspace.addOpener(uri => {
+      atom.workspace.addOpener((uri) => {
         if (uri === ViewURI) {
           return this.deserializeDeprecationCopView({ uri });
         }
@@ -36,7 +36,7 @@ class DeprecationCopPackage {
     const statusBarView = new DeprecationCopStatusBarView();
     const statusBarTile = statusBar.addRightTile({
       item: statusBarView,
-      priority: 150
+      priority: 150,
     });
     this.disposables.add(
       new Disposable(() => {

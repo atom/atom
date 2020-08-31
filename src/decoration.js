@@ -3,7 +3,7 @@ const { Emitter } = require('event-kit');
 let idCounter = 0;
 const nextId = () => idCounter++;
 
-const normalizeDecorationProperties = function(decoration, decorationParams) {
+const normalizeDecorationProperties = function (decoration, decorationParams) {
   decorationParams.id = decoration.id;
 
   if (
@@ -193,7 +193,7 @@ module.exports = class Decoration {
     this.decorationManager.emitDidUpdateDecorations();
     return this.emitter.emit('did-change-properties', {
       oldProperties,
-      newProperties
+      newProperties,
     });
   }
 

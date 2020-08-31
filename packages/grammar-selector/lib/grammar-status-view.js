@@ -17,7 +17,7 @@ module.exports = class GrammarStatusView {
       'grammar-selector.showOnRightSideOfStatusBar',
       this.attach.bind(this)
     );
-    const clickHandler = event => {
+    const clickHandler = (event) => {
       event.preventDefault();
       atom.commands.dispatch(
         atom.views.getView(atom.workspace.getActiveTextEditor()),
@@ -104,7 +104,7 @@ module.exports = class GrammarStatusView {
         this.element.style.display = '';
 
         this.tooltip = atom.tooltips.add(this.element, {
-          title: `File uses the ${grammarName} grammar`
+          title: `File uses the ${grammarName} grammar`,
         });
       } else {
         this.element.style.display = 'none';

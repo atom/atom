@@ -46887,5 +46887,5 @@ module.exports = [
   'zymolysis',
   'zymometer',
   'zymosis',
-  'zymotic'
+  'zymotic',
 ];

@@ -14,7 +14,10 @@ describe('Selection', () => {
   describe('.deleteSelectedText()', () => {
     describe('when nothing is selected', () => {
       it('deletes nothing', () => {
-        selection.setBufferRange([[0, 3], [0, 3]]);
+        selection.setBufferRange([
+          [0, 3],
+          [0, 3],
+        ]);
         selection.deleteSelectedText();
         expect(buffer.lineForRow(0)).toBe('var quicksort = function () {');
       });
@@ -22,12 +25,18 @@ describe('Selection', () => {
 
     describe('when one line is selected', () => {
       it('deletes selected text and clears the selection', () => {
-        selection.setBufferRange([[0, 4], [0, 14]]);
+        selection.setBufferRange([
+          [0, 4],
+          [0, 14],
+        ]);
         selection.deleteSelectedText();
         expect(buffer.lineForRow(0)).toBe('var = function () {');
 
         const endOfLine = buffer.lineForRow(0).length;
-        selection.setBufferRange([[0, 0], [0, endOfLine]]);
+        selection.setBufferRange([
+          [0, 0],
+          [0, endOfLine],
+        ]);
         selection.deleteSelectedText();
         expect(buffer.lineForRow(0)).toBe('');
 
@@ -37,7 +46,10 @@ describe('Selection', () => {
 
     describe('when multiple lines are selected', () => {
       it('deletes selected text and clears the selection', () => {
-        selection.setBufferRange([[0, 1], [2, 39]]);
+        selection.setBufferRange([
+          [0, 1],
+          [2, 39],
+        ]);
         selection.deleteSelectedText();
         expect(buffer.lineForRow(0)).toBe('v;');
         expect(selection.isEmpty()).toBeTruthy();
@@ -70,24 +82,39 @@ describe('Selection', () => {
   describe('.selectLine(row)', () => {
     describe('when passed a row', () => {
       it('selects the specified row', () => {
-        selection.setBufferRange([[2, 4], [3, 4]]);
+        selection.setBufferRange([
+          [2, 4],
+          [3, 4],
+        ]);
         selection.selectLine(5);
-        expect(selection.getBufferRange()).toEqual([[5, 0], [6, 0]]);
+        expect(selection.getBufferRange()).toEqual([
+          [5, 0],
+          [6, 0],
+        ]);
       });
     });
 
     describe('when not passed a row', () => {
       it('selects all rows spanned by the selection', () => {
-        selection.setBufferRange([[2, 4], [3, 4]]);
+        selection.setBufferRange([
+          [2, 4],
+          [3, 4],
+        ]);
         selection.selectLine();
-        expect(selection.getBufferRange()).toEqual([[2, 0], [4, 0]]);
+        expect(selection.getBufferRange()).toEqual([
+          [2, 0],
+          [4, 0],
+        ]);
       });
     });
   });
 
   describe("when the selection's range is moved", () => {
     it('notifies ::onDidChangeRange observers', () => {
-      selection.setBufferRange([[2, 0], [2, 10]]);
+      selection.setBufferRange([
+        [2, 0],
+        [2, 10],
+      ]);
       const changeScreenRangeHandler = jasmine.createSpy(
         'changeScreenRangeHandler'
       );
@@ -102,7 +129,13 @@ describe('Selection', () => {
 
   describe("when only the selection's tail is moved (regression)", () => {
     it('notifies ::onDidChangeRange observers', () => {
-      selection.setBufferRange([[2, 0], [2, 10]], { reversed: true });
+      selection.setBufferRange(
+        [
+          [2, 0],
+          [2, 10],
+        ],
+        { reversed: true }
+      );
       const changeScreenRangeHandler = jasmine.createSpy(
         'changeScreenRangeHandler'
       );
@@ -118,7 +151,10 @@ describe('Selection', () => {
 
   describe('when the selection is destroyed', () => {
     it('destroys its marker', () => {
-      selection.setBufferRange([[2, 0], [2, 10]]);
+      selection.setBufferRange([
+        [2, 0],
+        [2, 10],
+      ]);
       const { marker } = selection;
       selection.destroy();
       expect(marker.isDestroyed()).toBeTruthy();
@@ -127,7 +163,10 @@ describe('Selection', () => {
 
   describe('.insertText(text, options)', () => {
     it('allows pasting white space only lines when autoIndent is enabled', () => {
-      selection.setBufferRange([[0, 0], [0, 0]]);
+      selection.setBufferRange([
+        [0, 0],
+        [0, 0],
+      ]);
       selection.insertText('    \n    \n\n', { autoIndent: true });
       expect(buffer.lineForRow(0)).toBe('    ');
       expect(buffer.lineForRow(1)).toBe('    ');
@@ -135,22 +174,31 @@ describe('Selection', () => {
     });
 
     it('auto-indents if only a newline is inserted', () => {
-      selection.setBufferRange([[2, 0], [3, 0]]);
+      selection.setBufferRange([
+        [2, 0],
+        [3, 0],
+      ]);
       selection.insertText('\n', { autoIndent: true });
       expect(buffer.lineForRow(2)).toBe('  ');
     });
 
     it('auto-indents if only a carriage return + newline is inserted', () => {
-      selection.setBufferRange([[2, 0], [3, 0]]);
+      selection.setBufferRange([
+        [2, 0],
+        [3, 0],
+      ]);
       selection.insertText('\r\n', { autoIndent: true });
       expect(buffer.lineForRow(2)).toBe('  ');
     });
 
     it('does not adjust the indent of trailing lines if preserveTrailingLineIndentation is true', () => {
-      selection.setBufferRange([[5, 0], [5, 0]]);
+      selection.setBufferRange([
+        [5, 0],
+        [5, 0],
+      ]);
       selection.insertText('      foo\n    bar\n', {
         preserveTrailingLineIndentation: true,
-        indentBasis: 1
+        indentBasis: 1,
       });
       expect(buffer.lineForRow(6)).toBe('    bar');
     });
@@ -158,11 +206,20 @@ describe('Selection', () => {
 
   describe('.fold()', () => {
     it('folds the buffer range spanned by the selection', () => {
-      selection.setBufferRange([[0, 3], [1, 6]]);
+      selection.setBufferRange([
+        [0, 3],
+        [1, 6],
+      ]);
       selection.fold();
 
-      expect(selection.getScreenRange()).toEqual([[0, 4], [0, 4]]);
-      expect(selection.getBufferRange()).toEqual([[1, 6], [1, 6]]);
+      expect(selection.getScreenRange()).toEqual([
+        [0, 4],
+        [0, 4],
+      ]);
+      expect(selection.getBufferRange()).toEqual([
+        [1, 6],
+        [1, 6],
+      ]);
       expect(editor.lineTextForScreenRow(0)).toBe(
         `var${editor.displayLayer.foldCharacter}sort = function(items) {`
       );
@@ -170,11 +227,20 @@ describe('Selection', () => {
     });
 
     it("doesn't create a fold when the selection is empty", () => {
-      selection.setBufferRange([[0, 3], [0, 3]]);
+      selection.setBufferRange([
+        [0, 3],
+        [0, 3],
+      ]);
       selection.fold();
 
-      expect(selection.getScreenRange()).toEqual([[0, 3], [0, 3]]);
-      expect(selection.getBufferRange()).toEqual([[0, 3], [0, 3]]);
+      expect(selection.getScreenRange()).toEqual([
+        [0, 3],
+        [0, 3],
+      ]);
+      expect(selection.getBufferRange()).toEqual([
+        [0, 3],
+        [0, 3],
+      ]);
       expect(editor.lineTextForScreenRow(0)).toBe(
         'var quicksort = function () {'
       );
@@ -185,98 +251,101 @@ describe('Selection', () => {
   describe('within a read-only editor', () => {
     beforeEach(() => {
       editor.setReadOnly(true);
-      selection.setBufferRange([[0, 0], [0, 13]]);
+      selection.setBufferRange([
+        [0, 0],
+        [0, 13],
+      ]);
     });
 
     const modifications = [
       {
         name: 'insertText',
-        op: opts => selection.insertText('yes', opts)
+        op: (opts) => selection.insertText('yes', opts),
       },
       {
         name: 'backspace',
-        op: opts => selection.backspace(opts)
+        op: (opts) => selection.backspace(opts),
       },
       {
         name: 'deleteToPreviousWordBoundary',
-        op: opts => selection.deleteToPreviousWordBoundary(opts)
+        op: (opts) => selection.deleteToPreviousWordBoundary(opts),
       },
       {
         name: 'deleteToNextWordBoundary',
-        op: opts => selection.deleteToNextWordBoundary(opts)
+        op: (opts) => selection.deleteToNextWordBoundary(opts),
       },
       {
         name: 'deleteToBeginningOfWord',
-        op: opts => selection.deleteToBeginningOfWord(opts)
+        op: (opts) => selection.deleteToBeginningOfWord(opts),
       },
       {
         name: 'deleteToBeginningOfLine',
-        op: opts => selection.deleteToBeginningOfLine(opts)
+        op: (opts) => selection.deleteToBeginningOfLine(opts),
       },
       {
         name: 'delete',
-        op: opts => selection.delete(opts)
+        op: (opts) => selection.delete(opts),
       },
       {
         name: 'deleteToEndOfLine',
-        op: opts => selection.deleteToEndOfLine(opts)
+        op: (opts) => selection.deleteToEndOfLine(opts),
       },
       {
         name: 'deleteToEndOfWord',
-        op: opts => selection.deleteToEndOfWord(opts)
+        op: (opts) => selection.deleteToEndOfWord(opts),
       },
       {
         name: 'deleteToBeginningOfSubword',
-        op: opts => selection.deleteToBeginningOfSubword(opts)
+        op: (opts) => selection.deleteToBeginningOfSubword(opts),
       },
       {
         name: 'deleteToEndOfSubword',
-        op: opts => selection.deleteToEndOfSubword(opts)
+        op: (opts) => selection.deleteToEndOfSubword(opts),
       },
       {
         name: 'deleteSelectedText',
-        op: opts => selection.deleteSelectedText(opts)
+        op: (opts) => selection.deleteSelectedText(opts),
       },
       {
         name: 'deleteLine',
-        op: opts => selection.deleteLine(opts)
+        op: (opts) => selection.deleteLine(opts),
       },
       {
         name: 'joinLines',
-        op: opts => selection.joinLines(opts)
+        op: (opts) => selection.joinLines(opts),
       },
       {
         name: 'outdentSelectedRows',
-        op: opts => selection.outdentSelectedRows(opts)
+        op: (opts) => selection.outdentSelectedRows(opts),
       },
       {
         name: 'autoIndentSelectedRows',
-        op: opts => selection.autoIndentSelectedRows(opts)
+        op: (opts) => selection.autoIndentSelectedRows(opts),
       },
       {
         name: 'toggleLineComments',
-        op: opts => selection.toggleLineComments(opts)
+        op: (opts) => selection.toggleLineComments(opts),
       },
       {
         name: 'cutToEndOfLine',
-        op: opts => selection.cutToEndOfLine(false, opts)
+        op: (opts) => selection.cutToEndOfLine(false, opts),
       },
       {
         name: 'cutToEndOfBufferLine',
-        op: opts => selection.cutToEndOfBufferLine(false, opts)
+        op: (opts) => selection.cutToEndOfBufferLine(false, opts),
       },
       {
         name: 'cut',
-        op: opts => selection.cut(false, false, opts.bypassReadOnly)
+        op: (opts) => selection.cut(false, false, opts.bypassReadOnly),
       },
       {
         name: 'indent',
-        op: opts => selection.indent(opts)
+        op: (opts) => selection.indent(opts),
       },
       {
         name: 'indentSelectedRows',
-        op: opts => selection.indentSelectedRows(opts)
-      }
+        op: (opts) => selection.indentSelectedRows(opts),
+      },
     ];
 
     describe('without bypassReadOnly', () => {

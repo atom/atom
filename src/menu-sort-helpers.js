@@ -3,7 +3,7 @@
 function splitArray(arr, predicate) {
   let lastArr = [];
   const multiArr = [lastArr];
-  arr.forEach(item => {
+  arr.forEach((item) => {
     if (predicate(item)) {
       if (lastArr.length > 0) {
         lastArr = [];
@@ -36,9 +36,9 @@ const pushOntoMultiMap = (map, key, value) => {
 
 function indexOfGroupContainingCommand(groups, command, ignoreGroup) {
   return groups.findIndex(
-    candiateGroup =>
+    (candiateGroup) =>
       candiateGroup !== ignoreGroup &&
-      candiateGroup.some(candidateItem => candidateItem.command === command)
+      candiateGroup.some((candidateItem) => candidateItem.command === command)
   );
 }
 
@@ -105,7 +105,7 @@ function sortItemsInGroup(group) {
 
   group.forEach((item, i) => {
     if (item.before) {
-      item.before.forEach(toCommand => {
+      item.before.forEach((toCommand) => {
         const to = commandToIndex.get(toCommand);
         if (to != null) {
           pushOntoMultiMap(edges, to, i);
@@ -113,7 +113,7 @@ function sortItemsInGroup(group) {
       });
     }
     if (item.after) {
-      item.after.forEach(toCommand => {
+      item.after.forEach((toCommand) => {
         const to = commandToIndex.get(toCommand);
         if (to != null) {
           pushOntoMultiMap(edges, i, to);
@@ -124,7 +124,7 @@ function sortItemsInGroup(group) {
 
   const sortedNodes = sortTopologically(originalOrder, edges);
 
-  return sortedNodes.map(i => group[i]);
+  return sortedNodes.map((i) => group[i]);
 }
 
 function findEdgesInGroup(groups, i, edges) {
@@ -160,7 +160,7 @@ function sortGroups(groups) {
   }
 
   const sortedGroupIndexes = sortTopologically(originalOrder, edges);
-  return sortedGroupIndexes.map(i => groups[i]);
+  return sortedGroupIndexes.map((i) => groups[i]);
 }
 
 function isSeparator(item) {

@@ -12,7 +12,7 @@ module.exports = class ApplicationMenu {
     this.autoUpdateManager = autoUpdateManager;
     this.windowTemplates = new WeakMap();
     this.setActiveTemplate(this.getDefaultTemplate());
-    this.autoUpdateManager.on('state-changed', state =>
+    this.autoUpdateManager.on('state-changed', (state) =>
       this.showUpdateMenuItem(state)
     );
   }
@@ -168,7 +168,7 @@ module.exports = class ApplicationMenu {
         submenu: [
           {
             label: 'Check for Update',
-            metadata: { autoUpdate: true }
+            metadata: { autoUpdate: true },
           },
           {
             label: 'Reload',
@@ -176,7 +176,7 @@ module.exports = class ApplicationMenu {
             click: () => {
               const window = this.focusedWindow();
               if (window) window.reload();
-            }
+            },
           },
           {
             label: 'Close Window',
@@ -184,7 +184,7 @@ module.exports = class ApplicationMenu {
             click: () => {
               const window = this.focusedWindow();
               if (window) window.close();
-            }
+            },
           },
           {
             label: 'Toggle Dev Tools',
@@ -192,22 +192,22 @@ module.exports = class ApplicationMenu {
             click: () => {
               const window = this.focusedWindow();
               if (window) window.toggleDevTools();
-            }
+            },
           },
           {
             label: 'Quit',
             accelerator: 'Command+Q',
-            click: () => app.quit()
-          }
-        ]
-      }
+            click: () => app.quit(),
+          },
+        ],
+      },
     ];
   }
 
   focusedWindow() {
     return global.atomApplication
       .getAllWindows()
-      .find(window => window.isFocused());
+      .find((window) => window.isFocused());
   }
 
   // Combines a menu template with the appropriate keystroke.
@@ -219,7 +219,7 @@ module.exports = class ApplicationMenu {
   //
   // Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate(template, keystrokesByCommand) {
-    template.forEach(item => {
+    template.forEach((item) => {
       if (item.metadata == null) item.metadata = {};
       if (item.command) {
         const keystrokes = keystrokesByCommand[item.command];

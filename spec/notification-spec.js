@@ -30,7 +30,7 @@ describe('Notification', () => {
 
     it('returns the icon specified', () => {
       const notification = new Notification('error', 'message!', {
-        icon: 'my-icon'
+        icon: 'my-icon',
       });
       expect(notification.getIcon()).toBe('my-icon');
     });
@@ -41,7 +41,7 @@ describe('Notification', () => {
       it('calls a callback when the notification is dismissed', () => {
         const dismissedSpy = jasmine.createSpy();
         const notification = new Notification('error', 'message', {
-          dismissable: true
+          dismissable: true,
         });
         notification.onDidDismiss(dismissedSpy);
 

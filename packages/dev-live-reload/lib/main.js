@@ -26,5 +26,5 @@ module.exports = {
       () => this.uiWatcher.reloadAll()
     );
     if (this.activatedDisposable) this.activatedDisposable.dispose();
-  }
+  },
 };

@@ -2,7 +2,7 @@ const path = require('path');
 const electron = require('electron');
 
 const dirname = path.dirname;
-path.dirname = function(path) {
+path.dirname = function (path) {
   if (typeof path !== 'string') {
     path = '' + path;
     const Grim = require('grim');
@@ -13,7 +13,7 @@ path.dirname = function(path) {
 };
 
 const extname = path.extname;
-path.extname = function(path) {
+path.extname = function (path) {
   if (typeof path !== 'string') {
     path = '' + path;
     const Grim = require('grim');
@@ -24,7 +24,7 @@ path.extname = function(path) {
 };
 
 const basename = path.basename;
-path.basename = function(path, ext) {
+path.basename = function (path, ext) {
   if (
     typeof path !== 'string' ||
     (ext !== undefined && typeof ext !== 'string')
@@ -37,14 +37,14 @@ path.basename = function(path, ext) {
   return basename(path, ext);
 };
 
-electron.ipcRenderer.sendChannel = function() {
+electron.ipcRenderer.sendChannel = function () {
   const Grim = require('grim');
   Grim.deprecate('Use `ipcRenderer.send` instead of `ipcRenderer.sendChannel`');
   return this.send.apply(this, arguments);
 };
 
 const remoteRequire = electron.remote.require;
-electron.remote.require = function(moduleName) {
+electron.remote.require = function (moduleName) {
   const Grim = require('grim');
   switch (moduleName) {
     case 'menu':

@@ -12,7 +12,7 @@ const macEntitlementsPath = path.join(
   'entitlements.plist'
 );
 
-module.exports = async function(packagedAppPath) {
+module.exports = async function (packagedAppPath) {
   if (
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL &&
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH
@@ -53,7 +53,7 @@ module.exports = async function(packagedAppPath) {
           'create-keychain',
           '-p',
           process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD,
-          process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+          process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         ],
         { stdio: 'inherit' }
       );
@@ -74,7 +74,7 @@ module.exports = async function(packagedAppPath) {
           '-t',
           '3600',
           '-u',
-          process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+          process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         ],
         { stdio: 'inherit' }
       );
@@ -95,9 +95,7 @@ module.exports = async function(packagedAppPath) {
     spawnSync('security', unlockArgs, { stdio: 'inherit' });
 
     console.log(
-      `Importing certificate at ${certPath} into ${
-        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
-      } keychain`
+      `Importing certificate at ${certPath} into ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN} keychain`
     );
     spawnSync('security', [
       'import',
@@ -107,7 +105,7 @@ module.exports = async function(packagedAppPath) {
       '-k',
       process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
       '-T',
-      '/usr/bin/codesign'
+      '/usr/bin/codesign',
     ]);
 
     console.log(
@@ -121,7 +119,7 @@ module.exports = async function(packagedAppPath) {
         '-s',
         '-k',
         process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD,
-        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
+        process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
       ]);
     } catch (e) {
       console.log("Incantation failed... maybe this isn't Sierra?");
@@ -137,7 +135,7 @@ module.exports = async function(packagedAppPath) {
         identity: 'Developer ID Application: GitHub',
         keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         platform: 'darwin',
-        hardenedRuntime: true
+        hardenedRuntime: true,
       });
       console.info('Application signing complete');
     } catch (err) {

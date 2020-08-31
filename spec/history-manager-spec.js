@@ -15,15 +15,15 @@ describe('HistoryManager', () => {
       projects: [
         {
           paths: ['/1', 'c:\\2'],
-          lastOpened: new Date(2016, 9, 17, 17, 16, 23)
+          lastOpened: new Date(2016, 9, 17, 17, 16, 23),
         },
-        { paths: ['/test'], lastOpened: new Date(2016, 9, 17, 11, 12, 13) }
-      ]
+        { paths: ['/test'], lastOpened: new Date(2016, 9, 17, 11, 12, 13) },
+      ],
     });
 
     projectDisposable = jasmine.createSpyObj('Disposable', ['dispose']);
     project = jasmine.createSpyObj('Project', ['onDidChangePaths']);
-    project.onDidChangePaths.andCallFake(f => {
+    project.onDidChangePaths.andCallFake((f) => {
       project.didChangePathsListener = f;
       return projectDisposable;
     });
@@ -31,7 +31,7 @@ describe('HistoryManager', () => {
     historyManager = new HistoryManager({
       stateStore,
       project,
-      commands: commandRegistry
+      commands: commandRegistry,
     });
     await historyManager.loadState();
   });
@@ -58,7 +58,7 @@ describe('HistoryManager', () => {
             ['/1', 'c:\\2'],
             new Date(2016, 9, 17, 17, 16, 23)
           ),
-          new HistoryProject(['/test'], new Date(2016, 9, 17, 11, 12, 13))
+          new HistoryProject(['/test'], new Date(2016, 9, 17, 11, 12, 13)),
         ]);
       });
 
@@ -85,7 +85,7 @@ describe('HistoryManager', () => {
         const historyManager2 = new HistoryManager({
           stateStore,
           project,
-          commands: commandRegistry
+          commands: commandRegistry,
         });
         await historyManager2.loadState();
         expect(historyManager.getProjects().length).toBe(0);
@@ -214,9 +214,9 @@ describe('HistoryManager', () => {
       const historyManager2 = new HistoryManager({
         stateStore,
         project,
-        commands: commandRegistry
+        commands: commandRegistry,
       });
-      spyOn(historyManager2.stateStore, 'load').andCallFake(name =>
+      spyOn(historyManager2.stateStore, 'load').andCallFake((name) =>
         Promise.resolve(savedHistory)
       );
       await historyManager2.loadState();

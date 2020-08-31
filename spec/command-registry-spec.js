@@ -24,7 +24,7 @@ describe('CommandRegistry', () => {
   describe('when a command event is dispatched on an element', () => {
     it('invokes callbacks with selectors matching the target', () => {
       let called = false;
-      registry.add('.grandchild', 'command', function(event) {
+      registry.add('.grandchild', 'command', function (event) {
         expect(this).toBe(grandchild);
         expect(event.type).toBe('command');
         expect(event.eventPhase).toBe(Event.BUBBLING_PHASE);
@@ -40,14 +40,14 @@ describe('CommandRegistry', () => {
     it('invokes callbacks with selectors matching ancestors of the target', () => {
       const calls = [];
 
-      registry.add('.child', 'command', function(event) {
+      registry.add('.child', 'command', function (event) {
         expect(this).toBe(child);
         expect(event.target).toBe(grandchild);
         expect(event.currentTarget).toBe(child);
         calls.push('child');
       });
 
-      registry.add('.parent', 'command', function(event) {
+      registry.add('.parent', 'command', function (event) {
         expect(this).toBe(parent);
         expect(event.target).toBe(grandchild);
         expect(event.currentTarget).toBe(parent);
@@ -94,7 +94,7 @@ describe('CommandRegistry', () => {
 
       registry.add('.parent', 'command', () => calls.push('parent'));
       registry.add('.child', 'command', () => calls.push('child-2'));
-      registry.add('.child', 'command', event => {
+      registry.add('.child', 'command', (event) => {
         calls.push('child-1');
         event.stopPropagation();
       });
@@ -111,7 +111,7 @@ describe('CommandRegistry', () => {
 
       registry.add('.parent', 'command', () => calls.push('parent'));
       registry.add('.child', 'command', () => calls.push('child-2'));
-      registry.add('.child', 'command', event => {
+      registry.add('.child', 'command', (event) => {
         calls.push('child-1');
         event.stopImmediatePropagation();
       });
@@ -124,7 +124,7 @@ describe('CommandRegistry', () => {
     });
 
     it('forwards .preventDefault() calls from the synthetic event to the original', () => {
-      registry.add('.child', 'command', event => event.preventDefault());
+      registry.add('.child', 'command', (event) => event.preventDefault());
 
       const dispatchedEvent = new CustomEvent('command', { bubbles: true });
       spyOn(dispatchedEvent, 'preventDefault');
@@ -133,7 +133,7 @@ describe('CommandRegistry', () => {
     });
 
     it('forwards .abortKeyBinding() calls from the synthetic event to the original', () => {
-      registry.add('.child', 'command', event => event.abortKeyBinding());
+      registry.add('.child', 'command', (event) => event.abortKeyBinding());
 
       const dispatchedEvent = new CustomEvent('command', { bubbles: true });
       dispatchedEvent.abortKeyBinding = jasmine.createSpy('abortKeyBinding');
@@ -143,7 +143,7 @@ describe('CommandRegistry', () => {
 
     it('copies non-standard properties from the original event to the synthetic event', () => {
       let syntheticEvent = null;
-      registry.add('.child', 'command', event => (syntheticEvent = event));
+      registry.add('.child', 'command', (event) => (syntheticEvent = event));
 
       const dispatchedEvent = new CustomEvent('command', { bubbles: true });
       dispatchedEvent.nonStandardProperty = 'testing';
@@ -180,7 +180,7 @@ describe('CommandRegistry', () => {
         },
         'command-2'() {
           calls.push('command-2');
-        }
+        },
       });
 
       grandchild.dispatchEvent(new CustomEvent('command-1', { bubbles: true }));
@@ -198,13 +198,15 @@ describe('CommandRegistry', () => {
     it('invokes callbacks registered with ::onWillDispatch and ::onDidDispatch', () => {
       const sequence = [];
 
-      registry.onDidDispatch(event => sequence.push(['onDidDispatch', event]));
+      registry.onDidDispatch((event) =>
+        sequence.push(['onDidDispatch', event])
+      );
 
-      registry.add('.grandchild', 'command', event =>
+      registry.add('.grandchild', 'command', (event) =>
         sequence.push(['listener', event])
       );
 
-      registry.onWillDispatch(event =>
+      registry.onWillDispatch((event) =>
         sequence.push(['onWillDispatch', event])
       );
 
@@ -253,7 +255,7 @@ describe('CommandRegistry', () => {
     it('throws an error when called with an object listener without a didDispatch method', () => {
       const badListener = {
         title: 'a listener without a didDispatch callback',
-        description: 'this should throw an error'
+        description: 'this should throw an error',
       };
 
       expect(() => {
@@ -277,19 +279,19 @@ describe('CommandRegistry', () => {
       registry.add(child, 'namespace:inline-command-2', () => {});
 
       const commands = registry.findCommands({ target: grandchild });
-      const nonJqueryCommands = _.reject(commands, cmd => cmd.jQuery);
+      const nonJqueryCommands = _.reject(commands, (cmd) => cmd.jQuery);
       expect(nonJqueryCommands).toEqual([
         {
           name: 'namespace:inline-command-1',
-          displayName: 'Namespace: Inline Command 1'
+          displayName: 'Namespace: Inline Command 1',
         },
         { name: 'namespace:command-3', displayName: 'Namespace: Command 3' },
         {
           name: 'namespace:inline-command-2',
-          displayName: 'Namespace: Inline Command 2'
+          displayName: 'Namespace: Inline Command 2',
         },
         { name: 'namespace:command-2', displayName: 'Namespace: Command 2' },
-        { name: 'namespace:command-1', displayName: 'Namespace: Command 1' }
+        { name: 'namespace:command-1', displayName: 'Namespace: Command 1' },
       ]);
     });
 
@@ -299,42 +301,42 @@ describe('CommandRegistry', () => {
         displayName: 'Custom Command 2',
         metadata: {
           some: 'other',
-          object: 'data'
+          object: 'data',
         },
-        didDispatch() {}
+        didDispatch() {},
       });
       registry.add('.grandchild', 'namespace:command-3', {
         name: 'some:other:incorrect:commandname',
         displayName: 'Custom Command 3',
         metadata: {
           some: 'other',
-          object: 'data'
+          object: 'data',
         },
-        didDispatch() {}
+        didDispatch() {},
       });
 
       const commands = registry.findCommands({ target: grandchild });
       expect(commands).toEqual([
         {
           displayName: 'Namespace: Command 1',
-          name: 'namespace:command-1'
+          name: 'namespace:command-1',
         },
         {
           displayName: 'Custom Command 2',
           metadata: {
             some: 'other',
-            object: 'data'
+            object: 'data',
           },
-          name: 'namespace:command-2'
+          name: 'namespace:command-2',
         },
         {
           displayName: 'Custom Command 3',
           metadata: {
             some: 'other',
-            object: 'data'
+            object: 'data',
           },
-          name: 'namespace:command-3'
-        }
+          name: 'namespace:command-3',
+        },
       ]);
     });
 
@@ -343,7 +345,7 @@ describe('CommandRegistry', () => {
       listener.displayName = 'Custom Command 2';
       listener.metadata = {
         some: 'other',
-        object: 'data'
+        object: 'data',
       };
 
       registry.add('.grandchild', 'namespace:command-2', listener);
@@ -353,10 +355,10 @@ describe('CommandRegistry', () => {
           displayName: 'Custom Command 2',
           metadata: {
             some: 'other',
-            object: 'data'
+            object: 'data',
           },
-          name: 'namespace:command-2'
-        }
+          name: 'namespace:command-2',
+        },
       ]);
     });
   });
@@ -364,7 +366,7 @@ describe('CommandRegistry', () => {
   describe('::dispatch(target, commandName)', () => {
     it('simulates invocation of the given command ', () => {
       let called = false;
-      registry.add('.grandchild', 'command', function(event) {
+      registry.add('.grandchild', 'command', function (event) {
         expect(this).toBe(grandchild);
         expect(event.type).toBe('command');
         expect(event.eventPhase).toBe(Event.BUBBLING_PHASE);
@@ -395,7 +397,7 @@ describe('CommandRegistry', () => {
         '.grandchild',
         'command',
         () =>
-          new Promise(resolve => {
+          new Promise((resolve) => {
             setTimeout(() => {
               resolve(3);
             }, 1);
@@ -442,7 +444,7 @@ describe('CommandRegistry', () => {
         [
           { name: 'namespace:command-3', displayName: 'Namespace: Command 3' },
           { name: 'namespace:command-2', displayName: 'Namespace: Command 2' },
-          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' }
+          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' },
         ]
       );
 
@@ -451,7 +453,7 @@ describe('CommandRegistry', () => {
       expect(registry.findCommands({ target: grandchild }).slice(0, 2)).toEqual(
         [
           { name: 'namespace:command-2', displayName: 'Namespace: Command 2' },
-          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' }
+          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' },
         ]
       );
 
@@ -461,7 +463,7 @@ describe('CommandRegistry', () => {
       expect(registry.findCommands({ target: grandchild }).slice(0, 2)).toEqual(
         [
           { name: 'namespace:command-2', displayName: 'Namespace: Command 2' },
-          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' }
+          { name: 'namespace:command-1', displayName: 'Namespace: Command 1' },
         ]
       );
     }));

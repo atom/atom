@@ -19,7 +19,7 @@ class HistoryManager {
       )
     );
     this.disposables.add(
-      project.onDidChangePaths(projectPaths => this.addProject(projectPaths))
+      project.onDidChangePaths((projectPaths) => this.addProject(projectPaths))
     );
   }
 
@@ -31,7 +31,7 @@ class HistoryManager {
   //
   // Returns an {Array} of {HistoryProject} objects, most recent first.
   getProjects() {
-    return this.projects.map(p => new HistoryProject(p.paths, p.lastOpened));
+    return this.projects.map((p) => new HistoryProject(p.paths, p.lastOpened));
   }
 
   // Public: Clear all projects from the history.
@@ -102,8 +102,8 @@ class HistoryManager {
     const history = await this.stateStore.load('history-manager');
     if (history && history.projects) {
       this.projects = history.projects
-        .filter(p => Array.isArray(p.paths) && p.paths.length > 0)
-        .map(p => new HistoryProject(p.paths, new Date(p.lastOpened)));
+        .filter((p) => Array.isArray(p.paths) && p.paths.length > 0)
+        .map((p) => new HistoryProject(p.paths, new Date(p.lastOpened)));
       this.didChangeProjects({ reloaded: true });
     } else {
       this.projects = [];
@@ -111,9 +111,9 @@ class HistoryManager {
   }
 
   async saveState() {
-    const projects = this.projects.map(p => ({
+    const projects = this.projects.map((p) => ({
       paths: p.paths,
-      lastOpened: p.lastOpened
+      lastOpened: p.lastOpened,
     }));
     await this.stateStore.save('history-manager', { projects });
   }

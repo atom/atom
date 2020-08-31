@@ -18,9 +18,9 @@ module.exports = class Selection {
     this.cursor.selection = this;
     this.decoration = this.editor.decorateMarker(this.marker, {
       type: 'highlight',
-      class: 'selection'
+      class: 'selection',
     });
-    this.marker.onDidChange(e => this.markerDidChange(e));
+    this.marker.onDidChange((e) => this.markerDidChange(e));
     this.marker.onDidDestroy(() => this.markerDidDestroy());
   }
 
@@ -234,7 +234,7 @@ module.exports = class Selection {
       if (this.initialScreenRange) {
         if (position.isLessThan(this.initialScreenRange.start)) {
           this.marker.setScreenRange([position, this.initialScreenRange.end], {
-            reversed: true
+            reversed: true,
           });
         } else {
           this.marker.setScreenRange(
@@ -509,7 +509,7 @@ module.exports = class Selection {
     let autoIndentFirstLine = false;
     const precedingText = this.editor.getTextInRange([
       [oldBufferRange.start.row, 0],
-      oldBufferRange.start
+      oldBufferRange.start,
     ]);
     const remainingLines = text.split('\n');
     const firstInsertedLine = remainingLines.shift();
@@ -573,7 +573,7 @@ module.exports = class Selection {
     if (options.autoIndentNewline && text === '\n') {
       this.editor.autoIndentBufferRow(newBufferRange.end.row, {
         preserveLeadingWhitespace: true,
-        skipBlankLines: false
+        skipBlankLines: false,
       });
     } else if (options.autoDecreaseIndent && NonWhitespaceRegExp.test(text)) {
       this.editor.autoDecreaseIndentForBufferRow(newBufferRange.start.row);
@@ -747,7 +747,7 @@ module.exports = class Selection {
     }
     this.cursor.setBufferPosition({
       row: this.cursor.getBufferRow(),
-      column: range.start.column
+      column: range.start.column,
     });
   }
 
@@ -766,7 +766,7 @@ module.exports = class Selection {
       if (selectedRange.start.row === this.editor.buffer.getLastRow()) return;
     } else {
       joinMarker = this.editor.markBufferRange(selectedRange, {
-        invalidate: 'never'
+        invalidate: 'never',
       });
     }
 
@@ -827,7 +827,10 @@ module.exports = class Selection {
     for (let row = start; row <= end; row++) {
       const match = buffer.lineForRow(row).match(leadingTabRegex);
       if (match && match[0].length > 0) {
-        buffer.delete([[row, 0], [row, match[0].length]]);
+        buffer.delete([
+          [row, 0],
+          [row, match[0].length],
+        ]);
       }
     }
   }
@@ -855,7 +858,7 @@ module.exports = class Selection {
     let bufferRowRange = this.getBufferRowRange() || [null, null];
     this.editor.toggleLineCommentsForBufferRows(...bufferRowRange, {
       correctSelection: true,
-      selection: this
+      selection: this,
     });
   }
 
@@ -911,7 +914,7 @@ module.exports = class Selection {
     if (maintainClipboard) {
       let {
         text: clipboardText,
-        metadata
+        metadata,
       } = this.editor.constructor.clipboard.readWithMetadata();
       if (!metadata) metadata = {};
       if (!metadata.selections) {
@@ -919,14 +922,14 @@ module.exports = class Selection {
           {
             text: clipboardText,
             indentBasis: metadata.indentBasis,
-            fullLine: metadata.fullLine
-          }
+            fullLine: metadata.fullLine,
+          },
         ];
       }
       metadata.selections.push({
         text: selectionText,
         indentBasis: startLevel,
-        fullLine
+        fullLine,
       });
       this.editor.constructor.clipboard.write(
         [clipboardText, selectionText].join('\n'),
@@ -935,7 +938,7 @@ module.exports = class Selection {
     } else {
       this.editor.constructor.clipboard.write(selectionText, {
         indentBasis: startLevel,
-        fullLine
+        fullLine,
       });
     }
   }
@@ -991,7 +994,7 @@ module.exports = class Selection {
       if (autoIndent && delta > 0) {
         if (!this.editor.getSoftTabs()) delta = Math.max(delta, 1);
         this.insertText(this.editor.buildIndentString(delta), {
-          bypassReadOnly
+          bypassReadOnly,
         });
       } else {
         this.insertText(
@@ -1035,7 +1038,7 @@ module.exports = class Selection {
       range.start.row = row;
       range.end.row = row;
       const clippedRange = this.editor.clipScreenRange(range, {
-        skipSoftWrapIndentation: true
+        skipSoftWrapIndentation: true,
       });
 
       if (range.isEmpty()) {
@@ -1065,7 +1068,7 @@ module.exports = class Selection {
       range.start.row = row;
       range.end.row = row;
       const clippedRange = this.editor.clipScreenRange(range, {
-        skipSoftWrapIndentation: true
+        skipSoftWrapIndentation: true,
       });
 
       if (range.isEmpty()) {
@@ -1141,12 +1144,12 @@ module.exports = class Selection {
     const {
       oldHeadBufferPosition,
       oldTailBufferPosition,
-      newHeadBufferPosition
+      newHeadBufferPosition,
     } = e;
     const {
       oldHeadScreenPosition,
       oldTailScreenPosition,
-      newHeadScreenPosition
+      newHeadScreenPosition,
     } = e;
     const { textChanged } = e;
 
@@ -1158,7 +1161,7 @@ module.exports = class Selection {
         newBufferPosition: newHeadBufferPosition,
         newScreenPosition: newHeadScreenPosition,
         textChanged,
-        cursor: this.cursor
+        cursor: this.cursor,
       };
       this.cursor.emitter.emit('did-change-position', cursorMovedEvent);
       this.editor.cursorMoved(cursorMovedEvent);
@@ -1169,7 +1172,7 @@ module.exports = class Selection {
       oldScreenRange: new Range(oldHeadScreenPosition, oldTailScreenPosition),
       newBufferRange: this.getBufferRange(),
       newScreenRange: this.getScreenRange(),
-      selection: this
+      selection: this,
     };
     this.emitter.emit('did-change-range', rangeChangedEvent);
     this.editor.selectionRangeChanged(rangeChangedEvent);

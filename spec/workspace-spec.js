@@ -49,7 +49,7 @@ describe('Workspace', () => {
         packageManager: atom.packages,
         confirm: atom.confirm.bind(atom),
         applicationDelegate: atom.applicationDelegate,
-        grammarRegistry: atom.grammars
+        grammarRegistry: atom.grammars,
       });
       return atom.project.deserialize(projectState).then(() => {
         workspace = atom.workspace = new Workspace({
@@ -63,7 +63,7 @@ describe('Workspace', () => {
           applicationDelegate: atom.applicationDelegate,
           viewRegistry: atom.views,
           assert: atom.assert.bind(atom),
-          textEditorRegistry: atom.textEditors
+          textEditorRegistry: atom.textEditors,
         });
         workspace.deserialize(workspaceState, atom.deserializers);
       });
@@ -81,19 +81,19 @@ describe('Workspace', () => {
         waitsForPromise(() =>
           atom.workspace
             .open(null)
-            .then(editor => editor.setText('An untitled editor.'))
+            .then((editor) => editor.setText('An untitled editor.'))
         );
 
         waitsForPromise(() =>
           atom.workspace
             .open('b')
-            .then(editor => pane2.activateItem(editor.copy()))
+            .then((editor) => pane2.activateItem(editor.copy()))
         );
 
         waitsForPromise(() =>
           atom.workspace
             .open('../sample.js')
-            .then(editor => pane3.activateItem(editor))
+            .then((editor) => pane3.activateItem(editor))
         );
 
         runs(() => {
@@ -104,7 +104,7 @@ describe('Workspace', () => {
         waitsForPromise(() =>
           atom.workspace
             .open('../sample.txt')
-            .then(editor => pane4.activateItem(editor))
+            .then((editor) => pane4.activateItem(editor))
         );
 
         runs(() => {
@@ -121,7 +121,7 @@ describe('Workspace', () => {
             editor2,
             untitledEditor,
             editor3,
-            editor4
+            editor4,
           ] = atom.workspace.getTextEditors();
           const firstDirectory = atom.project.getDirectories()[0];
           expect(firstDirectory).toBeDefined();
@@ -171,7 +171,7 @@ describe('Workspace', () => {
 
     beforeEach(() => {
       openEvents = [];
-      workspace.onDidOpen(event => openEvents.push(event));
+      workspace.onDidOpen((event) => openEvents.push(event));
       spyOn(workspace.getActivePane(), 'activate').andCallThrough();
     });
 
@@ -182,7 +182,7 @@ describe('Workspace', () => {
           let editor2;
 
           waitsForPromise(() =>
-            workspace.open().then(editor => {
+            workspace.open().then((editor) => {
               editor1 = editor;
             })
           );
@@ -197,14 +197,14 @@ describe('Workspace', () => {
                 uri: undefined,
                 pane: workspace.getActivePane(),
                 item: editor1,
-                index: 0
-              }
+                index: 0,
+              },
             ]);
             openEvents = [];
           });
 
           waitsForPromise(() =>
-            workspace.open().then(editor => {
+            workspace.open().then((editor) => {
               editor2 = editor;
             })
           );
@@ -219,8 +219,8 @@ describe('Workspace', () => {
                 uri: undefined,
                 pane: workspace.getActivePane(),
                 item: editor2,
-                index: 1
-              }
+                index: 1,
+              },
             ]);
           });
         });
@@ -234,11 +234,11 @@ describe('Workspace', () => {
             let editor2 = null;
 
             waitsForPromise(() =>
-              workspace.open('a').then(o => {
+              workspace.open('a').then((o) => {
                 editor1 = o;
-                return workspace.open('b').then(o => {
+                return workspace.open('b').then((o) => {
                   editor2 = o;
-                  return workspace.open('a').then(o => {
+                  return workspace.open('a').then((o) => {
                     editor = o;
                   });
                 });
@@ -256,20 +256,20 @@ describe('Workspace', () => {
                   uri: firstDirectory.resolve('a'),
                   item: editor1,
                   pane: atom.workspace.getActivePane(),
-                  index: 0
+                  index: 0,
                 },
                 {
                   uri: firstDirectory.resolve('b'),
                   item: editor2,
                   pane: atom.workspace.getActivePane(),
-                  index: 1
+                  index: 1,
                 },
                 {
                   uri: firstDirectory.resolve('a'),
                   item: editor1,
                   pane: atom.workspace.getActivePane(),
-                  index: 0
-                }
+                  index: 0,
+                },
               ]);
             });
           });
@@ -280,7 +280,7 @@ describe('Workspace', () => {
             const item = {
               getURI: () => ITEM_URI,
               getDefaultLocation: () => 'left',
-              getElement: () => document.createElement('div')
+              getElement: () => document.createElement('div'),
             };
             dock.getActivePane().addItem(item);
             expect(dock.getPaneItems()).toHaveLength(1);
@@ -300,7 +300,7 @@ describe('Workspace', () => {
             let editor;
             waitsForPromise(() => workspace.open('a'));
             waitsForPromise(() =>
-              workspace.open('b', { activateItem: false }).then(o => {
+              workspace.open('b', { activateItem: false }).then((o) => {
                 editor = o;
               })
             );
@@ -324,7 +324,7 @@ describe('Workspace', () => {
           it('adds and activates a new editor for the given path on the active pane', () => {
             let editor = null;
             waitsForPromise(() =>
-              workspace.open('a').then(o => {
+              workspace.open('a').then((o) => {
                 editor = o;
               })
             );
@@ -345,12 +345,12 @@ describe('Workspace', () => {
 
             waitsForPromise(() =>
               Promise.all([
-                workspace.open('spartacus.txt').then(o0 => {
+                workspace.open('spartacus.txt').then((o0) => {
                   editor0 = o0;
                 }),
-                workspace.open('spartacus.txt').then(o1 => {
+                workspace.open('spartacus.txt').then((o1) => {
                   editor1 = o1;
-                })
+                }),
               ])
             );
 
@@ -363,7 +363,7 @@ describe('Workspace', () => {
           it("uses the location specified by the model's `getDefaultLocation()` method", () => {
             const item = {
               getDefaultLocation: jasmine.createSpy().andReturn('right'),
-              getElement: () => document.createElement('div')
+              getElement: () => document.createElement('div'),
             };
             const opener = jasmine.createSpy().andReturn(item);
             const dock = atom.workspace.getRightDock();
@@ -385,11 +385,11 @@ describe('Workspace', () => {
             const item = {
               getURI: () => ITEM_URI,
               getDefaultLocation: () => 'left',
-              getElement: () => document.createElement('div')
+              getElement: () => document.createElement('div'),
             };
-            const opener = uri => (uri === ITEM_URI ? item : null);
+            const opener = (uri) => (uri === ITEM_URI ? item : null);
             const dock = atom.workspace.getRightDock();
-            spyOn(atom.workspace.itemLocationStore, 'load').andCallFake(uri =>
+            spyOn(atom.workspace.itemLocationStore, 'load').andCallFake((uri) =>
               uri === 'atom://test'
                 ? Promise.resolve('right')
                 : Promise.resolve()
@@ -420,7 +420,7 @@ describe('Workspace', () => {
           atom.workspace.getActivePane().splitRight();
           atom.workspace.getLeftDock().activate();
           const item2 = await atom.workspace.open('a', {
-            searchAllPanes: false
+            searchAllPanes: false,
           });
           expect(item2).not.toBe(item);
           expect(atom.workspace.getActivePaneContainer().getLocation()).toBe(
@@ -441,14 +441,14 @@ describe('Workspace', () => {
 
           waitsForPromise(() => {
             pane1.activate();
-            return workspace.open('a').then(o => {
+            return workspace.open('a').then((o) => {
               editor1 = o;
             });
           });
 
           waitsForPromise(() => {
             pane2.activate();
-            return workspace.open('b').then(o => {
+            return workspace.open('b').then((o) => {
               editor2 = o;
             });
           });
@@ -472,13 +472,13 @@ describe('Workspace', () => {
           pane0.activate();
           const promise0 = workspace
             .open('spartacus.txt', { searchAllPanes: true })
-            .then(o0 => {
+            .then((o0) => {
               editor0 = o0;
             });
           pane1.activate();
           const promise1 = workspace
             .open('spartacus.txt', { searchAllPanes: true })
-            .then(o1 => {
+            .then((o1) => {
               editor1 = o1;
             });
 
@@ -499,7 +499,7 @@ describe('Workspace', () => {
           const item = {
             getURI: () => ITEM_URI,
             getDefaultLocation: jasmine.createSpy().andReturn('left'),
-            getElement: () => document.createElement('div')
+            getElement: () => document.createElement('div'),
           };
           dock.getActivePane().addItem(item);
           spyOn(dock.paneForItem(item), 'activate');
@@ -516,7 +516,7 @@ describe('Workspace', () => {
         it('opens an editor for the given uri in the active pane', () => {
           let editor = null;
           waitsForPromise(() =>
-            workspace.open('a', { searchAllPanes: true }).then(o => {
+            workspace.open('a', { searchAllPanes: true }).then((o) => {
               editor = o;
             })
           );
@@ -530,10 +530,7 @@ describe('Workspace', () => {
       it('opens the editor in the workspace center', async () => {
         await atom.workspace.open('sample.txt', { location: 'right' });
         expect(
-          atom.workspace
-            .getCenter()
-            .getActivePaneItem()
-            .getFileName()
+          atom.workspace.getCenter().getActivePaneItem().getFileName()
         ).toEqual('sample.txt');
       });
     });
@@ -592,7 +589,7 @@ describe('Workspace', () => {
 
           let editor = null;
           waitsForPromise(() =>
-            workspace.open('a', { split: 'left' }).then(o => {
+            workspace.open('a', { split: 'left' }).then((o) => {
               editor = o;
             })
           );
@@ -606,7 +603,7 @@ describe('Workspace', () => {
           // Focus right pane and reopen the file on the left
           waitsForPromise(() => {
             pane2.focus();
-            return workspace.open('a', { split: 'left' }).then(o => {
+            return workspace.open('a', { split: 'left' }).then((o) => {
               editor = o;
             });
           });
@@ -629,7 +626,7 @@ describe('Workspace', () => {
           expect(workspace.getActivePane()).toBe(pane1);
 
           waitsForPromise(() =>
-            workspace.open('a', { split: 'left' }).then(o => {
+            workspace.open('a', { split: 'left' }).then((o) => {
               editor = o;
             })
           );
@@ -647,13 +644,13 @@ describe('Workspace', () => {
           const pane1 = workspace.getActivePane();
           let pane2 = null;
           waitsForPromise(() =>
-            workspace.open('a', { split: 'right' }).then(o => {
+            workspace.open('a', { split: 'right' }).then((o) => {
               editor = o;
             })
           );
 
           runs(() => {
-            pane2 = workspace.getPanes().filter(p => p !== pane1)[0];
+            pane2 = workspace.getPanes().filter((p) => p !== pane1)[0];
             expect(workspace.getActivePane()).toBe(pane2);
             expect(pane1.items).toEqual([]);
             expect(pane2.items).toEqual([editor]);
@@ -662,7 +659,7 @@ describe('Workspace', () => {
           // Focus right pane and reopen the file on the right
           waitsForPromise(() => {
             pane1.focus();
-            return workspace.open('a', { split: 'right' }).then(o => {
+            return workspace.open('a', { split: 'right' }).then((o) => {
               editor = o;
             });
           });
@@ -685,13 +682,13 @@ describe('Workspace', () => {
             let pane4 = null;
 
             waitsForPromise(() =>
-              workspace.open('a', { split: 'right' }).then(o => {
+              workspace.open('a', { split: 'right' }).then((o) => {
                 editor = o;
               })
             );
 
             runs(() => {
-              pane4 = workspace.getPanes().filter(p => p !== pane1)[0];
+              pane4 = workspace.getPanes().filter((p) => p !== pane1)[0];
               expect(workspace.getActivePane()).toBe(pane4);
               expect(pane4.items).toEqual([editor]);
               expect(workspace.getCenter().paneContainer.root.children[0]).toBe(
@@ -713,7 +710,7 @@ describe('Workspace', () => {
 
           let editor = null;
           waitsForPromise(() =>
-            workspace.open('a', { split: 'up' }).then(o => {
+            workspace.open('a', { split: 'up' }).then((o) => {
               editor = o;
             })
           );
@@ -727,7 +724,7 @@ describe('Workspace', () => {
           // Focus bottom pane and reopen the file on the top
           waitsForPromise(() => {
             pane2.focus();
-            return workspace.open('a', { split: 'up' }).then(o => {
+            return workspace.open('a', { split: 'up' }).then((o) => {
               editor = o;
             });
           });
@@ -750,7 +747,7 @@ describe('Workspace', () => {
           expect(workspace.getActivePane()).toBe(pane1);
 
           waitsForPromise(() =>
-            workspace.open('a', { split: 'up' }).then(o => {
+            workspace.open('a', { split: 'up' }).then((o) => {
               editor = o;
             })
           );
@@ -768,13 +765,13 @@ describe('Workspace', () => {
           const pane1 = workspace.getActivePane();
           let pane2 = null;
           waitsForPromise(() =>
-            workspace.open('a', { split: 'down' }).then(o => {
+            workspace.open('a', { split: 'down' }).then((o) => {
               editor = o;
             })
           );
 
           runs(() => {
-            pane2 = workspace.getPanes().filter(p => p !== pane1)[0];
+            pane2 = workspace.getPanes().filter((p) => p !== pane1)[0];
             expect(workspace.getActivePane()).toBe(pane2);
             expect(pane1.items).toEqual([]);
             expect(pane2.items).toEqual([editor]);
@@ -783,7 +780,7 @@ describe('Workspace', () => {
           // Focus bottom pane and reopen the file on the right
           waitsForPromise(() => {
             pane1.focus();
-            return workspace.open('a', { split: 'down' }).then(o => {
+            return workspace.open('a', { split: 'down' }).then((o) => {
               editor = o;
             });
           });
@@ -805,13 +802,13 @@ describe('Workspace', () => {
             let pane4 = null;
 
             waitsForPromise(() =>
-              workspace.open('a', { split: 'down' }).then(o => {
+              workspace.open('a', { split: 'down' }).then((o) => {
                 editor = o;
               })
             );
 
             runs(() => {
-              pane4 = workspace.getPanes().filter(p => p !== pane1)[0];
+              pane4 = workspace.getPanes().filter((p) => p !== pane1)[0];
               expect(workspace.getActivePane()).toBe(pane4);
               expect(pane4.items).toEqual([editor]);
               expect(workspace.getCenter().paneContainer.root.children[0]).toBe(
@@ -881,7 +878,7 @@ describe('Workspace', () => {
         waitsForPromise(() =>
           workspace.open('a', {
             initialLine: Infinity,
-            initialColumn: Infinity
+            initialColumn: Infinity,
           })
         );
 
@@ -902,7 +899,7 @@ describe('Workspace', () => {
         expect(editor.isFoldedAtBufferRow(3)).toBe(true);
 
         await workspace.open('../sample-with-many-folds.js', {
-          initialLine: 2
+          initialLine: 2,
         });
         expect(editor.isFoldedAtBufferRow(2)).toBe(false);
         expect(editor.isFoldedAtBufferRow(3)).toBe(false);
@@ -957,7 +954,7 @@ describe('Workspace', () => {
             return { foo: pathToOpen, options };
           }
         };
-        const barOpener = pathToOpen => {
+        const barOpener = (pathToOpen) => {
           if (pathToOpen != null ? pathToOpen.match(/^bar:\/\//) : undefined) {
             return { bar: pathToOpen };
           }
@@ -967,10 +964,10 @@ describe('Workspace', () => {
 
         waitsForPromise(() => {
           const pathToOpen = atom.project.getDirectories()[0].resolve('a.foo');
-          return workspace.open(pathToOpen, { hey: 'there' }).then(item =>
+          return workspace.open(pathToOpen, { hey: 'there' }).then((item) =>
             expect(item).toEqual({
               foo: pathToOpen,
-              options: { hey: 'there' }
+              options: { hey: 'there' },
             })
           );
         });
@@ -978,7 +975,7 @@ describe('Workspace', () => {
         waitsForPromise(() =>
           workspace
             .open('bar://baz')
-            .then(item => expect(item).toEqual({ bar: 'bar://baz' }))
+            .then((item) => expect(item).toEqual({ bar: 'bar://baz' }))
         );
       });
     });
@@ -1021,7 +1018,7 @@ describe('Workspace', () => {
 
       let editor = null;
       waitsForPromise(() =>
-        workspace.open(absolutePath).then(e => {
+        workspace.open(absolutePath).then((e) => {
           editor = e;
         })
       );
@@ -1053,7 +1050,7 @@ describe('Workspace', () => {
 
       describe('when the user does not have access to the file', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(path => {
+          spyOn(fs, 'openSync').andCallFake((path) => {
             const error = new Error(`EACCES, permission denied '${path}'`);
             error.path = path;
             error.code = 'EACCES';
@@ -1076,7 +1073,7 @@ describe('Workspace', () => {
 
       describe('when the the operation is not permitted', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(path => {
+          spyOn(fs, 'openSync').andCallFake((path) => {
             const error = new Error(`EPERM, operation not permitted '${path}'`);
             error.path = path;
             error.code = 'EPERM';
@@ -1099,7 +1096,7 @@ describe('Workspace', () => {
 
       describe('when the the file is already open in windows', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(path => {
+          spyOn(fs, 'openSync').andCallFake((path) => {
             const error = new Error(`EBUSY, resource busy or locked '${path}'`);
             error.path = path;
             error.code = 'EBUSY';
@@ -1122,14 +1119,14 @@ describe('Workspace', () => {
 
       describe('when there is an unhandled error', () => {
         beforeEach(() =>
-          spyOn(fs, 'openSync').andCallFake(path => {
+          spyOn(fs, 'openSync').andCallFake((path) => {
             throw new Error('I dont even know what is happening right now!!');
           })
         );
 
         it('rejects the promise', () => {
-          waitsFor(done => {
-            workspace.open('file1').catch(error => {
+          waitsFor((done) => {
+            workspace.open('file1').catch((error) => {
               expect(error.message).toBe(
                 'I dont even know what is happening right now!!'
               );
@@ -1146,7 +1143,7 @@ describe('Workspace', () => {
         let pane = null;
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.js', { pending: true }).then(o => {
+          atom.workspace.open('sample.js', { pending: true }).then((o) => {
             editor = o;
             pane = atom.workspace.getActivePane();
           })
@@ -1166,13 +1163,13 @@ describe('Workspace', () => {
         let editor2 = null;
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.txt').then(o => {
+          atom.workspace.open('sample.txt').then((o) => {
             editor1 = o;
           })
         );
 
         waitsForPromise(() =>
-          atom.workspace.open('sample2.txt', { pending: true }).then(o => {
+          atom.workspace.open('sample2.txt', { pending: true }).then((o) => {
             editor2 = o;
           })
         );
@@ -1197,7 +1194,7 @@ describe('Workspace', () => {
         waitsForPromise(() =>
           atom.workspace
             .open('sample.js', { pending: true, split: 'right' })
-            .then(o => {
+            .then((o) => {
               editor1 = o;
               rightPane = atom.workspace.getActivePane();
               spyOn(rightPane, 'destroy').andCallThrough();
@@ -1212,7 +1209,7 @@ describe('Workspace', () => {
         });
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.txt', { pending: true }).then(o => {
+          atom.workspace.open('sample.txt', { pending: true }).then((o) => {
             editor2 = o;
           })
         );
@@ -1231,7 +1228,7 @@ describe('Workspace', () => {
 
         await atom.workspace.open(editor);
 
-        expect(atom.project.getBuffers().map(buffer => buffer.id)).toContain(
+        expect(atom.project.getBuffers().map((buffer) => buffer.id)).toContain(
           buffer.id
         );
         expect(buffer.getLanguageMode().getLanguageId()).toBe(
@@ -1248,7 +1245,7 @@ describe('Workspace', () => {
         element: document.createElement('div'),
         getURI() {
           return uri;
-        }
+        },
       };
 
       atom.workspace.getActivePane().activateItem(item);
@@ -1266,10 +1263,7 @@ describe('Workspace', () => {
       );
 
       atom.workspace.getActivePane().destroyActiveItem();
-      atom.workspace
-        .getLeftDock()
-        .getActivePane()
-        .activateItem(item);
+      atom.workspace.getLeftDock().getActivePane().activateItem(item);
       expect(atom.workspace.paneForItem(item)).toBe(
         atom.workspace.getLeftDock().getActivePane()
       );
@@ -1294,7 +1288,7 @@ describe('Workspace', () => {
       item = {
         getTitle: () => 'Item',
         getElement: () => el,
-        getURI: () => URI
+        getURI: () => URI,
       };
     });
 
@@ -1348,7 +1342,7 @@ describe('Workspace', () => {
           },
           getElement() {
             return (this.element = document.createElement('div'));
-          }
+          },
         };
 
         const item2 = {
@@ -1357,7 +1351,7 @@ describe('Workspace', () => {
           },
           getElement() {
             return (this.element = document.createElement('div'));
-          }
+          },
         };
 
         const dock = workspace.getLeftDock();
@@ -1393,7 +1387,7 @@ describe('Workspace', () => {
           },
           getElement() {
             return (this.element = document.createElement('div'));
-          }
+          },
         };
 
         const item2 = {
@@ -1402,7 +1396,7 @@ describe('Workspace', () => {
           },
           getElement() {
             return (this.element = document.createElement('div'));
-          }
+          },
         };
 
         expect(workspace.getActivePaneItem()).toBeUndefined();
@@ -1456,11 +1450,11 @@ describe('Workspace', () => {
       const activePaneContainers = [];
       const activePanes = [];
       const activeItems = [];
-      workspace.onDidChangeActivePaneContainer(container =>
+      workspace.onDidChangeActivePaneContainer((container) =>
         activePaneContainers.push(container)
       );
-      workspace.onDidChangeActivePane(pane => activePanes.push(pane));
-      workspace.onDidChangeActivePaneItem(item => activeItems.push(item));
+      workspace.onDidChangeActivePane((pane) => activePanes.push(pane));
+      workspace.onDidChangeActivePaneItem((item) => activeItems.push(item));
       function clearEvents() {
         activePaneContainers.length = 0;
         activePanes.length = 0;
@@ -1556,7 +1550,7 @@ describe('Workspace', () => {
     it('invokes observers when the active item of the active pane stops changing', () => {
       const pane1 = atom.workspace.getCenter().getActivePane();
       const pane2 = pane1.splitRight({
-        items: [document.createElement('div'), document.createElement('div')]
+        items: [document.createElement('div'), document.createElement('div')],
       });
       atom.workspace
         .getLeftDock()
@@ -1564,7 +1558,7 @@ describe('Workspace', () => {
         .addItem(document.createElement('div'));
 
       const emittedItems = [];
-      atom.workspace.onDidStopChangingActivePaneItem(item =>
+      atom.workspace.onDidStopChangingActivePaneItem((item) =>
         emittedItems.push(item)
       );
 
@@ -1575,7 +1569,7 @@ describe('Workspace', () => {
 
       advanceClock(100);
       expect(emittedItems).toEqual([
-        atom.workspace.getLeftDock().getActivePaneItem()
+        atom.workspace.getLeftDock().getActivePaneItem(),
       ]);
     });
   });
@@ -1605,7 +1599,7 @@ describe('Workspace', () => {
       expect(javascriptGrammarUsed).not.toHaveBeenCalled();
       expect(observeTextEditorsSpy).not.toHaveBeenCalled();
       const editor = await atom.workspace.open('sample.js', {
-        autoIndent: false
+        autoIndent: false,
       });
       expect(javascriptGrammarUsed).toHaveBeenCalled();
       expect(observeTextEditorsSpy.callCount).toBe(1);
@@ -1641,7 +1635,7 @@ describe('Workspace', () => {
       expect(javascriptGrammarUsed).not.toHaveBeenCalled();
       expect(observeTextEditorsSpy).not.toHaveBeenCalled();
       const editor = await atom.workspace.open('sample.js', {
-        autoIndent: false
+        autoIndent: false,
       });
       expect(javascriptGrammarUsed).toHaveBeenCalled();
       expect(observeTextEditorsSpy.callCount).toBe(1);
@@ -1835,7 +1829,9 @@ describe('Workspace', () => {
       waitsForPromise(() => workspace.open());
       waitsForPromise(() => workspace.openLicense());
 
-      runs(() => workspace.observeTextEditors(editor => observed.push(editor)));
+      runs(() =>
+        workspace.observeTextEditors((editor) => observed.push(editor))
+      );
 
       waitsForPromise(() => workspace.open());
 
@@ -1853,14 +1849,14 @@ describe('Workspace', () => {
       pane.activateItem(inactiveEditorBeforeRegisteringObserver);
       pane.activateItem(activeEditorBeforeRegisteringObserver);
 
-      workspace.observeActiveTextEditor(editor => observed.push(editor));
+      workspace.observeActiveTextEditor((editor) => observed.push(editor));
 
       const editorAddedAfterRegisteringObserver = new TextEditor();
       pane.activateItem(editorAddedAfterRegisteringObserver);
 
       expect(observed).toEqual([
         activeEditorBeforeRegisteringObserver,
-        editorAddedAfterRegisteringObserver
+        editorAddedAfterRegisteringObserver,
       ]);
     });
   });
@@ -1875,7 +1871,7 @@ describe('Workspace', () => {
     });
 
     it("invokes the observer when a text editor becomes the workspace center's active pane item while a dock has focus", () => {
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor));
+      workspace.onDidChangeActiveTextEditor((editor) => observed.push(editor));
 
       const dock = workspace.getLeftDock();
       dock.activate();
@@ -1892,7 +1888,7 @@ describe('Workspace', () => {
       const editor = new TextEditor();
       pane.activateItem(editor);
 
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor));
+      workspace.onDidChangeActiveTextEditor((editor) => observed.push(editor));
       pane.destroyItem(editor);
       expect(observed).toEqual([undefined]);
     });
@@ -1902,13 +1898,13 @@ describe('Workspace', () => {
       const nonEditorItem = document.createElement('div');
       pane.activateItem(editor);
 
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor));
+      workspace.onDidChangeActiveTextEditor((editor) => observed.push(editor));
       pane.activateItem(nonEditorItem);
       expect(observed).toEqual([undefined]);
     });
 
     it("does not invoke the observer when the workspace center's active pane item changes from a non-editor item to another non-editor item", () => {
-      workspace.onDidChangeActiveTextEditor(editor => observed.push(editor));
+      workspace.onDidChangeActiveTextEditor((editor) => observed.push(editor));
 
       const nonEditorItem1 = document.createElement('div');
       const nonEditorItem2 = document.createElement('div');
@@ -1924,7 +1920,9 @@ describe('Workspace', () => {
       simulateReload();
 
       runs(() => {
-        workspace.onDidChangeActiveTextEditor(editor => observed.push(editor));
+        workspace.onDidChangeActiveTextEditor((editor) =>
+          observed.push(editor)
+        );
         workspace.closeActivePaneItemOrEmptyPaneOrWindow();
         expect(observed).toEqual([undefined]);
       });
@@ -1973,14 +1971,14 @@ describe('Workspace', () => {
       `);
 
       const atom2 = new AtomEnvironment({
-        applicationDelegate: atom.applicationDelegate
+        applicationDelegate: atom.applicationDelegate,
       });
       atom2.initialize({
         window: document.createElement('div'),
         document: Object.assign(document.createElement('div'), {
           body: document.createElement('div'),
-          head: document.createElement('div')
-        })
+          head: document.createElement('div'),
+        }),
       });
 
       atom2.packages.loadPackage('language-javascript');
@@ -1995,7 +1993,7 @@ describe('Workspace', () => {
       expect(
         atom2.grammars
           .getGrammars({ includeTreeSitter: true })
-          .map(grammar => grammar.scopeName)
+          .map((grammar) => grammar.scopeName)
           .sort()
       ).toEqual([
         'source.coffee',
@@ -2008,7 +2006,7 @@ describe('Workspace', () => {
         'source.jsdoc',
         'source.litcoffee',
         'text.plain.null-grammar',
-        'text.todo'
+        'text.todo',
       ]);
 
       atom2.destroy();
@@ -2151,14 +2149,14 @@ describe('Workspace', () => {
         document.title = null;
 
         const atom2 = new AtomEnvironment({
-          applicationDelegate: atom.applicationDelegate
+          applicationDelegate: atom.applicationDelegate,
         });
         atom2.initialize({
           window: document.createElement('div'),
           document: Object.assign(document.createElement('div'), {
             body: document.createElement('div'),
-            head: document.createElement('div')
-          })
+            head: document.createElement('div'),
+          }),
         });
 
         waitsForPromise(() =>
@@ -2235,16 +2233,16 @@ describe('Workspace', () => {
     Ctor.prototype = HTMLElement.prototype;
     TestItemElement.prototype = new Ctor();
     TestItemElement.__super__ = HTMLElement.prototype;
-    TestItemElement.prototype.initialize = function(model) {
+    TestItemElement.prototype.initialize = function (model) {
       this.model = model;
       return this;
     };
-    TestItemElement.prototype.getModel = function() {
+    TestItemElement.prototype.getModel = function () {
       return this.model;
     };
 
     beforeEach(() =>
-      atom.views.addViewProvider(TestItem, model =>
+      atom.views.addViewProvider(TestItem, (model) =>
         new TestItemElement().initialize(model)
       )
     );
@@ -2428,7 +2426,7 @@ describe('Workspace', () => {
           await scan(
             /(a)+/,
             { leadingContextLineCount: 1, trailingContextLineCount: 1 },
-            result => results.push(result)
+            (result) => results.push(result)
           );
 
           results.sort((a, b) => a.filePath.localeCompare(b.filePath));
@@ -2442,9 +2440,12 @@ describe('Workspace', () => {
             matchText: 'aaa',
             lineText: 'aaa bbb',
             lineTextOffset: 0,
-            range: [[0, 0], [0, 3]],
+            range: [
+              [0, 0],
+              [0, 3],
+            ],
             leadingContextLines: [],
-            trailingContextLines: ['cc aa cc']
+            trailingContextLines: ['cc aa cc'],
           });
         });
 
@@ -2453,7 +2454,7 @@ describe('Workspace', () => {
           await scan(
             /\$\w+/,
             { leadingContextLineCount: 1, trailingContextLineCount: 1 },
-            result => results.push(result)
+            (result) => results.push(result)
           );
 
           expect(results.length).toBe(1);
@@ -2464,9 +2465,12 @@ describe('Workspace', () => {
             matchText: '$bill',
             lineText: 'dollar$bill',
             lineTextOffset: 0,
-            range: [[2, 6], [2, 11]],
+            range: [
+              [2, 6],
+              [2, 11],
+            ],
             leadingContextLines: ['cc aa cc'],
-            trailingContextLines: []
+            trailingContextLines: [],
           });
         });
 
@@ -2474,12 +2478,12 @@ describe('Workspace', () => {
           atom.config.set('core.excludeVcsIgnoredPaths', false);
           platform.generateEvilFiles();
           atom.project.setPaths([
-            path.join(__dirname, 'fixtures', 'evil-files')
+            path.join(__dirname, 'fixtures', 'evil-files'),
           ]);
           const paths = [];
           let matches = [];
 
-          await scan(/evil/, {}, result => {
+          await scan(/evil/, {}, (result) => {
             paths.push(result.filePath);
             matches = matches.concat(result.matches);
           });
@@ -2487,7 +2491,7 @@ describe('Workspace', () => {
           // Sort the paths to make the test deterministic.
           paths.sort();
 
-          _.each(matches, m => expect(m.matchText).toEqual('evil'));
+          _.each(matches, (m) => expect(m.matchText).toEqual('evil'));
 
           if (platform.isWindows()) {
             expect(paths.length).toBe(3);
@@ -2506,7 +2510,7 @@ describe('Workspace', () => {
 
         it('ignores case if the regex includes the `i` flag', async () => {
           const results = [];
-          await scan(/DOLLAR/i, {}, result => results.push(result));
+          await scan(/DOLLAR/i, {}, (result) => results.push(result));
 
           expect(results).toHaveLength(1);
         });
@@ -2517,9 +2521,9 @@ describe('Workspace', () => {
             await scan(
               /^\s{0}/,
               {
-                paths: [`oh-git`]
+                paths: [`oh-git`],
               },
-              result => results.push(result)
+              (result) => results.push(result)
             );
 
             expect(results.length).toBe(1);
@@ -2534,9 +2538,12 @@ describe('Workspace', () => {
               matchText: '',
               lineText: 'bbb aaaa',
               lineTextOffset: 0,
-              range: [[0, 0], [0, 0]],
+              range: [
+                [0, 0],
+                [0, 0],
+              ],
               leadingContextLines: [],
-              trailingContextLines: []
+              trailingContextLines: [],
             });
           });
 
@@ -2544,7 +2551,7 @@ describe('Workspace', () => {
             it('returns multiline results from regexps', async () => {
               const results = [];
 
-              await scan(/first\nsecond/, {}, result => results.push(result));
+              await scan(/first\nsecond/, {}, (result) => results.push(result));
 
               expect(results.length).toBe(1);
               const { filePath, matches } = results[0];
@@ -2558,9 +2565,12 @@ describe('Workspace', () => {
                 matchText: 'first\nsecond',
                 lineText: 'first\nsecond\\nthird',
                 lineTextOffset: 0,
-                range: [[3, 0], [4, 6]],
+                range: [
+                  [3, 0],
+                  [4, 6],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
             });
 
@@ -2571,9 +2581,9 @@ describe('Workspace', () => {
                 /first\nsecond/,
                 {
                   leadingContextLineCount: 2,
-                  trailingContextLineCount: 2
+                  trailingContextLineCount: 2,
                 },
-                result => results.push(result)
+                (result) => results.push(result)
               );
 
               expect(results.length).toBe(1);
@@ -2588,16 +2598,19 @@ describe('Workspace', () => {
                 matchText: 'first\nsecond',
                 lineText: 'first\nsecond\\nthird',
                 lineTextOffset: 0,
-                range: [[3, 0], [4, 6]],
+                range: [
+                  [3, 0],
+                  [4, 6],
+                ],
                 leadingContextLines: ['newline2', 'newline3'],
-                trailingContextLines: ['newline4', 'newline5']
+                trailingContextLines: ['newline4', 'newline5'],
               });
             });
 
             it('returns multiple results from the same line', async () => {
               const results = [];
 
-              await scan(/line\d\nne/, {}, result => results.push(result));
+              await scan(/line\d\nne/, {}, (result) => results.push(result));
 
               results.sort((a, b) => a.filePath.localeCompare(b.filePath));
 
@@ -2614,32 +2627,43 @@ describe('Workspace', () => {
                 matchText: 'line1\nne',
                 lineText: 'newline1\nnewline2',
                 lineTextOffset: 0,
-                range: [[0, 3], [1, 2]],
+                range: [
+                  [0, 3],
+                  [1, 2],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
               expect(matches[1]).toEqual({
                 matchText: 'line2\nne',
                 lineText: 'newline2\nnewline3',
                 lineTextOffset: 0,
-                range: [[1, 3], [2, 2]],
+                range: [
+                  [1, 3],
+                  [2, 2],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
               expect(matches[2]).toEqual({
                 matchText: 'line4\nne',
                 lineText: 'newline4\nnewline5',
                 lineTextOffset: 0,
-                range: [[5, 3], [6, 2]],
+                range: [
+                  [5, 3],
+                  [6, 2],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
             });
 
             it('works with escaped newlines', async () => {
               const results = [];
 
-              await scan(/second\\nthird/, {}, result => results.push(result));
+              await scan(/second\\nthird/, {}, (result) =>
+                results.push(result)
+              );
               expect(results.length).toBe(1);
               const { filePath, matches } = results[0];
               expect(filePath).toBe(
@@ -2652,16 +2676,19 @@ describe('Workspace', () => {
                 matchText: 'second\\nthird',
                 lineText: 'second\\nthird',
                 lineTextOffset: 0,
-                range: [[4, 0], [4, 13]],
+                range: [
+                  [4, 0],
+                  [4, 13],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
             });
 
             it('matches a regexp ending with a newline', async () => {
               const results = [];
 
-              await scan(/newline3\n/, {}, result => results.push(result));
+              await scan(/newline3\n/, {}, (result) => results.push(result));
               expect(results.length).toBe(1);
               const { filePath, matches } = results[0];
               expect(filePath).toBe(
@@ -2674,9 +2701,12 @@ describe('Workspace', () => {
                 matchText: 'newline3\n',
                 lineText: 'newline3',
                 lineTextOffset: 0,
-                range: [[2, 0], [3, 0]],
+                range: [
+                  [2, 0],
+                  [3, 0],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
             });
           });
@@ -2684,7 +2714,7 @@ describe('Workspace', () => {
             it('supports lookbehind searches', async () => {
               const results = [];
 
-              await scan(/(?<!a)aa\b/, { PCRE2: true }, result =>
+              await scan(/(?<!a)aa\b/, { PCRE2: true }, (result) =>
                 results.push(result)
               );
 
@@ -2698,9 +2728,12 @@ describe('Workspace', () => {
                 matchText: 'aa',
                 lineText: 'cc aa cc',
                 lineTextOffset: 0,
-                range: [[1, 3], [1, 5]],
+                range: [
+                  [1, 3],
+                  [1, 5],
+                ],
                 leadingContextLines: [],
-                trailingContextLines: []
+                trailingContextLines: [],
               });
             });
           });
@@ -2709,7 +2742,7 @@ describe('Workspace', () => {
         it('returns results on lines with unicode strings', async () => {
           const results = [];
 
-          await scan(/line with unico/, {}, result => results.push(result));
+          await scan(/line with unico/, {}, (result) => results.push(result));
           expect(results.length).toBe(1);
           const { filePath, matches } = results[0];
           expect(filePath).toBe(
@@ -2720,9 +2753,12 @@ describe('Workspace', () => {
             matchText: 'line with unico',
             lineText: 'ДДДДДДДДДДДДДДДДДД line with unicode',
             lineTextOffset: 0,
-            range: [[0, 19], [0, 34]],
+            range: [
+              [0, 19],
+              [0, 34],
+            ],
             leadingContextLines: [],
-            trailingContextLines: []
+            trailingContextLines: [],
           });
         });
 
@@ -2732,9 +2768,9 @@ describe('Workspace', () => {
           await scan(
             /asciiProperty=Foo/,
             {
-              trailingContextLineCount: 2
+              trailingContextLineCount: 2,
             },
-            result => results.push(result)
+            (result) => results.push(result)
           );
           expect(results.length).toBe(1);
           const { filePath, matches } = results[0];
@@ -2746,9 +2782,12 @@ describe('Workspace', () => {
             matchText: 'asciiProperty=Foo',
             lineText: 'asciiProperty=Foo',
             lineTextOffset: 0,
-            range: [[0, 0], [0, 17]],
+            range: [
+              [0, 0],
+              [0, 17],
+            ],
             leadingContextLines: [],
-            trailingContextLines: ['utf8Property=Fòò', 'latin1Property=F��']
+            trailingContextLines: ['utf8Property=Fòò', 'latin1Property=F��'],
           });
         });
 
@@ -2768,7 +2807,7 @@ describe('Workspace', () => {
             const writerStream = fstream.Writer(projectPath);
             fstream.Reader(sourceProjectPath).pipe(writerStream);
 
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
               writerStream.on('close', resolve);
               writerStream.on('error', resolve);
             });
@@ -2843,7 +2882,7 @@ describe('Workspace', () => {
             const writerStream = fstream.Writer(projectPath);
             fstream.Reader(sourceProjectPath).pipe(writerStream);
 
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
               writerStream.on('close', resolve);
               writerStream.on('error', resolve);
             });
@@ -2898,7 +2937,7 @@ describe('Workspace', () => {
             const writerStream = fstream.Writer(projectPath);
             fstream.Reader(sourceProjectPath).pipe(writerStream);
 
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
               writerStream.on('close', resolve);
               writerStream.on('error', resolve);
             });
@@ -2938,7 +2977,7 @@ describe('Workspace', () => {
           const paths = [];
           let matches = [];
 
-          await scan(/aaa/, { paths: [`a-dir${path.sep}`] }, result => {
+          await scan(/aaa/, { paths: [`a-dir${path.sep}`] }, (result) => {
             paths.push(result.filePath);
             matches = matches.concat(result.matches);
           });
@@ -2956,7 +2995,7 @@ describe('Workspace', () => {
           const paths = [];
           let matches = [];
 
-          await scan(/match this/, {}, result => {
+          await scan(/match this/, {}, (result) => {
             paths.push(result.filePath);
             matches = matches.concat(result.matches);
           });
@@ -2983,7 +3022,7 @@ describe('Workspace', () => {
 
           editor.setText('Elephant');
 
-          await scan(/a|Elephant/, {}, result => results.push(result));
+          await scan(/a|Elephant/, {}, (result) => results.push(result));
 
           expect(results.length).toBeGreaterThan(0);
           const resultForA = _.find(
@@ -3000,7 +3039,7 @@ describe('Workspace', () => {
 
           editor.setText('Elephant');
 
-          await scan(/Elephant/, {}, result => results.push(result));
+          await scan(/Elephant/, {}, (result) => results.push(result));
 
           expect(results).toHaveLength(0);
         });
@@ -3127,7 +3166,7 @@ describe('Workspace', () => {
                   search(directory, regex, options) {
                     fakeSearch = new FakeSearch(options);
                     return fakeSearch;
-                  }
+                  },
                 }
               );
 
@@ -3145,11 +3184,14 @@ describe('Workspace', () => {
                     lineText: 'Hello world',
                     lineTextOffset: 0,
                     matchText: 'Hello',
-                    range: [[0, 0], [0, 5]]
-                  }
-                ]
+                    range: [
+                      [0, 0],
+                      [0, 5],
+                    ],
+                  },
+                ],
               };
-              onFakeSearchCreated = fakeSearch => {
+              onFakeSearchCreated = (fakeSearch) => {
                 fakeSearch.options.didMatch(searchResult);
                 fakeSearch.options.didSearchPaths(
                   numPathsToPretendToSearchInCustomDirectorySearcher
@@ -3190,7 +3232,7 @@ describe('Workspace', () => {
               });
 
               waitsForPromise(() =>
-                thenable.then(promiseResult => {
+                thenable.then((promiseResult) => {
                   resultOfPromiseSearch = promiseResult;
                 })
               );
@@ -3212,7 +3254,7 @@ describe('Workspace', () => {
                   search(directory, regex, options) {
                     fakeSearch2 = new FakeSearch(options);
                     return fakeSearch2;
-                  }
+                  },
                 }
               );
 
@@ -3228,7 +3270,7 @@ describe('Workspace', () => {
                 })
               );
 
-              waitsFor(done => promise.then(null, done));
+              waitsFor((done) => promise.then(null, done));
 
               runs(() => {
                 expect(didReject).toBe(true);
@@ -3242,22 +3284,22 @@ describe('Workspace', () => {
       describe('leadingContextLineCount and trailingContextLineCount options', () => {
         async function search({
           leadingContextLineCount,
-          trailingContextLineCount
+          trailingContextLineCount,
         }) {
           const results = [];
           await scan(
             /result/,
             { leadingContextLineCount, trailingContextLineCount },
-            result => results.push(result)
+            (result) => results.push(result)
           );
 
           return {
             leadingContext: results[0].matches.map(
-              result => result.leadingContextLines
+              (result) => result.leadingContextLines
             ),
             trailingContext: results[0].matches.map(
-              result => result.trailingContextLines
-            )
+              (result) => result.trailingContextLines
+            ),
           };
         }
 
@@ -3265,75 +3307,75 @@ describe('Workspace', () => {
           ['line 1', 'line 2', 'line 3', 'line 4', 'line 5'],
           ['line 6', 'line 7', 'line 8', 'line 9', 'line 10'],
           ['line 7', 'line 8', 'line 9', 'line 10', 'result 2'],
-          ['line 10', 'result 2', 'result 3', 'line 11', 'line 12']
+          ['line 10', 'result 2', 'result 3', 'line 11', 'line 12'],
         ];
         const expectedTrailingContext = [
           ['line 6', 'line 7', 'line 8', 'line 9', 'line 10'],
           ['result 3', 'line 11', 'line 12', 'result 4', 'line 13'],
           ['line 11', 'line 12', 'result 4', 'line 13', 'line 14'],
-          ['line 13', 'line 14', 'line 15']
+          ['line 13', 'line 14', 'line 15'],
         ];
 
         it('returns valid contexts no matter how many lines are requested', async () => {
           expect(await search({})).toEqual({
             leadingContext: [[], [], [], []],
-            trailingContext: [[], [], [], []]
+            trailingContext: [[], [], [], []],
           });
 
           expect(
             await search({
               leadingContextLineCount: 1,
-              trailingContextLineCount: 1
+              trailingContextLineCount: 1,
             })
           ).toEqual({
-            leadingContext: expectedLeadingContext.map(result =>
+            leadingContext: expectedLeadingContext.map((result) =>
               result.slice(-1)
             ),
-            trailingContext: expectedTrailingContext.map(result =>
+            trailingContext: expectedTrailingContext.map((result) =>
               result.slice(0, 1)
-            )
+            ),
           });
 
           expect(
             await search({
               leadingContextLineCount: 2,
-              trailingContextLineCount: 2
+              trailingContextLineCount: 2,
             })
           ).toEqual({
-            leadingContext: expectedLeadingContext.map(result =>
+            leadingContext: expectedLeadingContext.map((result) =>
               result.slice(-2)
             ),
-            trailingContext: expectedTrailingContext.map(result =>
+            trailingContext: expectedTrailingContext.map((result) =>
               result.slice(0, 2)
-            )
+            ),
           });
 
           expect(
             await search({
               leadingContextLineCount: 5,
-              trailingContextLineCount: 5
+              trailingContextLineCount: 5,
             })
           ).toEqual({
-            leadingContext: expectedLeadingContext.map(result =>
+            leadingContext: expectedLeadingContext.map((result) =>
               result.slice(-5)
             ),
-            trailingContext: expectedTrailingContext.map(result =>
+            trailingContext: expectedTrailingContext.map((result) =>
               result.slice(0, 5)
-            )
+            ),
           });
 
           expect(
             await search({
               leadingContextLineCount: 2,
-              trailingContextLineCount: 3
+              trailingContextLineCount: 3,
             })
           ).toEqual({
-            leadingContext: expectedLeadingContext.map(result =>
+            leadingContext: expectedLeadingContext.map((result) =>
               result.slice(-2)
             ),
-            trailingContext: expectedTrailingContext.map(result =>
+            trailingContext: expectedTrailingContext.map((result) =>
               result.slice(0, 3)
-            )
+            ),
           });
         });
       });
@@ -3378,7 +3420,7 @@ describe('Workspace', () => {
 
         const results = [];
         waitsForPromise(() =>
-          atom.workspace.replace(/items/gi, 'items', [filePath], result =>
+          atom.workspace.replace(/items/gi, 'items', [filePath], (result) =>
             results.push(result)
           )
         );
@@ -3396,7 +3438,7 @@ describe('Workspace', () => {
 
         const results = [];
         waitsForPromise(() =>
-          atom.workspace.replace(/;$/gim, 'items', [filePath], result =>
+          atom.workspace.replace(/;$/gim, 'items', [filePath], (result) =>
             results.push(result)
           )
         );
@@ -3421,7 +3463,7 @@ describe('Workspace', () => {
         const results = [];
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.js').then(o => {
+          atom.workspace.open('sample.js').then((o) => {
             editor = o;
           })
         );
@@ -3429,7 +3471,7 @@ describe('Workspace', () => {
         runs(() => expect(editor.isModified()).toBeFalsy());
 
         waitsForPromise(() =>
-          atom.workspace.replace(/items/gi, 'items', [filePath], result =>
+          atom.workspace.replace(/items/gi, 'items', [filePath], (result) =>
             results.push(result)
           )
         );
@@ -3463,7 +3505,7 @@ describe('Workspace', () => {
             /items/gi,
             'items',
             [commentFilePath],
-            result => results.push(result)
+            (result) => results.push(result)
           )
         );
 
@@ -3481,18 +3523,24 @@ describe('Workspace', () => {
         const results = [];
 
         waitsForPromise(() =>
-          atom.workspace.open('sample.js').then(o => {
+          atom.workspace.open('sample.js').then((o) => {
             editor = o;
           })
         );
 
         runs(() => {
-          editor.buffer.setTextInRange([[0, 0], [0, 0]], 'omg');
+          editor.buffer.setTextInRange(
+            [
+              [0, 0],
+              [0, 0],
+            ],
+            'omg'
+          );
           expect(editor.isModified()).toBeTruthy();
         });
 
         waitsForPromise(() =>
-          atom.workspace.replace(/items/gi, 'okthen', [filePath], result =>
+          atom.workspace.replace(/items/gi, 'okthen', [filePath], (result) =>
             results.push(result)
           )
         );
@@ -3513,7 +3561,7 @@ describe('Workspace', () => {
 
     beforeEach(() => {
       waitsForPromise(() =>
-        atom.workspace.open('sample.js').then(o => {
+        atom.workspace.open('sample.js').then((o) => {
           editor = o;
         })
       );
@@ -3697,12 +3745,12 @@ describe('Workspace', () => {
         getTitle: () => 'Permanent Dock Item',
         element: document.createElement('div'),
         getDefaultLocation: () => 'left',
-        isPermanentDockItem: () => true
+        isPermanentDockItem: () => true,
       });
       await atom.workspace.open({
         getTitle: () => 'Impermanent Dock Item',
         element: document.createElement('div'),
-        getDefaultLocation: () => 'left'
+        getDefaultLocation: () => 'left',
       });
 
       expect(atom.workspace.getLeftDock().getPaneItems().length).toBe(2);
@@ -3822,14 +3870,14 @@ describe('Workspace', () => {
       leftDock.show();
       expect(workspace.getVisiblePaneContainers().sort()).toEqual([
         center,
-        leftDock
+        leftDock,
       ]);
 
       rightDock.show();
       expect(workspace.getVisiblePaneContainers().sort()).toEqual([
         center,
         leftDock,
-        rightDock
+        rightDock,
       ]);
 
       bottomDock.show();
@@ -3837,7 +3885,7 @@ describe('Workspace', () => {
         center,
         leftDock,
         rightDock,
-        bottomDock
+        bottomDock,
       ]);
     });
   });
@@ -3948,7 +3996,7 @@ describe('Workspace', () => {
       const item = {
         getURI: () => ITEM_URI,
         getDefaultLocation: () => 'left',
-        getElement: () => document.createElement('div')
+        getElement: () => document.createElement('div'),
       };
       const centerPane = workspace.getActivePane();
       centerPane.addItem(item);
@@ -3966,7 +4014,7 @@ describe('Workspace', () => {
       const item = {
         getURI: () => ITEM_URI,
         getDefaultLocation: () => 'right',
-        getElement: () => document.createElement('div')
+        getElement: () => document.createElement('div'),
       };
       const centerPane = workspace.getActivePane();
       centerPane.addItem(item);

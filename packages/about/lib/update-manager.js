@@ -36,7 +36,7 @@ let UpdateManager = class UpdateManager {
       atom.autoUpdater.onUpdateError(() => {
         this.setState(ErrorState);
       }),
-      atom.config.observe('core.automaticallyUpdate', value => {
+      atom.config.observe('core.automaticallyUpdate', (value) => {
         this.autoUpdatesEnabled = value;
         this.emitDidChange();
       })
@@ -145,7 +145,7 @@ UpdateManager.State = {
   DownloadingUpdate: DownloadingUpdate,
   UpdateAvailableToInstall: UpdateAvailableToInstall,
   UpToDate: UpToDate,
-  Error: ErrorState
+  Error: ErrorState,
 };
 
 module.exports = UpdateManager;

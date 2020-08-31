@@ -7,5 +7,5 @@ module.exports = {
 
   toFirstMateScopeId(atomScopeId) {
     return -(atomScopeId - 256);
-  }
+  },
 };

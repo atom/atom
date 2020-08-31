@@ -2,16 +2,16 @@ const DefaultDirectorySearcher = require('../src/default-directory-searcher');
 const Task = require('../src/task');
 const path = require('path');
 
-describe('DefaultDirectorySearcher', function() {
+describe('DefaultDirectorySearcher', function () {
   let searcher;
   let dirPath;
 
-  beforeEach(function() {
+  beforeEach(function () {
     dirPath = path.resolve(__dirname, 'fixtures', 'dir');
     searcher = new DefaultDirectorySearcher();
   });
 
-  it('terminates the task after running a search', async function() {
+  it('terminates the task after running a search', async function () {
     const options = {
       ignoreCase: false,
       includeHidden: false,
@@ -20,7 +20,7 @@ describe('DefaultDirectorySearcher', function() {
       globalExclusions: ['a-dir'],
       didMatch() {},
       didError() {},
-      didSearchPaths() {}
+      didSearchPaths() {},
     };
 
     spyOn(Task.prototype, 'terminate').andCallThrough();
@@ -30,8 +30,8 @@ describe('DefaultDirectorySearcher', function() {
         {
           getPath() {
             return dirPath;
-          }
-        }
+          },
+        },
       ],
       /abcdefg/,
       options

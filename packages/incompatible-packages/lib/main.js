@@ -9,7 +9,7 @@ export function activate() {
   disposables = new CompositeDisposable();
 
   disposables.add(
-    atom.workspace.addOpener(uri => {
+    atom.workspace.addOpener((uri) => {
       if (uri === VIEW_URI) {
         return deserializeIncompatiblePackagesComponent();
       }
@@ -20,7 +20,7 @@ export function activate() {
     atom.commands.add('atom-workspace', {
       'incompatible-packages:view': () => {
         atom.workspace.open(VIEW_URI);
-      }
+      },
     })
   );
 }

@@ -5,7 +5,7 @@ const PaneAxisElement = require('./pane-axis-element');
 
 class PaneAxis extends Model {
   static deserialize(state, { deserializers, views }) {
-    state.children = state.children.map(childState =>
+    state.children = state.children.map((childState) =>
       deserializers.deserialize(childState)
     );
     return new PaneAxis(state, views);
@@ -32,9 +32,9 @@ class PaneAxis extends Model {
   serialize() {
     return {
       deserializer: 'PaneAxis',
-      children: this.children.map(child => child.serialize()),
+      children: this.children.map((child) => child.serialize()),
       orientation: this.orientation,
-      flexScale: this.flexScale
+      flexScale: this.flexScale,
     };
   }
 
@@ -71,7 +71,7 @@ class PaneAxis extends Model {
   setContainer(container) {
     if (container && container !== this.container) {
       this.container = container;
-      this.children.forEach(child => child.setContainer(container));
+      this.children.forEach((child) => child.setContainer(container));
     }
   }
 
@@ -84,11 +84,11 @@ class PaneAxis extends Model {
   }
 
   getPanes() {
-    return flatten(this.children.map(child => child.getPanes()));
+    return flatten(this.children.map((child) => child.getPanes()));
   }
 
   getItems() {
-    return flatten(this.children.map(child => child.getItems()));
+    return flatten(this.children.map((child) => child.getItems()));
   }
 
   onDidAddChild(fn) {

@@ -2,7 +2,7 @@ const Gutter = require('../src/gutter');
 
 describe('Gutter', () => {
   const fakeGutterContainer = {
-    scheduleComponentUpdate() {}
+    scheduleComponentUpdate() {},
   };
   const name = 'name';
 
@@ -10,11 +10,11 @@ describe('Gutter', () => {
     it('hides the gutter if it is visible.', () => {
       const options = {
         name,
-        visible: true
+        visible: true,
       };
       const gutter = new Gutter(fakeGutterContainer, options);
       const events = [];
-      gutter.onDidChangeVisible(gutter => events.push(gutter.isVisible()));
+      gutter.onDidChangeVisible((gutter) => events.push(gutter.isVisible()));
 
       expect(gutter.isVisible()).toBe(true);
       gutter.hide();
@@ -30,11 +30,11 @@ describe('Gutter', () => {
     it('shows the gutter if it is hidden.', () => {
       const options = {
         name,
-        visible: false
+        visible: false,
       };
       const gutter = new Gutter(fakeGutterContainer, options);
       const events = [];
-      gutter.onDidChangeVisible(gutter => events.push(gutter.isVisible()));
+      gutter.onDidChangeVisible((gutter) => events.push(gutter.isVisible()));
 
       expect(gutter.isVisible()).toBe(false);
       gutter.show();
@@ -54,7 +54,7 @@ describe('Gutter', () => {
       mockGutterContainer = {
         removeGutter(destroyedGutter) {
           mockGutterContainerRemovedGutters.push(destroyedGutter);
-        }
+        },
       };
     });
 

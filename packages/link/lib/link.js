@@ -56,7 +56,7 @@ module.exports = {
     if (
       token &&
       token.value &&
-      token.scopes.some(scope => LINK_SCOPE_REGEX.test(scope))
+      token.scopes.some((scope) => LINK_SCOPE_REGEX.test(scope))
     ) {
       return token.value;
     }
@@ -81,12 +81,15 @@ module.exports = {
     );
     editor.backwardsScanInBufferRange(
       regex,
-      [[0, 0], [Infinity, Infinity]],
+      [
+        [0, 0],
+        [Infinity, Infinity],
+      ],
       ({ match, stop }) => {
         link = match[1];
         stop();
       }
     );
     return link;
-  }
+  },
 };

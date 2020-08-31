@@ -6,7 +6,7 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   const cachePaths = [
     path.join(CONFIG.repositoryRootPath, 'electron'),
     path.join(CONFIG.atomHomeDirPath, '.node-gyp'),
@@ -18,7 +18,7 @@ module.exports = function() {
     path.join(CONFIG.atomHomeDirPath, 'atom-shell'),
     path.join(CONFIG.atomHomeDirPath, 'electron'),
     path.join(os.tmpdir(), 'atom-build'),
-    path.join(os.tmpdir(), 'atom-cached-atom-shells')
+    path.join(os.tmpdir(), 'atom-cached-atom-shells'),
   ];
 
   for (let path of cachePaths) {

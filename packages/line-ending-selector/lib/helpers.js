@@ -3,5 +3,5 @@
 export default {
   getProcessPlatform() {
     return process.platform;
-  }
+  },
 };

@@ -87,7 +87,7 @@ module.exports = class AboutView extends EtchComponent {
             $.span(
               {
                 className: 'about-version-container inline-block atom',
-                onclick: this.handleAtomVersionClick.bind(this)
+                onclick: this.handleAtomVersionClick.bind(this),
               },
               $.span(
                 { className: 'about-version' },
@@ -98,7 +98,7 @@ module.exports = class AboutView extends EtchComponent {
             $.a(
               {
                 className: 'about-header-release-notes',
-                onclick: this.handleReleaseNotesClick.bind(this)
+                onclick: this.handleReleaseNotesClick.bind(this),
               },
               'Release Notes'
             )
@@ -107,7 +107,7 @@ module.exports = class AboutView extends EtchComponent {
             {
               className:
                 'about-version-container inline-block show-more-expand',
-              onclick: this.handleShowMoreClick.bind(this)
+              onclick: this.handleShowMoreClick.bind(this),
             },
             $.span({ className: 'about-more-expand' }, 'Show more')
           ),
@@ -118,7 +118,7 @@ module.exports = class AboutView extends EtchComponent {
               $.span(
                 {
                   className: 'about-version-container inline-block electron',
-                  onclick: this.handleElectronVersionClick.bind(this)
+                  onclick: this.handleElectronVersionClick.bind(this),
                 },
                 $.span(
                   { className: 'about-more-version' },
@@ -132,7 +132,7 @@ module.exports = class AboutView extends EtchComponent {
               $.span(
                 {
                   className: 'about-version-container inline-block chrome',
-                  onclick: this.handleChromeVersionClick.bind(this)
+                  onclick: this.handleChromeVersionClick.bind(this),
                 },
                 $.span(
                   { className: 'about-more-version' },
@@ -146,7 +146,7 @@ module.exports = class AboutView extends EtchComponent {
               $.span(
                 {
                   className: 'about-version-container inline-block node',
-                  onclick: this.handleNodeVersionClick.bind(this)
+                  onclick: this.handleNodeVersionClick.bind(this),
                 },
                 $.span(
                   { className: 'about-more-version' },
@@ -163,7 +163,7 @@ module.exports = class AboutView extends EtchComponent {
         updateManager: this.props.updateManager,
         availableVersion: this.props.availableVersion,
         viewUpdateReleaseNotes: this.handleReleaseNotesClick.bind(this),
-        viewUpdateInstructions: this.handleHowToUpdateClick.bind(this)
+        viewUpdateInstructions: this.handleHowToUpdateClick.bind(this),
       }),
 
       $.div(
@@ -173,14 +173,14 @@ module.exports = class AboutView extends EtchComponent {
           $.button(
             {
               className: 'btn view-license',
-              onclick: this.handleLicenseClick.bind(this)
+              onclick: this.handleLicenseClick.bind(this),
             },
             'License'
           ),
           $.button(
             {
               className: 'btn terms-of-use',
-              onclick: this.handleTermsOfUseClick.bind(this)
+              onclick: this.handleTermsOfUseClick.bind(this),
             },
             'Terms of Use'
           )
@@ -210,7 +210,7 @@ module.exports = class AboutView extends EtchComponent {
   serialize() {
     return {
       deserializer: this.constructor.name,
-      uri: this.props.uri
+      uri: this.props.uri,
     };
   }
 

@@ -29,14 +29,14 @@ module.exports = {
       tags: [
         this.startIdForScope(this.scopeName),
         text.length,
-        this.endIdForScope(this.scopeName)
+        this.endIdForScope(this.scopeName),
       ],
-      ruleStack: null
+      ruleStack: null,
     };
   },
   onDidUpdate(callback) {
     return new Disposable(noop);
-  }
+  },
 };
 
 function noop() {}

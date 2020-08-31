@@ -14,12 +14,10 @@ const template = require('lodash.template');
 const CONFIG = require('../config');
 const HOST_ARCH = hostArch();
 
-module.exports = function() {
+module.exports = function () {
   const appName = getAppName();
   console.log(
-    `Running electron-packager on ${
-      CONFIG.intermediateAppPath
-    } with app name "${appName}"`
+    `Running electron-packager on ${CONFIG.intermediateAppPath} with app name "${appName}"`
   );
   return runPackager({
     appBundleId: 'com.github.atom',
@@ -55,9 +53,9 @@ module.exports = function() {
     win32metadata: {
       CompanyName: 'GitHub, Inc.',
       FileDescription: 'Atom',
-      ProductName: CONFIG.appName
-    }
-  }).then(packagedAppPath => {
+      ProductName: CONFIG.appName,
+    },
+  }).then((packagedAppPath) => {
     let bundledResourcesPath;
     if (process.platform === 'darwin') {
       bundledResourcesPath = path.join(
@@ -137,8 +135,8 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
       'apm.cmd',
       'apm.sh',
       'file.ico',
-      'folder.ico'
-    ].forEach(file =>
+      'folder.ico',
+    ].forEach((file) =>
       fs.copySync(
         path.join('resources', 'win', file),
         path.join(bundledResourcesPath, 'cli', file)
@@ -150,7 +148,7 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
   }
 
   console.log(`Writing LICENSE.md to ${bundledResourcesPath}`);
-  return getLicenseText().then(licenseText => {
+  return getLicenseText().then((licenseText) => {
     fs.writeFileSync(
       path.join(bundledResourcesPath, 'LICENSE.md'),
       licenseText
@@ -170,12 +168,12 @@ function setAtomHelperVersion(packagedAppPath) {
   spawnSync('/usr/libexec/PlistBuddy', [
     '-c',
     `Add CFBundleVersion string ${CONFIG.appMetadata.version}`,
-    helperPListPath
+    helperPListPath,
   ]);
   spawnSync('/usr/libexec/PlistBuddy', [
     '-c',
     `Add CFBundleShortVersionString string ${CONFIG.appMetadata.version}`,
-    helperPListPath
+    helperPListPath,
   ]);
 }
 
@@ -197,7 +195,7 @@ function buildAsarUnpackGlobExpression() {
     path.join('**', 'node_modules', 'dugite', 'git', '**'),
     path.join('**', 'node_modules', 'github', 'bin', '**'),
     path.join('**', 'node_modules', 'vscode-ripgrep', 'bin', '**'),
-    path.join('**', 'resources', 'atom.png')
+    path.join('**', 'resources', 'atom.png'),
   ];
 
   return `{${unpack.join(',')}}`;
@@ -267,7 +265,7 @@ function generateAtomCmdForChannel(bundledResourcesPath) {
     path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'atom.cmd')
   );
   const atomCmdContents = template(atomCmdTemplate)({
-    atomExeName: CONFIG.executableName
+    atomExeName: CONFIG.executableName,
   });
   fs.writeFileSync(
     path.join(bundledResourcesPath, 'cli', 'atom.cmd'),

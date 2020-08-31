@@ -18,7 +18,7 @@ export default class WelcomePackage {
     this.subscriptions = new CompositeDisposable();
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
         if (filePath === WELCOME_URI) {
           return this.createWelcomeView({ uri: WELCOME_URI });
         }
@@ -26,7 +26,7 @@ export default class WelcomePackage {
     );
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
         if (filePath === GUIDE_URI) {
           return this.createGuideView({ uri: GUIDE_URI });
         }
@@ -34,7 +34,7 @@ export default class WelcomePackage {
     );
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
         if (filePath === CONSENT_URI) {
           return this.createConsentView({ uri: CONSENT_URI });
         }
@@ -58,7 +58,7 @@ export default class WelcomePackage {
   show() {
     return Promise.all([
       atom.workspace.open(WELCOME_URI, { split: 'left' }),
-      atom.workspace.open(GUIDE_URI, { split: 'right' })
+      atom.workspace.open(GUIDE_URI, { split: 'right' }),
     ]);
   }
 

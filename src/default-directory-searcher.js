@@ -10,11 +10,11 @@ class DirectorySearch {
       includeHidden: options.includeHidden,
       excludeVcsIgnores: options.excludeVcsIgnores,
       globalExclusions: options.exclusions,
-      follow: options.follow
+      follow: options.follow,
     };
     const searchOptions = {
       leadingContextLineCount: options.leadingContextLineCount,
-      trailingContextLineCount: options.trailingContextLineCount
+      trailingContextLineCount: options.trailingContextLineCount,
     };
     this.task = new Task(require.resolve('./scan-handler'));
     this.task.on('scan:result-found', options.didMatch);
@@ -90,11 +90,11 @@ module.exports = class DefaultDirectorySearcher {
   // Returns a *thenable* `DirectorySearch` that includes a `cancel()` method. If `cancel()` is
   // invoked before the `DirectorySearch` is determined, it will resolve the `DirectorySearch`.
   search(directories, regex, options) {
-    const rootPaths = directories.map(directory => directory.getPath());
+    const rootPaths = directories.map((directory) => directory.getPath());
     let isCancelled = false;
     const directorySearch = new DirectorySearch(rootPaths, regex, options);
-    const promise = new Promise(function(resolve, reject) {
-      directorySearch.then(resolve, function() {
+    const promise = new Promise(function (resolve, reject) {
+      directorySearch.then(resolve, function () {
         if (isCancelled) {
           resolve();
         } else {
@@ -108,7 +108,7 @@ module.exports = class DefaultDirectorySearcher {
       cancel() {
         isCancelled = true;
         directorySearch.cancel();
-      }
+      },
     };
   }
 };

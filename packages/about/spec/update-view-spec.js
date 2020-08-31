@@ -16,7 +16,7 @@ describe('UpdateView', () => {
     spyOn(window.localStorage, 'setItem').andCallFake((key, value) => {
       storage[key] = value;
     });
-    spyOn(window.localStorage, 'getItem').andCallFake(key => {
+    spyOn(window.localStorage, 'getItem').andCallFake((key) => {
       return storage[key];
     });
 
@@ -310,7 +310,7 @@ describe('UpdateView', () => {
           ).toBe('Atom will check for updates automatically');
         });
 
-        describe('checking for updates', function() {
+        describe('checking for updates', function () {
           afterEach(() => {
             this.updateView = null;
           });
@@ -321,7 +321,7 @@ describe('UpdateView', () => {
             this.updateView = new UpdateView({
               updateManager: updateManager,
               availableVersion: '9999.0.0',
-              viewUpdateReleaseNotes: () => {}
+              viewUpdateReleaseNotes: () => {},
             });
 
             expect(atom.autoUpdater.checkForUpdate).toHaveBeenCalled();
@@ -335,7 +335,7 @@ describe('UpdateView', () => {
             this.updateView = new UpdateView({
               updateManager: updateManager,
               availableVersion: '9999.0.0',
-              viewUpdateReleaseNotes: () => {}
+              viewUpdateReleaseNotes: () => {},
             });
 
             expect(atom.autoUpdater.checkForUpdate).not.toHaveBeenCalled();
@@ -348,7 +348,7 @@ describe('UpdateView', () => {
             this.updateView = new UpdateView({
               updateManager: updateManager,
               availableVersion: '9999.0.0',
-              viewUpdateReleaseNotes: () => {}
+              viewUpdateReleaseNotes: () => {},
             });
 
             expect(atom.autoUpdater.checkForUpdate).not.toHaveBeenCalled();

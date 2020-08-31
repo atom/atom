@@ -45,7 +45,7 @@ function findBaseIconThemeDirPath() {
   }
 }
 
-module.exports = function(packagedAppPath, installDir) {
+module.exports = function (packagedAppPath, installDir) {
   const packagedAppFileName = path.basename(packagedAppPath);
   if (process.platform === 'darwin') {
     const installPrefix =
@@ -70,7 +70,7 @@ module.exports = function(packagedAppPath, installDir) {
       );
       const fsAdmin = require('fs-admin');
       return new Promise((resolve, reject) => {
-        fsAdmin.recursiveCopy(packagedAppPath, installationDirPath, error => {
+        fsAdmin.recursiveCopy(packagedAppPath, installationDirPath, (error) => {
           error ? reject(error) : resolve();
         });
       });
@@ -104,7 +104,7 @@ module.exports = function(packagedAppPath, installDir) {
       const fullIconName = atomExecutableName + '.png';
 
       let existingIconsFound = false;
-      fs.readdirSync(baseIconThemeDirPath).forEach(size => {
+      fs.readdirSync(baseIconThemeDirPath).forEach((size) => {
         const iconPath = path.join(
           baseIconThemeDirPath,
           size,
@@ -130,7 +130,7 @@ module.exports = function(packagedAppPath, installDir) {
         CONFIG.channel,
         'png'
       );
-      fs.readdirSync(appIconsPath).forEach(imageName => {
+      fs.readdirSync(appIconsPath).forEach((imageName) => {
         if (/\.png$/.test(imageName)) {
           const size = path.basename(imageName, '.png');
           const iconPath = path.join(appIconsPath, imageName);
@@ -178,7 +178,7 @@ module.exports = function(packagedAppPath, installDir) {
         appFileName: atomExecutableName,
         description: appDescription,
         installDir: prefixDirPath,
-        iconPath: atomExecutableName
+        iconPath: atomExecutableName,
       });
       fs.writeFileSync(desktopEntryPath, desktopEntryContents);
     }

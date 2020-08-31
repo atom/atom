@@ -17,7 +17,7 @@ class GoToLineView {
 
     this.panel = atom.workspace.addModalPanel({
       item: this,
-      visible: false
+      visible: false,
     });
     atom.commands.add('atom-text-editor', 'go-to-line:toggle', () => {
       this.toggle();
@@ -29,7 +29,7 @@ class GoToLineView {
     atom.commands.add(this.miniEditor.element, 'core:cancel', () => {
       this.close();
     });
-    this.miniEditor.onWillInsertText(arg => {
+    this.miniEditor.onWillInsertText((arg) => {
       if (arg.text.match(/[^0-9:]/)) {
         arg.cancel();
       }
@@ -75,7 +75,7 @@ class GoToLineView {
       editor.moveToFirstCharacterOfLine();
     }
     editor.scrollToBufferPosition(position, {
-      center: true
+      center: true,
     });
   }
 
@@ -107,5 +107,5 @@ class GoToLineView {
 export default {
   activate() {
     return new GoToLineView();
-  }
+  },
 };

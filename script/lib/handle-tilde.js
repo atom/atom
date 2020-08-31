@@ -4,7 +4,7 @@ const os = require('os');
 const passwdUser = require('passwd-user');
 const path = require('path');
 
-module.exports = function(aPath) {
+module.exports = function (aPath) {
   if (!aPath.startsWith('~')) {
     return aPath;
   }

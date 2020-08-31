@@ -6,7 +6,7 @@ const process = require('process');
 
 const CONFIG = require('../config');
 
-module.exports = async function() {
+module.exports = async function () {
   return new Promise((resolve, reject) => {
     const eslintArgs = ['--cache', '--format', 'json'];
 
@@ -23,16 +23,16 @@ module.exports = async function() {
 
     let output = '';
     let errorOutput = '';
-    eslint.stdout.on('data', data => {
+    eslint.stdout.on('data', (data) => {
       output += data.toString();
     });
 
-    eslint.stderr.on('data', data => {
+    eslint.stderr.on('data', (data) => {
       errorOutput += data.toString();
     });
 
-    eslint.on('error', error => reject(error));
-    eslint.on('close', exitCode => {
+    eslint.on('error', (error) => reject(error));
+    eslint.on('close', (exitCode) => {
       const errors = [];
       let files;
 
@@ -49,7 +49,7 @@ module.exports = async function() {
             path: file.filePath,
             message: error.message,
             lineNumber: error.line,
-            rule: error.ruleId
+            rule: error.ruleId,
           });
         }
       }

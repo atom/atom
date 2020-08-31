@@ -37,10 +37,7 @@ describe('WorkspaceElement', () => {
       expect(atom.workspace.getActivePaneContainer()).toBe(
         atom.workspace.getCenter()
       );
-      dock
-        .getActivePane()
-        .getElement()
-        .focus();
+      dock.getActivePane().getElement().focus();
       expect(atom.workspace.getActivePaneContainer()).toBe(dock);
     });
   });
@@ -61,7 +58,7 @@ describe('WorkspaceElement', () => {
       workspace,
       workspaceElement;
 
-    beforeEach(function() {
+    beforeEach(function () {
       atom.config.set('core.destroyEmptyPanes', false);
       expect(document.hasFocus()).toBe(
         true,
@@ -305,10 +302,10 @@ describe('WorkspaceElement', () => {
     });
   });
 
-  describe('changing focus, copying, and moving items directionally between panes', function() {
+  describe('changing focus, copying, and moving items directionally between panes', function () {
     let workspace, workspaceElement, startingPane;
 
-    beforeEach(function() {
+    beforeEach(function () {
       atom.config.set('core.destroyEmptyPanes', false);
       expect(document.hasFocus()).toBe(
         true,
@@ -330,9 +327,9 @@ describe('WorkspaceElement', () => {
       jasmine.attachToDOM(workspaceElement);
     });
 
-    describe('::focusPaneViewAbove()', function() {
+    describe('::focusPaneViewAbove()', function () {
       describe('when there is a row above the focused pane', () =>
-        it('focuses up to the adjacent row', function() {
+        it('focuses up to the adjacent row', function () {
           const paneAbove = startingPane.splitUp();
           startingPane.activate();
           workspaceElement.focusPaneViewAbove();
@@ -340,16 +337,16 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no rows above the focused pane', () =>
-        it('keeps the current pane focused', function() {
+        it('keeps the current pane focused', function () {
           startingPane.activate();
           workspaceElement.focusPaneViewAbove();
           expect(document.activeElement).toBe(startingPane.getElement());
         }));
     });
 
-    describe('::focusPaneViewBelow()', function() {
+    describe('::focusPaneViewBelow()', function () {
       describe('when there is a row below the focused pane', () =>
-        it('focuses down to the adjacent row', function() {
+        it('focuses down to the adjacent row', function () {
           const paneBelow = startingPane.splitDown();
           startingPane.activate();
           workspaceElement.focusPaneViewBelow();
@@ -357,16 +354,16 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no rows below the focused pane', () =>
-        it('keeps the current pane focused', function() {
+        it('keeps the current pane focused', function () {
           startingPane.activate();
           workspaceElement.focusPaneViewBelow();
           expect(document.activeElement).toBe(startingPane.getElement());
         }));
     });
 
-    describe('::focusPaneViewOnLeft()', function() {
+    describe('::focusPaneViewOnLeft()', function () {
       describe('when there is a column to the left of the focused pane', () =>
-        it('focuses left to the adjacent column', function() {
+        it('focuses left to the adjacent column', function () {
           const paneOnLeft = startingPane.splitLeft();
           startingPane.activate();
           workspaceElement.focusPaneViewOnLeft();
@@ -374,16 +371,16 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no columns to the left of the focused pane', () =>
-        it('keeps the current pane focused', function() {
+        it('keeps the current pane focused', function () {
           startingPane.activate();
           workspaceElement.focusPaneViewOnLeft();
           expect(document.activeElement).toBe(startingPane.getElement());
         }));
     });
 
-    describe('::focusPaneViewOnRight()', function() {
+    describe('::focusPaneViewOnRight()', function () {
       describe('when there is a column to the right of the focused pane', () =>
-        it('focuses right to the adjacent column', function() {
+        it('focuses right to the adjacent column', function () {
           const paneOnRight = startingPane.splitRight();
           startingPane.activate();
           workspaceElement.focusPaneViewOnRight();
@@ -391,16 +388,16 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no columns to the right of the focused pane', () =>
-        it('keeps the current pane focused', function() {
+        it('keeps the current pane focused', function () {
           startingPane.activate();
           workspaceElement.focusPaneViewOnRight();
           expect(document.activeElement).toBe(startingPane.getElement());
         }));
     });
 
-    describe('::moveActiveItemToPaneAbove(keepOriginal)', function() {
+    describe('::moveActiveItemToPaneAbove(keepOriginal)', function () {
       describe('when there is a row above the focused pane', () =>
-        it('moves the active item up to the adjacent row', function() {
+        it('moves the active item up to the adjacent row', function () {
           const item = document.createElement('div');
           const paneAbove = startingPane.splitUp();
           startingPane.activate();
@@ -411,7 +408,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no rows above the focused pane', () =>
-        it('keeps the active pane focused', function() {
+        it('keeps the active pane focused', function () {
           const item = document.createElement('div');
           startingPane.activate();
           startingPane.activateItem(item);
@@ -420,7 +417,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when `keepOriginal: true` is passed in the params', () =>
-        it('keeps the item and adds a copy of it to the adjacent pane', function() {
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
           const itemA = document.createElement('div');
           const itemB = document.createElement('div');
           itemA.copy = () => itemB;
@@ -433,9 +430,9 @@ describe('WorkspaceElement', () => {
         }));
     });
 
-    describe('::moveActiveItemToPaneBelow(keepOriginal)', function() {
+    describe('::moveActiveItemToPaneBelow(keepOriginal)', function () {
       describe('when there is a row below the focused pane', () =>
-        it('moves the active item down to the adjacent row', function() {
+        it('moves the active item down to the adjacent row', function () {
           const item = document.createElement('div');
           const paneBelow = startingPane.splitDown();
           startingPane.activate();
@@ -446,7 +443,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no rows below the focused pane', () =>
-        it('keeps the active item in the focused pane', function() {
+        it('keeps the active item in the focused pane', function () {
           const item = document.createElement('div');
           startingPane.activate();
           startingPane.activateItem(item);
@@ -455,7 +452,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when `keepOriginal: true` is passed in the params', () =>
-        it('keeps the item and adds a copy of it to the adjacent pane', function() {
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
           const itemA = document.createElement('div');
           const itemB = document.createElement('div');
           itemA.copy = () => itemB;
@@ -468,9 +465,9 @@ describe('WorkspaceElement', () => {
         }));
     });
 
-    describe('::moveActiveItemToPaneOnLeft(keepOriginal)', function() {
+    describe('::moveActiveItemToPaneOnLeft(keepOriginal)', function () {
       describe('when there is a column to the left of the focused pane', () =>
-        it('moves the active item left to the adjacent column', function() {
+        it('moves the active item left to the adjacent column', function () {
           const item = document.createElement('div');
           const paneOnLeft = startingPane.splitLeft();
           startingPane.activate();
@@ -481,7 +478,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no columns to the left of the focused pane', () =>
-        it('keeps the active item in the focused pane', function() {
+        it('keeps the active item in the focused pane', function () {
           const item = document.createElement('div');
           startingPane.activate();
           startingPane.activateItem(item);
@@ -490,7 +487,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when `keepOriginal: true` is passed in the params', () =>
-        it('keeps the item and adds a copy of it to the adjacent pane', function() {
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
           const itemA = document.createElement('div');
           const itemB = document.createElement('div');
           itemA.copy = () => itemB;
@@ -503,9 +500,9 @@ describe('WorkspaceElement', () => {
         }));
     });
 
-    describe('::moveActiveItemToPaneOnRight(keepOriginal)', function() {
+    describe('::moveActiveItemToPaneOnRight(keepOriginal)', function () {
       describe('when there is a column to the right of the focused pane', () =>
-        it('moves the active item right to the adjacent column', function() {
+        it('moves the active item right to the adjacent column', function () {
           const item = document.createElement('div');
           const paneOnRight = startingPane.splitRight();
           startingPane.activate();
@@ -516,7 +513,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when there are no columns to the right of the focused pane', () =>
-        it('keeps the active item in the focused pane', function() {
+        it('keeps the active item in the focused pane', function () {
           const item = document.createElement('div');
           startingPane.activate();
           startingPane.activateItem(item);
@@ -525,7 +522,7 @@ describe('WorkspaceElement', () => {
         }));
 
       describe('when `keepOriginal: true` is passed in the params', () =>
-        it('keeps the item and adds a copy of it to the adjacent pane', function() {
+        it('keeps the item and adds a copy of it to the adjacent pane', function () {
           const itemA = document.createElement('div');
           const itemB = document.createElement('div');
           itemA.copy = () => itemB;
@@ -540,29 +537,29 @@ describe('WorkspaceElement', () => {
 
     describe('::moveActiveItemToNearestPaneInDirection(direction, params)', () => {
       describe('when the item is not allowed in nearest pane in the given direction', () => {
-        it('does not move or copy the active item', function() {
+        it('does not move or copy the active item', function () {
           const item = {
             element: document.createElement('div'),
-            getAllowedLocations: () => ['left', 'right']
+            getAllowedLocations: () => ['left', 'right'],
           };
 
           workspace.getBottomDock().show();
           startingPane.activate();
           startingPane.activateItem(item);
           workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
-            keepOriginal: false
+            keepOriginal: false,
           });
           expect(workspace.paneForItem(item)).toBe(startingPane);
 
           workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
-            keepOriginal: true
+            keepOriginal: true,
           });
           expect(workspace.paneForItem(item)).toBe(startingPane);
         });
       });
 
       describe("when the item doesn't implement a `copy` function", () => {
-        it('does not copy the active item', function() {
+        it('does not copy the active item', function () {
           const item = document.createElement('div');
           const paneBelow = startingPane.splitDown();
           expect(paneBelow.getItems().length).toEqual(0);
@@ -571,7 +568,7 @@ describe('WorkspaceElement', () => {
           startingPane.activateItem(item);
           workspaceElement.focusPaneViewAbove();
           workspaceElement.moveActiveItemToNearestPaneInDirection('below', {
-            keepOriginal: true
+            keepOriginal: true,
           });
           expect(workspace.paneForItem(item)).toBe(startingPane);
           expect(paneBelow.getItems().length).toEqual(0);
@@ -626,7 +623,7 @@ describe('WorkspaceElement', () => {
           },
           getPreferredWidth() {
             return 150;
-          }
+          },
         }),
         atom.workspace.open({
           element: document.createElement('div'),
@@ -635,7 +632,7 @@ describe('WorkspaceElement', () => {
           },
           getPreferredWidth() {
             return 150;
-          }
+          },
         }),
         atom.workspace.open({
           element: document.createElement('div'),
@@ -644,8 +641,8 @@ describe('WorkspaceElement', () => {
           },
           getPreferredHeight() {
             return 100;
-          }
-        })
+          },
+        }),
       ]);
 
       const leftDock = atom.workspace.getLeftDock();
@@ -793,7 +790,7 @@ describe('WorkspaceElement', () => {
       // Simulate a mouse move event by calling the method that handles that event.
       workspaceElement.updateHoveredDock({
         x: coordinates.clientX,
-        y: coordinates.clientY
+        y: coordinates.clientY,
       });
       advanceClock(100);
     }
@@ -817,7 +814,7 @@ describe('WorkspaceElement', () => {
       let observeCallback;
       const scrollbarStyle = require('scrollbar-style');
       spyOn(scrollbarStyle, 'observePreferredScrollbarStyle').andCallFake(
-        cb => {
+        (cb) => {
           observeCallback = cb;
           return new Disposable(() => {});
         }
@@ -891,7 +888,7 @@ describe('WorkspaceElement', () => {
       editorElement.querySelector('span').dispatchEvent(
         new WheelEvent('mousewheel', {
           wheelDeltaY: -10,
-          ctrlKey: true
+          ctrlKey: true,
         })
       );
       expect(atom.config.get('editor.fontSize')).toBe(11);
@@ -900,7 +897,7 @@ describe('WorkspaceElement', () => {
       editorElement.querySelector('span').dispatchEvent(
         new WheelEvent('mousewheel', {
           wheelDeltaY: 10,
-          ctrlKey: true
+          ctrlKey: true,
         })
       );
       expect(atom.config.get('editor.fontSize')).toBe(12);
@@ -909,7 +906,7 @@ describe('WorkspaceElement', () => {
       workspaceElement.dispatchEvent(
         new WheelEvent('mousewheel', {
           wheelDeltaY: 10,
-          ctrlKey: true
+          ctrlKey: true,
         })
       );
       expect(atom.config.get('editor.fontSize')).toBe(12);
@@ -917,7 +914,7 @@ describe('WorkspaceElement', () => {
       // No ctrl key
       editorElement.querySelector('span').dispatchEvent(
         new WheelEvent('mousewheel', {
-          wheelDeltaY: 10
+          wheelDeltaY: 10,
         })
       );
       expect(atom.config.get('editor.fontSize')).toBe(12);
@@ -926,7 +923,7 @@ describe('WorkspaceElement', () => {
       editorElement.querySelector('span').dispatchEvent(
         new WheelEvent('mousewheel', {
           wheelDeltaY: 10,
-          ctrlKey: true
+          ctrlKey: true,
         })
       );
       expect(atom.config.get('editor.fontSize')).toBe(12);
@@ -1091,7 +1088,7 @@ describe('WorkspaceElement', () => {
       const projectPath = temp.mkdirSync('dir1-');
       atom.project.setPaths([projectPath]);
       workspaceElement.runPackageSpecs({
-        env: { ATOM_GITHUB_BABEL_ENV: 'coverage' }
+        env: { ATOM_GITHUB_BABEL_ENV: 'coverage' },
       });
 
       expect(ipcRenderer.send).toHaveBeenCalledWith(

@@ -40,5 +40,5 @@ class PaneContainerElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-pane-container', {
-  prototype: PaneContainerElement.prototype
+  prototype: PaneContainerElement.prototype,
 });

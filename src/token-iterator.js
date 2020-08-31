@@ -8,7 +8,7 @@ module.exports = class TokenIterator {
     this.index = null;
     this.startColumn = 0;
     this.endColumn = 0;
-    this.scopes = this.line.openScopes.map(id =>
+    this.scopes = this.line.openScopes.map((id) =>
       this.languageMode.grammar.scopeForId(id)
     );
     this.scopeStarts = this.scopes.slice();

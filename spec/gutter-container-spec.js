@@ -4,7 +4,7 @@ const GutterContainer = require('../src/gutter-container');
 describe('GutterContainer', () => {
   let gutterContainer = null;
   const fakeTextEditor = {
-    scheduleComponentUpdate() {}
+    scheduleComponentUpdate() {},
   };
 
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('GutterContainer', () => {
     it('creates a new gutter', () => {
       const newGutter = gutterContainer.addGutter({
         'test-gutter': 'test-gutter',
-        priority: 1
+        priority: 1,
       });
       expect(gutterContainer.getGutters()).toEqual([newGutter]);
       expect(newGutter.priority).toBe(1);
@@ -37,7 +37,7 @@ describe('GutterContainer', () => {
       const gutter3 = gutterContainer.addGutter({ name: 'third', priority: 3 });
       const gutter2 = gutterContainer.addGutter({
         name: 'second',
-        priority: 2
+        priority: 2,
       });
       expect(gutterContainer.getGutters()).toEqual([gutter1, gutter2, gutter3]);
     });
@@ -46,17 +46,17 @@ describe('GutterContainer', () => {
   describe('::removeGutter', () => {
     let removedGutters;
 
-    beforeEach(function() {
+    beforeEach(function () {
       gutterContainer = new GutterContainer(fakeTextEditor);
       removedGutters = [];
-      gutterContainer.onDidRemoveGutter(gutterName =>
+      gutterContainer.onDidRemoveGutter((gutterName) =>
         removedGutters.push(gutterName)
       );
     });
 
     it('removes the gutter if it is contained by this GutterContainer', () => {
       const gutter = gutterContainer.addGutter({
-        'test-gutter': 'test-gutter'
+        'test-gutter': 'test-gutter',
       });
       expect(gutterContainer.getGutters()).toEqual([gutter]);
       gutterContainer.removeGutter(gutter);
@@ -76,7 +76,7 @@ describe('GutterContainer', () => {
     it('clears its array of gutters and destroys custom gutters', () => {
       const newGutter = gutterContainer.addGutter({
         'test-gutter': 'test-gutter',
-        priority: 1
+        priority: 1,
       });
       const newGutterSpy = jasmine.createSpy();
       newGutter.onDidDestroy(newGutterSpy);

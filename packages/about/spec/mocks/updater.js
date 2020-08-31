@@ -17,7 +17,7 @@ module.exports = {
 
   finishDownloadingUpdate(releaseVersion) {
     atom.autoUpdater.emitter.emit('did-complete-downloading-update', {
-      releaseVersion
+      releaseVersion,
     });
-  }
+  },
 };

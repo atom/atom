@@ -75,7 +75,7 @@ describe('Incompatible packages', () => {
     it('does not add an icon to the status bar', () => {
       let statusBarItemClasses = statusBar
         .getRightTiles()
-        .map(tile => tile.getItem().className);
+        .map((tile) => tile.getItem().className);
 
       expect(statusBarItemClasses).not.toContain('incompatible-packages');
     });

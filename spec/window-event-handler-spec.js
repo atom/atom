@@ -17,7 +17,7 @@ describe('WindowEventHandler', () => {
     atom.project.destroy();
     windowEventHandler = new WindowEventHandler({
       atomEnvironment: atom,
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
     });
     windowEventHandler.initialize(window, document);
   });
@@ -80,7 +80,7 @@ describe('WindowEventHandler', () => {
       const fakeEvent = {
         target: linkChild,
         currentTarget: link,
-        preventDefault: () => {}
+        preventDefault: () => {},
       };
 
       windowEventHandler.handleLinkClick(fakeEvent);
@@ -117,7 +117,7 @@ describe('WindowEventHandler', () => {
       const fakeEvent = {
         target: linkChild,
         currentTarget: link,
-        preventDefault: () => {}
+        preventDefault: () => {},
       };
 
       windowEventHandler.handleLinkClick(fakeEvent);
@@ -244,12 +244,14 @@ describe('WindowEventHandler', () => {
   describe('when keydown events occur on the document', () =>
     it('dispatches the event via the KeymapManager and CommandRegistry', () => {
       const dispatchedCommands = [];
-      atom.commands.onWillDispatch(command => dispatchedCommands.push(command));
+      atom.commands.onWillDispatch((command) =>
+        dispatchedCommands.push(command)
+      );
       atom.commands.add('*', { 'foo-command': () => {} });
       atom.keymaps.add('source-name', { '*': { x: 'foo-command' } });
 
       const event = KeymapManager.buildKeydownEvent('x', {
-        target: document.createElement('div')
+        target: document.createElement('div'),
       });
       document.dispatchEvent(event);
 
@@ -261,11 +263,11 @@ describe('WindowEventHandler', () => {
     it("correctly dispatches them to active elements with the '.native-key-bindings' class", () => {
       const webContentsSpy = jasmine.createSpyObj('webContents', [
         'copy',
-        'paste'
+        'paste',
       ]);
       spyOn(atom.applicationDelegate, 'getCurrentWindow').andReturn({
         webContents: webContentsSpy,
-        on: () => {}
+        on: () => {},
       });
 
       const nativeKeyBindingsInput = document.createElement('input');

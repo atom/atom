@@ -5,7 +5,7 @@ const semver = require('semver');
 const chromedriverMetadataPath = require('electron-chromedriver/package.json');
 const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
-module.exports = function() {
+module.exports = function () {
   // Chromedriver should be at least v9.0.0
   // Mksnapshot should be at least v9.0.2
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver'];

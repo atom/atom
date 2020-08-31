@@ -44,7 +44,7 @@ async function runScriptForBuildArch() {
   } else {
     exitCode = childProcess.spawnSync(process.argv[2], process.argv.splice(3), {
       env: process.env,
-      stdio: 'inherit'
+      stdio: 'inherit',
     }).status;
   }
 

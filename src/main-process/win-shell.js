@@ -26,7 +26,7 @@ class ShellOption {
   isRegistered(callback) {
     new Registry({
       hive: 'HKCU',
-      key: `${this.key}\\${this.parts[0].key}`
+      key: `${this.key}\\${this.parts[0].key}`,
     }).get(this.parts[0].name, (err, val) =>
       callback(err == null && val != null && val.value === this.parts[0].value)
     );
@@ -34,10 +34,10 @@ class ShellOption {
 
   register(callback) {
     let doneCount = this.parts.length;
-    this.parts.forEach(part => {
+    this.parts.forEach((part) => {
       let reg = new Registry({
         hive: 'HKCU',
-        key: part.key != null ? `${this.key}\\${part.key}` : this.key
+        key: part.key != null ? `${this.key}\\${part.key}` : this.key,
       });
       return reg.create(() =>
         reg.set(part.name, Registry.REG_SZ, part.value, () => {
@@ -48,7 +48,7 @@ class ShellOption {
   }
 
   deregister(callback) {
-    this.isRegistered(isRegistered => {
+    this.isRegistered((isRegistered) => {
       if (isRegistered) {
         new Registry({ hive: 'HKCU', key: this.key }).destroy(() =>
           callback(null, true)
@@ -62,7 +62,7 @@ class ShellOption {
   update(callback) {
     new Registry({
       hive: 'HKCU',
-      key: `${this.key}\\${this.parts[0].key}`
+      key: `${this.key}\\${this.parts[0].key}`,
     }).get(this.parts[0].name, (err, val) => {
       if (err != null || val == null) {
         callback(err);
@@ -80,14 +80,14 @@ exports.fileHandler = new ShellOption(
   [
     { key: 'shell\\open\\command', name: '', value: `${appPath} "%1"` },
     { key: 'shell\\open', name: 'FriendlyAppName', value: `${appName}` },
-    { key: 'DefaultIcon', name: '', value: `${fileIconPath}` }
+    { key: 'DefaultIcon', name: '', value: `${fileIconPath}` },
   ]
 );
 
 let contextParts = [
   { key: 'command', name: '', value: `${appPath} "%1"` },
   { name: '', value: `Open with ${appName}` },
-  { name: 'Icon', value: `${appPath}` }
+  { name: 'Icon', value: `${appPath}` },
 ];
 
 exports.fileContextMenu = new ShellOption(

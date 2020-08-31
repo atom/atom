@@ -2,24 +2,24 @@ const fetch = require('node-fetch');
 const npmCheck = require('npm-check');
 
 // this may be updated to use github releases instead
-const apm = async function({ dependencies, packageDependencies }) {
+const apm = async function ({ dependencies, packageDependencies }) {
   try {
     console.log('Checking apm registry...');
-    const coreDependencies = Object.keys(dependencies).filter(dependency => {
+    const coreDependencies = Object.keys(dependencies).filter((dependency) => {
       // all core packages point to a remote url
       return dependencies[dependency].match(new RegExp('^https?://'));
     });
 
-    const promises = coreDependencies.map(async dependency => {
+    const promises = coreDependencies.map(async (dependency) => {
       return fetch(`https://atom.io/api/packages/${dependency}`)
-        .then(res => res.json())
-        .then(res => res)
-        .catch(ex => console.log(ex.message));
+        .then((res) => res.json())
+        .then((res) => res)
+        .catch((ex) => console.log(ex.message));
     });
 
     const packages = await Promise.all(promises);
     const outdatedPackages = [];
-    packages.map(dependency => {
+    packages.map((dependency) => {
       if (dependency.hasOwnProperty('name')) {
         const latestVersion = dependency.releases.latest;
         const installed = packageDependencies[dependency.name];
@@ -28,7 +28,7 @@ const apm = async function({ dependencies, packageDependencies }) {
             moduleName: dependency.name,
             latest: dependency.releases.latest,
             isCorePackage: true,
-            installed
+            installed,
           });
         }
       }
@@ -42,18 +42,18 @@ const apm = async function({ dependencies, packageDependencies }) {
   }
 };
 
-const npm = async function(cwd) {
+const npm = async function (cwd) {
   try {
     console.log('Checking npm registry...');
 
     const currentState = await npmCheck({
       cwd,
       ignoreDev: true,
-      skipUnused: true
+      skipUnused: true,
     });
     const outdatedPackages = currentState
       .get('packages')
-      .filter(p => {
+      .filter((p) => {
         if (p.packageJson && p.latest && p.installed) {
           return p.latest > p.installed;
         }
@@ -63,7 +63,7 @@ const npm = async function(cwd) {
         installed,
         moduleName,
         latest,
-        isCorePackage: false
+        isCorePackage: false,
       }));
 
     console.log(`${outdatedPackages.length} outdated package(s) found`);
@@ -76,5 +76,5 @@ const npm = async function(cwd) {
 
 module.exports = {
   apm,
-  npm
+  npm,
 };

@@ -21,7 +21,7 @@ const atomExport = {
   Emitter,
   Disposable,
   CompositeDisposable,
-  watchPath
+  watchPath,
 };
 
 // Shell integration is required by both Squirrel and Settings-View
@@ -30,7 +30,7 @@ if (process.platform === 'win32') {
     enumerable: true,
     get() {
       return require('../src/main-process/win-shell');
-    }
+    },
   });
 }
 

@@ -5,7 +5,7 @@
 // fn - A {Function} to measure the duration of.
 //
 // Returns the value returned by the given function.
-window.measure = function(description, fn) {
+window.measure = function (description, fn) {
   let start = Date.now();
   let value = fn();
   let result = Date.now() - start;
@@ -20,8 +20,8 @@ window.measure = function(description, fn) {
 // fn - A {Function} to profile.
 //
 // Returns the value returned by the given function.
-window.profile = function(description, fn) {
-  window.measure(description, function() {
+window.profile = function (description, fn) {
+  window.measure(description, function () {
     console.profile(description);
     let value = fn();
     console.profileEnd(description);

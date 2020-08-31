@@ -2,25 +2,25 @@ const Mocha = require('mocha');
 const fs = require('fs-plus');
 const { assert } = require('chai');
 
-module.exports = function(testPaths) {
+module.exports = function (testPaths) {
   global.assert = assert;
 
   let reporterOptions = {
-    reporterEnabled: 'list'
+    reporterEnabled: 'list',
   };
 
   if (process.env.TEST_JUNIT_XML_PATH) {
     reporterOptions = {
       reporterEnabled: 'list, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
-        mochaFile: process.env.TEST_JUNIT_XML_PATH
-      }
+        mochaFile: process.env.TEST_JUNIT_XML_PATH,
+      },
     };
   }
 
   const mocha = new Mocha({
     reporter: 'mocha-multi-reporters',
-    reporterOptions
+    reporterOptions,
   });
 
   for (let testPath of testPaths) {
@@ -35,7 +35,7 @@ module.exports = function(testPaths) {
     }
   }
 
-  mocha.run(failures => {
+  mocha.run((failures) => {
     if (failures === 0) {
       process.exit(0);
     } else {

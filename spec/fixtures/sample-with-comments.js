@@ -3,19 +3,23 @@ var quicksort = function () {
     this is a multiline comment
     it is, I promise
   */
-  var sort = function(items) { // comment at the end of a foldable line
+  var sort = function (items) {
+    // comment at the end of a foldable line
     // This is a collection of
     // single line comments.
     // Wowza
     if (items.length <= 1) return items;
-    var pivot = items.shift(), current, left = [], right = [];
+    var pivot = items.shift(),
+      current,
+      left = [],
+      right = [];
     /*
       This is a multiline comment block with
       an empty line inside of it.
 
       Awesome.
     */
-    while(items.length > 0) {
+    while (items.length > 0) {
       current = items.shift();
       current < pivot ? left.push(current) : right.push(current);
     }

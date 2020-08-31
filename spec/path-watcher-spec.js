@@ -17,14 +17,14 @@ const realpath = promisify(fs.realpath);
 
 const tempMkdir = promisify(temp.mkdir);
 
-describe('watchPath', function() {
+describe('watchPath', function () {
   let subs;
 
-  beforeEach(function() {
+  beforeEach(function () {
     subs = new CompositeDisposable();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     subs.dispose();
     await stopAllWatchers();
   });
@@ -34,8 +34,8 @@ describe('watchPath', function() {
     let fired = false;
     const relevantEvents = [];
 
-    return new Promise(resolve => {
-      const sub = watcher.onDidChange(events => {
+    return new Promise((resolve) => {
+      const sub = watcher.onDidChange((events) => {
         for (const event of events) {
           if (waiting.delete(event.path)) {
             relevantEvents.push(event);
@@ -51,15 +51,15 @@ describe('watchPath', function() {
     });
   }
 
-  describe('watchPath()', function() {
-    it('resolves the returned promise when the watcher begins listening', async function() {
+  describe('watchPath()', function () {
+    it('resolves the returned promise when the watcher begins listening', async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-');
 
       const watcher = await watchPath(rootDir, {}, () => {});
       expect(watcher.constructor.name).toBe('PathWatcher');
     });
 
-    it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function() {
+    it('reuses an existing native watcher and resolves getStartPromise immediately if attached to a running watcher', async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-');
 
       const watcher0 = await watchPath(rootDir, {}, () => {});
@@ -68,17 +68,17 @@ describe('watchPath', function() {
       expect(watcher0.native).toBe(watcher1.native);
     });
 
-    it("reuses existing native watchers even while they're still starting", async function() {
+    it("reuses existing native watchers even while they're still starting", async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-');
 
       const [watcher0, watcher1] = await Promise.all([
         watchPath(rootDir, {}, () => {}),
-        watchPath(rootDir, {}, () => {})
+        watchPath(rootDir, {}, () => {}),
       ]);
       expect(watcher0.native).toBe(watcher1.native);
     });
 
-    it("doesn't attach new watchers to a native watcher that's stopping", async function() {
+    it("doesn't attach new watchers to a native watcher that's stopping", async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-');
 
       const watcher0 = await watchPath(rootDir, {}, () => {});
@@ -90,7 +90,7 @@ describe('watchPath', function() {
       expect(watcher1.native).not.toBe(native0);
     });
 
-    it('reuses an existing native watcher on a parent directory and filters events', async function() {
+    it('reuses an existing native watcher on a parent directory and filters events', async function () {
       const rootDir = await tempMkdir('atom-fsmanager-test-').then(realpath);
       const rootFile = path.join(rootDir, 'rootfile.txt');
       const subDir = path.join(rootDir, 'subdir');
@@ -107,7 +107,7 @@ describe('watchPath', function() {
 
       const firstChanges = Promise.all([
         waitForChanges(rootWatcher, subFile),
-        waitForChanges(childWatcher, subFile)
+        waitForChanges(childWatcher, subFile),
       ]);
       await writeFile(subFile, 'subfile\n', { encoding: 'utf8' });
       await firstChanges;
@@ -117,7 +117,7 @@ describe('watchPath', function() {
       await nextRootEvent;
     });
 
-    it('adopts existing child watchers and filters events appropriately to them', async function() {
+    it('adopts existing child watchers and filters events appropriately to them', async function () {
       const parentDir = await tempMkdir('atom-fsmanager-test-').then(realpath);
 
       // Create the directory tree
@@ -132,7 +132,7 @@ describe('watchPath', function() {
       await Promise.all([
         writeFile(rootFile, 'rootfile\n', { encoding: 'utf8' }),
         writeFile(subFile0, 'subfile 0\n', { encoding: 'utf8' }),
-        writeFile(subFile1, 'subfile 1\n', { encoding: 'utf8' })
+        writeFile(subFile1, 'subfile 1\n', { encoding: 'utf8' }),
       ]);
 
       // Begin the child watchers and keep them alive
@@ -160,13 +160,13 @@ describe('watchPath', function() {
       await Promise.all([
         appendFile(rootFile, 'change\n', { encoding: 'utf8' }),
         appendFile(subFile0, 'change\n', { encoding: 'utf8' }),
-        appendFile(subFile1, 'change\n', { encoding: 'utf8' })
+        appendFile(subFile1, 'change\n', { encoding: 'utf8' }),
       ]);
 
       await Promise.all([
         subWatcherChanges0,
         subWatcherChanges1,
-        parentWatcherChanges
+        parentWatcherChanges,
       ]);
     });
   });

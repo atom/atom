@@ -11,7 +11,7 @@ const LESS_CACHE_VERSION = require('less-cache/package.json').version;
 const FALLBACK_VARIABLE_IMPORTS =
   '@import "variables/ui-variables";\n@import "variables/syntax-variables";\n';
 
-module.exports = function() {
+module.exports = function () {
   const cacheDirPath = path.join(
     CONFIG.intermediateAppPath,
     'less-compile-cache'
@@ -53,7 +53,7 @@ module.exports = function() {
         relativeFilePath
       ] = {
         content: content,
-        digest: LessCache.digestForContent(content)
+        digest: LessCache.digestForContent(content),
       };
     }
   }
@@ -88,8 +88,8 @@ module.exports = function() {
             'styles'
           ),
           path.join(CONFIG.intermediateAppPath, 'static', 'variables'),
-          path.join(CONFIG.intermediateAppPath, 'static')
-        ]
+          path.join(CONFIG.intermediateAppPath, 'static'),
+        ],
       });
 
       // Store file paths located at the import paths so that we can avoid scanning them at runtime.
@@ -107,7 +107,7 @@ module.exports = function() {
             relativeImportPath
           ] = [];
           for (const importedFile of klawSync(absoluteImportPath, {
-            nodir: true
+            nodir: true,
           })) {
             CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath[
               relativeImportPath

@@ -107,9 +107,9 @@ module.exports = class GitRepository {
     if (this.project != null) {
       this.project
         .getBuffers()
-        .forEach(buffer => this.subscribeToBuffer(buffer));
+        .forEach((buffer) => this.subscribeToBuffer(buffer));
       this.subscriptions.add(
-        this.project.onDidAddBuffer(buffer => this.subscribeToBuffer(buffer))
+        this.project.onDidAddBuffer((buffer) => this.subscribeToBuffer(buffer))
       );
     }
   }
@@ -563,9 +563,10 @@ module.exports = class GitRepository {
       this.project &&
       this.project
         .getPaths()
-        .map(projectPath => this.relativize(projectPath))
+        .map((projectPath) => this.relativize(projectPath))
         .filter(
-          projectPath => projectPath.length > 0 && !path.isAbsolute(projectPath)
+          (projectPath) =>
+            projectPath.length > 0 && !path.isAbsolute(projectPath)
         );
 
     const branch = await repo.getHeadAsync();
@@ -585,7 +586,7 @@ module.exports = class GitRepository {
       const submoduleRepo = repo.submodules[submodulePath];
       submodules[submodulePath] = {
         branch: await submoduleRepo.getHeadAsync(),
-        upstream: await submoduleRepo.getAheadBehindCountAsync()
+        upstream: await submoduleRepo.getAheadBehindCountAsync(),
       };
 
       const workingDirectoryPath = submoduleRepo.getWorkingDirectory();

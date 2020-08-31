@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-module.exports = function(paths) {
+module.exports = function (paths) {
   return Promise.all(paths.map(readFile));
 };
 

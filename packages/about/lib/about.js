@@ -11,11 +11,11 @@ module.exports = class About {
 
     this.state = initialState;
     this.views = {
-      aboutView: null
+      aboutView: null,
     };
 
     this.subscriptions.add(
-      atom.workspace.addOpener(uriToOpen => {
+      atom.workspace.addOpener((uriToOpen) => {
         if (uriToOpen === this.state.uri) {
           return this.deserialize();
         }
@@ -70,7 +70,7 @@ module.exports = class About {
         currentElectronVersion: this.state.currentElectronVersion,
         currentChromeVersion: this.state.currentChromeVersion,
         currentNodeVersion: this.state.currentNodeVersion,
-        availableVersion: this.state.updateManager.getAvailableVersion()
+        availableVersion: this.state.updateManager.getAvailableVersion(),
       });
       this.handleStateChanges();
     }
@@ -87,7 +87,7 @@ module.exports = class About {
           currentElectronVersion: this.state.currentElectronVersion,
           currentChromeVersion: this.state.currentChromeVersion,
           currentNodeVersion: this.state.currentNodeVersion,
-          availableVersion: this.state.updateManager.getAvailableVersion()
+          availableVersion: this.state.updateManager.getAvailableVersion(),
         });
       }
     });

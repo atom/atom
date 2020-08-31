@@ -95,7 +95,7 @@ describe('UIWatcher', () => {
     beforeEach(async () => {
       atom.config.set('core.themes', [
         'theme-with-ui-variables',
-        'theme-with-multiple-imported-files'
+        'theme-with-multiple-imported-files',
       ]);
 
       await atom.themes.activateThemes();
@@ -173,7 +173,7 @@ describe('UIWatcher', () => {
     beforeEach(async () => {
       atom.config.set('core.themes', [
         'theme-with-syntax-variables',
-        'theme-with-index-less'
+        'theme-with-index-less',
       ]);
       await atom.themes.activateThemes();
       uiWatcher = new UIWatcher();
@@ -201,7 +201,7 @@ describe('UIWatcher', () => {
     beforeEach(async () => {
       atom.config.set('core.themes', [
         'theme-with-syntax-variables',
-        'theme-with-multiple-imported-files'
+        'theme-with-multiple-imported-files',
       ]);
 
       await atom.themes.activateThemes();
@@ -243,7 +243,7 @@ describe('UIWatcher', () => {
 
       atom.config.set('core.themes', [
         'theme-with-syntax-variables',
-        'theme-with-package-file'
+        'theme-with-package-file',
       ]);
       await conditionPromise(() =>
         uiWatcher.watchedThemes.get('theme-with-package-file')

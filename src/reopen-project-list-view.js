@@ -7,8 +7,8 @@ module.exports = class ReopenProjectListView {
       emptyMessage: 'No projects in history.',
       itemsClassList: ['mark-active'],
       items: [],
-      filterKeyForItem: project => project.name,
-      elementForItem: project => {
+      filterKeyForItem: (project) => project.name,
+      elementForItem: (project) => {
         let element = document.createElement('li');
         if (project.name === this.currentProjectName) {
           element.classList.add('active');
@@ -16,13 +16,13 @@ module.exports = class ReopenProjectListView {
         element.textContent = project.name;
         return element;
       },
-      didConfirmSelection: project => {
+      didConfirmSelection: (project) => {
         this.cancel();
         this.callback(project.value);
       },
       didCancelSelection: () => {
         this.cancel();
-      }
+      },
     });
     this.selectListView.element.classList.add('reopen-project');
   }
@@ -65,7 +65,7 @@ module.exports = class ReopenProjectListView {
         atom.project != null ? this.makeName(atom.project.getPaths()) : null;
       const projects = atom.history
         .getProjects()
-        .map(p => ({ name: this.makeName(p.paths), value: p.paths }));
+        .map((p) => ({ name: this.makeName(p.paths), value: p.paths }));
       await this.selectListView.update({ items: projects });
       this.attach();
     }

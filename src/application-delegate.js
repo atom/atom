@@ -29,7 +29,7 @@ module.exports = class ApplicationDelegate {
 
   pickFolder(callback) {
     const responseChannel = 'atom-pick-folder-response';
-    ipcRenderer.on(responseChannel, function(event, path) {
+    ipcRenderer.on(responseChannel, function (event, path) {
       ipcRenderer.removeAllListeners(responseChannel);
       return callback(path);
     });
@@ -209,7 +209,7 @@ module.exports = class ApplicationDelegate {
   }
 
   onDidChangeUserSettings(callback) {
-    return this.ipcMessageEmitter().on('did-change-user-settings', detail => {
+    return this.ipcMessageEmitter().on('did-change-user-settings', (detail) => {
       if (this.pendingSettingsUpdateCount === 0) callback(detail);
     });
   }
@@ -251,7 +251,7 @@ module.exports = class ApplicationDelegate {
         message,
         detail: detailedMessage,
         buttons: buttonLabels,
-        normalizeAccessKeys: true
+        normalizeAccessKeys: true,
       });
 
       if (Array.isArray(buttons)) {

@@ -54,7 +54,7 @@ module.exports = class BufferedProcess {
     stdout,
     stderr,
     exit,
-    autoStart = true
+    autoStart = true,
   } = {}) {
     this.emitter = new Emitter();
     this.command = command;
@@ -88,8 +88,8 @@ module.exports = class BufferedProcess {
     // Quote all arguments and escapes inner quotes
     if (args) {
       cmdArgs = args
-        .filter(arg => arg != null)
-        .map(arg => {
+        .filter((arg) => arg != null)
+        .map((arg) => {
           if (this.isExplorerCommand(command) && /^\/[a-zA-Z]+,.*$/.test(arg)) {
             // Don't wrap /root,C:\folder style arguments to explorer calls in
             // quotes since they will not be interpreted correctly if they are
@@ -149,7 +149,7 @@ module.exports = class BufferedProcess {
     stream.setEncoding('utf8');
     let buffered = '';
 
-    stream.on('data', data => {
+    stream.on('data', (data) => {
       if (this.killed) return;
 
       let bufferedLength = buffered.length;
@@ -184,7 +184,7 @@ module.exports = class BufferedProcess {
       'where',
       `(ParentProcessId=${parentPid})`,
       'get',
-      'processid'
+      'processid',
     ];
 
     let wmicProcess;
@@ -199,7 +199,7 @@ module.exports = class BufferedProcess {
     wmicProcess.on('error', () => {}); // ignore errors
 
     let output = '';
-    wmicProcess.stdout.on('data', data => {
+    wmicProcess.stdout.on('data', (data) => {
       output += data;
     });
     wmicProcess.stdout.on('close', () => {
@@ -304,14 +304,14 @@ module.exports = class BufferedProcess {
 
     if (exit) {
       processExited = false;
-      this.process.on('exit', code => {
+      this.process.on('exit', (code) => {
         exitCode = code;
         processExited = true;
         triggerExitCallback();
       });
     }
 
-    this.process.on('error', error => {
+    this.process.on('error', (error) => {
       this.handleError(error);
     });
   }
@@ -327,9 +327,7 @@ module.exports = class BufferedProcess {
 
     if (error.code === 'ENOENT' && error.syscall.indexOf('spawn') === 0) {
       error = new Error(
-        `Failed to spawn command \`${this.command}\`. Make sure \`${
-          this.command
-        }\` is installed and on your PATH`,
+        `Failed to spawn command \`${this.command}\`. Make sure \`${this.command}\` is installed and on your PATH`,
         error.path
       );
       error.name = 'BufferedProcessError';

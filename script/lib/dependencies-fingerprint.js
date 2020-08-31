@@ -10,7 +10,7 @@ const FINGERPRINT_PATH = path.join(
 );
 
 module.exports = {
-  write: function() {
+  write: function () {
     const fingerprint = this.compute();
     fs.writeFileSync(FINGERPRINT_PATH, fingerprint);
     console.log(
@@ -19,16 +19,16 @@ module.exports = {
       fingerprint
     );
   },
-  read: function() {
+  read: function () {
     return fs.existsSync(FINGERPRINT_PATH)
       ? fs.readFileSync(FINGERPRINT_PATH, 'utf8')
       : null;
   },
-  isOutdated: function() {
+  isOutdated: function () {
     const fingerprint = this.read();
     return fingerprint ? fingerprint !== this.compute() : false;
   },
-  compute: function() {
+  compute: function () {
     // Include the electron minor version in the fingerprint since that changing requires a re-install
     const electronVersion = CONFIG.appMetadata.electronVersion.replace(
       /\.\d+$/,
@@ -41,9 +41,6 @@ module.exports = {
       process.platform +
       process.version +
       process.arch;
-    return crypto
-      .createHash('sha1')
-      .update(body)
-      .digest('hex');
-  }
+    return crypto.createHash('sha1').update(body).digest('hex');
+  },
 };

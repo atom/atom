@@ -50,7 +50,7 @@ describe('CommandInstaller on #darwin', () => {
 
     expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Failed to install shell commands',
-      detail: 'an error'
+      detail: 'an error',
     });
 
     appDelegate.confirm.reset();
@@ -63,7 +63,7 @@ describe('CommandInstaller on #darwin', () => {
 
     expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Failed to install shell commands',
-      detail: 'another error'
+      detail: 'another error',
     });
   });
 
@@ -82,7 +82,7 @@ describe('CommandInstaller on #darwin', () => {
 
     expect(appDelegate.confirm.mostRecentCall.args[0]).toEqual({
       message: 'Commands installed.',
-      detail: 'The shell commands `atom` and `apm` are installed.'
+      detail: 'The shell commands `atom` and `apm` are installed.',
     });
   });
 
@@ -96,8 +96,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedAtomPath = path.join(installationPath, 'atom');
       expect(fs.isFileSync(installedAtomPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installAtomCommand(false, error => {
+      waitsFor((done) => {
+        installer.installAtomCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedAtomPath)).toBe(
             fs.realpathSync(atomBinPath)
@@ -115,8 +115,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedApmPath = path.join(installationPath, 'apm');
       expect(fs.isFileSync(installedApmPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installApmCommand(false, error => {
+      waitsFor((done) => {
+        installer.installApmCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedApmPath)).toBe(
             fs.realpathSync(apmBinPath)
@@ -141,8 +141,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedAtomPath = path.join(installationPath, 'atom-beta');
       expect(fs.isFileSync(installedAtomPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installAtomCommand(false, error => {
+      waitsFor((done) => {
+        installer.installAtomCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedAtomPath)).toBe(
             fs.realpathSync(atomBinPath)
@@ -160,8 +160,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedApmPath = path.join(installationPath, 'apm-beta');
       expect(fs.isFileSync(installedApmPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installApmCommand(false, error => {
+      waitsFor((done) => {
+        installer.installApmCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedApmPath)).toBe(
             fs.realpathSync(apmBinPath)
@@ -184,8 +184,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedAtomPath = path.join(installationPath, 'atom-nightly');
       expect(fs.isFileSync(installedAtomPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installAtomCommand(false, error => {
+      waitsFor((done) => {
+        installer.installAtomCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedAtomPath)).toBe(
             fs.realpathSync(atomBinPath)
@@ -203,8 +203,8 @@ describe('CommandInstaller on #darwin', () => {
       const installedApmPath = path.join(installationPath, 'apm-nightly');
       expect(fs.isFileSync(installedApmPath)).toBeFalsy();
 
-      waitsFor(done => {
-        installer.installApmCommand(false, error => {
+      waitsFor((done) => {
+        installer.installApmCommand(false, (error) => {
           expect(error).toBeNull();
           expect(fs.realpathSync(installedApmPath)).toBe(
             fs.realpathSync(apmBinPath)

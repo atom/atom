@@ -23,7 +23,7 @@ class PackageTranspilationRegistry {
       name: packageName,
       meta: packageMeta,
       path: packagePath,
-      specs: config.map(spec => Object.assign({}, spec))
+      specs: config.map((spec) => Object.assign({}, spec)),
     };
   }
 
@@ -32,7 +32,7 @@ class PackageTranspilationRegistry {
     const packagePathWithSep = packagePath.endsWith(path.sep)
       ? path.join(packagePath)
       : path.join(packagePath) + path.sep;
-    Object.keys(this.specByFilePath).forEach(filePath => {
+    Object.keys(this.specByFilePath).forEach((filePath) => {
       if (path.join(filePath).startsWith(packagePathWithSep)) {
         delete this.specByFilePath[filePath];
       }
@@ -76,7 +76,7 @@ class PackageTranspilationRegistry {
         }
 
         return transpiler.shouldCompile(sourceCode, filePath);
-      }
+      },
     };
   }
 
@@ -187,7 +187,7 @@ class PackageTranspilationRegistry {
     return {
       name: spec._config.name,
       path: spec._config.path,
-      meta: spec._config.meta
+      meta: spec._config.meta,
     };
   }
 
@@ -195,7 +195,7 @@ class PackageTranspilationRegistry {
     Resolve = Resolve || require('resolve');
     return Resolve.sync(spec.transpiler, {
       basedir: spec._config.path,
-      extensions: Object.keys(require.extensions)
+      extensions: Object.keys(require.extensions),
     });
   }
 

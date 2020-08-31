@@ -10,14 +10,14 @@ describe('parseCommandLine', () => {
         '--test',
         '/some/path',
         'atom://test/url',
-        'atom://other/url'
+        'atom://other/url',
       ]);
       assert.isTrue(args.devMode);
       assert.isTrue(args.safeMode);
       assert.isTrue(args.test);
       assert.deepEqual(args.urlsToOpen, [
         'atom://test/url',
-        'atom://other/url'
+        'atom://other/url',
       ]);
       assert.deepEqual(args.pathsToOpen, ['/some/path']);
     });
@@ -32,7 +32,7 @@ describe('parseCommandLine', () => {
         '--test',
         '/some/path',
         'atom://test/url',
-        'atom://other/url'
+        'atom://other/url',
       ]);
       assert.isUndefined(args.devMode);
       assert.isUndefined(args.safeMode);

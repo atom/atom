@@ -6,7 +6,7 @@ describe('TitleBar', () => {
     const titleBar = new TitleBar({
       workspace: atom.workspace,
       themes: atom.themes,
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
     });
     expect(titleBar.element.querySelector('.title').textContent).toBe(
       document.title
@@ -36,7 +36,7 @@ describe('TitleBar', () => {
     const titleBar = new TitleBar({
       workspace: atom.workspace,
       themes: atom.themes,
-      applicationDelegate: atom.applicationDelegate
+      applicationDelegate: atom.applicationDelegate,
     });
     expect(() => titleBar.updateWindowSheetOffset()).not.toThrow();
   });
@@ -56,7 +56,7 @@ class FakePaneItem {
     return {
       dispose: () => {
         this.didChangeTitleCallback = null;
-      }
+      },
     };
   }
 

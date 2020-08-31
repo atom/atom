@@ -2,7 +2,7 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   // We can't require fs-extra or glob if `script/bootstrap` has never been run,
   // because they are third party modules. This is okay because cleaning
   // dependencies only makes sense if dependencies have been installed at least

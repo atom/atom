@@ -35,7 +35,7 @@ describe('GrammarSelector', () => {
       expect(grammarView.querySelectorAll('li').length).toBe(
         atom.grammars
           .getGrammars({ includeTreeSitter: true })
-          .filter(g => g.name).length
+          .filter((g) => g.name).length
       );
       expect(grammarView.querySelectorAll('li')[0].textContent).toBe(
         'Auto Detect'
@@ -43,7 +43,7 @@ describe('GrammarSelector', () => {
       expect(grammarView.textContent.includes('source.a')).toBe(false);
       grammarView
         .querySelectorAll('li')
-        .forEach(li =>
+        .forEach((li) =>
           expect(li.textContent).not.toBe(atom.grammars.nullGrammar.name)
         );
       expect(grammarView.textContent.includes('Tree-sitter')).toBe(true); // check we are showing and labelling Tree-sitter grammars
@@ -135,29 +135,29 @@ describe('GrammarSelector', () => {
 
     describe('when the grammar-selector.showOnRightSideOfStatusBar setting changes', () =>
       it('moves the item to the preferred side of the status bar', () => {
-        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(
-          grammarStatus
-        );
         expect(
-          statusBar.getRightTiles().map(tile => tile.getItem())
+          statusBar.getLeftTiles().map((tile) => tile.getItem())
+        ).toContain(grammarStatus);
+        expect(
+          statusBar.getRightTiles().map((tile) => tile.getItem())
         ).not.toContain(grammarStatus);
 
         atom.config.set('grammar-selector.showOnRightSideOfStatusBar', true);
 
         expect(
-          statusBar.getLeftTiles().map(tile => tile.getItem())
+          statusBar.getLeftTiles().map((tile) => tile.getItem())
         ).not.toContain(grammarStatus);
-        expect(statusBar.getRightTiles().map(tile => tile.getItem())).toContain(
-          grammarStatus
-        );
+        expect(
+          statusBar.getRightTiles().map((tile) => tile.getItem())
+        ).toContain(grammarStatus);
 
         atom.config.set('grammar-selector.showOnRightSideOfStatusBar', false);
 
-        expect(statusBar.getLeftTiles().map(tile => tile.getItem())).toContain(
-          grammarStatus
-        );
         expect(
-          statusBar.getRightTiles().map(tile => tile.getItem())
+          statusBar.getLeftTiles().map((tile) => tile.getItem())
+        ).toContain(grammarStatus);
+        expect(
+          statusBar.getRightTiles().map((tile) => tile.getItem())
         ).not.toContain(grammarStatus);
       }));
 
@@ -186,7 +186,7 @@ describe('GrammarSelector', () => {
         atom.config.set('grammar-selector.hideDuplicateTextMateGrammars', true);
         const grammarView = await getGrammarView(editor);
         const observedNames = new Set();
-        grammarView.element.querySelectorAll('li').forEach(li => {
+        grammarView.element.querySelectorAll('li').forEach((li) => {
           const name = li.getAttribute('data-grammar');
           expect(observedNames.has(name)).toBe(false);
           observedNames.add(name);

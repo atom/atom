@@ -151,7 +151,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler.argsForCall[0][0]).toEqual({
         path: filePath,
-        pathStatus: 0
+        pathStatus: 0,
       });
 
       repo.checkoutHead(filePath);
@@ -169,7 +169,7 @@ describe('GitRepository', () => {
       repo = new GitRepository(workingDirPath, {
         project: atom.project,
         config: atom.config,
-        confirm: atom.confirm
+        confirm: atom.confirm,
       });
       filePath = path.join(workingDirPath, 'a.txt');
       fs.writeFileSync(filePath, 'ch ch changes');
@@ -228,7 +228,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler.argsForCall[0][0]).toEqual({
         path: filePath,
-        pathStatus: status
+        pathStatus: status,
       });
 
       fs.writeFileSync(filePath, 'abc');
@@ -266,7 +266,7 @@ describe('GitRepository', () => {
       workingDirectory = copyRepository();
       repo = new GitRepository(workingDirectory, {
         project: atom.project,
-        config: atom.config
+        config: atom.config,
       });
       modifiedPath = path.join(workingDirectory, 'file.txt');
       newPath = path.join(workingDirectory, 'untracked.txt');
@@ -335,7 +335,7 @@ describe('GitRepository', () => {
 
     beforeEach(async () => {
       atom.project.setPaths([copyRepository()]);
-      const refreshPromise = new Promise(resolve =>
+      const refreshPromise = new Promise((resolve) =>
         atom.project.getRepositories()[0].onDidChangeStatuses(resolve)
       );
       editor = await atom.workspace.open('other.txt');
@@ -352,7 +352,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler).toHaveBeenCalledWith({
         path: editor.getPath(),
-        pathStatus: 256
+        pathStatus: 256,
       });
     });
 
@@ -366,7 +366,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler).toHaveBeenCalledWith({
         path: editor.getPath(),
-        pathStatus: 256
+        pathStatus: 256,
       });
 
       await editor.getBuffer().reload();
@@ -382,7 +382,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler).toHaveBeenCalledWith({
         path: editor.getPath(),
-        pathStatus: 256
+        pathStatus: 256,
       });
       editor.getBuffer().emitter.emit('did-change-path');
       expect(statusHandler.callCount).toBe(1);
@@ -411,7 +411,7 @@ describe('GitRepository', () => {
         packageManager: atom.packages,
         confirm: atom.confirm,
         grammarRegistry: atom.grammars,
-        applicationDelegate: atom.applicationDelegate
+        applicationDelegate: atom.applicationDelegate,
       });
       await project2.deserialize(
         atom.project.serialize({ isUnloading: false })
@@ -427,7 +427,7 @@ describe('GitRepository', () => {
       expect(statusHandler.callCount).toBe(1);
       expect(statusHandler).toHaveBeenCalledWith({
         path: buffer.getPath(),
-        pathStatus: 256
+        pathStatus: 256,
       });
     });
   });

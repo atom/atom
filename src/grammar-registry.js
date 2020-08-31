@@ -22,7 +22,7 @@ module.exports = class GrammarRegistry {
     this.subscriptions = new CompositeDisposable();
     this.textmateRegistry = new FirstMate.GrammarRegistry({
       maxTokensPerLine: 100,
-      maxLineLength: 1000
+      maxLineLength: 1000,
     });
     this.clear();
   }
@@ -201,7 +201,7 @@ module.exports = class GrammarRegistry {
         grammar,
         buffer,
         config: this.config,
-        grammars: this
+        grammars: this,
       });
     } else {
       return new TextMateLanguageMode({ grammar, buffer, config: this.config });
@@ -224,7 +224,7 @@ module.exports = class GrammarRegistry {
   selectGrammarWithScore(filePath, fileContents) {
     let bestMatch = null;
     let highestScore = -Infinity;
-    this.forEachGrammar(grammar => {
+    this.forEachGrammar((grammar) => {
       const score = this.getGrammarScore(grammar, filePath, fileContents);
       if (score > highestScore || bestMatch == null) {
         bestMatch = grammar;
@@ -484,7 +484,7 @@ module.exports = class GrammarRegistry {
       }
     } else {
       this.treeSitterGrammarsById[grammarId] = {
-        injectionPoints: [injectionPoint]
+        injectionPoints: [injectionPoint],
       };
     }
     return new Disposable(() => {
@@ -627,7 +627,7 @@ module.exports = class GrammarRegistry {
     if (!(params && params.includeTreeSitter)) return tmGrammars;
 
     const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(
-      g => g.scopeName
+      (g) => g.scopeName
     );
     return tmGrammars.concat(tsGrammars); // NullGrammar is expected to be first
   }
@@ -657,7 +657,7 @@ module.exports = class GrammarRegistry {
 
   shouldUseTreeSitterParser(languageId) {
     return this.config.get('core.useTreeSitterParsers', {
-      scope: new ScopeDescriptor({ scopes: [languageId] })
+      scope: new ScopeDescriptor({ scopes: [languageId] }),
     });
   }
 };

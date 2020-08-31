@@ -17,7 +17,7 @@ module.exports = class PackageWatcher extends Watcher {
 
   watch() {
     const watchedPaths = [];
-    const watchPath = stylesheet => {
+    const watchPath = (stylesheet) => {
       if (!watchedPaths.includes(stylesheet)) this.watchFile(stylesheet);
       watchedPaths.push(stylesheet);
     };
@@ -29,7 +29,7 @@ module.exports = class PackageWatcher extends Watcher {
     }
 
     const stylesheetPaths = new Set(this.pack.getStylesheetPaths());
-    const onFile = stylesheetPath => stylesheetPaths.add(stylesheetPath);
+    const onFile = (stylesheetPath) => stylesheetPaths.add(stylesheetPath);
     const onFolder = () => true;
     fs.traverseTreeSync(stylesheetsPath, onFile, onFolder);
 

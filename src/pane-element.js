@@ -30,7 +30,7 @@ class PaneElement extends HTMLElement {
   }
 
   subscribeToDOMEvents() {
-    const handleFocus = event => {
+    const handleFocus = (event) => {
       if (
         !(
           this.isActivating ||
@@ -47,20 +47,22 @@ class PaneElement extends HTMLElement {
         event.stopPropagation();
       }
     };
-    const handleBlur = event => {
+    const handleBlur = (event) => {
       if (!this.contains(event.relatedTarget)) {
         this.model.blur();
       }
     };
-    const handleDragOver = event => {
+    const handleDragOver = (event) => {
       event.preventDefault();
       event.stopPropagation();
     };
-    const handleDrop = event => {
+    const handleDrop = (event) => {
       event.preventDefault();
       event.stopPropagation();
       this.getModel().activate();
-      const pathsToOpen = [...event.dataTransfer.files].map(file => file.path);
+      const pathsToOpen = [...event.dataTransfer.files].map(
+        (file) => file.path
+      );
       if (pathsToOpen.length > 0) {
         this.applicationDelegate.open({ pathsToOpen, here: true });
       }
@@ -214,5 +216,5 @@ class PaneElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-pane', {
-  prototype: PaneElement.prototype
+  prototype: PaneElement.prototype,
 });

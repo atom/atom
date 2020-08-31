@@ -222,7 +222,7 @@ module.exports = class Package {
     return Promise.all([
       this.grammarsPromise,
       this.settingsPromise,
-      this.activationPromise
+      this.activationPromise,
     ]);
   }
 
@@ -264,7 +264,7 @@ module.exports = class Package {
     if (configSchema) {
       this.config.setSchema(this.name, {
         type: 'object',
-        properties: configSchema
+        properties: configSchema,
       });
       return true;
     } else {
@@ -277,7 +277,7 @@ module.exports = class Package {
       if (typeof this.mainModule.config === 'object') {
         this.config.setSchema(this.name, {
           type: 'object',
-          properties: this.mainModule.config
+          properties: this.mainModule.config,
         });
         return true;
       }
@@ -313,7 +313,7 @@ module.exports = class Package {
           sourcePath,
           priority,
           context,
-          skipDeprecatedSelectorsTransformation: this.bundledPackage
+          skipDeprecatedSelectorsTransformation: this.bundledPackage,
         })
       );
     }
@@ -498,9 +498,9 @@ module.exports = class Package {
         this.keymaps.push([`core:${keymapPath}`, keymapObject]);
       }
     } else {
-      this.keymaps = this.getKeymapPaths().map(keymapPath => [
+      this.keymaps = this.getKeymapPaths().map((keymapPath) => [
         keymapPath,
-        CSON.readFileSync(keymapPath, { allowDuplicateKeys: false }) || {}
+        CSON.readFileSync(keymapPath, { allowDuplicateKeys: false }) || {},
       ]);
     }
   }
@@ -516,9 +516,9 @@ module.exports = class Package {
         this.menus.push([`core:${menuPath}`, menuObject]);
       }
     } else {
-      this.menus = this.getMenuPaths().map(menuPath => [
+      this.menus = this.getMenuPaths().map((menuPath) => [
         menuPath,
-        CSON.readFileSync(menuPath) || {}
+        CSON.readFileSync(menuPath) || {},
       ]);
     }
   }
@@ -526,7 +526,7 @@ module.exports = class Package {
   getKeymapPaths() {
     const keymapsDirPath = path.join(this.path, 'keymaps');
     if (this.metadata.keymaps) {
-      return this.metadata.keymaps.map(name =>
+      return this.metadata.keymaps.map((name) =>
         fs.resolve(keymapsDirPath, name, ['json', 'cson', ''])
       );
     } else {
@@ -537,7 +537,7 @@ module.exports = class Package {
   getMenuPaths() {
     const menusDirPath = path.join(this.path, 'menus');
     if (this.metadata.menus) {
-      return this.metadata.menus.map(name =>
+      return this.metadata.menus.map((name) =>
         fs.resolve(menusDirPath, name, ['json', 'cson', ''])
       );
     } else {
@@ -546,15 +546,15 @@ module.exports = class Package {
   }
 
   loadStylesheets() {
-    this.stylesheets = this.getStylesheetPaths().map(stylesheetPath => [
+    this.stylesheets = this.getStylesheetPaths().map((stylesheetPath) => [
       stylesheetPath,
-      this.themeManager.loadStylesheet(stylesheetPath, true)
+      this.themeManager.loadStylesheet(stylesheetPath, true),
     ]);
   }
 
   registerDeserializerMethods() {
     if (this.metadata.deserializers) {
-      Object.keys(this.metadata.deserializers).forEach(deserializerName => {
+      Object.keys(this.metadata.deserializers).forEach((deserializerName) => {
         const methodName = this.metadata.deserializers[deserializerName];
         this.deserializerManager.add({
           name: deserializerName,
@@ -576,7 +576,7 @@ module.exports = class Package {
             }
             this.deserialized = true;
             return this.mainModule[methodName](state, atomEnvironment);
-          }
+          },
         });
       });
     }
@@ -605,8 +605,8 @@ module.exports = class Package {
   registerViewProviders() {
     if (this.metadata.viewProviders && !this.registeredViewProviders) {
       this.requireMainModule();
-      this.metadata.viewProviders.forEach(methodName => {
-        this.viewRegistry.addViewProvider(model => {
+      this.metadata.viewProviders.forEach((methodName) => {
+        this.viewRegistry.addViewProvider((model) => {
           this.initializeIfNeeded();
           return this.mainModule[methodName](model);
         });
@@ -626,7 +626,7 @@ module.exports = class Package {
       this.packageManager.packagesCache[this.name].styleSheetPaths
     ) {
       const { styleSheetPaths } = this.packageManager.packagesCache[this.name];
-      return styleSheetPaths.map(styleSheetPath =>
+      return styleSheetPaths.map((styleSheetPath) =>
         path.join(this.path, styleSheetPath)
       );
     } else {
@@ -635,7 +635,7 @@ module.exports = class Package {
       if (this.metadata.mainStyleSheet) {
         return [fs.resolve(this.path, this.metadata.mainStyleSheet)];
       } else if (this.metadata.styleSheets) {
-        return this.metadata.styleSheets.map(name =>
+        return this.metadata.styleSheets.map((name) =>
           fs.resolve(stylesheetDirPath, name, ['css', 'less', ''])
         );
       } else if (
@@ -657,7 +657,7 @@ module.exports = class Package {
     } else {
       grammarPaths = fs.listSync(path.join(this.path, 'grammars'), [
         'json',
-        'cson'
+        'cson',
       ]);
     }
 
@@ -719,7 +719,7 @@ module.exports = class Package {
       });
     };
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (
         this.preloadedPackage &&
         this.packageManager.packagesCache[this.name]
@@ -728,7 +728,7 @@ module.exports = class Package {
         return async.each(grammarPaths, loadGrammar, () => resolve());
       } else {
         const grammarsDirPath = path.join(this.path, 'grammars');
-        fs.exists(grammarsDirPath, grammarsDirExists => {
+        fs.exists(grammarsDirPath, (grammarsDirExists) => {
           if (!grammarsDirExists) return resolve();
           fs.list(grammarsDirPath, ['json', 'cson'], (error, grammarPaths) => {
             if (error || !grammarPaths) return resolve();
@@ -772,9 +772,9 @@ module.exports = class Package {
         if (this.settingsActivated) settingsFile.activate(this.config);
       }
     } else {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         const settingsDirPath = path.join(this.path, 'settings');
-        fs.exists(settingsDirPath, settingsDirExists => {
+        fs.exists(settingsDirPath, (settingsDirExists) => {
           if (!settingsDirExists) return resolve();
           fs.list(settingsDirPath, ['json', 'cson'], (error, settingsPaths) => {
             if (error || !settingsPaths) return resolve();
@@ -889,12 +889,10 @@ module.exports = class Package {
       return this.mainModule;
     } else if (!this.isCompatible()) {
       const nativeModuleNames = this.incompatibleModules
-        .map(m => m.name)
+        .map((m) => m.name)
         .join(', ');
       console.warn(dedent`
-        Failed to require the main module of '${
-          this.name
-        }' because it requires one or more incompatible native modules (${nativeModuleNames}).
+        Failed to require the main module of '${this.name}' because it requires one or more incompatible native modules (${nativeModuleNames}).
         Run \`apm rebuild\` in the package directory and restart Atom to resolve.\
       `);
     } else {
@@ -941,7 +939,7 @@ module.exports = class Package {
         : path.join(this.path, 'index');
       this.mainModulePath = fs.resolveExtension(mainModulePath, [
         '',
-        ...CompileCache.supportedExtensions
+        ...CompileCache.supportedExtensions,
       ]);
     }
     return this.mainModulePath;
@@ -998,7 +996,7 @@ module.exports = class Package {
           // The real command will be registered on package activation
           try {
             this.activationCommandSubscriptions.add(
-              this.commandRegistry.add(selector, command, function() {})
+              this.commandRegistry.add(selector, command, function () {})
             );
           } catch (error) {
             if (error.code === 'EBADSELECTOR') {
@@ -1010,7 +1008,7 @@ module.exports = class Package {
           }
 
           this.activationCommandSubscriptions.add(
-            this.commandRegistry.onWillDispatch(event => {
+            this.commandRegistry.onWillDispatch((event) => {
               if (event.type !== command) return;
               let currentTarget = event.target;
               while (currentTarget) {
@@ -1086,7 +1084,7 @@ module.exports = class Package {
     this.workspaceOpenerSubscriptions = new CompositeDisposable();
     for (let opener of this.getWorkspaceOpeners()) {
       this.workspaceOpenerSubscriptions.add(
-        atom.workspace.addOpener(filePath => {
+        atom.workspace.addOpener((filePath) => {
           if (filePath === opener) {
             this.activateNow();
             this.workspaceOpenerSubscriptions.dispose();
@@ -1159,7 +1157,7 @@ module.exports = class Package {
       return nativeModulePaths;
     }
 
-    var traversePath = nodeModulesPath => {
+    var traversePath = (nodeModulesPath) => {
       try {
         for (let modulePath of fs.listSync(nodeModulesPath)) {
           if (this.isNativeModule(modulePath))
@@ -1207,8 +1205,8 @@ module.exports = class Package {
   // `stdout`, and `stderr` properties based on the results of running
   // `apm rebuild` on the package.
   rebuild() {
-    return new Promise(resolve =>
-      this.runRebuildProcess(result => {
+    return new Promise((resolve) =>
+      this.runRebuildProcess((result) => {
         if (result.code === 0) {
           global.localStorage.removeItem(
             this.getBuildFailureOutputStorageKey()
@@ -1251,27 +1249,21 @@ module.exports = class Package {
       },
       exit(code) {
         done({ code, stdout, stderr });
-      }
+      },
     });
   }
 
   getBuildFailureOutputStorageKey() {
-    return `installed-packages:${this.name}:${
-      this.metadata.version
-    }:build-error`;
+    return `installed-packages:${this.name}:${this.metadata.version}:build-error`;
   }
 
   getIncompatibleNativeModulesStorageKey() {
     const electronVersion = process.versions.electron;
-    return `installed-packages:${this.name}:${
-      this.metadata.version
-    }:electron-${electronVersion}:incompatible-native-modules`;
+    return `installed-packages:${this.name}:${this.metadata.version}:electron-${electronVersion}:incompatible-native-modules`;
   }
 
   getCanDeferMainModuleRequireStorageKey() {
-    return `installed-packages:${this.name}:${
-      this.metadata.version
-    }:can-defer-main-module-require`;
+    return `installed-packages:${this.name}:${this.metadata.version}:can-defer-main-module-require`;
   }
 
   // Get the incompatible native modules that this package depends on.
@@ -1303,7 +1295,7 @@ module.exports = class Package {
           path: nativeModulePath,
           name: path.basename(nativeModulePath),
           version,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -1321,8 +1313,9 @@ module.exports = class Package {
 
     let detail, location, stack;
     if (error.filename && error.location && error instanceof SyntaxError) {
-      location = `${error.filename}:${error.location.first_line + 1}:${error
-        .location.first_column + 1}`;
+      location = `${error.filename}:${error.location.first_line + 1}:${
+        error.location.first_column + 1
+      }`;
       detail = `${error.message} in ${location}`;
       stack = 'SyntaxError: ' + error.message + '\n' + 'at ' + location;
     } else if (
@@ -1343,7 +1336,7 @@ module.exports = class Package {
       stack,
       detail,
       packageName: this.name,
-      dismissable: true
+      dismissable: true,
     });
   }
 };
@@ -1368,7 +1361,7 @@ class SettingsFile {
     for (let selector in this.properties) {
       config.set(null, this.properties[selector], {
         scopeSelector: selector,
-        source: this.path
+        source: this.path,
       });
     }
   }

@@ -35,11 +35,11 @@ describe('ReopenProjectMenuManager', () => {
 
     historyManager = jasmine.createSpyObj('historyManager', [
       'getProjects',
-      'onDidChangeProjects'
+      'onDidChangeProjects',
     ]);
     historyManager.getProjects.andReturn([]);
     historyDisposable = jasmine.createSpyObj('Disposable', ['dispose']);
-    historyManager.onDidChangeProjects.andCallFake(fn => {
+    historyManager.onDidChangeProjects.andCallFake((fn) => {
       historyManager.changeProjectsListener = fn;
       return historyDisposable;
     });
@@ -50,7 +50,7 @@ describe('ReopenProjectMenuManager', () => {
       commands: commandRegistry,
       history: historyManager,
       config,
-      open: openFunction
+      open: openFunction,
     });
   });
 
@@ -88,7 +88,7 @@ describe('ReopenProjectMenuManager', () => {
     it('calls open with the paths of the project specified by the detail index', () => {
       historyManager.getProjects.andReturn([
         { paths: ['/a'] },
-        { paths: ['/b', 'c:\\'] }
+        { paths: ['/b', 'c:\\'] },
       ]);
       reopenProjects.update();
 
@@ -121,7 +121,7 @@ describe('ReopenProjectMenuManager', () => {
     it('adds menu items to MenuManager based on projects from HistoryManager', () => {
       historyManager.getProjects.andReturn([
         { paths: ['/a'] },
-        { paths: ['/b', 'c:\\'] }
+        { paths: ['/b', 'c:\\'] },
       ]);
       reopenProjects.update();
       expect(historyManager.getProjects).toHaveBeenCalled();
@@ -147,7 +147,7 @@ describe('ReopenProjectMenuManager', () => {
 
     it("adds only the number of menu items specified in the 'core.reopenProjectMenuCount' config", () => {
       historyManager.getProjects.andReturn(
-        numberRange(1, 100).map(i => ({ paths: ['/test/' + i] }))
+        numberRange(1, 100).map((i) => ({ paths: ['/test/' + i] }))
       );
       reopenProjects.update();
       expect(menuManager.add).toHaveBeenCalled();
@@ -169,13 +169,13 @@ describe('ReopenProjectMenuManager', () => {
 
     it("is called when the Config changes for 'core.reopenProjectMenuCount'", () => {
       historyManager.getProjects.andReturn(
-        numberRange(1, 100).map(i => ({ paths: ['/test/' + i] }))
+        numberRange(1, 100).map((i) => ({ paths: ['/test/' + i] }))
       );
       reopenProjects.update();
       config.get.andReturn(25);
       config.didChangeListener['core.reopenProjectMenuCount']({
         oldValue: 10,
-        newValue: 25
+        newValue: 25,
       });
 
       const finalArgs = menuManager.add.calls[1].args[0];
@@ -188,7 +188,7 @@ describe('ReopenProjectMenuManager', () => {
       reopenProjects.update();
       historyManager.getProjects.andReturn([
         { paths: ['/a'] },
-        { paths: ['/b', 'c:\\'] }
+        { paths: ['/b', 'c:\\'] },
       ]);
       historyManager.changeProjectsListener();
       expect(menuManager.add.calls.length).toBe(2);
@@ -212,7 +212,7 @@ describe('ReopenProjectMenuManager', () => {
     it('creates correct menu items commands for recent projects', () => {
       const projects = [
         { paths: ['/users/neila'] },
-        { paths: ['/users/buzza', 'users/michaelc'] }
+        { paths: ['/users/buzza', 'users/michaelc'] },
       ];
 
       const menu = ReopenProjectMenuManager.createProjectsMenu(projects);
@@ -228,7 +228,7 @@ describe('ReopenProjectMenuManager', () => {
       expect(first.command).toBe('application:reopen-project');
       expect(first.commandDetail).toEqual({
         index: 0,
-        paths: ['/users/neila']
+        paths: ['/users/neila'],
       });
 
       const second = recentMenu.submenu[1];
@@ -236,7 +236,7 @@ describe('ReopenProjectMenuManager', () => {
       expect(second.command).toBe('application:reopen-project');
       expect(second.commandDetail).toEqual({
         index: 1,
-        paths: ['/users/buzza', 'users/michaelc']
+        paths: ['/users/buzza', 'users/michaelc'],
       });
     });
   });
@@ -244,28 +244,28 @@ describe('ReopenProjectMenuManager', () => {
   describe('createLabel', () => {
     it('returns the Unix path unchanged if there is only one', () => {
       const label = ReopenProjectMenuManager.createLabel({
-        paths: ['/a/b/c/d/e/f']
+        paths: ['/a/b/c/d/e/f'],
       });
       expect(label).toBe('/a/b/c/d/e/f');
     });
 
     it('returns the Windows path unchanged if there is only one', () => {
       const label = ReopenProjectMenuManager.createLabel({
-        paths: ['c:\\missions\\apollo11']
+        paths: ['c:\\missions\\apollo11'],
       });
       expect(label).toBe('c:\\missions\\apollo11');
     });
 
     it('returns the URL unchanged if there is only one', () => {
       const label = ReopenProjectMenuManager.createLabel({
-        paths: ['https://launch.pad/apollo/11']
+        paths: ['https://launch.pad/apollo/11'],
       });
       expect(label).toBe('https://launch.pad/apollo/11');
     });
 
     it('returns a comma-separated list of base names if there are multiple', () => {
       const project = {
-        paths: ['/var/one', '/usr/bin/two', '/etc/mission/control/three']
+        paths: ['/var/one', '/usr/bin/two', '/etc/mission/control/three'],
       };
       const label = ReopenProjectMenuManager.createLabel(project);
       expect(label).toBe('one, two, three');

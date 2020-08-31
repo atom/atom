@@ -31,9 +31,8 @@ const versionMatch = appMetadata.version.match(/-(beta|nightly)\d+$/);
 const releaseChannel = versionMatch ? versionMatch[1] : 'stable';
 
 console.log(
-  `Serving ${
-    appMetadata.productName
-  } release assets (channel = ${releaseChannel})\n`.green
+  `Serving ${appMetadata.productName} release assets (channel = ${releaseChannel})\n`
+    .green
 );
 
 function getMacZip(req, res) {
@@ -47,28 +46,24 @@ function getMacUpdates(req, res) {
       name: appMetadata.version,
       pub_date: new Date().toISOString(),
       url: `http://localhost:${port}/mac/atom-mac.zip`,
-      notes: '<p>No Details</p>'
+      notes: '<p>No Details</p>',
     };
 
     console.log(
-      `Received request for macOS updates (version = ${
-        req.query.version
-      }), sending\n`,
+      `Received request for macOS updates (version = ${req.query.version}), sending\n`,
       updateInfo
     );
     res.json(updateInfo);
   } else {
     console.log(
-      `Received request for macOS updates, sending 204 as Atom is up to date (version = ${
-        req.query.version
-      })`
+      `Received request for macOS updates, sending 204 as Atom is up to date (version = ${req.query.version})`
     );
     res.sendStatus(204);
   }
 }
 
 function getReleasesFile(fileName) {
-  return function(req, res) {
+  return function (req, res) {
     console.log(
       `Received request for ${fileName}, version: ${req.query.version}`
     );
@@ -79,9 +74,7 @@ function getReleasesFile(fileName) {
       const versionChannel = (versionMatch && versionMatch[1]) || 'stable';
       if (releaseChannel !== versionChannel) {
         console.log(
-          `Atom requested an update for version ${
-            req.query.version
-          } but the current release channel is ${releaseChannel}`
+          `Atom requested an update for version ${req.query.version} but the current release channel is ${releaseChannel}`
         );
         res.sendStatus(404);
         return;
@@ -93,7 +86,7 @@ function getReleasesFile(fileName) {
 }
 
 function getNupkgFile(is64bit) {
-  return function(req, res) {
+  return function (req, res) {
     let nupkgFile = req.params.nupkg;
     if (is64bit) {
       const nupkgMatch = nupkgFile.match(/atom-(.+)-(delta|full)\.nupkg/);
@@ -119,9 +112,8 @@ if (process.platform === 'darwin') {
   app.get('/api/updates-x64/:nupkg', getNupkgFile(true));
 } else {
   console.log(
-    `The current platform '${
-      process.platform
-    }' doesn't support Squirrel updates, exiting.`.red
+    `The current platform '${process.platform}' doesn't support Squirrel updates, exiting.`
+      .red
   );
   process.exit(1);
 }

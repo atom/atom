@@ -47,7 +47,7 @@ module.exports = class UpdateView extends EtchComponent {
         updateStatus = $.div(
           {
             className:
-              'about-updates-item is-shown about-default-update-message'
+              'about-updates-item is-shown about-default-update-message',
           },
           this.props.updateManager.getAutoUpdatesEnabled()
             ? 'Atom will check for updates automatically'
@@ -84,7 +84,7 @@ module.exports = class UpdateView extends EtchComponent {
           $.a(
             {
               className: 'about-updates-release-notes',
-              onclick: this.props.viewUpdateReleaseNotes
+              onclick: this.props.viewUpdateReleaseNotes,
             },
             'Release Notes'
           )
@@ -110,7 +110,7 @@ module.exports = class UpdateView extends EtchComponent {
           $.a(
             {
               className: 'about-updates-instructions',
-              onclick: this.props.viewUpdateInstructions
+              onclick: this.props.viewUpdateInstructions,
             },
             'How to update'
           )
@@ -147,8 +147,8 @@ module.exports = class UpdateView extends EtchComponent {
                 this.props.updateManager.state ===
                 UpdateManager.State.Unsupported
                   ? 'none'
-                  : 'block'
-            }
+                  : 'block',
+            },
           },
           this.props.updateManager.state === 'update-available'
             ? 'Restart and install'
@@ -162,8 +162,8 @@ module.exports = class UpdateView extends EtchComponent {
             display:
               this.props.updateManager.state === UpdateManager.State.Unsupported
                 ? 'none'
-                : 'block'
-          }
+                : 'block',
+          },
         },
         $.label(
           {},
@@ -171,7 +171,7 @@ module.exports = class UpdateView extends EtchComponent {
             className: 'input-checkbox',
             type: 'checkbox',
             checked: this.props.updateManager.getAutoUpdatesEnabled(),
-            onchange: this.handleAutoUpdateCheckbox.bind(this)
+            onchange: this.handleAutoUpdateCheckbox.bind(this),
           }),
           $.span({}, 'Automatically download updates')
         )

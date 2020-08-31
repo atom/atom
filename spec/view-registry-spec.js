@@ -67,7 +67,7 @@ describe('ViewRegistry', () => {
 
           const model = new TestModel();
 
-          registry.addViewProvider(TestModel, model =>
+          registry.addViewProvider(TestModel, (model) =>
             new TestView().initialize(model)
           );
 
@@ -83,7 +83,7 @@ describe('ViewRegistry', () => {
 
       describe('when a view provider is registered generically, and works with the object', () =>
         it('constructs a view element and assigns the model on it', () => {
-          registry.addViewProvider(model => {
+          registry.addViewProvider((model) => {
             if (model.a === 'b') {
               const element = document.createElement('div');
               element.className = 'test-element';
@@ -114,7 +114,7 @@ describe('ViewRegistry', () => {
         }
       }
 
-      const disposable = registry.addViewProvider(TestModel, model =>
+      const disposable = registry.addViewProvider(TestModel, (model) =>
         new TestView().initialize(model)
       );
 
@@ -128,7 +128,7 @@ describe('ViewRegistry', () => {
 
     beforeEach(() => {
       frameRequests = [];
-      spyOn(window, 'requestAnimationFrame').andCallFake(fn =>
+      spyOn(window, 'requestAnimationFrame').andCallFake((fn) =>
         frameRequests.push(fn)
       );
     });
@@ -186,7 +186,7 @@ describe('ViewRegistry', () => {
         'read 1',
         'read 2',
         'write from read 1',
-        'write from read 2'
+        'write from read 2',
       ]);
     });
   });
@@ -196,7 +196,7 @@ describe('ViewRegistry', () => {
       let updateCalled = false;
       let readCalled = false;
 
-      waitsFor('getNextUpdatePromise to resolve', done => {
+      waitsFor('getNextUpdatePromise to resolve', (done) => {
         registry.getNextUpdatePromise().then(() => {
           expect(updateCalled).toBe(true);
           expect(readCalled).toBe(true);

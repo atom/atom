@@ -14,7 +14,7 @@ const originalCompiler = {
 
   shouldCompile: (sourceCode, filePath) => {
     return path.extname(filePath) === '.js';
-  }
+  },
 };
 
 describe('PackageTranspilationRegistry', () => {
@@ -52,23 +52,23 @@ describe('PackageTranspilationRegistry', () => {
     const jsSpec = {
       glob: 'lib/**/*.js',
       transpiler: './transpiler-js',
-      options: { type: 'js' }
+      options: { type: 'js' },
     };
     const coffeeSpec = {
       glob: '*.coffee',
       transpiler: './transpiler-coffee',
-      options: { type: 'coffee' }
+      options: { type: 'coffee' },
     };
     const omgSpec = {
       glob: '*.omgwhatisthis',
       transpiler: './transpiler-omg',
-      options: { type: 'omg' }
+      options: { type: 'omg' },
     };
 
     const expectedMeta = {
       name: 'my-package',
       path: path.join('/path/to'),
-      meta: { some: 'metadata' }
+      meta: { some: 'metadata' },
     };
 
     const jsTranspiler = {
@@ -78,7 +78,7 @@ describe('PackageTranspilationRegistry', () => {
 
       getCacheKeyData: (sourceCode, filePath, options) => {
         return 'js-transpiler-cache-data';
-      }
+      },
     };
 
     const coffeeTranspiler = {
@@ -88,7 +88,7 @@ describe('PackageTranspilationRegistry', () => {
 
       getCacheKeyData: (sourceCode, filePath, options) => {
         return 'coffee-transpiler-cache-data';
-      }
+      },
     };
 
     const omgTranspiler = {
@@ -98,7 +98,7 @@ describe('PackageTranspilationRegistry', () => {
 
       getCacheKeyData: (sourceCode, filePath, options) => {
         return 'omg-transpiler-cache-data';
-      }
+      },
     };
 
     beforeEach(() => {
@@ -106,7 +106,7 @@ describe('PackageTranspilationRegistry', () => {
       coffeeSpec._transpilerSource = 'coffee-transpiler-source';
       omgTranspiler._transpilerSource = 'omg-transpiler-source';
 
-      spyOn(registry, 'getTranspiler').andCallFake(spec => {
+      spyOn(registry, 'getTranspiler').andCallFake((spec) => {
         if (spec.transpiler === './transpiler-js') return jsTranspiler;
         if (spec.transpiler === './transpiler-coffee') return coffeeTranspiler;
         if (spec.transpiler === './transpiler-omg') return omgTranspiler;

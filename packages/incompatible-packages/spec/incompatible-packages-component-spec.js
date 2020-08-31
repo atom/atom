@@ -15,8 +15,8 @@ describe('IncompatiblePackagesComponent', () => {
         isCompatible() {
           return false;
         },
-        rebuild: function() {
-          return new Promise(resolve => (this.resolveRebuild = resolve));
+        rebuild: function () {
+          return new Promise((resolve) => (this.resolveRebuild = resolve));
         },
         getBuildFailureOutput() {
           return null;
@@ -24,12 +24,12 @@ describe('IncompatiblePackagesComponent', () => {
         path: '/Users/joe/.atom/packages/incompatible-1',
         metadata: {
           repository: 'https://github.com/atom/incompatible-1',
-          version: '1.0.0'
+          version: '1.0.0',
         },
         incompatibleModules: [
           { name: 'x', version: '1.0.0', error: 'Expected version X, got Y' },
-          { name: 'y', version: '1.0.0', error: 'Expected version X, got Z' }
-        ]
+          { name: 'y', version: '1.0.0', error: 'Expected version X, got Z' },
+        ],
       },
       {
         name: 'incompatible-2',
@@ -37,7 +37,7 @@ describe('IncompatiblePackagesComponent', () => {
           return false;
         },
         rebuild() {
-          return new Promise(resolve => (this.resolveRebuild = resolve));
+          return new Promise((resolve) => (this.resolveRebuild = resolve));
         },
         getBuildFailureOutput() {
           return null;
@@ -45,11 +45,11 @@ describe('IncompatiblePackagesComponent', () => {
         path: '/Users/joe/.atom/packages/incompatible-2',
         metadata: {
           repository: 'https://github.com/atom/incompatible-2',
-          version: '1.0.0'
+          version: '1.0.0',
         },
         incompatibleModules: [
-          { name: 'z', version: '1.0.0', error: 'Expected version X, got Y' }
-        ]
+          { name: 'z', version: '1.0.0', error: 'Expected version X, got Y' },
+        ],
       },
       {
         name: 'compatible',
@@ -65,10 +65,10 @@ describe('IncompatiblePackagesComponent', () => {
         path: '/Users/joe/.atom/packages/b',
         metadata: {
           repository: 'https://github.com/atom/b',
-          version: '1.0.0'
+          version: '1.0.0',
         },
-        incompatibleModules: []
-      }
+        incompatibleModules: [],
+      },
     ];
   });
 
@@ -77,7 +77,7 @@ describe('IncompatiblePackagesComponent', () => {
       waitsForPromise(async () => {
         let component = new IncompatiblePackagesComponent({
           getActivePackages: () => [],
-          getLoadedPackages: () => packages
+          getLoadedPackages: () => packages,
         });
         let { element } = component;
 
@@ -102,7 +102,7 @@ describe('IncompatiblePackagesComponent', () => {
 
         let component = new IncompatiblePackagesComponent({
           getActivePackages: () => compatiblePackages,
-          getLoadedPackages: () => compatiblePackages
+          getLoadedPackages: () => compatiblePackages,
         });
         let { element } = component;
 
@@ -119,13 +119,13 @@ describe('IncompatiblePackagesComponent', () => {
   describe('when some packages previously failed to rebuild', () => {
     it('renders them with failed build status and error output', () => {
       waitsForPromise(async () => {
-        packages[1].getBuildFailureOutput = function() {
+        packages[1].getBuildFailureOutput = function () {
           return 'The build failed';
         };
 
         let component = new IncompatiblePackagesComponent({
           getActivePackages: () => packages,
-          getLoadedPackages: () => packages
+          getLoadedPackages: () => packages,
         });
         let { element } = component;
 
@@ -149,7 +149,7 @@ describe('IncompatiblePackagesComponent', () => {
       waitsForPromise(async () => {
         let component = new IncompatiblePackagesComponent({
           getActivePackages: () => packages,
-          getLoadedPackages: () => packages
+          getLoadedPackages: () => packages,
         });
         let { element } = component;
 
@@ -167,7 +167,7 @@ describe('IncompatiblePackagesComponent', () => {
         waitsForPromise(async () => {
           let component = new IncompatiblePackagesComponent({
             getActivePackages: () => packages,
-            getLoadedPackages: () => packages
+            getLoadedPackages: () => packages,
           });
           let { element } = component;
           jasmine.attachToDOM(element);
@@ -207,7 +207,7 @@ describe('IncompatiblePackagesComponent', () => {
 
           packages[1].resolveRebuild({
             code: 12,
-            stderr: 'This is an error from the test!'
+            stderr: 'This is an error from the test!',
           }); // simulate rebuild failure
           await etchScheduler.getNextUpdatePromise(); // view update
 
@@ -230,7 +230,7 @@ describe('IncompatiblePackagesComponent', () => {
         waitsForPromise(async () => {
           let component = new IncompatiblePackagesComponent({
             getActivePackages: () => packages,
-            getLoadedPackages: () => packages
+            getLoadedPackages: () => packages,
           });
           let { element } = component;
           jasmine.attachToDOM(element);
@@ -262,7 +262,7 @@ describe('IncompatiblePackagesComponent', () => {
         waitsForPromise(async () => {
           let component = new IncompatiblePackagesComponent({
             getActivePackages: () => packages,
-            getLoadedPackages: () => packages
+            getLoadedPackages: () => packages,
           });
           let { element } = component;
           jasmine.attachToDOM(element);

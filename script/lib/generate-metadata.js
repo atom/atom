@@ -16,7 +16,7 @@ if (process.platform === 'win32') {
   appName = CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
 }
 
-module.exports = function() {
+module.exports = function () {
   console.log(
     `Generating metadata for ${path.join(
       CONFIG.intermediateAppPath,
@@ -37,7 +37,7 @@ module.exports = function() {
   );
 };
 
-module.exports = function() {
+module.exports = function () {
   console.log(
     `Generating metadata for ${path.join(
       CONFIG.intermediateAppPath,
@@ -70,7 +70,7 @@ function buildBundledPackagesMetadata() {
     );
     normalizePackageData(
       packageMetadata,
-      msg => {
+      (msg) => {
         if (!msg.match(/No README data$/)) {
           console.warn(
             `Invalid package metadata. ${packageMetadata.name}: ${msg}`
@@ -114,7 +114,7 @@ function buildBundledPackagesMetadata() {
       keymaps: {},
       menus: {},
       grammarPaths: [],
-      settings: {}
+      settings: {},
     };
 
     packageNewMetadata.rootDirPath = path.relative(
@@ -181,7 +181,7 @@ function buildBundledPackagesMetadata() {
     const packageGrammarsPath = path.join(packagePath, 'grammars');
     for (let packageGrammarPath of fs.listSync(packageGrammarsPath, [
       'json',
-      'cson'
+      'cson',
     ])) {
       const relativePath = path.relative(
         CONFIG.intermediateAppPath,
@@ -193,7 +193,7 @@ function buildBundledPackagesMetadata() {
     const packageSettingsPath = path.join(packagePath, 'settings');
     for (let packageSettingPath of fs.listSync(packageSettingsPath, [
       'json',
-      'cson'
+      'cson',
     ])) {
       const relativePath = path.relative(
         CONFIG.intermediateAppPath,
@@ -209,7 +209,7 @@ function buildBundledPackagesMetadata() {
     if (packageMetadata.mainStyleSheet) {
       styleSheets = [fs.resolve(packagePath, packageMetadata.mainStyleSheet)];
     } else if (packageMetadata.styleSheets) {
-      styleSheets = packageMetadata.styleSheets.map(name =>
+      styleSheets = packageMetadata.styleSheets.map((name) =>
         fs.resolve(packageStyleSheetsPath, name, ['css', 'less', ''])
       );
     } else {
@@ -221,7 +221,7 @@ function buildBundledPackagesMetadata() {
       }
     }
 
-    packageNewMetadata.styleSheetPaths = styleSheets.map(styleSheetPath =>
+    packageNewMetadata.styleSheetPaths = styleSheets.map((styleSheetPath) =>
       path.relative(packagePath, styleSheetPath)
     );
 
@@ -257,8 +257,8 @@ function buildPlatformKeymapsMetadata() {
     'freebsd',
     'linux',
     'sunos',
-    'win32'
-  ].filter(p => p !== process.platform);
+    'win32',
+  ].filter((p) => p !== process.platform);
   const keymapsPath = path.join(CONFIG.repositoryRootPath, 'keymaps');
   const keymaps = {};
   for (let keymapName of fs.readdirSync(keymapsPath)) {

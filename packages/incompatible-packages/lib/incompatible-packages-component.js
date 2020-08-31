@@ -24,7 +24,7 @@ export default class IncompatiblePackagesComponent {
       global.setImmediate(this.populateIncompatiblePackages.bind(this));
     }
 
-    this.element.addEventListener('click', event => {
+    this.element.addEventListener('click', (event) => {
       if (event.target === this.refs.rebuildButton) {
         this.rebuildIncompatiblePackages();
       } else if (event.target === this.refs.reloadButton) {
@@ -163,7 +163,7 @@ export default class IncompatiblePackagesComponent {
   renderIncompatibleModules(pack) {
     return (
       <ul>
-        {pack.incompatibleModules.map(nativeModule => (
+        {pack.incompatibleModules.map((nativeModule) => (
           <li>
             <div className="icon icon-file-binary">
               {nativeModule.name}@{nativeModule.version || 'unknown'} –{' '}
@@ -178,7 +178,7 @@ export default class IncompatiblePackagesComponent {
   populateIncompatiblePackages() {
     this.incompatiblePackages = this.packageManager
       .getLoadedPackages()
-      .filter(pack => !pack.isCompatible());
+      .filter((pack) => !pack.isCompatible());
 
     for (let pack of this.incompatiblePackages) {
       let buildFailureOutput = pack.getBuildFailureOutput();

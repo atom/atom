@@ -7,7 +7,7 @@ const legalEagle = require('legal-eagle');
 const licenseOverrides = require('../license-overrides');
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   return new Promise((resolve, reject) => {
     legalEagle(
       { path: CONFIG.repositoryRootPath, overrides: licenseOverrides },

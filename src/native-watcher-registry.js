@@ -40,7 +40,7 @@ class RegistryTree {
     const absolutePathSegments = this.basePathSegments.concat(pathSegments);
     const absolutePath = absolute(...absolutePathSegments);
 
-    const attachToNew = childPaths => {
+    const attachToNew = (childPaths) => {
       const native = this.createNative(absolutePath);
       const leaf = new RegistryWatcherNode(
         native,
@@ -68,10 +68,10 @@ class RegistryTree {
         parent.addChildPath(remaining);
         attachToNative(native, absolute(...parent.getAbsolutePathSegments()));
       },
-      children: children => {
+      children: (children) => {
         // One or more NativeWatchers exist on child directories of the requested path. Create a new native watcher
         // on the parent directory, note the subscribed child paths, and cleanly stop the child native watchers.
-        const newNative = attachToNew(children.map(child => child.path));
+        const newNative = attachToNew(children.map((child) => child.path));
 
         for (let i = 0; i < children.length; i++) {
           const childNode = children[i].node;
@@ -81,7 +81,7 @@ class RegistryTree {
           childNative.stop();
         }
       },
-      missing: () => attachToNew([])
+      missing: () => attachToNew([]),
     });
   }
 
@@ -428,7 +428,7 @@ class NativeWatcherRegistry {
     const normalizedDirectory = await watcher.getNormalizedPathPromise();
     const pathSegments = normalizedDirectory
       .split(path.sep)
-      .filter(segment => segment.length > 0);
+      .filter((segment) => segment.length > 0);
 
     this.tree.add(pathSegments, (native, nativePath) => {
       watcher.attachToNative(native, nativePath);

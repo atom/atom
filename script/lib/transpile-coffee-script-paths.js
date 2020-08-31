@@ -7,7 +7,7 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   console.log(
     `Transpiling CoffeeScript paths in ${CONFIG.intermediateAppPath}`
   );
@@ -20,12 +20,12 @@ function getPathsToTranspile() {
   let paths = [];
   paths = paths.concat(
     glob.sync(path.join(CONFIG.intermediateAppPath, 'src', '**', '*.coffee'), {
-      nodir: true
+      nodir: true,
     })
   );
   paths = paths.concat(
     glob.sync(path.join(CONFIG.intermediateAppPath, 'spec', '*.coffee'), {
-      nodir: true
+      nodir: true,
     })
   );
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
@@ -47,7 +47,7 @@ function getPathsToTranspile() {
             '**',
             '*.coffee'
           ),
-          nodir: true
+          nodir: true,
         }
       )
     );

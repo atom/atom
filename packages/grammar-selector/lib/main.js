@@ -31,5 +31,5 @@ module.exports = {
   consumeStatusBar(statusBar) {
     grammarStatusView = new GrammarStatusView(statusBar);
     grammarStatusView.attach();
-  }
+  },
 };

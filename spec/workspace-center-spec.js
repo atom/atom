@@ -16,7 +16,7 @@ describe('WorkspaceCenter', () => {
       pane.activateItem(editorAddedBeforeRegisteringObserver);
       pane.activateItem(nonEditorItemAddedBeforeRegisteringObserver);
 
-      workspaceCenter.observeTextEditors(editor => observed.push(editor));
+      workspaceCenter.observeTextEditors((editor) => observed.push(editor));
 
       const editorAddedAfterRegisteringObserver = new TextEditor();
       const nonEditorItemAddedAfterRegisteringObserver = document.createElement(
@@ -27,7 +27,7 @@ describe('WorkspaceCenter', () => {
 
       expect(observed).toEqual([
         editorAddedBeforeRegisteringObserver,
-        editorAddedAfterRegisteringObserver
+        editorAddedAfterRegisteringObserver,
       ]);
     });
   });

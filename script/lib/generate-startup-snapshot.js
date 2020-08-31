@@ -5,7 +5,7 @@ const electronLink = require('electron-link');
 const terser = require('terser');
 const CONFIG = require('../config');
 
-module.exports = function(packagedAppPath) {
+module.exports = function (packagedAppPath) {
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js');
   const coreModules = new Set([
     'electron',
@@ -13,7 +13,7 @@ module.exports = function(packagedAppPath) {
     'shell',
     'WNdb',
     'lapack',
-    'remote'
+    'remote',
   ]);
   const baseDirPath = path.join(CONFIG.intermediateAppPath, 'static');
   let processedFiles = 0;
@@ -257,7 +257,7 @@ module.exports = function(packagedAppPath) {
         // snapshot causes issues.
         requiredModuleRelativePath === path.join('..', 'src', 'startup-time.js')
       );
-    }
+    },
   }).then(({ snapshotScript }) => {
     process.stdout.write('\n');
 
@@ -265,7 +265,7 @@ module.exports = function(packagedAppPath) {
     const minification = terser.minify(snapshotScript, {
       keep_fnames: true,
       keep_classnames: true,
-      compress: { keep_fargs: true, keep_infinity: true }
+      compress: { keep_fargs: true, keep_infinity: true },
     });
     if (minification.error) throw minification.error;
     process.stdout.write('\n');
@@ -308,7 +308,7 @@ module.exports = function(packagedAppPath) {
       ),
       snapshotScriptPath,
       '--output_dir',
-      CONFIG.buildOutputPath
+      CONFIG.buildOutputPath,
     ]);
 
     let startupBlobDestinationPath;

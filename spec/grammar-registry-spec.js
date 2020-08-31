@@ -89,7 +89,7 @@ describe('GrammarRegistry', () => {
   describe('.grammarForId(languageId)', () => {
     it('returns a text-mate grammar when `core.useTreeSitterParsers` is false', () => {
       atom.config.set('core.useTreeSitterParsers', false, {
-        scopeSelector: '.source.js'
+        scopeSelector: '.source.js',
       });
 
       grammarRegistry.loadGrammarSync(
@@ -442,7 +442,7 @@ describe('GrammarRegistry', () => {
           JSON.stringify({
             name: 'test1',
             scopeName: 'source1',
-            fileTypes: ['test']
+            fileTypes: ['test'],
           })
         );
         const grammar1 = atom.grammars.loadGrammarSync(grammarPath1);
@@ -455,7 +455,7 @@ describe('GrammarRegistry', () => {
           JSON.stringify({
             name: 'test2',
             scopeName: 'source2',
-            fileTypes: ['test', 'more.test']
+            fileTypes: ['test', 'more.test'],
           })
         );
         const grammar2 = atom.grammars.loadGrammarSync(grammarPath2);
@@ -497,7 +497,7 @@ describe('GrammarRegistry', () => {
       it('considers the custom file types as well as those defined in the grammar', async () => {
         await atom.packages.activatePackage('language-ruby');
         atom.config.set('core.customFileTypes', {
-          'source.ruby': ['Cheffile']
+          'source.ruby': ['Cheffile'],
         });
         expect(
           atom.grammars.selectGrammar('build/Cheffile', 'cookbook "postgres"')
@@ -511,7 +511,7 @@ describe('GrammarRegistry', () => {
 
         atom.config.set('core.customFileTypes', {
           'source.coffee': ['Rakefile'],
-          'source.ruby': ['Cakefile']
+          'source.ruby': ['Cakefile'],
         });
         expect(atom.grammars.selectGrammar('Rakefile', '').scopeName).toBe(
           'source.coffee'
@@ -526,7 +526,7 @@ describe('GrammarRegistry', () => {
         await atom.packages.activatePackage('language-javascript');
 
         atom.config.set('core.customFileTypes', {
-          'source.ruby': ['bootstrap']
+          'source.ruby': ['bootstrap'],
         });
         expect(
           atom.grammars.selectGrammar('bootstrap', '#!/usr/bin/env node')
@@ -546,7 +546,7 @@ describe('GrammarRegistry', () => {
     describe('tree-sitter vs text-mate', () => {
       it('favors a text-mate grammar over a tree-sitter grammar when `core.useTreeSitterParsers` is false', () => {
         atom.config.set('core.useTreeSitterParsers', false, {
-          scopeSelector: '.source.js'
+          scopeSelector: '.source.js',
         });
 
         grammarRegistry.loadGrammarSync(
@@ -761,13 +761,13 @@ describe('GrammarRegistry', () => {
       it('favors grammars that match the content regex', () => {
         const grammar1 = {
           name: 'foo',
-          fileTypes: ['foo']
+          fileTypes: ['foo'],
         };
         grammarRegistry.addGrammar(grammar1);
         const grammar2 = {
           name: 'foo++',
           contentRegex: new OnigRegExp('.*bar'),
-          fileTypes: ['foo']
+          fileTypes: ['foo'],
         };
         grammarRegistry.addGrammar(grammar2);
 
@@ -802,7 +802,7 @@ describe('GrammarRegistry', () => {
       },
       content(node) {
         return node;
-      }
+      },
     };
 
     beforeEach(() => {
@@ -885,14 +885,14 @@ describe('GrammarRegistry', () => {
     it('returns only Tree-sitter grammars by default', async () => {
       const tmGrammars = atom.grammars.getGrammars();
       const allGrammars = atom.grammars.getGrammars({
-        includeTreeSitter: true
+        includeTreeSitter: true,
       });
       expect(allGrammars.length).toBeGreaterThan(tmGrammars.length);
     });
 
     it('executes the foreach callback on both Tree-sitter and TextMate grammars', async () => {
       const numAllGrammars = atom.grammars.getGrammars({
-        includeTreeSitter: true
+        includeTreeSitter: true,
       }).length;
       let i = 0;
       atom.grammars.forEachGrammar(() => i++);

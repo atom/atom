@@ -7,7 +7,7 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+module.exports = function () {
   console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`);
   for (let path of getPathsToTranspile()) {
     transpileBabelPath(path);
@@ -35,7 +35,7 @@ function getPathsToTranspile() {
             '**',
             '*.js'
           ),
-          nodir: true
+          nodir: true,
         }
       )
     );
