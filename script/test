@@ -116,7 +116,7 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
 
 }
 
-const retryNumber = 1 // the number of times a tests repeats
+const retryNumber = 4 // the number of times a tests repeats
 const retriedTests = new Map() // a cache of retried tests
 
 // Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
