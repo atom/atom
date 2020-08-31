@@ -14,7 +14,7 @@ jobs:
           RunCoreMainTests: true
 
     pool:
-      vmImage: windows-2019
+      vmImage: vs2017-win2016
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
@@ -88,11 +88,6 @@ jobs:
           RunCoreRendererTests: 2
           buildArch: x64
           os: windows-2019
-        2016_Main_Test:
-          RunCoreMainTests: true
-          RunCoreRendererTests: false
-          buildArch: x64
-          os: vs2017-win2016
 
     pool:
       vmImage: $(os)
