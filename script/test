@@ -104,7 +104,7 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
   cp.on('close', exitCode => {
     if (finalize) { finalize() } 		// if finalizer provided
     if (exitCode !== 0) {
-      retryOrFailTest(stderrOutput, executablePath, testArguments, options, callback, testName, finalize)
+      retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize)
     } else {
       callback(null, {
         exitCode,
@@ -120,7 +120,7 @@ const retryNumber = 1 // the number of times a tests repeats
 const retriedTests = new Map() // a cache of retried tests
 
 // Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
-function retryOrFailTest(stderrOutput, executablePath, testArguments, options, callback, testName, finalize) {
+function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize) {
   const testKey = createTestKey(executablePath, testArguments, testName)
   if (isTimedOut(stderrOutput) && shouldTryAgain(testKey)) {
     // retry the timed out test
