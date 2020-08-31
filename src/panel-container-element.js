@@ -58,7 +58,7 @@ class PanelContainerElement extends HTMLElement {
     if (this.model.isModal()) {
       this.hideAllPanelsExcept(panel);
       this.subscriptions.add(
-        panel.onDidChangeVisible((visible) => {
+        panel.onDidChangeVisible(visible => {
           if (visible) {
             this.hideAllPanelsExcept(panel);
           }
@@ -73,7 +73,7 @@ class PanelContainerElement extends HTMLElement {
           fallbackFocus: panelElement,
           // closing is handled by core Atom commands and this already deactivates
           // on visibility changes
-          escapeDeactivates: false,
+          escapeDeactivates: false
         };
 
         if (panel.autoFocus !== true) {
@@ -82,7 +82,7 @@ class PanelContainerElement extends HTMLElement {
         const modalFocusTrap = focusTrap(panelElement, focusOptions);
 
         this.subscriptions.add(
-          panel.onDidChangeVisible((visible) => {
+          panel.onDidChangeVisible(visible => {
             if (visible) {
               modalFocusTrap.activate();
             } else {
@@ -111,5 +111,5 @@ class PanelContainerElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-panel-container', {
-  prototype: PanelContainerElement.prototype,
+  prototype: PanelContainerElement.prototype
 });

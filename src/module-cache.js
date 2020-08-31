@@ -35,22 +35,22 @@ const cache = {
   ranges: {},
   registered: false,
   resourcePath: null,
-  resourcePathWithTrailingSlash: null,
+  resourcePathWithTrailingSlash: null
 };
 
 // isAbsolute is inlined from fs-plus so that fs-plus itself can be required
 // from this cache.
 let isAbsolute;
 if (process.platform === 'win32') {
-  isAbsolute = (pathToCheck) =>
+  isAbsolute = pathToCheck =>
     pathToCheck &&
     (pathToCheck[1] === ':' ||
       (pathToCheck[0] === '\\' && pathToCheck[1] === '\\'));
 } else {
-  isAbsolute = (pathToCheck) => pathToCheck && pathToCheck[0] === '/';
+  isAbsolute = pathToCheck => pathToCheck && pathToCheck[0] === '/';
 }
 
-const isCorePath = (pathToCheck) =>
+const isCorePath = pathToCheck =>
   pathToCheck.startsWith(cache.resourcePathWithTrailingSlash);
 
 function loadDependencies(modulePath, rootPath, rootMetadata, moduleCache) {
@@ -82,7 +82,7 @@ function loadDependencies(modulePath, rootPath, rootMetadata, moduleCache) {
         moduleCache.dependencies.push({
           name: childMetadata.name,
           version: childMetadata.version,
-          path: path.relative(rootPath, mainPath),
+          path: path.relative(rootPath, mainPath)
         });
       }
 
@@ -111,8 +111,7 @@ function loadFolderCompatibility(
     }
   }
 
-  const onDirectory = (childPath) =>
-    path.basename(childPath) !== 'node_modules';
+  const onDirectory = childPath => path.basename(childPath) !== 'node_modules';
 
   const extensions = ['.js', '.coffee', '.json', '.node'];
   let paths = {};
@@ -291,7 +290,7 @@ function registerBuiltins(devMode) {
   const rendererBuiltins = [
     'crash-reporter',
     'ipc-renderer',
-    'remote',
+    'remote'
     // 'screen' Deprecated https://www.electronjs.org/docs/breaking-changes#api-changed-electronscreen-in-the-renderer-process-should-be-accessed-via-remote
   ];
   for (const builtin of rendererBuiltins) {
@@ -299,7 +298,7 @@ function registerBuiltins(devMode) {
   }
 }
 
-exports.create = function (modulePath) {
+exports.create = function(modulePath) {
   const fs = require('fs-plus');
 
   modulePath = fs.realpathSync(modulePath);
@@ -310,7 +309,7 @@ exports.create = function (modulePath) {
     version: 1,
     dependencies: [],
     extensions: {},
-    folders: [],
+    folders: []
   };
 
   loadDependencies(modulePath, modulePath, metadata, moduleCache);
@@ -321,11 +320,11 @@ exports.create = function (modulePath) {
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 };
 
-exports.register = function ({ resourcePath, devMode } = {}) {
+exports.register = function({ resourcePath, devMode } = {}) {
   if (cache.registered) return;
 
   const originalResolveFilename = Module._resolveFilename;
-  Module._resolveFilename = function (relativePath, parentModule) {
+  Module._resolveFilename = function(relativePath, parentModule) {
     let resolvedPath = resolveModulePath(relativePath, parentModule);
     if (!resolvedPath) {
       resolvedPath = resolveFilePath(relativePath, parentModule);
@@ -339,7 +338,7 @@ exports.register = function ({ resourcePath, devMode } = {}) {
   registerBuiltins(devMode);
 };
 
-exports.add = function (directoryPath, metadata) {
+exports.add = function(directoryPath, metadata) {
   // path.join isn't used in this function for speed since path.join calls
   // path.normalize and all the paths are already normalized here.
 

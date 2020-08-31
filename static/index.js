@@ -1,4 +1,4 @@
-(function () {
+(function() {
   // Define the window start time before the requires so we get a more accurate
   // window:start marker.
   const startWindowTime = Date.now();
@@ -20,12 +20,12 @@
   }
   StartupTime.addMarker('window:start', startWindowTime);
 
-  window.onload = function () {
+  window.onload = function() {
     try {
       StartupTime.addMarker('window:onload:start');
       const startTime = Date.now();
 
-      process.on('unhandledRejection', function (error, promise) {
+      process.on('unhandledRejection', function(error, promise) {
         console.error(
           'Unhandled promise rejection %o with error: %o',
           promise,
@@ -57,7 +57,7 @@
           }
         }
       } else if (useSnapshot) {
-        Module.prototype.require = function (module) {
+        Module.prototype.require = function(module) {
           const absoluteFilePath = Module._resolveFilename(module, this, false);
           let relativeFilePath = path.relative(
             entryPointDirPath,
@@ -154,7 +154,7 @@
 
     startCrashReporter({
       uploadToServer,
-      releaseChannel,
+      releaseChannel
     });
 
     const CSON = useSnapshot
@@ -172,7 +172,7 @@
 
     StartupTime.addMarker('window:initialize:start');
 
-    return initialize({ blobStore: blobStore }).then(function () {
+    return initialize({ blobStore: blobStore }).then(function() {
       StartupTime.addMarker('window:initialize:end');
       electron.ipcRenderer.send('window-command', 'window:loaded');
     });
@@ -182,7 +182,7 @@
     function profile() {
       console.profile('startup');
       const startTime = Date.now();
-      setupWindow().then(function () {
+      setupWindow().then(function() {
         setLoadTime(Date.now() - startTime + initialTime);
         console.profileEnd('startup');
         console.log(

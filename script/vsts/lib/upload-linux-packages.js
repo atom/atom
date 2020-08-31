@@ -2,12 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const request = require('request-promise-native');
 
-module.exports = async function (
-  packageRepoName,
-  apiToken,
-  version,
-  artifacts
-) {
+module.exports = async function(packageRepoName, apiToken, version, artifacts) {
   for (let artifact of artifacts) {
     let fileExt = path.extname(artifact);
     switch (fileExt) {
@@ -35,7 +30,7 @@ module.exports = async function (
       fileName: 'atom-amd64.deb',
       distroId: 35 /* Any .deb distribution */,
       distroName: 'any',
-      distroVersion: 'any',
+      distroVersion: 'any'
     });
   }
 
@@ -48,7 +43,7 @@ module.exports = async function (
       fileName: 'atom.x86_64.rpm',
       distroId: 140 /* Enterprise Linux 7 */,
       distroName: 'el',
-      distroVersion: '7',
+      distroVersion: '7'
     });
   }
 
@@ -67,20 +62,24 @@ module.exports = async function (
   function uploadToPackageCloud(packageDetails) {
     return new Promise(async (resolve, reject) => {
       console.log(
-        `Uploading ${packageDetails.fileName} to https://packagecloud.io/AtomEditor/${packageRepoName}`
+        `Uploading ${
+          packageDetails.fileName
+        } to https://packagecloud.io/AtomEditor/${packageRepoName}`
       );
       var uploadOptions = {
         url: `https://${apiToken}:@packagecloud.io/api/v1/repos/AtomEditor/${packageRepoName}/packages.json`,
         formData: {
           'package[distro_version_id]': packageDetails.distroId,
-          'package[package_file]': fs.createReadStream(packageDetails.filePath),
-        },
+          'package[package_file]': fs.createReadStream(packageDetails.filePath)
+        }
       };
 
       request.post(uploadOptions, (error, uploadResponse, body) => {
         if (error || uploadResponse.statusCode !== 201) {
           console.log(
-            `Error while uploading '${packageDetails.fileName}' v${packageDetails.version}: ${uploadResponse}`
+            `Error while uploading '${packageDetails.fileName}' v${
+              packageDetails.version
+            }: ${uploadResponse}`
           );
           reject(uploadResponse);
         } else {
@@ -98,7 +97,7 @@ module.exports = async function (
     fileName,
     distroName,
     distroVersion,
-    releaseSuffix,
+    releaseSuffix
   }) {
     // RPM URI paths have an extra '/0.1' thrown in
     let versionJsonPath =
@@ -106,11 +105,10 @@ module.exports = async function (
 
     try {
       const existingPackageDetails = await request({
-        uri: `https://${apiToken}:@packagecloud.io/api/v1/repos/AtomEditor/${packageRepoName}/package/${type}/${distroName}/${distroVersion}/atom${
-          releaseSuffix || ''
-        }/${arch}/${versionJsonPath}.json`,
+        uri: `https://${apiToken}:@packagecloud.io/api/v1/repos/AtomEditor/${packageRepoName}/package/${type}/${distroName}/${distroVersion}/atom${releaseSuffix ||
+          ''}/${arch}/${versionJsonPath}.json`,
         method: 'get',
-        json: true,
+        json: true
       });
 
       if (existingPackageDetails && existingPackageDetails.destroy_url) {
@@ -118,8 +116,10 @@ module.exports = async function (
           `Deleting pre-existing package ${fileName} in ${packageRepoName}`
         );
         await request({
-          uri: `https://${apiToken}:@packagecloud.io/${existingPackageDetails.destroy_url}`,
-          method: 'delete',
+          uri: `https://${apiToken}:@packagecloud.io/${
+            existingPackageDetails.destroy_url
+          }`,
+          method: 'delete'
         });
       }
     } catch (err) {

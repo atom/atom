@@ -21,11 +21,11 @@ const SAMPLE_TEXT = fs.readFileSync(
 document.registerElement('text-editor-component-test-element', {
   prototype: Object.create(HTMLElement.prototype, {
     attachedCallback: {
-      value: function () {
+      value: function() {
         this.didAttach();
-      },
-    },
-  }),
+      }
+    }
+  })
 });
 
 const editors = [];
@@ -45,7 +45,7 @@ describe('TextEditorComponent', () => {
       const { component, element } = buildComponent({
         text: 'abcdefgh\n'.repeat(10),
         width: 30,
-        height: 30,
+        height: 30
       });
       verticalScrollbarWidth = getVerticalScrollbarWidth(component);
       horizontalScrollbarHeight = getHorizontalScrollbarHeight(component);
@@ -64,7 +64,7 @@ describe('TextEditorComponent', () => {
     it('renders lines and line numbers for the visible region', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
 
       expect(queryOnScreenLineNumberElements(element).length).toBe(13);
@@ -81,17 +81,17 @@ describe('TextEditorComponent', () => {
       // in the DOM is a bit weird because the first tile is recycled to the bottom
       // when it is scrolled out of view
       expect(
-        queryOnScreenLineNumberElements(element).map((element) =>
+        queryOnScreenLineNumberElements(element).map(element =>
           element.textContent.trim()
         )
       ).toEqual(['10', '11', '12', '4', '5', '6', '7', '8', '9']);
       expect(
         queryOnScreenLineElements(element).map(
-          (element) => element.dataset.screenRow
+          element => element.dataset.screenRow
         )
       ).toEqual(['9', '10', '11', '3', '4', '5', '6', '7', '8']);
       expect(
-        queryOnScreenLineElements(element).map((element) => element.textContent)
+        queryOnScreenLineElements(element).map(element => element.textContent)
       ).toEqual([
         editor.lineTextForScreenRow(9),
         ' ', // this line is blank in the model, but we render a space to prevent the line from collapsing vertically
@@ -101,22 +101,22 @@ describe('TextEditorComponent', () => {
         editor.lineTextForScreenRow(5),
         editor.lineTextForScreenRow(6),
         editor.lineTextForScreenRow(7),
-        editor.lineTextForScreenRow(8),
+        editor.lineTextForScreenRow(8)
       ]);
 
       await setScrollTop(component, 2.5 * component.getLineHeight());
       expect(
-        queryOnScreenLineNumberElements(element).map((element) =>
+        queryOnScreenLineNumberElements(element).map(element =>
           element.textContent.trim()
         )
       ).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
       expect(
         queryOnScreenLineElements(element).map(
-          (element) => element.dataset.screenRow
+          element => element.dataset.screenRow
         )
       ).toEqual(['0', '1', '2', '3', '4', '5', '6', '7', '8']);
       expect(
-        queryOnScreenLineElements(element).map((element) => element.textContent)
+        queryOnScreenLineElements(element).map(element => element.textContent)
       ).toEqual([
         editor.lineTextForScreenRow(0),
         editor.lineTextForScreenRow(1),
@@ -126,7 +126,7 @@ describe('TextEditorComponent', () => {
         editor.lineTextForScreenRow(5),
         editor.lineTextForScreenRow(6),
         editor.lineTextForScreenRow(7),
-        editor.lineTextForScreenRow(8),
+        editor.lineTextForScreenRow(8)
       ]);
     });
 
@@ -134,7 +134,7 @@ describe('TextEditorComponent', () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 2,
         height: 20,
-        width: 100,
+        width: 100
       });
 
       {
@@ -188,7 +188,7 @@ describe('TextEditorComponent', () => {
     it('re-renders lines when their height changes', async () => {
       const { component, element } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height = 4 * component.measurements.lineHeight + 'px';
       await component.getNextUpdatePromise();
@@ -230,7 +230,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         text: 'a'.repeat(100),
         width: 50,
-        height: 100,
+        height: 100
       });
       expect(component.refs.content.offsetHeight).toBe(
         100 - getHorizontalScrollbarHeight(component)
@@ -247,7 +247,7 @@ describe('TextEditorComponent', () => {
     it('honors the scrollPastEnd option by adding empty space equivalent to the clientHeight to the end of the content area', async () => {
       const { component, editor } = buildComponent({
         autoHeight: false,
-        autoWidth: false,
+        autoWidth: false
       });
 
       await editor.update({ scrollPastEnd: true });
@@ -277,7 +277,7 @@ describe('TextEditorComponent', () => {
     it('does not fire onDidChangeScrollTop listeners when assigning the same maximal value and the content height has fractional pixels (regression)', async () => {
       const { component, element, editor } = buildComponent({
         autoHeight: false,
-        autoWidth: false,
+        autoWidth: false
       });
       await setEditorHeightInLines(component, 3);
 
@@ -286,12 +286,12 @@ describe('TextEditorComponent', () => {
       item.style.height = '10.6px';
       editor.decorateMarker(editor.markBufferPosition([0, 0]), {
         type: 'block',
-        item,
+        item
       });
       await component.getNextUpdatePromise();
 
       component.setScrollTop(Infinity);
-      element.onDidChangeScrollTop((newScrollTop) => {
+      element.onDidChangeScrollTop(newScrollTop => {
         throw new Error('Scroll top should not have changed');
       });
       component.setScrollTop(component.getScrollTop());
@@ -337,7 +337,7 @@ describe('TextEditorComponent', () => {
     it('keeps the number of tiles stable when the visible line count changes during vertical scrolling', async () => {
       const { component } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 5.5);
       expect(component.refs.lineTiles.children.length).toBe(3 + 2); // account for cursors and highlights containers
@@ -352,7 +352,7 @@ describe('TextEditorComponent', () => {
     it('recycles tiles on resize', async () => {
       const { component } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 7);
       await setScrollTop(component, 3.5 * component.getLineHeight());
@@ -385,7 +385,7 @@ describe('TextEditorComponent', () => {
     it('shows the foldable icon on the last screen row of a buffer row that can be folded', async () => {
       const { component } = buildComponent({
         text: 'abc\n  de\nfghijklm\n  no',
-        softWrapped: true,
+        softWrapped: true
       });
       await setEditorWidthInCharacters(component, 5);
       expect(
@@ -408,7 +408,7 @@ describe('TextEditorComponent', () => {
     it('renders dummy vertical and horizontal scrollbars when content overflows', async () => {
       const { component, editor } = buildComponent({
         height: 100,
-        width: 100,
+        width: 100
       });
       const verticalScrollbar = component.refs.verticalScrollbar.element;
       const horizontalScrollbar = component.refs.horizontalScrollbar.element;
@@ -463,7 +463,7 @@ describe('TextEditorComponent', () => {
       it('updates the bottom/right of dummy scrollbars and client height/width measurements', async () => {
         const { component, element, editor } = buildComponent({
           height: 100,
-          width: 100,
+          width: 100
         });
         expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(10);
         expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(10);
@@ -524,7 +524,7 @@ describe('TextEditorComponent', () => {
     it('renders cursors within the visible row range', async () => {
       const { component, element, editor } = buildComponent({
         height: 40,
-        rowsPerTile: 2,
+        rowsPerTile: 2
       });
       await setScrollTop(component, 100);
 
@@ -560,13 +560,7 @@ describe('TextEditorComponent', () => {
       cursorNodes = Array.from(element.querySelectorAll('.cursor'));
       expect(cursorNodes.length).toBe(0);
 
-      editor.setSelectedScreenRange(
-        [
-          [8, 0],
-          [12, 0],
-        ],
-        { autoscroll: false }
-      );
+      editor.setSelectedScreenRange([[8, 0], [12, 0]], { autoscroll: false });
       await component.getNextUpdatePromise();
       cursorNodes = Array.from(element.querySelectorAll('.cursor'));
       expect(cursorNodes.length).toBe(0);
@@ -574,16 +568,7 @@ describe('TextEditorComponent', () => {
 
     it('hides cursors with non-empty selections when showCursorOnSelection is false', async () => {
       const { component, element, editor } = buildComponent();
-      editor.setSelectedScreenRanges([
-        [
-          [0, 0],
-          [0, 3],
-        ],
-        [
-          [1, 0],
-          [1, 0],
-        ],
-      ]);
+      editor.setSelectedScreenRanges([[[0, 0], [0, 3]], [[1, 0], [1, 0]]]);
       await component.getNextUpdatePromise();
       {
         const cursorNodes = Array.from(element.querySelectorAll('.cursor'));
@@ -600,16 +585,7 @@ describe('TextEditorComponent', () => {
         verifyCursorPosition(component, cursorNodes[0], 1, 0);
       }
 
-      editor.setSelectedScreenRanges([
-        [
-          [0, 0],
-          [0, 3],
-        ],
-        [
-          [1, 0],
-          [1, 4],
-        ],
-      ]);
+      editor.setSelectedScreenRanges([[[0, 0], [0, 3]], [[1, 0], [1, 4]]]);
       await component.getNextUpdatePromise();
       {
         const cursorNodes = Array.from(element.querySelectorAll('.cursor'));
@@ -675,10 +651,7 @@ describe('TextEditorComponent', () => {
 
     it('positions and sizes cursors correctly when they are located next to a fold marker', async () => {
       const { component, element, editor } = buildComponent();
-      editor.foldBufferRange([
-        [0, 3],
-        [0, 6],
-      ]);
+      editor.foldBufferRange([[0, 3], [0, 6]]);
 
       editor.setCursorScreenPosition([0, 3]);
       await component.getNextUpdatePromise();
@@ -691,7 +664,7 @@ describe('TextEditorComponent', () => {
 
     it('positions cursors and placeholder text correctly when the lines container has a margin and/or is padded', async () => {
       const { component, element, editor } = buildComponent({
-        placeholderText: 'testing',
+        placeholderText: 'testing'
       });
 
       component.refs.lineTiles.style.marginLeft = '10px';
@@ -730,7 +703,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         height: 60,
         width: 120,
-        rowsPerTile: 2,
+        rowsPerTile: 2
       });
       const { hiddenInput } = component.refs.cursorsAndInput.refs;
       setScrollTop(component, 100);
@@ -766,7 +739,7 @@ describe('TextEditorComponent', () => {
 
       const { component, element, editor } = buildComponent({
         width: gutterContainerWidth + baseCharacterWidth * 55,
-        attach: false,
+        attach: false
       });
       editor.setSoftWrapped(true);
       jasmine.attachToDOM(element);
@@ -797,7 +770,7 @@ describe('TextEditorComponent', () => {
         height: 300,
         width: 800,
         attach: false,
-        text,
+        text
       });
       editor.setSoftWrapped(true);
       jasmine.attachToDOM(element);
@@ -830,7 +803,7 @@ describe('TextEditorComponent', () => {
     it('resizes based on the content when the autoHeight and/or autoWidth options are true', async () => {
       const { component, element, editor } = buildComponent({
         autoHeight: true,
-        autoWidth: true,
+        autoWidth: true
       });
       const editorPadding = 3;
       element.style.padding = editorPadding + 'px';
@@ -873,7 +846,7 @@ describe('TextEditorComponent', () => {
 
     it('does not render the line number gutter at all if the isLineNumberGutterVisible parameter is false', () => {
       const { element } = buildComponent({
-        lineNumberGutterVisible: false,
+        lineNumberGutterVisible: false
       });
       expect(element.querySelector('.line-number')).toBe(null);
     });
@@ -887,11 +860,11 @@ describe('TextEditorComponent', () => {
       }
 
       const { component, element, editor } = buildComponent({
-        showLineNumbers: false,
+        showLineNumbers: false
       });
       expect(
         Array.from(element.querySelectorAll('.line-number')).every(
-          (e) => e.textContent === ''
+          e => e.textContent === ''
         )
       ).toBe(true);
       checkScrollContainerLeft(component);
@@ -899,7 +872,7 @@ describe('TextEditorComponent', () => {
       await editor.update({ showLineNumbers: true });
       expect(
         Array.from(element.querySelectorAll('.line-number')).map(
-          (e) => e.textContent
+          e => e.textContent
         )
       ).toEqual([
         '00',
@@ -915,14 +888,14 @@ describe('TextEditorComponent', () => {
         '10',
         '11',
         '12',
-        '13',
+        '13'
       ]);
       checkScrollContainerLeft(component);
 
       await editor.update({ showLineNumbers: false });
       expect(
         Array.from(element.querySelectorAll('.line-number')).every(
-          (e) => e.textContent === ''
+          e => e.textContent === ''
         )
       ).toBe(true);
       checkScrollContainerLeft(component);
@@ -958,29 +931,11 @@ describe('TextEditorComponent', () => {
       const { editor, element, component } = buildComponent();
       expect(element.classList.contains('has-selection')).toBe(false);
 
-      editor.setSelectedBufferRanges([
-        [
-          [0, 0],
-          [0, 0],
-        ],
-        [
-          [1, 0],
-          [1, 10],
-        ],
-      ]);
+      editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 10]]]);
       await component.getNextUpdatePromise();
       expect(element.classList.contains('has-selection')).toBe(true);
 
-      editor.setSelectedBufferRanges([
-        [
-          [0, 0],
-          [0, 0],
-        ],
-        [
-          [1, 0],
-          [1, 0],
-        ],
-      ]);
+      editor.setSelectedBufferRanges([[[0, 0], [0, 0]], [[1, 0], [1, 0]]]);
       await component.getNextUpdatePromise();
       expect(element.classList.contains('has-selection')).toBe(false);
     });
@@ -992,10 +947,10 @@ describe('TextEditorComponent', () => {
       await setEditorWidthInCharacters(component, 40);
       {
         const bufferRows = queryOnScreenLineNumberElements(element).map(
-          (e) => e.dataset.bufferRow
+          e => e.dataset.bufferRow
         );
         const screenRows = queryOnScreenLineNumberElements(element).map(
-          (e) => e.dataset.screenRow
+          e => e.dataset.screenRow
         );
         expect(bufferRows).toEqual([
           '0',
@@ -1016,7 +971,7 @@ describe('TextEditorComponent', () => {
           '10',
           '11',
           '11',
-          '12',
+          '12'
         ]);
         expect(screenRows).toEqual([
           '0',
@@ -1037,7 +992,7 @@ describe('TextEditorComponent', () => {
           '15',
           '16',
           '17',
-          '18',
+          '18'
         ]);
       }
 
@@ -1045,10 +1000,10 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       {
         const bufferRows = queryOnScreenLineNumberElements(element).map(
-          (e) => e.dataset.bufferRow
+          e => e.dataset.bufferRow
         );
         const screenRows = queryOnScreenLineNumberElements(element).map(
-          (e) => e.dataset.screenRow
+          e => e.dataset.screenRow
         );
         expect(bufferRows).toEqual([
           '0',
@@ -1070,7 +1025,7 @@ describe('TextEditorComponent', () => {
           '11',
           '12',
           '12',
-          '13',
+          '13'
         ]);
         expect(screenRows).toEqual([
           '0',
@@ -1092,7 +1047,7 @@ describe('TextEditorComponent', () => {
           '16',
           '17',
           '18',
-          '19',
+          '19'
         ]);
       }
     });
@@ -1124,7 +1079,7 @@ describe('TextEditorComponent', () => {
 
     it('ignores resize events when the editor is hidden', async () => {
       const { component, element } = buildComponent({
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height = 5 * component.getLineHeight() + 'px';
       await component.getNextUpdatePromise();
@@ -1189,7 +1144,7 @@ describe('TextEditorComponent', () => {
           const rowsPerTile = random.intBetween(1, 6);
           const { component, element, editor } = buildComponent({
             rowsPerTile,
-            autoHeight: false,
+            autoHeight: false
           });
           editor.setSoftWrapped(Boolean(random(2)));
           await setEditorWidthInCharacters(component, random(20));
@@ -1304,7 +1259,7 @@ describe('TextEditorComponent', () => {
       {
         const { element } = buildComponent({
           mini: true,
-          attach: false,
+          attach: false
         });
         expect(element.hasAttribute('mini')).toBe(true);
         expect(element.classList.contains('mini')).toBe(true);
@@ -1339,7 +1294,7 @@ describe('TextEditorComponent', () => {
     it('does not render scrollbars', async () => {
       const { component, editor } = buildComponent({
         mini: true,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorWidthInCharacters(component, 10);
 
@@ -1433,14 +1388,11 @@ describe('TextEditorComponent', () => {
   describe('autoscroll', () => {
     it('automatically scrolls vertically when the requested range is within the vertical scroll margin of the top or bottom', async () => {
       const { component, editor } = buildComponent({
-        height: 120 + horizontalScrollbarHeight,
+        height: 120 + horizontalScrollbarHeight
       });
       expect(component.getLastVisibleRow()).toBe(7);
 
-      editor.scrollToScreenRange([
-        [4, 0],
-        [6, 0],
-      ]);
+      editor.scrollToScreenRange([[4, 0], [6, 0]]);
       await component.getNextUpdatePromise();
       expect(component.getScrollBottom()).toBe(
         (6 + 1 + editor.verticalScrollMargin) * component.getLineHeight()
@@ -1466,7 +1418,7 @@ describe('TextEditorComponent', () => {
 
     it('does not vertically autoscroll by more than half of the visible lines if the editor is shorter than twice the scroll margin', async () => {
       const { component, element, editor } = buildComponent({
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height =
         5.5 * component.measurements.lineHeight +
@@ -1488,22 +1440,13 @@ describe('TextEditorComponent', () => {
         (6 + 1 + scrollMarginInLines) * component.measurements.lineHeight
       );
 
-      editor.scrollToScreenRange([
-        [4, 4],
-        [6, 4],
-      ]);
+      editor.scrollToScreenRange([[4, 4], [6, 4]]);
       await component.getNextUpdatePromise();
       expect(component.getScrollTop()).toBe(
         (4 - scrollMarginInLines) * component.measurements.lineHeight
       );
 
-      editor.scrollToScreenRange(
-        [
-          [4, 4],
-          [6, 4],
-        ],
-        { reversed: false }
-      );
+      editor.scrollToScreenRange([[4, 4], [6, 4]], { reversed: false });
       await component.getNextUpdatePromise();
       expect(component.getScrollBottom()).toBe(
         (6 + 1 + scrollMarginInLines) * component.measurements.lineHeight
@@ -1514,13 +1457,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({ height: 50 });
       expect(component.getLastVisibleRow()).toBe(2);
 
-      editor.scrollToScreenRange(
-        [
-          [4, 0],
-          [6, 0],
-        ],
-        { center: true }
-      );
+      editor.scrollToScreenRange([[4, 0], [6, 0]], { center: true });
       await component.getNextUpdatePromise();
 
       const actualScrollCenter =
@@ -1539,10 +1476,7 @@ describe('TextEditorComponent', () => {
         'px';
       await component.getNextUpdatePromise();
 
-      editor.scrollToScreenRange([
-        [1, 12],
-        [2, 28],
-      ]);
+      editor.scrollToScreenRange([[1, 12], [2, 28]]);
       await component.getNextUpdatePromise();
       let expectedScrollLeft =
         clientLeftForCharacter(component, 1, 12) -
@@ -1551,13 +1485,7 @@ describe('TextEditorComponent', () => {
           component.measurements.baseCharacterWidth;
       expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0);
 
-      editor.scrollToScreenRange(
-        [
-          [1, 12],
-          [2, 28],
-        ],
-        { reversed: false }
-      );
+      editor.scrollToScreenRange([[1, 12], [2, 28]], { reversed: false });
       await component.getNextUpdatePromise();
       expectedScrollLeft =
         component.getGutterContainerWidth() +
@@ -1580,10 +1508,7 @@ describe('TextEditorComponent', () => {
         component.getBaseCharacterWidth();
       expect(Math.round(editorWidthInChars)).toBe(9);
 
-      editor.scrollToScreenRange([
-        [6, 10],
-        [6, 15],
-      ]);
+      editor.scrollToScreenRange([[6, 10], [6, 15]]);
       await component.getNextUpdatePromise();
       let expectedScrollLeft = Math.floor(
         clientLeftForCharacter(component, 6, 10) -
@@ -1615,7 +1540,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         autoHeight: false,
         height: 30,
-        rowsPerTile: 2,
+        rowsPerTile: 2
       });
       editor.scrollToBufferPosition([11, 5]);
       editor.getBuffer().deleteRows(11, 12);
@@ -1627,7 +1552,7 @@ describe('TextEditorComponent', () => {
 
     it('accounts for the presence of horizontal scrollbars that appear during the same frame as the autoscroll', async () => {
       const { component, element, editor } = buildComponent({
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height = component.getContentHeight() / 2 + 'px';
       element.style.width = component.getScrollWidth() + 'px';
@@ -1657,7 +1582,7 @@ describe('TextEditorComponent', () => {
     it('allows the scrollTop to be changed and queried in terms of rows via setScrollTopRow and getScrollTopRow', () => {
       const { component, element } = buildComponent({
         attach: false,
-        height: 80,
+        height: 80
       });
 
       // Caches the scrollTopRow if we don't have measurements
@@ -1704,7 +1629,7 @@ describe('TextEditorComponent', () => {
     it('allows the scrollLeft to be changed and queried in terms of base character columns via setScrollLeftColumn and getScrollLeftColumn', () => {
       const { component, element } = buildComponent({
         attach: false,
-        width: 80,
+        width: 80
       });
 
       // Caches the scrollTopRow if we don't have measurements
@@ -1753,10 +1678,10 @@ describe('TextEditorComponent', () => {
       const { component } = buildComponent({
         height: 50,
         width: 50,
-        scrollSensitivity,
+        scrollSensitivity
       });
       // stub in place for Event.preventDefault()
-      const eventPreventDefaultStub = function () {};
+      const eventPreventDefaultStub = function() {};
 
       {
         const expectedScrollTop = 20 * (scrollSensitivity / 100);
@@ -1764,7 +1689,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -5,
           wheelDeltaY: -20,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
@@ -1780,7 +1705,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -5,
           wheelDeltaY: 10,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
@@ -1795,7 +1720,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: -20,
           wheelDeltaY: 10,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
@@ -1811,7 +1736,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 10,
           wheelDeltaY: -8,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
@@ -1826,10 +1751,10 @@ describe('TextEditorComponent', () => {
       const { component } = buildComponent({
         height: 50,
         width: 50,
-        scrollSensitivity,
+        scrollSensitivity
       });
       // stub in place for Event.preventDefault()
-      const eventPreventDefaultStub = function () {};
+      const eventPreventDefaultStub = function() {};
 
       component.props.platform = 'linux';
       {
@@ -1837,7 +1762,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1852,7 +1777,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: 0,
           wheelDeltaY: -20,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1867,7 +1792,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: -20,
           wheelDeltaY: 0,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1882,7 +1807,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1897,7 +1822,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: 0,
           wheelDeltaY: -20,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1912,7 +1837,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: -20,
           wheelDeltaY: 0,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1927,7 +1852,7 @@ describe('TextEditorComponent', () => {
         component.didMouseWheel({
           wheelDeltaX: 0,
           wheelDeltaY: -20,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1942,7 +1867,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: 0,
           wheelDeltaY: -20,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollTop()).toBe(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
@@ -1957,7 +1882,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaX: -20,
           wheelDeltaY: 0,
           shiftKey: true,
-          preventDefault: eventPreventDefaultStub,
+          preventDefault: eventPreventDefaultStub
         });
         expect(component.getScrollLeft()).toBe(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
@@ -1972,7 +1897,7 @@ describe('TextEditorComponent', () => {
     it('ignores scroll requests to NaN, null or undefined positions', async () => {
       const { component } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       await setEditorWidthInCharacters(component, 10);
@@ -2008,7 +1933,7 @@ describe('TextEditorComponent', () => {
   describe('line and line number decorations', () => {
     it('adds decoration classes on screen lines spanned by decorated markers', async () => {
       const { component, editor } = buildComponent({
-        softWrapped: true,
+        softWrapped: true
       });
       await setEditorWidthInCharacters(component, 55);
       expect(lineNodeForScreenRow(component, 3).textContent).toBe(
@@ -2018,25 +1943,22 @@ describe('TextEditorComponent', () => {
         '    right = [];'
       );
 
-      const marker1 = editor.markScreenRange([
-        [1, 10],
-        [3, 10],
-      ]);
+      const marker1 = editor.markScreenRange([[1, 10], [3, 10]]);
       const layer = editor.addMarkerLayer();
       layer.markScreenPosition([5, 0]);
       layer.markScreenPosition([8, 0]);
       const marker4 = layer.markScreenPosition([10, 0]);
       editor.decorateMarker(marker1, {
         type: ['line', 'line-number'],
-        class: 'a',
+        class: 'a'
       });
       const layerDecoration = editor.decorateMarkerLayer(layer, {
         type: ['line', 'line-number'],
-        class: 'b',
+        class: 'b'
       });
       layerDecoration.setPropertiesForMarker(marker4, {
         type: 'line',
-        class: 'c',
+        class: 'c'
       });
       await component.getNextUpdatePromise();
 
@@ -2090,10 +2012,7 @@ describe('TextEditorComponent', () => {
         lineNumberNodeForScreenRow(component, 10).classList.contains('c')
       ).toBe(false);
 
-      marker1.setScreenRange([
-        [5, 0],
-        [8, 0],
-      ]);
+      marker1.setScreenRange([[5, 0], [8, 0]]);
       await component.getNextUpdatePromise();
 
       expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(
@@ -2165,16 +2084,16 @@ describe('TextEditorComponent', () => {
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
         class: 'a',
-        onlyEmpty: true,
+        onlyEmpty: true
       });
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
         class: 'b',
-        onlyNonEmpty: true,
+        onlyNonEmpty: true
       });
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
-        class: 'c',
+        class: 'c'
       });
       await component.getNextUpdatePromise();
 
@@ -2197,10 +2116,7 @@ describe('TextEditorComponent', () => {
         lineNumberNodeForScreenRow(component, 1).classList.contains('c')
       ).toBe(true);
 
-      marker.setScreenRange([
-        [1, 0],
-        [2, 4],
-      ]);
+      marker.setScreenRange([[1, 0], [2, 4]]);
       await component.getNextUpdatePromise();
 
       expect(lineNodeForScreenRow(component, 1).classList.contains('a')).toBe(
@@ -2237,14 +2153,11 @@ describe('TextEditorComponent', () => {
 
     it('honors the onlyHead option', async () => {
       const { component, editor } = buildComponent();
-      const marker = editor.markScreenRange([
-        [1, 4],
-        [3, 4],
-      ]);
+      const marker = editor.markScreenRange([[1, 4], [3, 4]]);
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
         class: 'a',
-        onlyHead: true,
+        onlyHead: true
       });
       await component.getNextUpdatePromise();
 
@@ -2264,18 +2177,15 @@ describe('TextEditorComponent', () => {
 
     it('only decorates the last row of non-empty ranges that end at column 0 if omitEmptyLastRow is false', async () => {
       const { component, editor } = buildComponent();
-      const marker = editor.markScreenRange([
-        [1, 0],
-        [3, 0],
-      ]);
+      const marker = editor.markScreenRange([[1, 0], [3, 0]]);
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
-        class: 'a',
+        class: 'a'
       });
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
         class: 'b',
-        omitEmptyLastRow: false,
+        omitEmptyLastRow: false
       });
       await component.getNextUpdatePromise();
 
@@ -2302,18 +2212,12 @@ describe('TextEditorComponent', () => {
 
     it('does not decorate invalidated markers', async () => {
       const { component, editor } = buildComponent();
-      const marker = editor.markScreenRange(
-        [
-          [1, 0],
-          [3, 0],
-        ],
-        {
-          invalidate: 'touch',
-        }
-      );
+      const marker = editor.markScreenRange([[1, 0], [3, 0]], {
+        invalidate: 'touch'
+      });
       editor.decorateMarker(marker, {
         type: ['line', 'line-number'],
-        class: 'a',
+        class: 'a'
       });
       await component.getNextUpdatePromise();
       expect(lineNodeForScreenRow(component, 2).classList.contains('a')).toBe(
@@ -2332,10 +2236,7 @@ describe('TextEditorComponent', () => {
   describe('highlight decorations', () => {
     it('renders single-line highlights', async () => {
       const { component, element, editor } = buildComponent();
-      const marker = editor.markScreenRange([
-        [1, 2],
-        [1, 10],
-      ]);
+      const marker = editor.markScreenRange([[1, 2], [1, 10]]);
       editor.decorateMarker(marker, { type: 'highlight', class: 'a' });
       await component.getNextUpdatePromise();
 
@@ -2354,10 +2255,7 @@ describe('TextEditorComponent', () => {
         );
       }
 
-      marker.setScreenRange([
-        [1, 4],
-        [1, 8],
-      ]);
+      marker.setScreenRange([[1, 4], [1, 8]]);
       await component.getNextUpdatePromise();
 
       {
@@ -2381,10 +2279,7 @@ describe('TextEditorComponent', () => {
 
     it('renders multi-line highlights', async () => {
       const { component, element, editor } = buildComponent({ rowsPerTile: 3 });
-      const marker = editor.markScreenRange([
-        [2, 4],
-        [3, 4],
-      ]);
+      const marker = editor.markScreenRange([[2, 4], [3, 4]]);
       editor.decorateMarker(marker, { type: 'highlight', class: 'a' });
 
       await component.getNextUpdatePromise();
@@ -2423,10 +2318,7 @@ describe('TextEditorComponent', () => {
         );
       }
 
-      marker.setScreenRange([
-        [2, 4],
-        [5, 4],
-      ]);
+      marker.setScreenRange([[2, 4], [5, 4]]);
       await component.getNextUpdatePromise();
 
       {
@@ -2482,15 +2374,12 @@ describe('TextEditorComponent', () => {
     it('can flash highlight decorations', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        height: 200,
+        height: 200
       });
-      const marker = editor.markScreenRange([
-        [2, 4],
-        [3, 4],
-      ]);
+      const marker = editor.markScreenRange([[2, 4], [3, 4]]);
       const decoration = editor.decorateMarker(marker, {
         type: 'highlight',
-        class: 'a',
+        class: 'a'
       });
       decoration.flash('b', 10);
 
@@ -2525,15 +2414,12 @@ describe('TextEditorComponent', () => {
     it("flashing a highlight decoration doesn't unflash other highlight decorations", async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        height: 200,
+        height: 200
       });
-      const marker = editor.markScreenRange([
-        [2, 4],
-        [3, 4],
-      ]);
+      const marker = editor.markScreenRange([[2, 4], [3, 4]]);
       const decoration = editor.decorateMarker(marker, {
         type: 'highlight',
-        class: 'a',
+        class: 'a'
       });
 
       // Flash one class
@@ -2552,20 +2438,14 @@ describe('TextEditorComponent', () => {
 
     it('supports layer decorations', async () => {
       const { component, element, editor } = buildComponent({
-        rowsPerTile: 12,
+        rowsPerTile: 12
       });
       const markerLayer = editor.addMarkerLayer();
-      const marker1 = markerLayer.markScreenRange([
-        [2, 4],
-        [3, 4],
-      ]);
-      const marker2 = markerLayer.markScreenRange([
-        [5, 6],
-        [7, 8],
-      ]);
+      const marker1 = markerLayer.markScreenRange([[2, 4], [3, 4]]);
+      const marker2 = markerLayer.markScreenRange([[5, 6], [7, 8]]);
       const decoration = editor.decorateMarkerLayer(markerLayer, {
         type: 'highlight',
-        class: 'a',
+        class: 'a'
       });
       await component.getNextUpdatePromise();
 
@@ -2575,7 +2455,7 @@ describe('TextEditorComponent', () => {
 
       decoration.setPropertiesForMarker(marker1, {
         type: 'highlight',
-        class: 'b',
+        class: 'b'
       });
       await component.getNextUpdatePromise();
       expect(highlights[0].classList.contains('b')).toBe(true);
@@ -2584,7 +2464,7 @@ describe('TextEditorComponent', () => {
       decoration.setPropertiesForMarker(marker1, null);
       decoration.setPropertiesForMarker(marker2, {
         type: 'highlight',
-        class: 'c',
+        class: 'c'
       });
       await component.getNextUpdatePromise();
       expect(highlights[0].classList.contains('a')).toBe(true);
@@ -2594,13 +2474,10 @@ describe('TextEditorComponent', () => {
     it('clears highlights when recycling a tile that previously contained highlights and now does not', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 2);
-      const marker = editor.markScreenRange([
-        [1, 2],
-        [1, 10],
-      ]);
+      const marker = editor.markScreenRange([[1, 2], [1, 10]]);
       editor.decorateMarker(marker, { type: 'highlight', class: 'a' });
 
       await component.getNextUpdatePromise();
@@ -2613,10 +2490,7 @@ describe('TextEditorComponent', () => {
     it('does not move existing highlights when adding or removing other highlight decorations (regression)', async () => {
       const { component, element, editor } = buildComponent();
 
-      const marker1 = editor.markScreenRange([
-        [1, 6],
-        [1, 10],
-      ]);
+      const marker1 = editor.markScreenRange([[1, 6], [1, 10]]);
       editor.decorateMarker(marker1, { type: 'highlight', class: 'a' });
       await component.getNextUpdatePromise();
       const marker1Region = element.querySelector('.highlight.a');
@@ -2624,10 +2498,7 @@ describe('TextEditorComponent', () => {
         Array.from(marker1Region.parentElement.children).indexOf(marker1Region)
       ).toBe(0);
 
-      const marker2 = editor.markScreenRange([
-        [1, 2],
-        [1, 4],
-      ]);
+      const marker2 = editor.markScreenRange([[1, 2], [1, 4]]);
       editor.decorateMarker(marker2, { type: 'highlight', class: 'b' });
       await component.getNextUpdatePromise();
       const marker2Region = element.querySelector('.highlight.b');
@@ -2654,7 +2525,7 @@ describe('TextEditorComponent', () => {
       editor.decorateMarker(editor.markBufferPosition([4, 0]), {
         type: 'block',
         position: 'after',
-        item: item1,
+        item: item1
       });
       const item2 = document.createElement('div');
       item2.style.height = '30px';
@@ -2662,18 +2533,12 @@ describe('TextEditorComponent', () => {
       editor.decorateMarker(editor.markBufferPosition([4, 0]), {
         type: 'block',
         position: 'before',
-        item: item2,
+        item: item2
       });
-      editor.decorateMarker(
-        editor.markBufferRange([
-          [3, 0],
-          [4, Infinity],
-        ]),
-        {
-          type: 'highlight',
-          class: 'highlight',
-        }
-      );
+      editor.decorateMarker(editor.markBufferRange([[3, 0], [4, Infinity]]), {
+        type: 'highlight',
+        class: 'highlight'
+      });
 
       await component.getNextUpdatePromise();
       const regions = element.querySelectorAll('.highlight .region');
@@ -2704,7 +2569,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         width: 200,
         height: 100,
-        attach: false,
+        attach: false
       });
       const fakeWindow = attachFakeWindow(component);
 
@@ -2722,7 +2587,7 @@ describe('TextEditorComponent', () => {
       const decoration = editor.decorateMarker(marker, {
         type: 'overlay',
         item: overlayElement,
-        class: 'a',
+        class: 'a'
       });
       await component.getNextUpdatePromise();
 
@@ -2791,7 +2656,7 @@ describe('TextEditorComponent', () => {
       decoration.setProperties({
         type: 'overlay',
         item: overlayElement,
-        class: 'b',
+        class: 'b'
       });
       await component.getNextUpdatePromise();
       expect(overlayWrapper.classList.contains('a')).toBe(false);
@@ -2806,7 +2671,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         width: 200,
         height: 100,
-        attach: false,
+        attach: false
       });
       const fakeWindow = attachFakeWindow(component);
       const overlayElement = document.createElement('div');
@@ -2818,7 +2683,7 @@ describe('TextEditorComponent', () => {
       editor.decorateMarker(marker, {
         type: 'overlay',
         item: overlayElement,
-        avoidOverflow: false,
+        avoidOverflow: false
       });
       await component.getNextUpdatePromise();
 
@@ -2847,7 +2712,7 @@ describe('TextEditorComponent', () => {
         '.gutter'
       );
       expect(
-        Array.from(gutters).map((g) => g.getAttribute('gutter-name'))
+        Array.from(gutters).map(g => g.getAttribute('gutter-name'))
       ).toEqual(['a', 'b', 'c', 'line-number', 'd', 'e']);
     });
 
@@ -2939,18 +2804,9 @@ describe('TextEditorComponent', () => {
       const { component, element, editor } = buildComponent();
       const gutterA = editor.addGutter({ name: 'a', priority: -1 });
       const gutterB = editor.addGutter({ name: 'b', priority: 1 });
-      const marker1 = editor.markScreenRange([
-        [2, 0],
-        [4, 0],
-      ]);
-      const marker2 = editor.markScreenRange([
-        [6, 0],
-        [7, 0],
-      ]);
-      const marker3 = editor.markScreenRange([
-        [9, 0],
-        [12, 0],
-      ]);
+      const marker1 = editor.markScreenRange([[2, 0], [4, 0]]);
+      const marker2 = editor.markScreenRange([[6, 0], [7, 0]]);
+      const marker3 = editor.markScreenRange([[9, 0], [12, 0]]);
       const decorationElement1 = document.createElement('div');
       const decorationElement2 = document.createElement('div');
       // Packages may adopt this class name for decorations to be styled the same as line numbers
@@ -2959,16 +2815,16 @@ describe('TextEditorComponent', () => {
       const decoration1 = gutterA.decorateMarker(marker1, { class: 'a' });
       const decoration2 = gutterA.decorateMarker(marker2, {
         class: 'b',
-        item: decorationElement1,
+        item: decorationElement1
       });
       const decoration3 = gutterB.decorateMarker(marker3, {
-        item: decorationElement2,
+        item: decorationElement2
       });
       await component.getNextUpdatePromise();
 
       let [
         decorationNode1,
-        decorationNode2,
+        decorationNode2
       ] = gutterA.getElement().firstChild.children;
       const [decorationNode3] = gutterB.getElement().firstChild.children;
 
@@ -3023,7 +2879,7 @@ describe('TextEditorComponent', () => {
         type: 'gutter',
         gutterName: 'a',
         class: 'c',
-        item: decorationElement1,
+        item: decorationElement1
       });
       decoration2.setProperties({ type: 'gutter', gutterName: 'a' });
       decoration3.destroy();
@@ -3045,14 +2901,14 @@ describe('TextEditorComponent', () => {
         priority: 1,
         type: 'line-number',
         class: 'a-number',
-        labelFn: ({ bufferRow }) => `a - ${bufferRow}`,
+        labelFn: ({ bufferRow }) => `a - ${bufferRow}`
       });
       const gutterB = editor.addGutter({
         name: 'b',
         priority: 1,
         type: 'line-number',
         class: 'b-number',
-        labelFn: ({ bufferRow }) => `b - ${bufferRow}`,
+        labelFn: ({ bufferRow }) => `b - ${bufferRow}`
       });
       editor.setText('0000\n0001\n0002\n0003\n0004\n');
 
@@ -3062,28 +2918,28 @@ describe('TextEditorComponent', () => {
       const aNumbers = gutterAElement.querySelectorAll(
         'div.line-number[data-buffer-row]'
       );
-      const aLabels = Array.from(aNumbers, (e) => e.textContent);
+      const aLabels = Array.from(aNumbers, e => e.textContent);
       expect(aLabels).toEqual([
         'a - 0',
         'a - 1',
         'a - 2',
         'a - 3',
         'a - 4',
-        'a - 5',
+        'a - 5'
       ]);
 
       const gutterBElement = gutterB.getElement();
       const bNumbers = gutterBElement.querySelectorAll(
         'div.line-number[data-buffer-row]'
       );
-      const bLabels = Array.from(bNumbers, (e) => e.textContent);
+      const bLabels = Array.from(bNumbers, e => e.textContent);
       expect(bLabels).toEqual([
         'b - 0',
         'b - 1',
         'b - 2',
         'b - 3',
         'b - 4',
-        'b - 5',
+        'b - 5'
       ]);
     });
 
@@ -3092,7 +2948,7 @@ describe('TextEditorComponent', () => {
         lineNumberGutterVisible: false,
         width: 400,
         softWrapped: true,
-        attach: false,
+        attach: false
       });
       const gutter = editor.addGutter({ name: 'a', priority: 10 });
       gutter.getElement().style.width = '100px';
@@ -3115,18 +2971,18 @@ describe('TextEditorComponent', () => {
       const editor = buildEditor({ autoHeight: false });
       const {
         item: item1,
-        decoration: decoration1,
+        decoration: decoration1
       } = createBlockDecorationAtScreenRow(editor, 0, {
         height: 11,
-        position: 'before',
+        position: 'before'
       });
       const {
         item: item2,
-        decoration: decoration2,
+        decoration: decoration2
       } = createBlockDecorationAtScreenRow(editor, 2, {
         height: 22,
         margin: 10,
-        position: 'before',
+        position: 'before'
       });
 
       // render an editor that already contains some block decorations
@@ -3147,9 +3003,9 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item1) +
-            getElementHeight(item2),
+            getElementHeight(item2)
         },
-        { tileStartRow: 3, height: 3 * component.getLineHeight() },
+        { tileStartRow: 3, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3161,24 +3017,24 @@ describe('TextEditorComponent', () => {
       // add block decorations
       const {
         item: item3,
-        decoration: decoration3,
+        decoration: decoration3
       } = createBlockDecorationAtScreenRow(editor, 4, {
         height: 33,
-        position: 'before',
+        position: 'before'
       });
       const { item: item4 } = createBlockDecorationAtScreenRow(editor, 7, {
         height: 44,
-        position: 'before',
+        position: 'before'
       });
       const { item: item5 } = createBlockDecorationAtScreenRow(editor, 7, {
         height: 50,
         marginBottom: 5,
-        position: 'after',
+        position: 'after'
       });
       const { item: item6 } = createBlockDecorationAtScreenRow(editor, 12, {
         height: 60,
         marginTop: 6,
-        position: 'after',
+        position: 'after'
       });
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
@@ -3198,12 +3054,12 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item1) +
-            getElementHeight(item2),
+            getElementHeight(item2)
         },
         {
           tileStartRow: 3,
-          height: 3 * component.getLineHeight() + getElementHeight(item3),
-        },
+          height: 3 * component.getLineHeight() + getElementHeight(item3)
+        }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3233,12 +3089,12 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         {
           tileStartRow: 0,
-          height: 3 * component.getLineHeight() + getElementHeight(item2),
+          height: 3 * component.getLineHeight() + getElementHeight(item2)
         },
         {
           tileStartRow: 3,
-          height: 3 * component.getLineHeight() + getElementHeight(item3),
-        },
+          height: 3 * component.getLineHeight() + getElementHeight(item3)
+        }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3271,9 +3127,9 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item2) +
-            getElementHeight(item3),
+            getElementHeight(item3)
         },
-        { tileStartRow: 3, height: 3 * component.getLineHeight() },
+        { tileStartRow: 3, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3287,13 +3143,7 @@ describe('TextEditorComponent', () => {
       expect(element.contains(item6)).toBe(false);
 
       // change the text
-      editor.getBuffer().setTextInRange(
-        [
-          [0, 5],
-          [0, 5],
-        ],
-        '\n\n'
-      );
+      editor.getBuffer().setTextInRange([[0, 5], [0, 5]], '\n\n');
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
@@ -3308,12 +3158,12 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         {
           tileStartRow: 0,
-          height: 3 * component.getLineHeight() + getElementHeight(item3),
+          height: 3 * component.getLineHeight() + getElementHeight(item3)
         },
         {
           tileStartRow: 3,
-          height: 3 * component.getLineHeight() + getElementHeight(item2),
-        },
+          height: 3 * component.getLineHeight() + getElementHeight(item2)
+        }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3344,9 +3194,9 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         {
           tileStartRow: 3,
-          height: 3 * component.getLineHeight() + getElementHeight(item2),
+          height: 3 * component.getLineHeight() + getElementHeight(item2)
         },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3378,9 +3228,9 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item2) +
-            getElementHeight(item3),
+            getElementHeight(item3)
         },
-        { tileStartRow: 3, height: 3 * component.getLineHeight() },
+        { tileStartRow: 3, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3417,9 +3267,9 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item2) +
-            getElementHeight(item3),
+            getElementHeight(item3)
         },
-        { tileStartRow: 3, height: 3 * component.getLineHeight() },
+        { tileStartRow: 3, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3467,9 +3317,9 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item2) +
-            getElementHeight(item3),
+            getElementHeight(item3)
         },
-        { tileStartRow: 3, height: 3 * component.getLineHeight() },
+        { tileStartRow: 3, height: 3 * component.getLineHeight() }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(9);
@@ -3505,7 +3355,7 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item2) +
-            getElementHeight(item3),
+            getElementHeight(item3)
         },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
         {
@@ -3513,8 +3363,8 @@ describe('TextEditorComponent', () => {
           height:
             3 * component.getLineHeight() +
             getElementHeight(item4) +
-            getElementHeight(item5),
-        },
+            getElementHeight(item5)
+        }
       ]);
       assertLinesAreAlignedWithLineNumbers(component);
       expect(queryOnScreenLineElements(element).length).toBe(13);
@@ -3534,23 +3384,23 @@ describe('TextEditorComponent', () => {
       const { editor, component } = buildComponent({ rowsPerTile: 3 });
       createBlockDecorationAtScreenRow(editor, 0, {
         height: 5,
-        position: 'before',
+        position: 'before'
       });
       createBlockDecorationAtScreenRow(editor, 2, {
         height: 7,
-        position: 'after',
+        position: 'after'
       });
       createBlockDecorationAtScreenRow(editor, 3, {
         height: 9,
-        position: 'before',
+        position: 'before'
       });
       createBlockDecorationAtScreenRow(editor, 3, {
         height: 11,
-        position: 'after',
+        position: 'after'
       });
       createBlockDecorationAtScreenRow(editor, 5, {
         height: 13,
-        position: 'after',
+        position: 'after'
       });
 
       await component.getNextUpdatePromise();
@@ -3559,9 +3409,9 @@ describe('TextEditorComponent', () => {
         { tileStartRow: 0, height: 3 * component.getLineHeight() + 5 + 7 },
         {
           tileStartRow: 3,
-          height: 3 * component.getLineHeight() + 9 + 11 + 13,
+          height: 3 * component.getLineHeight() + 9 + 11 + 13
         },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
     });
 
@@ -3569,14 +3419,14 @@ describe('TextEditorComponent', () => {
       const { editor, component } = buildComponent({ rowsPerTile: 3 });
       const { marker } = createBlockDecorationAtScreenRow(editor, 2, {
         height: 5,
-        position: 'before',
+        position: 'before'
       });
       await component.getNextUpdatePromise();
       assertLinesAreAlignedWithLineNumbers(component);
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() + 5 },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
 
       marker.destroy();
@@ -3585,21 +3435,21 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
     });
 
     it('removes block decorations whose markers are invalidated, and adds them back when they become valid again', async () => {
       const editor = buildEditor({ rowsPerTile: 3, autoHeight: false });
-      const {
-        item,
-        decoration,
-        marker,
-      } = createBlockDecorationAtScreenRow(editor, 3, {
-        height: 44,
-        position: 'before',
-        invalidate: 'touch',
-      });
+      const { item, decoration, marker } = createBlockDecorationAtScreenRow(
+        editor,
+        3,
+        {
+          height: 44,
+          position: 'before',
+          invalidate: 'touch'
+        }
+      );
       const { component } = buildComponent({ editor, rowsPerTile: 3 });
 
       // Invalidating the marker removes the block decoration.
@@ -3610,36 +3460,30 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
 
       // Moving invalid markers is ignored.
-      marker.setScreenRange([
-        [2, 0],
-        [2, 0],
-      ]);
+      marker.setScreenRange([[2, 0], [2, 0]]);
       await component.getNextUpdatePromise();
       expect(item.parentElement).toBeNull();
       assertLinesAreAlignedWithLineNumbers(component);
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
 
       // Making the marker valid again adds back the block decoration.
       marker.bufferMarker.valid = true;
-      marker.setScreenRange([
-        [3, 0],
-        [3, 0],
-      ]);
+      marker.setScreenRange([[3, 0], [3, 0]]);
       await component.getNextUpdatePromise();
       expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 3));
       assertLinesAreAlignedWithLineNumbers(component);
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() + 44 },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
 
       // Destroying the decoration and invalidating the marker at the same time
@@ -3652,7 +3496,7 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
     });
 
@@ -3669,7 +3513,7 @@ describe('TextEditorComponent', () => {
       editor.decorateMarker(marker, {
         type: 'block',
         item,
-        position: 'before',
+        position: 'before'
       });
       await component.getNextUpdatePromise();
       expect(item.parentElement).toBeNull();
@@ -3677,23 +3521,20 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
 
       // Making the marker valid again causes the corresponding block decoration
       // to be added to the editor.
       marker.bufferMarker.valid = true;
-      marker.setScreenRange([
-        [2, 0],
-        [2, 0],
-      ]);
+      marker.setScreenRange([[2, 0], [2, 0]]);
       await component.getNextUpdatePromise();
       expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2));
       assertLinesAreAlignedWithLineNumbers(component);
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() + 30 },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
     });
 
@@ -3702,7 +3543,7 @@ describe('TextEditorComponent', () => {
       const { component } = buildComponent({ editor, rowsPerTile: 3 });
       createBlockDecorationAtScreenRow(editor, 2, {
         height: '12px',
-        invalidate: 'touch',
+        invalidate: 'touch'
       });
       editor.getBuffer().deleteRows(0, 3);
       await component.getNextUpdatePromise();
@@ -3713,7 +3554,7 @@ describe('TextEditorComponent', () => {
       assertTilesAreSizedAndPositionedCorrectly(component, [
         { tileStartRow: 0, height: 3 * component.getLineHeight() },
         { tileStartRow: 3, height: 3 * component.getLineHeight() },
-        { tileStartRow: 6, height: 3 * component.getLineHeight() },
+        { tileStartRow: 6, height: 3 * component.getLineHeight() }
       ]);
     });
 
@@ -3730,10 +3571,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(item.nextSibling).toBe(lineNodeForScreenRow(component, 2));
 
-      marker.setBufferRange([
-        [0, 0],
-        [0, 0],
-      ]);
+      marker.setBufferRange([[0, 0], [0, 0]]);
       expect(marker.isDestroyed()).toBe(true);
 
       await component.getNextUpdatePromise();
@@ -3743,33 +3581,21 @@ describe('TextEditorComponent', () => {
     it('does not attempt to render block decorations located outside the visible range', async () => {
       const { editor, component } = buildComponent({
         autoHeight: false,
-        rowsPerTile: 2,
+        rowsPerTile: 2
       });
       await setEditorHeightInLines(component, 2);
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(4);
 
-      const marker1 = editor.markScreenRange(
-        [
-          [3, 0],
-          [5, 0],
-        ],
-        {
-          reversed: false,
-        }
-      );
+      const marker1 = editor.markScreenRange([[3, 0], [5, 0]], {
+        reversed: false
+      });
       const item1 = document.createElement('div');
       editor.decorateMarker(marker1, { type: 'block', item: item1 });
 
-      const marker2 = editor.markScreenRange(
-        [
-          [3, 0],
-          [5, 0],
-        ],
-        {
-          reversed: true,
-        }
-      );
+      const marker2 = editor.markScreenRange([[3, 0], [5, 0]], {
+        reversed: true
+      });
       const item2 = document.createElement('div');
       editor.decorateMarker(marker2, { type: 'block', item: item2 });
 
@@ -3789,14 +3615,14 @@ describe('TextEditorComponent', () => {
         const { editor, component, element } = buildComponent({
           autoHeight: false,
           width: 500,
-          attach: false,
+          attach: false
         });
         const marker = editor.markScreenPosition([0, 0]);
         const item = document.createElement('div');
         item.textContent = 'block decoration';
         editor.decorateMarker(marker, {
           type: 'block',
-          item,
+          item
         });
 
         jasmine.attachToDOM(element);
@@ -3806,14 +3632,14 @@ describe('TextEditorComponent', () => {
       {
         const { editor, component, element } = buildComponent({
           autoHeight: false,
-          width: 800,
+          width: 800
         });
         const marker = editor.markScreenPosition([0, 0]);
         const item = document.createElement('div');
         item.textContent = 'block decoration that could wrap many times';
         editor.decorateMarker(marker, {
           type: 'block',
-          item,
+          item
         });
 
         element.style.width = '50px';
@@ -3825,7 +3651,7 @@ describe('TextEditorComponent', () => {
     it('bases the width of the block decoration measurement area on the editor scroll width', async () => {
       const { component, element } = buildComponent({
         autoHeight: false,
-        width: 150,
+        width: 150
       });
       expect(component.refs.blockDecorationMeasurementArea.offsetWidth).toBe(
         component.getScrollWidth()
@@ -3856,7 +3682,7 @@ describe('TextEditorComponent', () => {
         detail: 1,
         button: 0,
         clientX: decorationElementClientRect.left,
-        clientY: decorationElementClientRect.top,
+        clientY: decorationElementClientRect.top
       });
       expect(editor.getCursorScreenPosition()).toEqual([0, 0]);
 
@@ -3866,7 +3692,7 @@ describe('TextEditorComponent', () => {
         detail: 1,
         button: 0,
         clientX: childElementClientRect.left,
-        clientY: childElementClientRect.top,
+        clientY: childElementClientRect.top
       });
       expect(editor.getCursorScreenPosition()).toEqual([0, 0]);
     });
@@ -3885,13 +3711,13 @@ describe('TextEditorComponent', () => {
         undefined,
         20,
         10,
-        undefined,
+        undefined
       ]
-        .map((order) => {
+        .map(order => {
           return createBlockDecorationAtScreenRow(editor, 2, {
             height: 10,
             position: 'before',
-            order,
+            order
           });
         })
         .reduce(
@@ -3904,11 +3730,11 @@ describe('TextEditorComponent', () => {
         );
 
       const [afterItems] = [undefined, 1, 6, undefined, 6, 2]
-        .map((order) => {
+        .map(order => {
           return createBlockDecorationAtScreenRow(editor, 2, {
             height: 10,
             position: 'after',
-            order,
+            order
           });
         })
         .reduce(
@@ -3943,14 +3769,15 @@ describe('TextEditorComponent', () => {
       expect(afterItems[0].nextSibling).toBe(afterItems[3]);
 
       // Create a decoration somewhere else and move it to the same screen row as the existing decorations
-      const {
-        item: later,
-        decoration,
-      } = createBlockDecorationAtScreenRow(editor, 4, {
-        height: 20,
-        position: 'after',
-        order: 3,
-      });
+      const { item: later, decoration } = createBlockDecorationAtScreenRow(
+        editor,
+        4,
+        {
+          height: 20,
+          position: 'after',
+          order: 3
+        }
+      );
       await component.getNextUpdatePromise();
       expect(later.previousSibling).toBe(lineNodeForScreenRow(component, 4));
       expect(later.nextSibling).toBe(lineNodeForScreenRow(component, 5));
@@ -3988,7 +3815,7 @@ describe('TextEditorComponent', () => {
       { height, margin, marginTop, marginBottom, position, order, invalidate }
     ) {
       const marker = editor.markScreenPosition([screenRow, 0], {
-        invalidate: invalidate || 'never',
+        invalidate: invalidate || 'never'
       });
       const item = document.createElement('div');
       item.style.height = height + 'px';
@@ -4000,7 +3827,7 @@ describe('TextEditorComponent', () => {
         type: 'block',
         item,
         position,
-        order,
+        order
       });
       return { item, decoration, marker };
     }
@@ -4048,17 +3875,17 @@ describe('TextEditorComponent', () => {
       editor.addCursorAtScreenPosition([1, 0]);
       const [cursorMarker1, cursorMarker2] = editor
         .getCursors()
-        .map((c) => c.getMarker());
+        .map(c => c.getMarker());
 
       editor.decorateMarker(cursorMarker1, { type: 'cursor', class: 'a' });
       editor.decorateMarker(cursorMarker2, {
         type: 'cursor',
         class: 'b',
-        style: { visibility: 'hidden' },
+        style: { visibility: 'hidden' }
       });
       editor.decorateMarker(cursorMarker2, {
         type: 'cursor',
-        style: { backgroundColor: 'red' },
+        style: { backgroundColor: 'red' }
       });
       await component.getNextUpdatePromise();
 
@@ -4089,32 +3916,23 @@ describe('TextEditorComponent', () => {
       const { component, element, editor } = buildComponent({ rowsPerTile: 2 });
 
       const markerLayer = editor.addMarkerLayer();
-      const marker1 = markerLayer.markBufferRange([
-        [0, 2],
-        [2, 7],
-      ]);
-      const marker2 = markerLayer.markBufferRange([
-        [0, 2],
-        [3, 8],
-      ]);
-      const marker3 = markerLayer.markBufferRange([
-        [1, 13],
-        [2, 7],
-      ]);
+      const marker1 = markerLayer.markBufferRange([[0, 2], [2, 7]]);
+      const marker2 = markerLayer.markBufferRange([[0, 2], [3, 8]]);
+      const marker3 = markerLayer.markBufferRange([[1, 13], [2, 7]]);
       editor.decorateMarker(marker1, {
         type: 'text',
         class: 'a',
-        style: { color: 'red' },
+        style: { color: 'red' }
       });
       editor.decorateMarker(marker2, {
         type: 'text',
         class: 'b',
-        style: { color: 'blue' },
+        style: { color: 'blue' }
       });
       editor.decorateMarker(marker3, {
         type: 'text',
         class: 'c',
-        style: { color: 'green' },
+        style: { color: 'green' }
       });
       await component.getNextUpdatePromise();
 
@@ -4171,7 +3989,7 @@ describe('TextEditorComponent', () => {
     it('correctly handles text decorations starting before the first rendered row and/or ending after the last rendered row', async () => {
       const { component, element, editor } = buildComponent({
         autoHeight: false,
-        rowsPerTile: 1,
+        rowsPerTile: 1
       });
       element.style.height = 4 * component.getLineHeight() + 'px';
       await component.getNextUpdatePromise();
@@ -4180,14 +3998,8 @@ describe('TextEditorComponent', () => {
       expect(component.getRenderedEndRow()).toBe(9);
 
       const markerLayer = editor.addMarkerLayer();
-      const marker1 = markerLayer.markBufferRange([
-        [0, 0],
-        [4, 5],
-      ]);
-      const marker2 = markerLayer.markBufferRange([
-        [7, 2],
-        [10, 8],
-      ]);
+      const marker1 = markerLayer.markBufferRange([[0, 0], [4, 5]]);
+      const marker2 = markerLayer.markBufferRange([[7, 2], [10, 8]]);
       editor.decorateMarker(marker1, { type: 'text', class: 'a' });
       editor.decorateMarker(marker2, { type: 'text', class: 'b' });
       await component.getNextUpdatePromise();
@@ -4214,14 +4026,8 @@ describe('TextEditorComponent', () => {
     it('does not create empty spans when a text decoration contains a row but another text decoration starts or ends at the beginning of it', async () => {
       const { component, element, editor } = buildComponent();
       const markerLayer = editor.addMarkerLayer();
-      const marker1 = markerLayer.markBufferRange([
-        [0, 2],
-        [4, 0],
-      ]);
-      const marker2 = markerLayer.markBufferRange([
-        [2, 0],
-        [5, 8],
-      ]);
+      const marker1 = markerLayer.markBufferRange([[0, 2], [4, 0]]);
+      const marker2 = markerLayer.markBufferRange([[2, 0], [5, 8]]);
       editor.decorateMarker(marker1, { type: 'text', class: 'a' });
       editor.decorateMarker(marker2, { type: 'text', class: 'b' });
       await component.getNextUpdatePromise();
@@ -4232,10 +4038,7 @@ describe('TextEditorComponent', () => {
 
     it('does not create empty text nodes when a text decoration ends right after a text tag', async () => {
       const { component, editor } = buildComponent();
-      const marker = editor.markBufferRange([
-        [0, 8],
-        [0, 29],
-      ]);
+      const marker = editor.markBufferRange([[0, 8], [0, 29]]);
       editor.decorateMarker(marker, { type: 'text', class: 'a' });
       await component.getNextUpdatePromise();
       for (const textNode of textNodesForScreenRow(component, 0)) {
@@ -4247,7 +4050,7 @@ describe('TextEditorComponent', () => {
       return Array.from(
         lineNodeForScreenRow(component, row).querySelectorAll(selector)
       )
-        .map((span) => span.textContent)
+        .map(span => span.textContent)
         .join('');
     }
   });
@@ -4261,19 +4064,19 @@ describe('TextEditorComponent', () => {
             const { lineHeight } = component.measurements;
 
             editor.setCursorScreenPosition([Infinity, Infinity], {
-              autoscroll: false,
+              autoscroll: false
             });
             component.didMouseDownOnContent({
               detail: 1,
               button,
               clientX: clientLeftForCharacter(component, 0, 0) - 1,
-              clientY: clientTopForLine(component, 0) - 1,
+              clientY: clientTopForLine(component, 0) - 1
             });
             expect(editor.getCursorScreenPosition()).toEqual([0, 0]);
 
             const maxRow = editor.getLastScreenRow();
             editor.setCursorScreenPosition([Infinity, Infinity], {
-              autoscroll: false,
+              autoscroll: false
             });
             component.didMouseDownOnContent({
               detail: 1,
@@ -4284,11 +4087,11 @@ describe('TextEditorComponent', () => {
                   maxRow,
                   editor.lineLengthForScreenRow(maxRow)
                 ) + 1,
-              clientY: clientTopForLine(component, maxRow) + 1,
+              clientY: clientTopForLine(component, maxRow) + 1
             });
             expect(editor.getCursorScreenPosition()).toEqual([
               maxRow,
-              editor.lineLengthForScreenRow(maxRow),
+              editor.lineLengthForScreenRow(maxRow)
             ]);
 
             component.didMouseDownOnContent({
@@ -4300,11 +4103,11 @@ describe('TextEditorComponent', () => {
                   0,
                   editor.lineLengthForScreenRow(0)
                 ) + 1,
-              clientY: clientTopForLine(component, 0) + lineHeight / 2,
+              clientY: clientTopForLine(component, 0) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([
               0,
-              editor.lineLengthForScreenRow(0),
+              editor.lineLengthForScreenRow(0)
             ]);
 
             component.didMouseDownOnContent({
@@ -4314,7 +4117,7 @@ describe('TextEditorComponent', () => {
                 (clientLeftForCharacter(component, 3, 0) +
                   clientLeftForCharacter(component, 3, 1)) /
                 2,
-              clientY: clientTopForLine(component, 1) + lineHeight / 2,
+              clientY: clientTopForLine(component, 1) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([1, 0]);
 
@@ -4325,7 +4128,7 @@ describe('TextEditorComponent', () => {
                 (clientLeftForCharacter(component, 3, 14) +
                   clientLeftForCharacter(component, 3, 15)) /
                 2,
-              clientY: clientTopForLine(component, 3) + lineHeight / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([3, 14]);
 
@@ -4337,17 +4140,11 @@ describe('TextEditorComponent', () => {
                   clientLeftForCharacter(component, 3, 15)) /
                   2 +
                 1,
-              clientY: clientTopForLine(component, 3) + lineHeight / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([3, 15]);
 
-            editor.getBuffer().setTextInRange(
-              [
-                [3, 14],
-                [3, 15],
-              ],
-              '🐣'
-            );
+            editor.getBuffer().setTextInRange([[3, 14], [3, 15]], '🐣');
             await component.getNextUpdatePromise();
 
             component.didMouseDownOnContent({
@@ -4357,7 +4154,7 @@ describe('TextEditorComponent', () => {
                 (clientLeftForCharacter(component, 3, 14) +
                   clientLeftForCharacter(component, 3, 16)) /
                 2,
-              clientY: clientTopForLine(component, 3) + lineHeight / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([3, 14]);
 
@@ -4369,7 +4166,7 @@ describe('TextEditorComponent', () => {
                   clientLeftForCharacter(component, 3, 16)) /
                   2 +
                 1,
-              clientY: clientTopForLine(component, 3) + lineHeight / 2,
+              clientY: clientTopForLine(component, 3) + lineHeight / 2
             });
             expect(editor.getCursorScreenPosition()).toEqual([3, 16]);
 
@@ -4390,18 +4187,15 @@ describe('TextEditorComponent', () => {
             detail: 1,
             button: 0,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 2,
             button: 0,
             clientX,
-            clientY,
+            clientY
           });
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 13],
-            [1, 21],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 13], [1, 21]]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
 
@@ -4416,24 +4210,21 @@ describe('TextEditorComponent', () => {
             detail: 1,
             button: 0,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 2,
             button: 0,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 3,
             button: 0,
             clientX,
-            clientY,
+            clientY
           });
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 0],
-            [2, 0],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [2, 0]]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
 
@@ -4447,20 +4238,17 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
-          expect(editor.getCursorScreenPositions()).toEqual([
-            [0, 0],
-            [1, 16],
-          ]);
+          expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
 
           // remove cursor at 0, 0
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 0, 0), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
@@ -4470,43 +4258,28 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
 
           // cmd-clicking within a selection destroys it
-          editor.addSelectionForScreenRange(
-            [
-              [2, 10],
-              [2, 15],
-            ],
-            {
-              autoscroll: false,
-            }
-          );
+          editor.addSelectionForScreenRange([[2, 10], [2, 15]], {
+            autoscroll: false
+          });
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 16],
-              [1, 16],
-            ],
-            [
-              [2, 10],
-              [2, 15],
-            ],
+            [[1, 16], [1, 16]],
+            [[2, 10], [2, 15]]
           ]);
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 2, 13), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 16],
-              [1, 16],
-            ],
+            [[1, 16], [1, 16]]
           ]);
 
           // ctrl-click does not add cursors on macOS, nor does it move the cursor
@@ -4514,14 +4287,11 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 4), {
               detail: 1,
               button: 0,
-              ctrlKey: true,
+              ctrlKey: true
             })
           );
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 16],
-              [1, 16],
-            ],
+            [[1, 16], [1, 16]]
           ]);
 
           // ctrl-click adds cursors on platforms *other* than macOS
@@ -4531,13 +4301,10 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              ctrlKey: true,
+              ctrlKey: true
             })
           );
-          expect(editor.getCursorScreenPositions()).toEqual([
-            [1, 4],
-            [1, 16],
-          ]);
+          expect(editor.getCursorScreenPositions()).toEqual([[1, 4], [1, 16]]);
 
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
@@ -4546,34 +4313,25 @@ describe('TextEditorComponent', () => {
           atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
-          expect(editor.getCursorScreenPositions()).toEqual([
-            [0, 0],
-            [1, 16],
-          ]);
+          expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
 
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 2,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [0, 0],
-              [0, 0],
-            ],
-            [
-              [1, 13],
-              [1, 21],
-            ],
+            [[0, 0], [0, 0]],
+            [[1, 13], [1, 21]]
           ]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
@@ -4582,10 +4340,7 @@ describe('TextEditorComponent', () => {
           atom.config.set('editor.multiCursorOnClick', true);
           const { component, editor } = buildComponent();
           editor.addCursorAtScreenPosition([1, 16], { autoscroll: false });
-          expect(editor.getCursorScreenPositions()).toEqual([
-            [0, 0],
-            [1, 16],
-          ]);
+          expect(editor.getCursorScreenPositions()).toEqual([[0, 0], [1, 16]]);
 
           const { clientX, clientY } = clientPositionForCharacter(
             component,
@@ -4597,32 +4352,26 @@ describe('TextEditorComponent', () => {
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 2,
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 3,
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
 
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [0, 0],
-              [0, 0],
-            ],
-            [
-              [1, 0],
-              [2, 0],
-            ],
+            [[0, 0], [0, 0]],
+            [[1, 0], [2, 0]]
           ]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
@@ -4637,7 +4386,7 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
@@ -4647,14 +4396,11 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 4), {
               detail: 1,
               button: 0,
-              ctrlKey: true,
+              ctrlKey: true
             })
           );
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 16],
-              [1, 16],
-            ],
+            [[1, 16], [1, 16]]
           ]);
 
           // ctrl-click does not add cursors on platforms *other* than macOS
@@ -4664,7 +4410,7 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              ctrlKey: true,
+              ctrlKey: true
             })
           );
           expect(editor.getCursorScreenPositions()).toEqual([[1, 16]]);
@@ -4680,21 +4426,18 @@ describe('TextEditorComponent', () => {
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 1,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           component.didMouseDownOnContent(
             Object.assign(clientPositionForCharacter(component, 1, 16), {
               detail: 2,
               button: 0,
-              metaKey: true,
+              metaKey: true
             })
           );
           expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 13],
-              [1, 21],
-            ],
+            [[1, 13], [1, 21]]
           ]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
@@ -4713,29 +4456,24 @@ describe('TextEditorComponent', () => {
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 2,
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
           component.didMouseDownOnContent({
             detail: 3,
             button: 0,
             metaKey: true,
             clientX,
-            clientY,
+            clientY
           });
 
-          expect(editor.getSelectedScreenRanges()).toEqual([
-            [
-              [1, 0],
-              [2, 0],
-            ],
-          ]);
+          expect(editor.getSelectedScreenRanges()).toEqual([[[1, 0], [2, 0]]]);
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
 
@@ -4748,30 +4486,24 @@ describe('TextEditorComponent', () => {
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 1, 4)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 4],
-            [2, 18],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [2, 18]]);
 
           component.didMouseDownOnContent(
             Object.assign(
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 4, 4)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [2, 18],
-            [4, 4],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[2, 18], [4, 4]]);
 
           // reorients word-wise selections to keep the word selected regardless of
           // where the subsequent shift-click occurs
@@ -4782,30 +4514,24 @@ describe('TextEditorComponent', () => {
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 1, 4)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 2],
-            [2, 20],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 20]]);
 
           component.didMouseDownOnContent(
             Object.assign(
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 3, 11)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [2, 14],
-            [3, 13],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[2, 14], [3, 13]]);
 
           // reorients line-wise selections to keep the line selected regardless of
           // where the subsequent shift-click occurs
@@ -4816,30 +4542,24 @@ describe('TextEditorComponent', () => {
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 1, 4)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 0],
-            [3, 0],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]]);
 
           component.didMouseDownOnContent(
             Object.assign(
               {
                 detail: 1,
                 button: 0,
-                shiftKey: true,
+                shiftKey: true
               },
               clientPositionForCharacter(component, 3, 11)
             )
           );
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [2, 0],
-            [4, 0],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [4, 0]]);
 
           expect(editor.testAutoscrollRequests).toEqual([]);
         });
@@ -4853,7 +4573,7 @@ describe('TextEditorComponent', () => {
             Object.assign(
               {
                 detail: 1,
-                button: 0,
+                button: 0
               },
               clientPositionForCharacter(component, 1, 4)
             )
@@ -4862,23 +4582,14 @@ describe('TextEditorComponent', () => {
           {
             const {
               didDrag,
-              didStopDragging,
+              didStopDragging
             } = component.handleMouseDragUntilMouseUp.argsForCall[0][0];
             didDrag(clientPositionForCharacter(component, 8, 8));
-            expect(editor.getSelectedScreenRange()).toEqual([
-              [1, 4],
-              [8, 8],
-            ]);
+            expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [8, 8]]);
             didDrag(clientPositionForCharacter(component, 4, 8));
-            expect(editor.getSelectedScreenRange()).toEqual([
-              [1, 4],
-              [4, 8],
-            ]);
+            expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]]);
             didStopDragging();
-            expect(editor.getSelectedScreenRange()).toEqual([
-              [1, 4],
-              [4, 8],
-            ]);
+            expect(editor.getSelectedScreenRange()).toEqual([[1, 4], [4, 8]]);
           }
 
           // Click-drag a second selection... selections are not merged until the
@@ -4888,7 +4599,7 @@ describe('TextEditorComponent', () => {
               {
                 detail: 1,
                 button: 0,
-                metaKey: 1,
+                metaKey: 1
               },
               clientPositionForCharacter(component, 8, 8)
             )
@@ -4896,47 +4607,26 @@ describe('TextEditorComponent', () => {
           {
             const {
               didDrag,
-              didStopDragging,
+              didStopDragging
             } = component.handleMouseDragUntilMouseUp.argsForCall[1][0];
             didDrag(clientPositionForCharacter(component, 2, 8));
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [
-                [1, 4],
-                [4, 8],
-              ],
-              [
-                [2, 8],
-                [8, 8],
-              ],
+              [[1, 4], [4, 8]],
+              [[2, 8], [8, 8]]
             ]);
             didDrag(clientPositionForCharacter(component, 6, 8));
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [
-                [1, 4],
-                [4, 8],
-              ],
-              [
-                [6, 8],
-                [8, 8],
-              ],
+              [[1, 4], [4, 8]],
+              [[6, 8], [8, 8]]
             ]);
             didDrag(clientPositionForCharacter(component, 2, 8));
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [
-                [1, 4],
-                [4, 8],
-              ],
-              [
-                [2, 8],
-                [8, 8],
-              ],
+              [[1, 4], [4, 8]],
+              [[2, 8], [8, 8]]
             ]);
             didStopDragging();
             expect(editor.getSelectedScreenRanges()).toEqual([
-              [
-                [1, 4],
-                [8, 8],
-              ],
+              [[1, 4], [8, 8]]
             ]);
           }
         });
@@ -4949,7 +4639,7 @@ describe('TextEditorComponent', () => {
             Object.assign(
               {
                 detail: 1,
-                button: 0,
+                button: 0
               },
               clientPositionForCharacter(component, 1, 4)
             )
@@ -4958,25 +4648,19 @@ describe('TextEditorComponent', () => {
             Object.assign(
               {
                 detail: 2,
-                button: 0,
+                button: 0
               },
               clientPositionForCharacter(component, 1, 4)
             )
           );
 
           const {
-            didDrag,
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[1][0];
           didDrag(clientPositionForCharacter(component, 0, 8));
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [0, 4],
-            [1, 5],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[0, 4], [1, 5]]);
           didDrag(clientPositionForCharacter(component, 2, 10));
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 2],
-            [2, 13],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 2], [2, 13]]);
         });
 
         it('expands the selection line-wise on triple-click-drag', () => {
@@ -4999,18 +4683,12 @@ describe('TextEditorComponent', () => {
           );
 
           const {
-            didDrag,
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[2][0];
           didDrag(clientPositionForCharacter(component, 1, 8));
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [1, 0],
-            [3, 0],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[1, 0], [3, 0]]);
           didDrag(clientPositionForCharacter(component, 4, 10));
-          expect(editor.getSelectedScreenRange()).toEqual([
-            [2, 0],
-            [5, 0],
-          ]);
+          expect(editor.getSelectedScreenRange()).toEqual([[2, 0], [5, 0]]);
         });
 
         it('destroys folds when clicking on their fold markers', async () => {
@@ -5029,7 +4707,7 @@ describe('TextEditorComponent', () => {
             button: 0,
             target,
             clientX,
-            clientY,
+            clientY
           });
           expect(editor.isFoldedAtBufferRow(1)).toBe(false);
           expect(editor.getCursorScreenPosition()).toEqual([0, 0]);
@@ -5038,7 +4716,7 @@ describe('TextEditorComponent', () => {
         it('autoscrolls the content when dragging near the edge of the scroll container', async () => {
           const { component } = buildComponent({
             width: 200,
-            height: 200,
+            height: 200
           });
           spyOn(component, 'handleMouseDragUntilMouseUp');
 
@@ -5064,10 +4742,10 @@ describe('TextEditorComponent', () => {
             detail: 1,
             button: 0,
             clientX: 100,
-            clientY: 100,
+            clientY: 100
           });
           const {
-            didDrag,
+            didDrag
           } = component.handleMouseDragUntilMouseUp.argsForCall[0][0];
 
           didDrag({ clientX: 199, clientY: 199 });
@@ -5078,17 +4756,17 @@ describe('TextEditorComponent', () => {
           assertScrolledDownAndRight();
           didDrag({
             clientX: component.getGutterContainerWidth() + 1,
-            clientY: 1,
+            clientY: 1
           });
           assertScrolledUpAndLeft();
           didDrag({
             clientX: component.getGutterContainerWidth() + 1,
-            clientY: 1,
+            clientY: 1
           });
           assertScrolledUpAndLeft();
           didDrag({
             clientX: component.getGutterContainerWidth() + 1,
-            clientY: 1,
+            clientY: 1
           });
           assertScrolledUpAndLeft();
 
@@ -5097,7 +4775,7 @@ describe('TextEditorComponent', () => {
           expect(component.getScrollLeft()).toBe(0);
           didDrag({
             clientX: component.getGutterContainerWidth() + 1,
-            clientY: 1,
+            clientY: 1
           });
           expect(component.getScrollTop()).toBe(0);
           expect(component.getScrollLeft()).toBe(0);
@@ -5116,7 +4794,7 @@ describe('TextEditorComponent', () => {
       });
 
       it('pastes the previously selected text when clicking the middle mouse button on Linux', async () => {
-        spyOn(electron.ipcRenderer, 'send').andCallFake(function (
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function(
           eventName,
           selectedText
         ) {
@@ -5128,42 +4806,36 @@ describe('TextEditorComponent', () => {
         const { component, editor } = buildComponent({ platform: 'linux' });
 
         // Middle mouse pasting.
-        editor.setSelectedBufferRange([
-          [1, 6],
-          [1, 10],
-        ]);
+        editor.setSelectedBufferRange([[1, 6], [1, 10]]);
         await conditionPromise(() => TextEditor.clipboard.read() === 'sort');
         component.didMouseDownOnContent({
           button: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10),
+          clientY: clientTopForLine(component, 10)
         });
         expect(TextEditor.clipboard.read()).toBe('sort');
         expect(editor.lineTextForBufferRow(10)).toBe('sort');
         editor.undo();
 
         // Ensure left clicks don't interfere.
-        editor.setSelectedBufferRange([
-          [1, 2],
-          [1, 5],
-        ]);
+        editor.setSelectedBufferRange([[1, 2], [1, 5]]);
         await conditionPromise(() => TextEditor.clipboard.read() === 'var');
         component.didMouseDownOnContent({
           button: 0,
           detail: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10),
+          clientY: clientTopForLine(component, 10)
         });
         component.didMouseDownOnContent({
           button: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10),
+          clientY: clientTopForLine(component, 10)
         });
         expect(editor.lineTextForBufferRow(10)).toBe('var');
       });
 
       it('does not paste into a read only editor when clicking the middle mouse button on Linux', async () => {
-        spyOn(electron.ipcRenderer, 'send').andCallFake(function (
+        spyOn(electron.ipcRenderer, 'send').andCallFake(function(
           eventName,
           selectedText
         ) {
@@ -5174,21 +4846,18 @@ describe('TextEditorComponent', () => {
 
         const { component, editor } = buildComponent({
           platform: 'linux',
-          readOnly: true,
+          readOnly: true
         });
 
         // Select the word 'sort' on line 2 and copy to clipboard
-        editor.setSelectedBufferRange([
-          [1, 6],
-          [1, 10],
-        ]);
+        editor.setSelectedBufferRange([[1, 6], [1, 10]]);
         await conditionPromise(() => TextEditor.clipboard.read() === 'sort');
 
         // Middle-click in the buffer at line 11, column 1
         component.didMouseDownOnContent({
           button: 1,
           clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10),
+          clientY: clientTopForLine(component, 10)
         });
 
         // Ensure that the correct text was copied but not pasted
@@ -5205,40 +4874,25 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
-        editor.foldBufferRange([
-          [4, Infinity],
-          [7, Infinity],
-        ]);
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
         await component.getNextUpdatePromise();
 
         // Selects entire buffer line when clicked screen line is soft-wrapped
         component.didMouseDownOnLineNumberGutter({
           button: 0,
-          clientY: clientTopForLine(component, 3),
+          clientY: clientTopForLine(component, 3)
         });
-        expect(editor.getSelectedScreenRange()).toEqual([
-          [3, 0],
-          [5, 0],
-        ]);
-        expect(editor.getSelectedBufferRange()).toEqual([
-          [3, 0],
-          [4, 0],
-        ]);
+        expect(editor.getSelectedScreenRange()).toEqual([[3, 0], [5, 0]]);
+        expect(editor.getSelectedBufferRange()).toEqual([[3, 0], [4, 0]]);
 
         // Selects entire screen line, even if folds cause that selection to
         // span multiple buffer lines
         component.didMouseDownOnLineNumberGutter({
           button: 0,
-          clientY: clientTopForLine(component, 5),
+          clientY: clientTopForLine(component, 5)
         });
-        expect(editor.getSelectedScreenRange()).toEqual([
-          [5, 0],
-          [6, 0],
-        ]);
-        expect(editor.getSelectedBufferRange()).toEqual([
-          [4, 0],
-          [8, 0],
-        ]);
+        expect(editor.getSelectedScreenRange()).toEqual([[5, 0], [6, 0]]);
+        expect(editor.getSelectedBufferRange()).toEqual([[4, 0], [8, 0]]);
       });
 
       it('adds new selections when a line number is meta-clicked', async () => {
@@ -5247,37 +4901,22 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
-        editor.foldBufferRange([
-          [4, Infinity],
-          [7, Infinity],
-        ]);
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
         await component.getNextUpdatePromise();
 
         // Selects entire buffer line when clicked screen line is soft-wrapped
         component.didMouseDownOnLineNumberGutter({
           button: 0,
           metaKey: true,
-          clientY: clientTopForLine(component, 3),
+          clientY: clientTopForLine(component, 3)
         });
         expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [0, 0],
-            [0, 0],
-          ],
-          [
-            [3, 0],
-            [5, 0],
-          ],
+          [[0, 0], [0, 0]],
+          [[3, 0], [5, 0]]
         ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [
-            [0, 0],
-            [0, 0],
-          ],
-          [
-            [3, 0],
-            [4, 0],
-          ],
+          [[0, 0], [0, 0]],
+          [[3, 0], [4, 0]]
         ]);
 
         // Selects entire screen line, even if folds cause that selection to
@@ -5285,35 +4924,17 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnLineNumberGutter({
           button: 0,
           metaKey: true,
-          clientY: clientTopForLine(component, 5),
+          clientY: clientTopForLine(component, 5)
         });
         expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [0, 0],
-            [0, 0],
-          ],
-          [
-            [3, 0],
-            [5, 0],
-          ],
-          [
-            [5, 0],
-            [6, 0],
-          ],
+          [[0, 0], [0, 0]],
+          [[3, 0], [5, 0]],
+          [[5, 0], [6, 0]]
         ]);
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [
-            [0, 0],
-            [0, 0],
-          ],
-          [
-            [3, 0],
-            [4, 0],
-          ],
-          [
-            [4, 0],
-            [8, 0],
-          ],
+          [[0, 0], [0, 0]],
+          [[3, 0], [4, 0]],
+          [[4, 0], [8, 0]]
         ]);
       });
 
@@ -5324,64 +4945,41 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
-        editor.foldBufferRange([
-          [4, Infinity],
-          [7, Infinity],
-        ]);
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
         await component.getNextUpdatePromise();
 
-        editor.setSelectedScreenRange([
-          [3, 4],
-          [3, 8],
-        ]);
+        editor.setSelectedScreenRange([[3, 4], [3, 8]]);
         editor.addCursorAtScreenPosition([2, 10]);
         component.didMouseDownOnLineNumberGutter({
           button: 0,
           shiftKey: true,
-          clientY: clientTopForLine(component, 5),
+          clientY: clientTopForLine(component, 5)
         });
 
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [
-            [3, 4],
-            [3, 8],
-          ],
-          [
-            [2, 10],
-            [8, 0],
-          ],
+          [[3, 4], [3, 8]],
+          [[2, 10], [8, 0]]
         ]);
 
         // Original selection is preserved when shift-click-dragging
         const {
           didDrag,
-          didStopDragging,
+          didStopDragging
         } = component.handleMouseDragUntilMouseUp.argsForCall[0][0];
         didDrag({
-          clientY: clientTopForLine(component, 1),
+          clientY: clientTopForLine(component, 1)
         });
         expect(editor.getSelectedBufferRanges()).toEqual([
-          [
-            [3, 4],
-            [3, 8],
-          ],
-          [
-            [1, 0],
-            [2, 10],
-          ],
+          [[3, 4], [3, 8]],
+          [[1, 0], [2, 10]]
         ]);
 
         didDrag({
-          clientY: clientTopForLine(component, 5),
+          clientY: clientTopForLine(component, 5)
         });
 
         didStopDragging();
-        expect(editor.getSelectedBufferRanges()).toEqual([
-          [
-            [2, 10],
-            [8, 0],
-          ],
-        ]);
+        expect(editor.getSelectedBufferRanges()).toEqual([[[2, 10], [8, 0]]]);
       });
 
       it('expands the selection when dragging', async () => {
@@ -5391,78 +4989,49 @@ describe('TextEditorComponent', () => {
         await component.getNextUpdatePromise();
 
         await setEditorWidthInCharacters(component, 50);
-        editor.foldBufferRange([
-          [4, Infinity],
-          [7, Infinity],
-        ]);
+        editor.foldBufferRange([[4, Infinity], [7, Infinity]]);
         await component.getNextUpdatePromise();
 
-        editor.setSelectedScreenRange([
-          [3, 4],
-          [3, 6],
-        ]);
+        editor.setSelectedScreenRange([[3, 4], [3, 6]]);
 
         component.didMouseDownOnLineNumberGutter({
           button: 0,
           metaKey: true,
-          clientY: clientTopForLine(component, 2),
+          clientY: clientTopForLine(component, 2)
         });
 
         const {
           didDrag,
-          didStopDragging,
+          didStopDragging
         } = component.handleMouseDragUntilMouseUp.argsForCall[0][0];
 
         didDrag({
-          clientY: clientTopForLine(component, 1),
+          clientY: clientTopForLine(component, 1)
         });
         expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [3, 4],
-            [3, 6],
-          ],
-          [
-            [1, 0],
-            [3, 0],
-          ],
+          [[3, 4], [3, 6]],
+          [[1, 0], [3, 0]]
         ]);
 
         didDrag({
-          clientY: clientTopForLine(component, 5),
+          clientY: clientTopForLine(component, 5)
         });
         expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [3, 4],
-            [3, 6],
-          ],
-          [
-            [2, 0],
-            [6, 0],
-          ],
+          [[3, 4], [3, 6]],
+          [[2, 0], [6, 0]]
         ]);
         expect(editor.isFoldedAtBufferRow(4)).toBe(true);
 
         didDrag({
-          clientY: clientTopForLine(component, 3),
+          clientY: clientTopForLine(component, 3)
         });
         expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [3, 4],
-            [3, 6],
-          ],
-          [
-            [2, 0],
-            [4, 4],
-          ],
+          [[3, 4], [3, 6]],
+          [[2, 0], [4, 4]]
         ]);
 
         didStopDragging();
-        expect(editor.getSelectedScreenRanges()).toEqual([
-          [
-            [2, 0],
-            [4, 4],
-          ],
-        ]);
+        expect(editor.getSelectedScreenRanges()).toEqual([[[2, 0], [4, 4]]]);
       });
 
       it('toggles folding when clicking on the right icon of a foldable line number', async () => {
@@ -5475,7 +5044,7 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnLineNumberGutter({
           target,
           button: 0,
-          clientY: clientTopForLine(component, 1),
+          clientY: clientTopForLine(component, 1)
         });
         expect(editor.isFoldedAtScreenRow(1)).toBe(true);
         await component.getNextUpdatePromise();
@@ -5483,15 +5052,12 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnLineNumberGutter({
           target,
           button: 0,
-          clientY: clientTopForLine(component, 1),
+          clientY: clientTopForLine(component, 1)
         });
         await component.getNextUpdatePromise();
         expect(editor.isFoldedAtScreenRow(1)).toBe(false);
 
-        editor.foldBufferRange([
-          [5, 12],
-          [5, 17],
-        ]);
+        editor.foldBufferRange([[5, 12], [5, 17]]);
         await component.getNextUpdatePromise();
         expect(editor.isFoldedAtScreenRow(5)).toBe(true);
 
@@ -5501,7 +5067,7 @@ describe('TextEditorComponent', () => {
         component.didMouseDownOnLineNumberGutter({
           target,
           button: 0,
-          clientY: clientTopForLine(component, 4),
+          clientY: clientTopForLine(component, 4)
         });
         expect(editor.isFoldedAtScreenRow(4)).toBe(false);
       });
@@ -5509,7 +5075,7 @@ describe('TextEditorComponent', () => {
       it('autoscrolls when dragging near the top or bottom of the gutter', async () => {
         const { component } = buildComponent({
           width: 200,
-          height: 200,
+          height: 200
         });
         spyOn(component, 'handleMouseDragUntilMouseUp');
 
@@ -5533,10 +5099,10 @@ describe('TextEditorComponent', () => {
           detail: 1,
           button: 0,
           clientX: 0,
-          clientY: 100,
+          clientY: 100
         });
         const {
-          didDrag,
+          didDrag
         } = component.handleMouseDragUntilMouseUp.argsForCall[0][0];
         didDrag({ clientX: 199, clientY: 199 });
         assertScrolledDown();
@@ -5546,17 +5112,17 @@ describe('TextEditorComponent', () => {
         assertScrolledDown();
         didDrag({
           clientX: component.getGutterContainerWidth() + 1,
-          clientY: 1,
+          clientY: 1
         });
         assertScrolledUp();
         didDrag({
           clientX: component.getGutterContainerWidth() + 1,
-          clientY: 1,
+          clientY: 1
         });
         assertScrolledUp();
         didDrag({
           clientX: component.getGutterContainerWidth() + 1,
-          clientY: 1,
+          clientY: 1
         });
         assertScrolledUp();
 
@@ -5566,7 +5132,7 @@ describe('TextEditorComponent', () => {
         expect(component.getScrollLeft()).toBe(0);
         didDrag({
           clientX: component.getGutterContainerWidth() + 1,
-          clientY: 1,
+          clientY: 1
         });
         expect(component.getScrollTop()).toBe(0);
         expect(component.getScrollLeft()).toBe(0);
@@ -5602,7 +5168,7 @@ describe('TextEditorComponent', () => {
           button: 0,
           detail: 1,
           clientY: clientTopForLine(component, 4),
-          clientX: leftEdgeOfVerticalScrollbar,
+          clientX: leftEdgeOfVerticalScrollbar
         });
         expect(editor.getCursorScreenPosition()).toEqual([0, 0]);
 
@@ -5610,7 +5176,7 @@ describe('TextEditorComponent', () => {
           button: 0,
           detail: 1,
           clientY: clientTopForLine(component, 4),
-          clientX: leftEdgeOfVerticalScrollbar - 1,
+          clientX: leftEdgeOfVerticalScrollbar - 1
         });
         expect(editor.getCursorScreenPosition()).toEqual([4, 6]);
 
@@ -5618,7 +5184,7 @@ describe('TextEditorComponent', () => {
           button: 0,
           detail: 1,
           clientY: topEdgeOfHorizontalScrollbar,
-          clientX: component.refs.content.getBoundingClientRect().left,
+          clientX: component.refs.content.getBoundingClientRect().left
         });
         expect(editor.getCursorScreenPosition()).toEqual([4, 6]);
 
@@ -5626,7 +5192,7 @@ describe('TextEditorComponent', () => {
           button: 0,
           detail: 1,
           clientY: topEdgeOfHorizontalScrollbar - 1,
-          clientX: component.refs.content.getBoundingClientRect().left,
+          clientX: component.refs.content.getBoundingClientRect().left
         });
         expect(editor.getCursorScreenPosition()).toEqual([4, 0]);
       });
@@ -5648,7 +5214,7 @@ describe('TextEditorComponent', () => {
     it('handles inserted accented characters via the press-and-hold menu on macOS correctly', () => {
       const { editor, component } = buildComponent({
         text: '',
-        chromeVersion: 57,
+        chromeVersion: 57
       });
       editor.insertText('x');
       editor.setCursorBufferPosition([0, 1]);
@@ -5660,7 +5226,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5674,7 +5240,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xaa');
@@ -5688,7 +5254,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5698,7 +5264,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'á',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       expect(editor.getText()).toBe('xá');
       // Ensure another "a" can be typed correctly.
@@ -5707,7 +5273,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xáa');
@@ -5721,7 +5287,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5729,7 +5295,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'á',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       expect(editor.getText()).toBe('xá');
       // Ensure another "a" can be typed correctly.
@@ -5738,7 +5304,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xáa');
@@ -5752,7 +5318,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5771,11 +5337,11 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'á',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didCompositionEnd({
         data: 'á',
-        target: component.refs.cursorsAndInput.refs.hiddenInput,
+        target: component.refs.cursorsAndInput.refs.hiddenInput
       });
       component.didKeyup({ code: 'Enter' });
       expect(editor.getText()).toBe('xá');
@@ -5785,7 +5351,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xáa');
@@ -5799,7 +5365,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5818,11 +5384,11 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didCompositionEnd({
         data: 'a',
-        target: component.refs.cursorsAndInput.refs.hiddenInput,
+        target: component.refs.cursorsAndInput.refs.hiddenInput
       });
       component.didKeyup({ code: 'Escape' });
       expect(editor.getText()).toBe('xa');
@@ -5832,7 +5398,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xaa');
@@ -5846,14 +5412,14 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'o',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeypress({ code: 'KeyA' });
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyO' });
       component.didKeydown({ code: 'KeyA' });
@@ -5872,11 +5438,11 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didCompositionEnd({
         data: 'a',
-        target: component.refs.cursorsAndInput.refs.hiddenInput,
+        target: component.refs.cursorsAndInput.refs.hiddenInput
       });
       component.didKeyup({ code: 'Escape' });
       expect(editor.getText()).toBe('xoa');
@@ -5886,7 +5452,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       editor.undo();
@@ -5899,7 +5465,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeydown({ code: 'KeyA' });
       component.didKeydown({ code: 'KeyA' });
@@ -5917,11 +5483,11 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'á',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didCompositionEnd({
         data: 'á',
-        target: component.refs.cursorsAndInput.refs.hiddenInput,
+        target: component.refs.cursorsAndInput.refs.hiddenInput
       });
       expect(editor.getText()).toBe('xá');
       // Ensure another "a" can be typed correctly.
@@ -5930,7 +5496,7 @@ describe('TextEditorComponent', () => {
       component.didTextInput({
         data: 'a',
         stopPropagation: () => {},
-        preventDefault: () => {},
+        preventDefault: () => {}
       });
       component.didKeyup({ code: 'KeyA' });
       expect(editor.getText()).toBe('xáa');
@@ -5943,7 +5509,7 @@ describe('TextEditorComponent', () => {
     it('updates the rendered content based on new measurements when the font dimensions change', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 1,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       editor.setCursorScreenPosition([1, 29], { autoscroll: false });
@@ -6011,7 +5577,7 @@ describe('TextEditorComponent', () => {
     it('maintains the scrollTopRow and scrollLeftColumn when the font size changes', async () => {
       const { component, element } = buildComponent({
         rowsPerTile: 1,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       await setEditorWidthInCharacters(component, 20);
@@ -6033,7 +5599,7 @@ describe('TextEditorComponent', () => {
 
     it('gracefully handles the editor being hidden after a styling change', async () => {
       const { component, element } = buildComponent({
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.fontSize =
         parseInt(getComputedStyle(element).fontSize) + 5 + 'px';
@@ -6045,7 +5611,7 @@ describe('TextEditorComponent', () => {
     it('does not throw an exception when the editor is soft-wrapped and changing the font size changes also the longest screen line', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       editor.setText(
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do\n' +
@@ -6065,7 +5631,7 @@ describe('TextEditorComponent', () => {
     it('updates the width of the lines div based on the longest screen line', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 1,
-        autoHeight: false,
+        autoHeight: false
       });
       editor.setText(
         'Lorem ipsum dolor sit\n' +
@@ -6108,13 +5674,13 @@ describe('TextEditorComponent', () => {
       const editor = buildEditor();
       const { element } = new TextEditorComponent({
         model: editor,
-        updatedSynchronously: true,
+        updatedSynchronously: true
       });
       jasmine.attachToDOM(element);
 
       editor.setText('Lorem ipsum dolor');
       expect(
-        queryOnScreenLineElements(element).map((l) => l.textContent)
+        queryOnScreenLineElements(element).map(l => l.textContent)
       ).toEqual([editor.lineTextForScreenRow(0)]);
     });
 
@@ -6122,7 +5688,7 @@ describe('TextEditorComponent', () => {
       const { element, editor } = buildComponent({
         width: 435,
         attach: false,
-        updatedSynchronously: true,
+        updatedSynchronously: true
       });
       editor.setSoftWrapped(true);
       spyOn(window, 'onerror').andCallThrough();
@@ -6138,7 +5704,7 @@ describe('TextEditorComponent', () => {
 
       editor.setText('Lorem ipsum dolor');
       expect(
-        queryOnScreenLineElements(element).map((l) => l.textContent)
+        queryOnScreenLineElements(element).map(l => l.textContent)
       ).toEqual([editor.lineTextForScreenRow(0)]);
     });
 
@@ -6159,7 +5725,7 @@ describe('TextEditorComponent', () => {
     it('returns the pixel position for the given point, regardless of whether or not it is currently on screen', async () => {
       const { component, editor } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       await setScrollTop(component, 3 * component.getLineHeight());
@@ -6170,7 +5736,7 @@ describe('TextEditorComponent', () => {
       {
         const { top, left } = component.pixelPositionForScreenPosition({
           row: 0,
-          column: 0,
+          column: 0
         });
         expect(top).toBe(
           clientTopForLine(referenceComponent, 0) - referenceContentRect.top
@@ -6184,7 +5750,7 @@ describe('TextEditorComponent', () => {
       {
         const { top, left } = component.pixelPositionForScreenPosition({
           row: 0,
-          column: 5,
+          column: 5
         });
         expect(top).toBe(
           clientTopForLine(referenceComponent, 0) - referenceContentRect.top
@@ -6198,7 +5764,7 @@ describe('TextEditorComponent', () => {
       {
         const { top, left } = component.pixelPositionForScreenPosition({
           row: 12,
-          column: 1,
+          column: 1
         });
         expect(top).toBe(
           clientTopForLine(referenceComponent, 12) - referenceContentRect.top
@@ -6215,7 +5781,7 @@ describe('TextEditorComponent', () => {
         editor.setCursorScreenPosition([10, 0]);
         const { top, left } = component.pixelPositionForScreenPosition({
           row: 3,
-          column: 5,
+          column: 5
         });
         expect(top).toBe(
           clientTopForLine(referenceComponent, 3) - referenceContentRect.top
@@ -6231,7 +5797,7 @@ describe('TextEditorComponent', () => {
       const { component, editor } = buildComponent({
         rowsPerTile: 2,
         autoHeight: false,
-        text: '',
+        text: ''
       });
       await setEditorHeightInLines(component, 10);
 
@@ -6243,12 +5809,12 @@ describe('TextEditorComponent', () => {
     it('does not shift cursors downward or render off-screen content when measuring off-screen lines (regression)', async () => {
       const { component, element } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       component.pixelPositionForScreenPosition({
         row: 12,
-        column: 1,
+        column: 1
       });
 
       expect(element.querySelector('.cursor').getBoundingClientRect().top).toBe(
@@ -6273,7 +5839,7 @@ describe('TextEditorComponent', () => {
     it('returns the screen position for the given pixel position, regardless of whether or not it is currently on screen', async () => {
       const { component, editor } = buildComponent({
         rowsPerTile: 2,
-        autoHeight: false,
+        autoHeight: false
       });
       await setEditorHeightInLines(component, 3);
       await setScrollTop(component, 3 * component.getLineHeight());
@@ -6285,9 +5851,9 @@ describe('TextEditorComponent', () => {
         );
         pixelPosition.top += component.getLineHeight() / 3;
         pixelPosition.left += component.getBaseCharacterWidth() / 3;
-        expect(
-          component.screenPositionForPixelPosition(pixelPosition)
-        ).toEqual([0, 0]);
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual(
+          [0, 0]
+        );
       }
 
       {
@@ -6296,9 +5862,9 @@ describe('TextEditorComponent', () => {
         );
         pixelPosition.top += component.getLineHeight() / 3;
         pixelPosition.left += component.getBaseCharacterWidth() / 3;
-        expect(
-          component.screenPositionForPixelPosition(pixelPosition)
-        ).toEqual([0, 5]);
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual(
+          [0, 5]
+        );
       }
 
       {
@@ -6307,9 +5873,9 @@ describe('TextEditorComponent', () => {
         );
         pixelPosition.top += component.getLineHeight() / 3;
         pixelPosition.left += component.getBaseCharacterWidth() / 3;
-        expect(
-          component.screenPositionForPixelPosition(pixelPosition)
-        ).toEqual([5, 7]);
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual(
+          [5, 7]
+        );
       }
 
       {
@@ -6318,9 +5884,9 @@ describe('TextEditorComponent', () => {
         );
         pixelPosition.top += component.getLineHeight() / 3;
         pixelPosition.left += component.getBaseCharacterWidth() / 3;
-        expect(
-          component.screenPositionForPixelPosition(pixelPosition)
-        ).toEqual([12, 1]);
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual(
+          [12, 1]
+        );
       }
 
       // Measuring a currently rendered line while an autoscroll that causes
@@ -6332,9 +5898,9 @@ describe('TextEditorComponent', () => {
         pixelPosition.top += component.getLineHeight() / 3;
         pixelPosition.left += component.getBaseCharacterWidth() / 3;
         editor.setCursorBufferPosition([10, 0]);
-        expect(
-          component.screenPositionForPixelPosition(pixelPosition)
-        ).toEqual([3, 4]);
+        expect(component.screenPositionForPixelPosition(pixelPosition)).toEqual(
+          [3, 4]
+        );
       }
     });
   });
@@ -6342,7 +5908,7 @@ describe('TextEditorComponent', () => {
   describe('model methods that delegate to the component / element', () => {
     it('delegates setHeight and getHeight to the component', async () => {
       const { component, editor } = buildComponent({
-        autoHeight: false,
+        autoHeight: false
       });
       spyOn(Grim, 'deprecate');
       expect(editor.getHeight()).toBe(component.getScrollContainerHeight());
@@ -6369,7 +5935,7 @@ describe('TextEditorComponent', () => {
     it('delegates getFirstVisibleScreenRow, getLastVisibleScreenRow, and getVisibleRowRange to the component', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height = 4 * component.measurements.lineHeight + 'px';
       await component.getNextUpdatePromise();
@@ -6383,14 +5949,14 @@ describe('TextEditorComponent', () => {
       );
       expect(editor.getVisibleRowRange()).toEqual([
         component.getFirstVisibleRow(),
-        component.getLastVisibleRow(),
+        component.getLastVisibleRow()
       ]);
     });
 
     it('assigns scrollTop on the component when calling setFirstVisibleScreenRow', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.height =
         4 * component.measurements.lineHeight +
@@ -6428,7 +5994,7 @@ describe('TextEditorComponent', () => {
     it('delegates setFirstVisibleScreenColumn and getFirstVisibleScreenColumn to the component', async () => {
       const { component, element, editor } = buildComponent({
         rowsPerTile: 3,
-        autoHeight: false,
+        autoHeight: false
       });
       element.style.width = 30 * component.getBaseCharacterWidth() + 'px';
       await component.getNextUpdatePromise();
@@ -6463,13 +6029,13 @@ describe('TextEditorComponent', () => {
       let dragEvents;
       let dragging = false;
       component.handleMouseDragUntilMouseUp({
-        didDrag: (event) => {
+        didDrag: event => {
           dragging = true;
           dragEvents.push(event);
         },
         didStopDragging: () => {
           dragging = false;
-        },
+        }
       });
       expect(dragging).toBe(false);
 
@@ -6512,12 +6078,12 @@ describe('TextEditorComponent', () => {
       let dragging = false;
       function startDragging() {
         component.handleMouseDragUntilMouseUp({
-          didDrag: (event) => {
+          didDrag: event => {
             dragging = true;
           },
           didStopDragging: () => {
             dragging = false;
-          },
+          }
         });
       }
 
@@ -6551,7 +6117,7 @@ describe('TextEditorComponent', () => {
     });
 
     function getNextAnimationFramePromise() {
-      return new Promise((resolve) => requestAnimationFrame(resolve));
+      return new Promise(resolve => requestAnimationFrame(resolve));
     }
   });
 });
@@ -6569,14 +6135,14 @@ function buildEditor(params = {}) {
     'showLineNumbers',
     'placeholderText',
     'softWrapped',
-    'scrollSensitivity',
+    'scrollSensitivity'
   ]) {
     if (params[paramName] != null) editorParams[paramName] = params[paramName];
   }
   atom.grammars.autoAssignLanguageMode(buffer);
   const editor = new TextEditor(editorParams);
   editor.testAutoscrollRequests = [];
-  editor.onDidRequestAutoscroll((request) => {
+  editor.onDidRequestAutoscroll(request => {
     editor.testAutoscrollRequests.push(request);
   });
   editors.push(editor);
@@ -6590,7 +6156,7 @@ function buildComponent(params = {}) {
     rowsPerTile: params.rowsPerTile,
     updatedSynchronously: params.updatedSynchronously || false,
     platform: params.platform,
-    chromeVersion: params.chromeVersion,
+    chromeVersion: params.chromeVersion
   });
   const { element } = component;
   if (!editor.getAutoHeight()) {
@@ -6660,7 +6226,7 @@ function clientLeftForCharacter(component, row, column) {
 function clientPositionForCharacter(component, row, column) {
   return {
     clientX: clientLeftForCharacter(component, row, column),
-    clientY: clientTopForLine(component, row),
+    clientY: clientTopForLine(component, row)
   };
 }
 

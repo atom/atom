@@ -78,7 +78,7 @@ describe('Pane', () => {
         applicationDelegate: atom.applicationDelegate,
         config: atom.config,
         deserializerManager: atom.deserializers,
-        notificationManager: atom.notifications,
+        notificationManager: atom.notifications
       },
       params
     );
@@ -108,7 +108,7 @@ describe('Pane', () => {
       container = new PaneContainer({
         location: 'center',
         config: atom.config,
-        applicationDelegate: atom.applicationDelegate,
+        applicationDelegate: atom.applicationDelegate
       });
       container.getActivePane().splitRight();
       [pane1, pane2] = container.getPanes();
@@ -124,9 +124,7 @@ describe('Pane', () => {
 
     it('invokes ::onDidChangeActivePane observers on the container', () => {
       const observed = [];
-      container.onDidChangeActivePane((activePane) =>
-        observed.push(activePane)
-      );
+      container.onDidChangeActivePane(activePane => observed.push(activePane));
 
       pane1.activate();
       pane1.activate();
@@ -137,7 +135,7 @@ describe('Pane', () => {
 
     it('invokes ::onDidChangeActive observers on the relevant panes', () => {
       const observed = [];
-      pane1.onDidChangeActive((active) => observed.push(active));
+      pane1.onDidChangeActive(active => observed.push(active));
       pane1.activate();
       pane2.activate();
       expect(observed).toEqual([true, false]);
@@ -187,7 +185,7 @@ describe('Pane', () => {
         paneParams({ items: [new Item('A'), new Item('B')] })
       );
       const events = [];
-      pane.onDidAddItem((event) => events.push(event));
+      pane.onDidAddItem(event => events.push(event));
 
       const item = new Item('C');
       pane.addItem(item, { index: 1 });
@@ -198,7 +196,7 @@ describe('Pane', () => {
       const item = new Item('A');
       const container = new PaneContainer({
         config: atom.config,
-        applicationDelegate: atom.applicationDelegate,
+        applicationDelegate: atom.applicationDelegate
       });
       const pane1 = container.getActivePane();
       pane1.addItem(item);
@@ -232,11 +230,11 @@ describe('Pane', () => {
       const itemB = new Item('B');
       pane.addItem(itemA, { pending: true });
 
-      pane.onDidAddItem(function ({ item }) {
+      pane.onDidAddItem(function({ item }) {
         if (item === itemB) eventOrder.push('add');
       });
 
-      pane.onDidRemoveItem(function ({ item }) {
+      pane.onDidRemoveItem(function({ item }) {
         if (item === itemA) eventOrder.push('remove');
       });
 
@@ -256,7 +254,7 @@ describe('Pane', () => {
       const pane = new Pane(paneParams({ items: [] }));
       const item = {
         getTitle: () => '',
-        onDidTerminatePendingState: spy,
+        onDidTerminatePendingState: spy
       };
       pane.addItem(item);
 
@@ -270,7 +268,7 @@ describe('Pane', () => {
       const pane = new Pane(paneParams({ items: [] }));
       const item = {
         getTitle: () => '',
-        onDidDestroy: spy,
+        onDidDestroy: spy
       };
       pane.addItem(item);
 
@@ -323,7 +321,7 @@ describe('Pane', () => {
 
     it('invokes ::onDidChangeActiveItem() observers', () => {
       const observed = [];
-      pane.onDidChangeActiveItem((item) => observed.push(item));
+      pane.onDidChangeActiveItem(item => observed.push(item));
       pane.activateItem(pane.itemAtIndex(1));
       expect(observed).toEqual([pane.itemAtIndex(1)]);
     });
@@ -339,28 +337,16 @@ describe('Pane', () => {
 
       it('replaces the active item if it is pending', () => {
         pane.activateItem(itemC, { pending: true });
-        expect(pane.getItems().map((item) => item.name)).toEqual([
-          'A',
-          'C',
-          'B',
-        ]);
+        expect(pane.getItems().map(item => item.name)).toEqual(['A', 'C', 'B']);
         pane.activateItem(itemD, { pending: true });
-        expect(pane.getItems().map((item) => item.name)).toEqual([
-          'A',
-          'D',
-          'B',
-        ]);
+        expect(pane.getItems().map(item => item.name)).toEqual(['A', 'D', 'B']);
       });
 
       it('adds the item after the active item if it is not pending', () => {
         pane.activateItem(itemC, { pending: true });
         pane.activateItemAtIndex(2);
         pane.activateItem(itemD, { pending: true });
-        expect(pane.getItems().map((item) => item.name)).toEqual([
-          'A',
-          'B',
-          'D',
-        ]);
+        expect(pane.getItems().map(item => item.name)).toEqual(['A', 'B', 'D']);
       });
     });
   });
@@ -390,7 +376,7 @@ describe('Pane', () => {
 
     it('is called when the pending item changes', () => {
       pane.setPendingItem('fake item one');
-      pane.onItemDidTerminatePendingState(function (item) {
+      pane.onItemDidTerminatePendingState(function(item) {
         callbackCalled = true;
         expect(item).toEqual('fake item one');
       });
@@ -400,7 +386,7 @@ describe('Pane', () => {
 
     it('has access to the new pending item via ::getPendingItem', () => {
       pane.setPendingItem('fake item one');
-      pane.onItemDidTerminatePendingState(function (item) {
+      pane.onItemDidTerminatePendingState(function(item) {
         callbackCalled = true;
         expect(pane.getPendingItem()).toEqual('fake item two');
       });
@@ -436,8 +422,8 @@ describe('Pane', () => {
             new Item('B'),
             new Item('C'),
             new Item('D'),
-            new Item('E'),
-          ],
+            new Item('E')
+          ]
         })
       );
       const [item1, item2, item3, item4, item5] = pane.getItems();
@@ -588,14 +574,14 @@ describe('Pane', () => {
       pane.container = new PaneContainer({ config: atom.config, confirm });
       const events = [];
 
-      pane.onWillDestroyItem(async (event) => {
+      pane.onWillDestroyItem(async event => {
         expect(item2.isDestroyed()).toBe(false);
         await timeoutPromise(50);
         expect(item2.isDestroyed()).toBe(false);
         events.push(['will-destroy-item', event]);
       });
 
-      pane.container.onWillDestroyPaneItem(async (event) => {
+      pane.container.onWillDestroyPaneItem(async event => {
         expect(item2.isDestroyed()).toBe(false);
         await timeoutPromise(50);
         expect(item2.isDestroyed()).toBe(false);
@@ -606,25 +592,25 @@ describe('Pane', () => {
       expect(item2.isDestroyed()).toBe(true);
       expect(events).toEqual([
         ['will-destroy-item', { item: item2, index: 1 }],
-        ['will-destroy-pane-item', { item: item2, index: 1, pane }],
+        ['will-destroy-pane-item', { item: item2, index: 1, pane }]
       ]);
     });
 
     it('invokes ::onWillRemoveItem() observers', () => {
       const events = [];
-      pane.onWillRemoveItem((event) => events.push(event));
+      pane.onWillRemoveItem(event => events.push(event));
       pane.destroyItem(item2);
       expect(events).toEqual([
-        { item: item2, index: 1, moved: false, destroyed: true },
+        { item: item2, index: 1, moved: false, destroyed: true }
       ]);
     });
 
     it('invokes ::onDidRemoveItem() observers', () => {
       const events = [];
-      pane.onDidRemoveItem((event) => events.push(event));
+      pane.onDidRemoveItem(event => events.push(event));
       pane.destroyItem(item2);
       expect(events).toEqual([
-        { item: item2, index: 1, moved: false, destroyed: true },
+        { item: item2, index: 1, moved: false, destroyed: true }
       ]);
     });
 
@@ -810,7 +796,7 @@ describe('Pane', () => {
       const [item1, item2] = pane.getItems();
 
       const observed = [];
-      pane.observeItems((item) => observed.push(item));
+      pane.observeItems(item => observed.push(item));
 
       const item3 = new Item();
       pane.addItem(item3);
@@ -910,16 +896,16 @@ describe('Pane', () => {
           return Promise.reject(error);
         };
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(
-            function (notification) {
-              expect(notification.getType()).toBe('warning');
-              expect(notification.getMessage()).toContain('Permission denied');
-              expect(notification.getMessage()).toContain('/foo');
-              subscription.dispose();
-              done();
-            }
-          );
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(function(
+            notification
+          ) {
+            expect(notification.getType()).toBe('warning');
+            expect(notification.getMessage()).toContain('Permission denied');
+            expect(notification.getMessage()).toContain('/foo');
+            subscription.dispose();
+            done();
+          });
           pane.saveActiveItem();
         });
       });
@@ -934,16 +920,16 @@ describe('Pane', () => {
           throw error;
         };
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(
-            function (notification) {
-              expect(notification.getType()).toBe('warning');
-              expect(notification.getMessage()).toContain('Permission denied');
-              expect(notification.getMessage()).toContain('/foo');
-              subscription.dispose();
-              done();
-            }
-          );
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(function(
+            notification
+          ) {
+            expect(notification.getType()).toBe('warning');
+            expect(notification.getMessage()).toContain('Permission denied');
+            expect(notification.getMessage()).toContain('/foo');
+            subscription.dispose();
+            done();
+          });
           pane.saveActiveItem();
         });
       });
@@ -968,7 +954,7 @@ describe('Pane', () => {
         pane.getActiveItem().saveAs = jasmine.createSpy('saveAs');
         pane.saveActiveItemAs();
         expect(showSaveDialog.mostRecentCall.args[0]).toEqual({
-          defaultPath: __filename,
+          defaultPath: __filename
         });
 
         await conditionPromise(
@@ -997,16 +983,16 @@ describe('Pane', () => {
           return Promise.reject(error);
         };
 
-        waitsFor((done) => {
-          const subscription = atom.notifications.onDidAddNotification(
-            function (notification) {
-              expect(notification.getType()).toBe('warning');
-              expect(notification.getMessage()).toContain('Permission denied');
-              expect(notification.getMessage()).toContain('/foo');
-              subscription.dispose();
-              done();
-            }
-          );
+        waitsFor(done => {
+          const subscription = atom.notifications.onDidAddNotification(function(
+            notification
+          ) {
+            expect(notification.getType()).toBe('warning');
+            expect(notification.getMessage()).toContain('Permission denied');
+            expect(notification.getMessage()).toContain('/foo');
+            subscription.dispose();
+            done();
+          });
           pane.saveActiveItemAs();
         });
       });
@@ -1017,7 +1003,7 @@ describe('Pane', () => {
     it('returns the item for which a call to .getURI() returns the given uri', () => {
       const pane = new Pane(
         paneParams({
-          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')],
+          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]
         })
       );
       const [item1, item2] = pane.getItems();
@@ -1035,7 +1021,7 @@ describe('Pane', () => {
     beforeEach(() => {
       pane = new Pane(
         paneParams({
-          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')],
+          items: [new Item('A'), new Item('B'), new Item('C'), new Item('D')]
         })
       );
       [item1, item2, item3, item4] = pane.getItems();
@@ -1054,13 +1040,13 @@ describe('Pane', () => {
 
     it('invokes ::onDidMoveItem() observers', () => {
       const events = [];
-      pane.onDidMoveItem((event) => events.push(event));
+      pane.onDidMoveItem(event => events.push(event));
 
       pane.moveItem(item1, 2);
       pane.moveItem(item2, 3);
       expect(events).toEqual([
         { item: item1, oldIndex: 0, newIndex: 2 },
-        { item: item2, oldIndex: 0, newIndex: 3 },
+        { item: item2, oldIndex: 0, newIndex: 3 }
       ]);
     });
   });
@@ -1086,27 +1072,27 @@ describe('Pane', () => {
 
     it('invokes ::onWillRemoveItem() observers', () => {
       const events = [];
-      pane1.onWillRemoveItem((event) => events.push(event));
+      pane1.onWillRemoveItem(event => events.push(event));
       pane1.moveItemToPane(item2, pane2, 1);
 
       expect(events).toEqual([
-        { item: item2, index: 1, moved: true, destroyed: false },
+        { item: item2, index: 1, moved: true, destroyed: false }
       ]);
     });
 
     it('invokes ::onDidRemoveItem() observers', () => {
       const events = [];
-      pane1.onDidRemoveItem((event) => events.push(event));
+      pane1.onDidRemoveItem(event => events.push(event));
       pane1.moveItemToPane(item2, pane2, 1);
 
       expect(events).toEqual([
-        { item: item2, index: 1, moved: true, destroyed: false },
+        { item: item2, index: 1, moved: true, destroyed: false }
       ]);
     });
 
     it('does not invoke ::onDidAddPaneItem observers on the container', () => {
       const addedItems = [];
-      container.onDidAddPaneItem((item) => addedItems.push(item));
+      container.onDidAddPaneItem(item => addedItems.push(item));
       pane1.moveItemToPane(item2, pane2, 1);
       expect(addedItems).toEqual([]);
     });
@@ -1160,7 +1146,7 @@ describe('Pane', () => {
       container = new PaneContainer({
         config: atom.config,
         confirm,
-        deserializerManager: atom.deserializers,
+        deserializerManager: atom.deserializers
       });
       pane1 = container.getActivePane();
       item1 = new Item('A');
@@ -1324,7 +1310,7 @@ describe('Pane', () => {
           expect(pane1.getActiveItem()).toBe(undefined);
 
           const pane2 = pane1.split('horizontal', 'before', {
-            moveActiveItem: true,
+            moveActiveItem: true
           });
           expect(container.root.children).toEqual([pane2, pane1]);
 
@@ -1338,7 +1324,7 @@ describe('Pane', () => {
           expect(pane1.getActiveItem()).toBe(undefined);
 
           const pane2 = pane1.split('horizontal', 'before', {
-            copyActiveItem: true,
+            copyActiveItem: true
           });
           expect(container.root.children).toEqual([pane2, pane1]);
 
@@ -1417,7 +1403,7 @@ describe('Pane', () => {
         pane = new Pane({
           items: [new Item('A'), new Item('B')],
           applicationDelegate: atom.applicationDelegate,
-          config: atom.config,
+          config: atom.config
         });
         [item1] = pane.getItems();
 
@@ -1518,7 +1504,7 @@ describe('Pane', () => {
     it('invokes ::onWillDestroy observers before destroying items', () => {
       let itemsDestroyed = null;
       pane1.onWillDestroy(() => {
-        itemsDestroyed = pane1.getItems().map((item) => item.isDestroyed());
+        itemsDestroyed = pane1.getItems().map(item => item.isDestroyed());
       });
       pane1.destroy();
       expect(itemsDestroyed).toEqual([false, false]);
@@ -1633,7 +1619,7 @@ describe('Pane', () => {
       pane = new Pane(
         paneParams({
           items: [new Item('A', 'a'), new Item('B', 'b'), new Item('C', 'c')],
-          flexScale: 2,
+          flexScale: 2
         })
       );
     });

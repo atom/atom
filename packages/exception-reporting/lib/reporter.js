@@ -31,7 +31,7 @@ export default class Reporter {
       notifier: {
         name: 'Atom',
         version: LIB_VERSION,
-        url: 'https://www.atom.io',
+        url: 'https://www.atom.io'
       },
       events: [
         {
@@ -39,18 +39,18 @@ export default class Reporter {
           exceptions: [this.buildExceptionJSON(error, params.projectRoot)],
           severity: params.severity,
           user: {
-            id: params.userId,
+            id: params.userId
           },
           app: {
             version: params.appVersion,
-            releaseStage: params.releaseStage,
+            releaseStage: params.releaseStage
           },
           device: {
-            osVersion: params.osVersion,
+            osVersion: params.osVersion
           },
-          metaData: error.metadata,
-        },
-      ],
+          metaData: error.metadata
+        }
+      ]
     };
   }
 
@@ -58,19 +58,19 @@ export default class Reporter {
     return {
       errorClass: error.constructor.name,
       message: error.message,
-      stacktrace: this.buildStackTraceJSON(error, projectRoot),
+      stacktrace: this.buildStackTraceJSON(error, projectRoot)
     };
   }
 
   buildStackTraceJSON(error, projectRoot) {
-    return this.parseStackTrace(error).map((callSite) => {
+    return this.parseStackTrace(error).map(callSite => {
       return {
         file: this.scrubPath(callSite.getFileName()),
         method:
           callSite.getMethodName() || callSite.getFunctionName() || 'none',
         lineNumber: callSite.getLineNumber(),
         columnNumber: callSite.getColumnNumber(),
-        inProject: !/node_modules/.test(callSite.getFileName()),
+        inProject: !/node_modules/.test(callSite.getFileName())
       };
     });
   }
@@ -99,7 +99,7 @@ export default class Reporter {
       appVersion: atom.getVersion(),
       releaseStage: this.getReleaseChannel(atom.getVersion()),
       projectRoot: atom.getLoadSettings().resourcePath,
-      osVersion: `${os.platform()}-${os.arch()}-${os.release()}`,
+      osVersion: `${os.platform()}-${os.arch()}-${os.release()}`
     };
   }
 
@@ -115,7 +115,7 @@ export default class Reporter {
     this.request.call(null, 'https://notify.bugsnag.com', {
       method: 'POST',
       headers: new Headers({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify(json),
+      body: JSON.stringify(json)
     });
   }
 
@@ -186,13 +186,13 @@ export default class Reporter {
       buttons: [
         {
           text: 'No',
-          onDidClick: reportWithoutPrivateMetadata,
+          onDidClick: reportWithoutPrivateMetadata
         },
         {
           text: 'Yes, Submit for Debugging',
-          onDidClick: reportWithPrivateMetadata,
-        },
-      ],
+          onDidClick: reportWithPrivateMetadata
+        }
+      ]
     });
 
     dismissSubscription = notification.onDidDismiss(
@@ -226,10 +226,10 @@ export default class Reporter {
     if (!this.reportPreviousErrors) return;
     if (!error.metadata) error.metadata = {};
     error.metadata.previousErrors = this.reportedErrors.map(
-      (error) => error.message
+      error => error.message
     );
     error.metadata.previousAssertionFailures = this.reportedAssertionFailures.map(
-      (error) => error.message
+      error => error.message
     );
   }
 
@@ -246,7 +246,7 @@ export default class Reporter {
       this.requestPrivateMetadataConsent(
         error,
         'The Atom team would like to collect the following information to resolve this error:',
-        (error) => this.reportUncaughtException(error)
+        error => this.reportUncaughtException(error)
       );
       return;
     }
@@ -270,7 +270,7 @@ export default class Reporter {
       this.requestPrivateMetadataConsent(
         error,
         'The Atom team would like to collect some information to resolve an unexpected condition:',
-        (error) => this.reportFailedAssertion(error)
+        error => this.reportFailedAssertion(error)
       );
       return;
     }

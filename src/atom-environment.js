@@ -89,29 +89,29 @@ class AtomEnvironment {
 
     // Public: A {Config} instance
     this.config = new Config({
-      saveCallback: (settings) => {
+      saveCallback: settings => {
         if (this.enablePersistence) {
           this.applicationDelegate.setUserSettings(
             settings,
             this.config.getUserConfigPath()
           );
         }
-      },
+      }
     });
     this.config.setSchema(null, {
       type: 'object',
-      properties: _.clone(ConfigSchema),
+      properties: _.clone(ConfigSchema)
     });
 
     // Public: A {KeymapManager} instance
     this.keymaps = new KeymapManager({
-      notificationManager: this.notifications,
+      notificationManager: this.notifications
     });
 
     // Public: A {TooltipManager} instance
     this.tooltips = new TooltipManager({
       keymapManager: this.keymaps,
-      viewRegistry: this.views,
+      viewRegistry: this.views
     });
 
     // Public: A {CommandRegistry} instance
@@ -134,7 +134,7 @@ class AtomEnvironment {
       grammarRegistry: this.grammars,
       deserializerManager: this.deserializers,
       viewRegistry: this.views,
-      uriHandlerRegistry: this.uriHandlerRegistry,
+      uriHandlerRegistry: this.uriHandlerRegistry
     });
 
     // Public: A {ThemeManager} instance
@@ -143,13 +143,13 @@ class AtomEnvironment {
       config: this.config,
       styleManager: this.styles,
       notificationManager: this.notifications,
-      viewRegistry: this.views,
+      viewRegistry: this.views
     });
 
     // Public: A {MenuManager} instance
     this.menu = new MenuManager({
       keymapManager: this.keymaps,
-      packageManager: this.packages,
+      packageManager: this.packages
     });
 
     // Public: A {ContextMenuManager} instance
@@ -165,7 +165,7 @@ class AtomEnvironment {
       packageManager: this.packages,
       grammarRegistry: this.grammars,
       config: this.config,
-      applicationDelegate: this.applicationDelegate,
+      applicationDelegate: this.applicationDelegate
     });
     this.commandInstaller = new CommandInstaller(this.applicationDelegate);
     this.protocolHandlerInstaller = new ProtocolHandlerInstaller();
@@ -175,7 +175,7 @@ class AtomEnvironment {
       config: this.config,
       grammarRegistry: this.grammars,
       assert: this.assert.bind(this),
-      packageManager: this.packages,
+      packageManager: this.packages
     });
 
     // Public: A {Workspace} instance
@@ -191,13 +191,13 @@ class AtomEnvironment {
       assert: this.assert.bind(this),
       textEditorRegistry: this.textEditors,
       styleManager: this.styles,
-      enablePersistence: this.enablePersistence,
+      enablePersistence: this.enablePersistence
     });
 
     this.themes.workspace = this.workspace;
 
     this.autoUpdater = new AutoUpdateManager({
-      applicationDelegate: this.applicationDelegate,
+      applicationDelegate: this.applicationDelegate
     });
 
     if (this.keymaps.canLoadBundledKeymapsFromMemory()) {
@@ -210,19 +210,19 @@ class AtomEnvironment {
 
     this.windowEventHandler = new WindowEventHandler({
       atomEnvironment: this,
-      applicationDelegate: this.applicationDelegate,
+      applicationDelegate: this.applicationDelegate
     });
 
     // Public: A {HistoryManager} instance
     this.history = new HistoryManager({
       project: this.project,
       commands: this.commands,
-      stateStore: this.stateStore,
+      stateStore: this.stateStore
     });
 
     // Keep instances of HistoryManager in sync
     this.disposables.add(
-      this.history.onDidChangeProjects((event) => {
+      this.history.onDidChangeProjects(event => {
         if (!event.reloaded) this.applicationDelegate.didChangeHistoryManager();
       })
     );
@@ -244,20 +244,20 @@ class AtomEnvironment {
       safeMode,
       resourcePath,
       userSettings,
-      projectSpecification,
+      projectSpecification
     } = this.getLoadSettings();
 
     ConfigSchema.projectHome = {
       type: 'string',
       default: path.join(fs.getHomeDirectory(), 'github'),
       description:
-        'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.',
+        'The directory where projects are assumed to be located. Packages created using the Package Generator will be stored here by default.'
     };
 
     this.config.initialize({
       mainSource:
         this.enablePersistence && path.join(this.configDirPath, 'config.cson'),
-      projectHomeSchema: ConfigSchema.projectHome,
+      projectHomeSchema: ConfigSchema.projectHome
     });
     this.config.resetUserSettings(userSettings);
 
@@ -282,13 +282,13 @@ class AtomEnvironment {
       devMode,
       configDirPath: this.configDirPath,
       resourcePath,
-      safeMode,
+      safeMode
     });
     this.themes.initialize({
       configDirPath: this.configDirPath,
       resourcePath,
       safeMode,
-      devMode,
+      devMode
     });
 
     this.commandInstaller.initialize(this.getVersion());
@@ -368,12 +368,12 @@ class AtomEnvironment {
       commandInstaller: this.commandInstaller,
       notificationManager: this.notifications,
       project: this.project,
-      clipboard: this.clipboard,
+      clipboard: this.clipboard
     });
   }
 
   registerDefaultOpeners() {
-    this.workspace.addOpener((uri) => {
+    this.workspace.addOpener(uri => {
       switch (uri) {
         case 'atom://.atom/stylesheet':
           return this.workspace.openTextFile(
@@ -409,7 +409,7 @@ class AtomEnvironment {
     this.config.clear();
     this.config.setSchema(null, {
       type: 'object',
-      properties: _.clone(ConfigSchema),
+      properties: _.clone(ConfigSchema)
     });
 
     this.keymaps.clear();
@@ -830,7 +830,7 @@ class AtomEnvironment {
     } else {
       const {
         width,
-        height,
+        height
       } = this.applicationDelegate.getPrimaryDisplayWorkAreaSize();
       return { x: 0, y: 0, width: Math.min(1024, width), height };
     }
@@ -883,7 +883,7 @@ class AtomEnvironment {
 
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks();
 
-    const loadStatePromise = this.loadState().then(async (state) => {
+    const loadStatePromise = this.loadState().then(async state => {
       this.windowDimensions = state && state.windowDimensions;
       if (!this.getLoadSettings().headless) {
         StartupTime.addMarker(
@@ -891,20 +891,20 @@ class AtomEnvironment {
         );
         await this.displayWindow();
       }
-      this.commandInstaller.installAtomCommand(false, (error) => {
+      this.commandInstaller.installAtomCommand(false, error => {
         if (error) console.warn(error.message);
       });
-      this.commandInstaller.installApmCommand(false, (error) => {
+      this.commandInstaller.installApmCommand(false, error => {
         if (error) console.warn(error.message);
       });
 
       this.disposables.add(
-        this.applicationDelegate.onDidChangeUserSettings((settings) =>
+        this.applicationDelegate.onDidChangeUserSettings(settings =>
           this.config.resetUserSettings(settings)
         )
       );
       this.disposables.add(
-        this.applicationDelegate.onDidFailToReadUserSettings((message) =>
+        this.applicationDelegate.onDidFailToReadUserSettings(message =>
           this.notifications.addError(message)
         )
       );
@@ -959,8 +959,8 @@ class AtomEnvironment {
           item: new TitleBar({
             workspace: this.workspace,
             themes: this.themes,
-            applicationDelegate: this.applicationDelegate,
-          }),
+            applicationDelegate: this.applicationDelegate
+          })
         });
         this.document.body.classList.add('custom-title-bar');
       }
@@ -972,8 +972,8 @@ class AtomEnvironment {
           item: new TitleBar({
             workspace: this.workspace,
             themes: this.themes,
-            applicationDelegate: this.applicationDelegate,
-          }),
+            applicationDelegate: this.applicationDelegate
+          })
         });
         this.document.body.classList.add('custom-inset-title-bar');
       }
@@ -989,7 +989,7 @@ class AtomEnvironment {
 
       let previousProjectPaths = this.project.getPaths();
       this.disposables.add(
-        this.project.onDidChangePaths((newPaths) => {
+        this.project.onDidChangePaths(newPaths => {
           for (let path of previousProjectPaths) {
             if (
               this.pathsWithWaitSessions.has(path) &&
@@ -1032,7 +1032,7 @@ class AtomEnvironment {
         commands: this.commands,
         history: this.history,
         config: this.config,
-        open: (paths) => this.open({ pathsToOpen: paths }),
+        open: paths => this.open({ pathsToOpen: paths })
       });
       this.reopenProjectMenuManager.update();
     });
@@ -1040,7 +1040,7 @@ class AtomEnvironment {
     const output = await Promise.all([
       loadStatePromise,
       loadHistoryPromise,
-      updateProcessEnvPromise,
+      updateProcessEnvPromise
     ]);
 
     StartupTime.addMarker('window:environment:start-editor-window:end');
@@ -1056,7 +1056,7 @@ class AtomEnvironment {
       packageStates: this.packages.serialize(),
       grammars: this.grammars.serialize(),
       fullScreen: this.isFullScreen(),
-      windowDimensions: this.windowDimensions,
+      windowDimensions: this.windowDimensions
     };
   }
 
@@ -1071,7 +1071,7 @@ class AtomEnvironment {
       !this.workspace ||
       (await this.workspace.confirmClose({
         windowCloseRequested: true,
-        projectHasPaths: this.project.getPaths().length > 0,
+        projectHasPaths: this.project.getPaths().length > 0
       }));
 
     if (closing) {
@@ -1130,7 +1130,7 @@ class AtomEnvironment {
         url,
         line,
         column,
-        originalError,
+        originalError
       });
     };
   }
@@ -1142,7 +1142,7 @@ class AtomEnvironment {
   installWindowEventHandler() {
     this.windowEventHandler = new WindowEventHandler({
       atomEnvironment: this,
-      applicationDelegate: this.applicationDelegate,
+      applicationDelegate: this.applicationDelegate
     });
     this.windowEventHandler.initialize(this.window, this.document);
   }
@@ -1311,8 +1311,8 @@ class AtomEnvironment {
   }
 
   addProjectFolder() {
-    return new Promise((resolve) => {
-      this.pickFolder((selectedPaths) => {
+    return new Promise(resolve => {
+      this.pickFolder(selectedPaths => {
         this.addToProject(selectedPaths || []).then(resolve);
       });
     });
@@ -1323,7 +1323,7 @@ class AtomEnvironment {
     if (state && this.project.getPaths().length === 0) {
       this.attemptRestoreProjectStateForPaths(state, projectPaths);
     } else {
-      projectPaths.map((folder) => this.project.addPath(folder));
+      projectPaths.map(folder => this.project.addPath(folder));
     }
   }
 
@@ -1348,10 +1348,10 @@ class AtomEnvironment {
 
     if (windowIsUnused()) {
       await this.restoreStateIntoThisEnvironment(state);
-      return Promise.all(filesToOpen.map((file) => this.workspace.open(file)));
+      return Promise.all(filesToOpen.map(file => this.workspace.open(file)));
     } else {
       let resolveDiscardStatePromise = null;
-      const discardStatePromise = new Promise((resolve) => {
+      const discardStatePromise = new Promise(resolve => {
         resolveDiscardStatePromise = resolve;
       });
       const nouns = projectPaths.length === 1 ? 'folder' : 'folders';
@@ -1364,16 +1364,16 @@ class AtomEnvironment {
             `or open the ${nouns} in a new window, restoring the saved state?`,
           buttons: [
             '&Open in new window and recover state',
-            '&Add to this window and discard state',
-          ],
+            '&Add to this window and discard state'
+          ]
         },
-        (response) => {
+        response => {
           if (response === 0) {
             this.open({
               pathsToOpen: projectPaths.concat(filesToOpen),
               newWindow: true,
               devMode: this.inDevMode(),
-              safeMode: this.inSafeMode(),
+              safeMode: this.inSafeMode()
             });
             resolveDiscardStatePromise(Promise.resolve(null));
           } else if (response === 1) {
@@ -1381,7 +1381,7 @@ class AtomEnvironment {
               this.project.addPath(selectedPath);
             }
             resolveDiscardStatePromise(
-              Promise.all(filesToOpen.map((file) => this.workspace.open(file)))
+              Promise.all(filesToOpen.map(file => this.workspace.open(file)))
             );
           }
         }
@@ -1451,7 +1451,7 @@ or use Pane::saveItemAs for programmatic saving.`);
         if (!error.missingProjectPaths) {
           this.notifications.addError('Unable to deserialize project', {
             description: error.message,
-            stack: error.stack,
+            stack: error.stack
           });
         }
       }
@@ -1474,7 +1474,7 @@ or use Pane::saveItemAs for programmatic saving.`);
       const noun = missingProjectPaths.length === 1 ? 'folder' : 'folders';
       const toBe = missingProjectPaths.length === 1 ? 'is' : 'are';
       const escaped = missingProjectPaths.map(
-        (projectPath) => `\`${projectPath}\``
+        projectPath => `\`${projectPath}\``
       );
       let group;
       switch (escaped.length) {
@@ -1491,7 +1491,7 @@ or use Pane::saveItemAs for programmatic saving.`);
       }
 
       this.notifications.addError(`Unable to open ${count}project ${noun}`, {
-        description: `Project ${noun} ${group} ${toBe} no longer on disk.`,
+        description: `Project ${noun} ${group} ${toBe} no longer on disk.`
       });
     }
   }
@@ -1500,7 +1500,12 @@ or use Pane::saveItemAs for programmatic saving.`);
     if (paths && paths.length > 0) {
       const sha1 = crypto
         .createHash('sha1')
-        .update(paths.slice().sort().join('\n'))
+        .update(
+          paths
+            .slice()
+            .sort()
+            .join('\n')
+        )
         .digest('hex');
       return `editor-${sha1}`;
     } else {
@@ -1516,7 +1521,7 @@ or use Pane::saveItemAs for programmatic saving.`);
   getUserInitScriptPath() {
     const initScriptPath = fs.resolve(this.getConfigDirPath(), 'init', [
       'js',
-      'coffee',
+      'coffee'
     ]);
     return initScriptPath || path.join(this.getConfigDirPath(), 'init.coffee');
   }
@@ -1531,7 +1536,7 @@ or use Pane::saveItemAs for programmatic saving.`);
           `Failed to load \`${userInitScriptPath}\``,
           {
             detail: error.message,
-            dismissable: true,
+            dismissable: true
           }
         );
       }
@@ -1598,7 +1603,7 @@ or use Pane::saveItemAs for programmatic saving.`);
 
     // Asynchronously fetch stat information about each requested path to open.
     const locationStats = await Promise.all(
-      locations.map(async (location) => {
+      locations.map(async location => {
         const stats = location.pathToOpen
           ? await stat(location.pathToOpen).catch(() => null)
           : null;
@@ -1656,7 +1661,7 @@ or use Pane::saveItemAs for programmatic saving.`);
       // Include missing folders in the state key so that sessions restored with no-longer-present project root folders
       // don't lose data.
       const foldersForStateKey = Array.from(foldersToAddToProject).concat(
-        missingFolders.map((location) => location.pathToOpen)
+        missingFolders.map(location => location.pathToOpen)
       );
       const state = await this.loadState(
         this.getStateKey(Array.from(foldersForStateKey))
@@ -1664,9 +1669,7 @@ or use Pane::saveItemAs for programmatic saving.`);
 
       // only restore state if this is the first path added to the project
       if (state && needsProjectPaths) {
-        const files = fileLocationsToOpen.map(
-          (location) => location.pathToOpen
-        );
+        const files = fileLocationsToOpen.map(location => location.pathToOpen);
         await this.attemptRestoreProjectStateForPaths(
           state,
           Array.from(foldersToAddToProject),
@@ -1685,7 +1688,7 @@ or use Pane::saveItemAs for programmatic saving.`);
       for (const {
         pathToOpen,
         initialLine,
-        initialColumn,
+        initialColumn
       } of fileLocationsToOpen) {
         fileOpenPromises.push(
           this.workspace &&
@@ -1713,8 +1716,8 @@ or use Pane::saveItemAs for programmatic saving.`);
         description += 'directories ';
         description += missingFolders
           .slice(0, -1)
-          .map((location) => location.pathToOpen)
-          .map((pathToOpen) => '`' + pathToOpen + '`, ')
+          .map(location => location.pathToOpen)
+          .map(pathToOpen => '`' + pathToOpen + '`, ')
           .join('');
         description +=
           'and `' +

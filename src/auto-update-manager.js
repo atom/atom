@@ -15,7 +15,7 @@ module.exports = class AutoUpdateManager {
       this.applicationDelegate.onDidBeginDownloadingUpdate(() => {
         this.emitter.emit('did-begin-downloading-update');
       }),
-      this.applicationDelegate.onDidCompleteDownloadingUpdate((details) => {
+      this.applicationDelegate.onDidCompleteDownloadingUpdate(details => {
         this.emitter.emit('did-complete-downloading-update', details);
       }),
       this.applicationDelegate.onUpdateNotAvailable(() => {

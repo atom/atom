@@ -70,7 +70,7 @@ describe('TextEditorElement', () => {
     expect(element.getModel().isLineNumberGutterVisible()).toBe(false);
   });
 
-  it("honors the 'readonly' attribute", async function () {
+  it("honors the 'readonly' attribute", async function() {
     jasmineContent.innerHTML = '<atom-text-editor readonly>';
     const element = jasmineContent.firstChild;
 
@@ -146,13 +146,10 @@ describe('TextEditorElement', () => {
       const editor = new TextEditor();
       editor.setText('1\n2\n3');
       editor.addGutter({ name: 'test-gutter' });
-      const marker = editor.markBufferRange([
-        [0, 0],
-        [2, 0],
-      ]);
+      const marker = editor.markBufferRange([[0, 0], [2, 0]]);
       editor.decorateMarker(marker, {
         type: 'gutter',
-        gutterName: 'test-gutter',
+        gutterName: 'test-gutter'
       });
       const element = editor.getElement();
 
@@ -228,7 +225,7 @@ describe('TextEditorElement', () => {
       }
 
       document.registerElement('element-that-focuses-child', {
-        prototype: ElementThatFocusesChild.prototype,
+        prototype: ElementThatFocusesChild.prototype
       });
 
       it('proxies the focus event to the hidden input', () => {
@@ -309,7 +306,7 @@ describe('TextEditorElement', () => {
 
   describe('::setUpdatedSynchronously', () => {
     it('controls whether the text editor is updated synchronously', () => {
-      spyOn(window, 'requestAnimationFrame').andCallFake((fn) => fn());
+      spyOn(window, 'requestAnimationFrame').andCallFake(fn => fn());
 
       const element = buildTextEditorElement();
 
@@ -441,16 +438,11 @@ describe('TextEditorElement', () => {
       const bottom = 13 * editor.getLineHeightInPixels();
       const left = Math.round(3 * editor.getDefaultCharWidth());
       const right = Math.round(11 * editor.getDefaultCharWidth());
-      expect(
-        element.pixelRectForScreenRange([
-          [2, 3],
-          [13, 11],
-        ])
-      ).toEqual({
+      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({
         top,
         left,
         height: bottom + editor.getLineHeightInPixels() - top,
-        width: right - left,
+        width: right - left
       });
     });
   });
@@ -471,10 +463,10 @@ describe('TextEditorElement', () => {
     describe('::onDidChangeScrollTop(callback)', () =>
       it('triggers even when subscribing before attaching the element', () => {
         const positions = [];
-        const subscription1 = element.onDidChangeScrollTop((p) =>
+        const subscription1 = element.onDidChangeScrollTop(p =>
           positions.push(p)
         );
-        element.onDidChangeScrollTop((p) => positions.push(p));
+        element.onDidChangeScrollTop(p => positions.push(p));
 
         positions.length = 0;
         element.setScrollTop(10);
@@ -497,10 +489,10 @@ describe('TextEditorElement', () => {
     describe('::onDidChangeScrollLeft(callback)', () =>
       it('triggers even when subscribing before attaching the element', () => {
         const positions = [];
-        const subscription1 = element.onDidChangeScrollLeft((p) =>
+        const subscription1 = element.onDidChangeScrollLeft(p =>
           positions.push(p)
         );
-        element.onDidChangeScrollLeft((p) => positions.push(p));
+        element.onDidChangeScrollLeft(p => positions.push(p));
 
         positions.length = 0;
         element.setScrollLeft(10);

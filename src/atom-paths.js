@@ -1,7 +1,7 @@
 const fs = require('fs-plus');
 const path = require('path');
 
-const hasWriteAccess = (dir) => {
+const hasWriteAccess = dir => {
   const testFilePath = path.join(dir, 'write.test');
   try {
     fs.writeFileSync(testFilePath, new Date().toISOString(), { flag: 'w+' });
@@ -26,7 +26,7 @@ const getAppDirectory = () => {
 };
 
 module.exports = {
-  setAtomHome: (homePath) => {
+  setAtomHome: homePath => {
     // When a read-writeable .atom folder exists above app use that
     const portableHomePath = path.join(getAppDirectory(), '..', '.atom');
     if (fs.existsSync(portableHomePath)) {
@@ -49,7 +49,7 @@ module.exports = {
     process.env.ATOM_HOME = path.join(homePath, '.atom');
   },
 
-  setUserData: (app) => {
+  setUserData: app => {
     const electronUserDataPath = path.join(
       process.env.ATOM_HOME,
       'electronUserData'
@@ -66,5 +66,5 @@ module.exports = {
     }
   },
 
-  getAppDirectory: getAppDirectory,
+  getAppDirectory: getAppDirectory
 };

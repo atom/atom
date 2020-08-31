@@ -13,7 +13,7 @@ module.exports = class ProtocolHandlerInstaller {
   isDefaultProtocolClient() {
     return remote.app.isDefaultProtocolClient('atom', process.execPath, [
       '--uri-handler',
-      '--',
+      '--'
     ]);
   }
 
@@ -24,7 +24,7 @@ module.exports = class ProtocolHandlerInstaller {
       this.isSupported() &&
       remote.app.setAsDefaultProtocolClient('atom', process.execPath, [
         '--uri-handler',
-        '--',
+        '--'
       ])
     );
   }
@@ -65,7 +65,7 @@ module.exports = class ProtocolHandlerInstaller {
     let notification;
 
     const withSetting = (value, fn) => {
-      return function () {
+      return function() {
         config.set(SETTING, value);
         fn();
       };
@@ -91,24 +91,24 @@ module.exports = class ProtocolHandlerInstaller {
           {
             text: 'Yes',
             className: 'btn btn-info btn-primary',
-            onDidClick: accept,
+            onDidClick: accept
           },
           {
             text: 'Yes, Always',
             className: 'btn btn-info',
-            onDidClick: withSetting(ALWAYS, accept),
+            onDidClick: withSetting(ALWAYS, accept)
           },
           {
             text: 'No',
             className: 'btn btn-info',
-            onDidClick: decline,
+            onDidClick: decline
           },
           {
             text: 'No, Never',
             className: 'btn btn-info',
-            onDidClick: withSetting(NEVER, decline),
-          },
-        ],
+            onDidClick: withSetting(NEVER, decline)
+          }
+        ]
       }
     );
   }

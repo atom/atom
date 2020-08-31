@@ -39,7 +39,7 @@ module.exports = class Pane {
     state.activeItem = items[activeItemIndex];
     if (!state.activeItem && activeItemURI) {
       state.activeItem = state.items.find(
-        (item) =>
+        item =>
           typeof item.getURI === 'function' && item.getURI() === activeItemURI
       );
     }
@@ -51,7 +51,7 @@ module.exports = class Pane {
           notificationManager: notifications,
           viewRegistry: views,
           config,
-          applicationDelegate,
+          applicationDelegate
         },
         state
       )
@@ -90,7 +90,7 @@ module.exports = class Pane {
     this.itemStack = [];
     this.container = null;
 
-    this.addItems((params.items || []).filter((item) => item));
+    this.addItems((params.items || []).filter(item => item));
     if (!this.getActiveItem()) this.setActiveItem(this.items[0]);
     this.addItemsToStack(params.itemStackIndices || []);
     this.setFlexScale(params.flexScale || 1);
@@ -100,7 +100,7 @@ module.exports = class Pane {
     if (!this.element) {
       this.element = new PaneElement().initialize(this, {
         views: this.viewRegistry,
-        applicationDelegate: this.applicationDelegate,
+        applicationDelegate: this.applicationDelegate
       });
     }
     return this.element;
@@ -108,7 +108,7 @@ module.exports = class Pane {
 
   serialize() {
     const itemsToBeSerialized = this.items.filter(
-      (item) => item && typeof item.serialize === 'function'
+      item => item && typeof item.serialize === 'function'
     );
 
     const itemStackIndices = [];
@@ -123,11 +123,11 @@ module.exports = class Pane {
     return {
       deserializer: 'Pane',
       id: this.id,
-      items: itemsToBeSerialized.map((item) => item.serialize()),
+      items: itemsToBeSerialized.map(item => item.serialize()),
       itemStackIndices,
       activeItemIndex,
       focused: this.focused,
-      flexScale: this.flexScale,
+      flexScale: this.flexScale
     };
   }
 
@@ -258,7 +258,7 @@ module.exports = class Pane {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
   onDidChangeActive(callback) {
-    return this.container.onDidChangeActivePane((activePane) => {
+    return this.container.onDidChangeActivePane(activePane => {
       const isActive = this === activePane;
       callback(isActive);
     });
@@ -654,9 +654,8 @@ module.exports = class Pane {
 
     if (typeof item.isDestroyed === 'function' && item.isDestroyed()) {
       throw new Error(
-        `Adding a pane item with URI '${
-          typeof item.getURI === 'function' && item.getURI()
-        }' that has already been destroyed`
+        `Adding a pane item with URI '${typeof item.getURI === 'function' &&
+          item.getURI()}' that has already been destroyed`
       );
     }
 
@@ -728,7 +727,7 @@ module.exports = class Pane {
   //
   // Returns an {Array} of added items.
   addItems(items, index = this.getActiveItemIndex() + 1) {
-    items = items.filter((item) => !this.items.includes(item));
+    items = items.filter(item => !this.items.includes(item));
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       this.addItem(item, { index: index + i });
@@ -745,7 +744,7 @@ module.exports = class Pane {
       item,
       index,
       destroyed: !moved,
-      moved,
+      moved
     });
     this.unsubscribeFromItem(item);
 
@@ -763,7 +762,7 @@ module.exports = class Pane {
       item,
       index,
       destroyed: !moved,
-      moved,
+      moved
     });
     if (!moved && this.container)
       this.container.didDestroyPaneItem({ item, index, pane: this });
@@ -862,15 +861,15 @@ module.exports = class Pane {
 
   // Public: Destroy all items.
   destroyItems() {
-    return Promise.all(this.getItems().map((item) => this.destroyItem(item)));
+    return Promise.all(this.getItems().map(item => this.destroyItem(item)));
   }
 
   // Public: Destroy all items except for the active item.
   destroyInactiveItems() {
     return Promise.all(
       this.getItems()
-        .filter((item) => item !== this.activeItem)
-        .map((item) => this.destroyItem(item))
+        .filter(item => item !== this.activeItem)
+        .map(item => this.destroyItem(item))
     );
   }
 
@@ -901,12 +900,12 @@ module.exports = class Pane {
             message,
             detail:
               'Your changes will be lost if you close this item without saving.',
-            buttons: [saveButtonText, 'Cancel', "&Don't Save"],
+            buttons: [saveButtonText, 'Cancel', "&Don't Save"]
           },
-          (response) => {
+          response => {
             switch (response) {
               case 0:
-                return saveFn(item, (error) => {
+                return saveFn(item, error => {
                   if (error instanceof SaveCancelledError) {
                     resolve(false);
                   } else if (error) {
@@ -979,7 +978,7 @@ module.exports = class Pane {
           .then(() => {
             if (nextAction) nextAction();
           })
-          .catch((error) => {
+          .catch(error => {
             if (nextAction) {
               nextAction(error);
             } else {
@@ -1017,10 +1016,10 @@ module.exports = class Pane {
       saveOptions.defaultPath = itemPath;
 
     let resolveSaveDialogPromise = null;
-    const saveDialogPromise = new Promise((resolve) => {
+    const saveDialogPromise = new Promise(resolve => {
       resolveSaveDialogPromise = resolve;
     });
-    this.applicationDelegate.showSaveDialog(saveOptions, (newItemPath) => {
+    this.applicationDelegate.showSaveDialog(saveOptions, newItemPath => {
       if (newItemPath) {
         promisify(() => item.saveAs(newItemPath))
           .then(() => {
@@ -1030,7 +1029,7 @@ module.exports = class Pane {
               resolveSaveDialogPromise();
             }
           })
-          .catch((error) => {
+          .catch(error => {
             if (nextAction) {
               resolveSaveDialogPromise(nextAction(error));
             } else {
@@ -1064,7 +1063,7 @@ module.exports = class Pane {
   //
   // * `uri` {String} containing a URI.
   itemForURI(uri) {
-    return this.items.find((item) => {
+    return this.items.find(item => {
       if (typeof item.getURI === 'function') {
         return item.getURI() === uri;
       } else if (typeof item.getUri === 'function') {
@@ -1214,7 +1213,7 @@ module.exports = class Pane {
             container: this.container,
             orientation,
             children: [this],
-            flexScale: this.flexScale,
+            flexScale: this.flexScale
           },
           this.viewRegistry
         )
@@ -1229,7 +1228,7 @@ module.exports = class Pane {
           notificationManager: this.notificationManager,
           deserializerManager: this.deserializerManager,
           config: this.config,
-          viewRegistry: this.viewRegistry,
+          viewRegistry: this.viewRegistry
         },
         params
       )
@@ -1339,8 +1338,8 @@ module.exports = class Pane {
   // closing has been cancelled.
   close() {
     return Promise.all(
-      this.getItems().map((item) => this.promptToSaveItem(item))
-    ).then((results) => {
+      this.getItems().map(item => this.promptToSaveItem(item))
+    ).then(results => {
       if (!results.includes(false)) return this.destroy();
     });
   }

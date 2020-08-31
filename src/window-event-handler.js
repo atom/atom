@@ -40,14 +40,14 @@ module.exports = class WindowEventHandler {
         'window:toggle-full-screen': this.handleWindowToggleFullScreen,
         'window:close': this.handleWindowClose,
         'window:reload': this.handleWindowReload,
-        'window:toggle-dev-tools': this.handleWindowToggleDevTools,
+        'window:toggle-dev-tools': this.handleWindowToggleDevTools
       })
     );
 
     if (['win32', 'linux'].includes(process.platform)) {
       this.subscriptions.add(
         this.atomEnvironment.commands.add(this.window, {
-          'window:toggle-menu-bar': this.handleWindowToggleMenuBar,
+          'window:toggle-menu-bar': this.handleWindowToggleMenuBar
         })
       );
     }
@@ -55,7 +55,7 @@ module.exports = class WindowEventHandler {
     this.subscriptions.add(
       this.atomEnvironment.commands.add(this.document, {
         'core:focus-next': this.handleFocusNext,
-        'core:focus-previous': this.handleFocusPrevious,
+        'core:focus-previous': this.handleFocusPrevious
       })
     );
 
@@ -112,7 +112,7 @@ module.exports = class WindowEventHandler {
         this.atomEnvironment.commands.add(
           '.native-key-bindings',
           command,
-          (event) =>
+          event =>
             this.applicationDelegate.getCurrentWindow().webContents[action](),
           false
         )
@@ -134,7 +134,7 @@ module.exports = class WindowEventHandler {
   on(target, eventName, handler) {
     target.on(eventName, handler);
     this.subscriptions.add(
-      new Disposable(function () {
+      new Disposable(function() {
         target.removeListener(eventName, handler);
       })
     );
@@ -143,7 +143,7 @@ module.exports = class WindowEventHandler {
   addEventListener(target, eventName, handler) {
     target.addEventListener(eventName, handler);
     this.subscriptions.add(
-      new Disposable(function () {
+      new Disposable(function() {
         target.removeEventListener(eventName, handler);
       })
     );
@@ -187,7 +187,7 @@ module.exports = class WindowEventHandler {
     let nextTabIndex = Infinity;
     let lowestElement = null;
     let lowestTabIndex = Infinity;
-    this.eachTabIndexedElement(function (element, tabIndex) {
+    this.eachTabIndexedElement(function(element, tabIndex) {
       if (tabIndex < lowestTabIndex) {
         lowestTabIndex = tabIndex;
         lowestElement = element;
@@ -216,7 +216,7 @@ module.exports = class WindowEventHandler {
     let previousTabIndex = -Infinity;
     let highestElement = null;
     let highestTabIndex = -Infinity;
-    this.eachTabIndexedElement(function (element, tabIndex) {
+    this.eachTabIndexedElement(function(element, tabIndex) {
       if (tabIndex > highestTabIndex) {
         highestTabIndex = tabIndex;
         highestElement = element;

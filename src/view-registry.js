@@ -72,7 +72,7 @@ module.exports = class ViewRegistry {
         case 'function':
           provider = {
             createView: modelConstructor,
-            modelConstructor: AnyConstructor,
+            modelConstructor: AnyConstructor
           };
           break;
         case 'object':
@@ -90,7 +90,7 @@ module.exports = class ViewRegistry {
 
     this.providers.push(provider);
     return new Disposable(() => {
-      this.providers = this.providers.filter((p) => p !== provider);
+      this.providers = this.providers.filter(p => p !== provider);
     });
   }
 
@@ -196,7 +196,9 @@ module.exports = class ViewRegistry {
     }
 
     throw new Error(
-      `Can't create a view for ${object.constructor.name} instance. Please register a view provider.`
+      `Can't create a view for ${
+        object.constructor.name
+      } instance. Please register a view provider.`
     );
   }
 
@@ -207,7 +209,7 @@ module.exports = class ViewRegistry {
     }
     return new Disposable(() => {
       this.documentWriters = this.documentWriters.filter(
-        (writer) => writer !== fn
+        writer => writer !== fn
       );
     });
   }
@@ -217,14 +219,14 @@ module.exports = class ViewRegistry {
     this.requestDocumentUpdate();
     return new Disposable(() => {
       this.documentReaders = this.documentReaders.filter(
-        (reader) => reader !== fn
+        reader => reader !== fn
       );
     });
   }
 
   getNextUpdatePromise() {
     if (this.nextUpdatePromise == null) {
-      this.nextUpdatePromise = new Promise((resolve) => {
+      this.nextUpdatePromise = new Promise(resolve => {
         this.resolveNextUpdatePromise = resolve;
       });
     }

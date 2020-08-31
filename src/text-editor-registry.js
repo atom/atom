@@ -21,7 +21,7 @@ const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['editor.autoIndentOnPaste', 'autoIndentOnPaste'],
   ['editor.scrollPastEnd', 'scrollPastEnd'],
   ['editor.undoGroupingInterval', 'undoGroupingInterval'],
-  ['editor.scrollSensitivity', 'scrollSensitivity'],
+  ['editor.scrollSensitivity', 'scrollSensitivity']
 ];
 
 // Experimental: This global registry tracks registered `TextEditors`.
@@ -49,7 +49,7 @@ module.exports = class TextEditorRegistry {
 
   serialize() {
     return {
-      editorGrammarOverrides: Object.assign({}, this.editorGrammarOverrides),
+      editorGrammarOverrides: Object.assign({}, this.editorGrammarOverrides)
     };
   }
 
@@ -259,7 +259,7 @@ module.exports = class TextEditorRegistry {
       for (const [settingKey, paramName] of EDITOR_PARAMS_BY_SETTING_KEY) {
         this.subscriptions.add(
           this.config.onDidChange(settingKey, configOptions, ({ newValue }) => {
-            this.editorsWithMaintainedConfig.forEach((editor) => {
+            this.editorsWithMaintainedConfig.forEach(editor => {
               if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
                 editor.update({ [paramName]: newValue });
               }
@@ -271,7 +271,7 @@ module.exports = class TextEditorRegistry {
       const updateTabTypes = () => {
         const tabType = this.config.get('editor.tabType', configOptions);
         const softTabs = this.config.get('editor.softTabs', configOptions);
-        this.editorsWithMaintainedConfig.forEach((editor) => {
+        this.editorsWithMaintainedConfig.forEach(editor => {
           if (editor.getRootScopeDescriptor().isEqual(scopeDescriptor)) {
             editor.setSoftTabs(
               shouldEditorUseSoftTabs(editor, tabType, softTabs)

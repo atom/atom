@@ -24,15 +24,15 @@ export function activate() {
 
   disposables.add(
     atom.commands.add('atom-text-editor', {
-      'line-ending-selector:show': (event) => {
+      'line-ending-selector:show': event => {
         if (!modalPanel) {
           lineEndingListView = new SelectListView({
             items: [
               { name: 'LF', value: '\n' },
-              { name: 'CRLF', value: '\r\n' },
+              { name: 'CRLF', value: '\r\n' }
             ],
-            filterKeyForItem: (lineEnding) => lineEnding.name,
-            didConfirmSelection: (lineEnding) => {
+            filterKeyForItem: lineEnding => lineEnding.name,
+            didConfirmSelection: lineEnding => {
               setLineEnding(
                 atom.workspace.getActiveTextEditor(),
                 lineEnding.value
@@ -42,14 +42,14 @@ export function activate() {
             didCancelSelection: () => {
               modalPanel.hide();
             },
-            elementForItem: (lineEnding) => {
+            elementForItem: lineEnding => {
               const element = document.createElement('li');
               element.textContent = lineEnding.name;
               return element;
-            },
+            }
           });
           modalPanel = atom.workspace.addModalPanel({
-            item: lineEndingListView,
+            item: lineEndingListView
           });
           disposables.add(
             new Disposable(() => {
@@ -65,15 +65,15 @@ export function activate() {
         lineEndingListView.focus();
       },
 
-      'line-ending-selector:convert-to-LF': (event) => {
+      'line-ending-selector:convert-to-LF': event => {
         const editorElement = event.target.closest('atom-text-editor');
         setLineEnding(editorElement.getModel(), '\n');
       },
 
-      'line-ending-selector:convert-to-CRLF': (event) => {
+      'line-ending-selector:convert-to-CRLF': event => {
         const editorElement = event.target.closest('atom-text-editor');
         setLineEnding(editorElement.getModel(), '\r\n');
-      },
+      }
     })
   );
 }
@@ -87,8 +87,8 @@ export function consumeStatusBar(statusBar) {
   let currentBufferDisposable = null;
   let tooltipDisposable = null;
 
-  const updateTile = _.debounce((buffer) => {
-    getLineEndings(buffer).then((lineEndings) => {
+  const updateTile = _.debounce(buffer => {
+    getLineEndings(buffer).then(lineEndings => {
       if (lineEndings.size === 0) {
         let defaultLineEnding = getDefaultLineEnding();
         buffer.setPreferredLineEnding(defaultLineEnding);
@@ -99,7 +99,7 @@ export function consumeStatusBar(statusBar) {
   }, 0);
 
   disposables.add(
-    atom.workspace.observeActiveTextEditor((editor) => {
+    atom.workspace.observeActiveTextEditor(editor => {
       if (currentBufferDisposable) currentBufferDisposable.dispose();
 
       if (editor && editor.getBuffer) {
@@ -130,7 +130,7 @@ export function consumeStatusBar(statusBar) {
       tooltipDisposable = atom.tooltips.add(statusBarItem.element, {
         title() {
           return `File uses ${statusBarItem.description()} line endings`;
-        },
+        }
       });
       disposables.add(tooltipDisposable);
     })
@@ -177,7 +177,7 @@ function getLineEndings(buffer) {
       }
     );
   } else {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const result = new Set();
       for (let i = 0; i < buffer.getLineCount() - 1; i++) {
         result.add(buffer.lineEndingForRow(i));

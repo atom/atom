@@ -37,7 +37,9 @@ module.exports = class AutoUpdateManager extends EventEmitter {
       const archSuffix = process.arch === 'ia32' ? '' : `-${process.arch}`;
       this.feedUrl =
         this.updateUrlPrefix +
-        `/api/updates${archSuffix}?version=${this.version}&os_version=${os.release}`;
+        `/api/updates${archSuffix}?version=${this.version}&os_version=${
+          os.release
+        }`;
       autoUpdater = require('./auto-updater-win32');
     } else {
       this.feedUrl =
@@ -107,7 +109,7 @@ module.exports = class AutoUpdateManager extends EventEmitter {
   emitUpdateAvailableEvent() {
     if (this.releaseVersion == null) return;
     this.emitWindowEvent('update-available', {
-      releaseVersion: this.releaseVersion,
+      releaseVersion: this.releaseVersion
     });
   }
 
@@ -173,7 +175,7 @@ module.exports = class AutoUpdateManager extends EventEmitter {
         icon: this.iconPath,
         message: 'No update available.',
         title: 'No Update Available',
-        detail: `Version ${this.version} is the latest version.`,
+        detail: `Version ${this.version} is the latest version.`
       },
       () => {}
     ); // noop callback to get async behavior
@@ -192,7 +194,7 @@ module.exports = class AutoUpdateManager extends EventEmitter {
         icon: this.iconPath,
         message: 'There was an error checking for updates.',
         title: 'Update Error',
-        detail: message,
+        detail: message
       },
       () => {}
     ); // noop callback to get async behavior

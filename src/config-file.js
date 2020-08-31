@@ -33,7 +33,7 @@ module.exports = class ConfigFile {
 
     // Use a queue to prevent multiple concurrent write to the same file.
     const writeQueue = async.queue((data, callback) =>
-      CSON.writeFile(this.path, data, (error) => {
+      CSON.writeFile(this.path, data, error => {
         if (error) {
           this.emitter.emit(
             'did-error',
@@ -49,7 +49,7 @@ module.exports = class ConfigFile {
     );
 
     this.requestLoad = _.debounce(() => this.reload(), 200);
-    this.requestSave = _.debounce((data) => writeQueue.push(data), 200);
+    this.requestSave = _.debounce(data => writeQueue.push(data), 200);
   }
 
   get() {
@@ -57,7 +57,7 @@ module.exports = class ConfigFile {
   }
 
   update(value) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.requestSave(value);
       this.reloadCallbacks.push(resolve);
     });
@@ -72,8 +72,8 @@ module.exports = class ConfigFile {
     await this.reload();
 
     try {
-      return await watchPath(this.path, {}, (events) => {
-        if (events.some((event) => EVENT_TYPES.has(event.action)))
+      return await watchPath(this.path, {}, events => {
+        if (events.some(event => EVENT_TYPES.has(event.action)))
           this.requestLoad();
       });
     } catch (error) {
@@ -102,7 +102,7 @@ module.exports = class ConfigFile {
   }
 
   reload() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       CSON.readFile(this.path, (error, data) => {
         if (error) {
           this.emitter.emit(

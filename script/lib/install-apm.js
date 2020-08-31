@@ -4,7 +4,7 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config');
 
-module.exports = function (ci) {
+module.exports = function(ci) {
   console.log('Installing apm');
   // npm ci leaves apm with a bunch of unmet dependencies
   childProcess.execFileSync(

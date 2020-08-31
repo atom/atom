@@ -129,7 +129,7 @@ module.exports = class GitDiffView {
         })
       );
       this.subscriptions.add(
-        this.repository.onDidChangeStatus((changedPath) => {
+        this.repository.onDidChangeStatus(changedPath => {
           if (changedPath === this.editor.getPath()) this.scheduleUpdate();
         })
       );
@@ -184,15 +184,9 @@ module.exports = class GitDiffView {
   }
 
   markRange(startRow, endRow, klass) {
-    const marker = this.editor.markBufferRange(
-      [
-        [startRow, 0],
-        [endRow, 0],
-      ],
-      {
-        invalidate: 'never',
-      }
-    );
+    const marker = this.editor.markBufferRange([[startRow, 0], [endRow, 0]], {
+      invalidate: 'never'
+    });
     this.editor.decorateMarker(marker, { type: 'line-number', class: klass });
     this.markers.push(marker);
   }

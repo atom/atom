@@ -21,7 +21,7 @@ module.exports = class TreeSitterGrammar {
 
     this.commentStrings = {
       commentStartString: params.comments && params.comments.start,
-      commentEndString: params.comments && params.comments.end,
+      commentEndString: params.comments && params.comments.end
     };
 
     const scopeSelectors = {};
@@ -55,7 +55,7 @@ module.exports = class TreeSitterGrammar {
     const languageModulePath = Module._resolveFilename(params.parser, {
       id: filePath,
       filename: filePath,
-      paths: Module._nodeModulePaths(path.dirname(filePath)),
+      paths: Module._nodeModulePaths(path.dirname(filePath))
     });
 
     this.languageModule = require(languageModulePath);
@@ -79,7 +79,7 @@ module.exports = class TreeSitterGrammar {
       id = this.nextScopeId += 2;
       const className = scopeName
         .split('.')
-        .map((s) => `syntax--${s}`)
+        .map(s => `syntax--${s}`)
         .join(' ');
       this.idsByScope[scopeName] = id;
       this.classNamesById.set(id, className);
@@ -132,18 +132,18 @@ module.exports = class TreeSitterGrammar {
   }
 
   tokenizeLines(text, compatibilityMode = true) {
-    return text.split('\n').map((line) => this.tokenizeLine(line, null, false));
+    return text.split('\n').map(line => this.tokenizeLine(line, null, false));
   }
 
   tokenizeLine(line, ruleStack, firstLine) {
     return {
       value: line,
-      scopes: [this.scopeName],
+      scopes: [this.scopeName]
     };
   }
 };
 
-const preprocessScopes = (value) =>
+const preprocessScopes = value =>
   typeof value === 'string'
     ? value
     : Array.isArray(value)
@@ -159,7 +159,7 @@ function matcherForSpec(spec) {
     if (spec[0] === '"' && spec[spec.length - 1] === '"') {
       return {
         type: spec.substr(1, spec.length - 2),
-        named: false,
+        named: false
       };
     }
 
@@ -188,7 +188,7 @@ function normalizeFoldSpecification(spec) {
 function buildRegex(value) {
   // Allow multiple alternatives to be specified via an array, for
   // readability of the grammar file
-  if (Array.isArray(value)) value = value.map((_) => `(${_})`).join('|');
+  if (Array.isArray(value)) value = value.map(_ => `(${_})`).join('|');
   if (typeof value === 'string') return new RegExp(value);
   return null;
 }

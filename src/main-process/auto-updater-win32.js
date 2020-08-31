@@ -15,7 +15,7 @@ class AutoUpdater extends EventEmitter {
   }
 
   downloadUpdate(callback) {
-    SquirrelUpdate.spawn(['--download', this.updateUrl], function (
+    SquirrelUpdate.spawn(['--download', this.updateUrl], function(
       error,
       stdout
     ) {
@@ -24,7 +24,10 @@ class AutoUpdater extends EventEmitter {
 
       try {
         // Last line of output is the JSON details about the releases
-        const json = stdout.trim().split('\n').pop();
+        const json = stdout
+          .trim()
+          .split('\n')
+          .pop();
         const data = JSON.parse(json);
         const releasesToApply = data && data.releasesToApply;
         if (releasesToApply.pop) update = releasesToApply.pop();
@@ -68,7 +71,7 @@ class AutoUpdater extends EventEmitter {
 
       this.emit('update-available');
 
-      this.installUpdate((error) => {
+      this.installUpdate(error => {
         if (error != null) {
           this.emit('update-not-available');
           return;

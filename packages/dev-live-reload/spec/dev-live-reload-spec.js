@@ -114,16 +114,14 @@ describe('Dev Live Reload', () => {
       expect(
         atom.commands
           .findCommands({ target: atom.views.getView(atom.workspace) })
-          .filter((command) => command.name.startsWith('dev-live-reload'))
-          .length
+          .filter(command => command.name.startsWith('dev-live-reload')).length
       ).toBeGreaterThan(0);
 
       await atom.packages.deactivatePackage('dev-live-reload');
       expect(
         atom.commands
           .findCommands({ target: atom.views.getView(atom.workspace) })
-          .filter((command) => command.name.startsWith('dev-live-reload'))
-          .length
+          .filter(command => command.name.startsWith('dev-live-reload')).length
       ).toBe(0);
     });
   });

@@ -5,7 +5,7 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
   'NODE_ENV',
   'NODE_PATH',
   'ATOM_HOME',
-  'ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT',
+  'ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT'
 ]);
 
 const PLATFORMS_KNOWN_TO_WORK = new Set(['darwin', 'linux']);
@@ -63,7 +63,7 @@ function shouldGetEnvFromShell(env) {
 }
 
 async function getEnvFromShell(env) {
-  let { stdout, error } = await new Promise((resolve) => {
+  let { stdout, error } = await new Promise(resolve => {
     let child;
     let error;
     let stdout = '';
@@ -81,14 +81,14 @@ async function getEnvFromShell(env) {
     child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {
       encoding: 'utf8',
       detached: true,
-      stdio: ['ignore', 'pipe', process.stderr],
+      stdio: ['ignore', 'pipe', process.stderr]
     });
     const buffers = [];
-    child.on('error', (e) => {
+    child.on('error', e => {
       done = true;
       error = e;
     });
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       buffers.push(data);
     });
     child.on('close', (code, signal) => {

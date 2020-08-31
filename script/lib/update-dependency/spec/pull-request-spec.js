@@ -10,7 +10,7 @@ describe('Pull Request', () => {
         title: '⬆️ octocat@2.0.0',
         body: 'Bumps octocat from 1.0.0 to 2.0.0',
         head: 'octocat-2.0.0',
-        base: 'master',
+        base: 'master'
       })
       .reply(200, createPrResponse);
     const response = await createPR(
@@ -18,7 +18,7 @@ describe('Pull Request', () => {
         moduleName: 'octocat',
         installed: '1.0.0',
         latest: '2.0.0',
-        isCorePackage: false,
+        isCorePackage: false
       },
       'octocat-2.0.0'
     );
@@ -34,7 +34,7 @@ describe('Pull Request', () => {
         q:
           'octocat type:pr octocat@2.0.0 in:title repo:atom/atom head:octocat-2.0.0 state:open',
         owner: 'atom',
-        repo: 'atom',
+        repo: 'atom'
       })
       .reply(200, searchResponse);
 
@@ -42,7 +42,7 @@ describe('Pull Request', () => {
       {
         moduleName: 'octocat',
         installed: '1.0.0',
-        latest: '2.0.0',
+        latest: '2.0.0'
       },
       'octocat-2.0.0'
     );

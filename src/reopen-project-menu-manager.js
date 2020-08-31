@@ -19,7 +19,7 @@ module.exports = class ReopenProjectMenuManager {
         }
       ),
       commands.add('atom-workspace', {
-        'application:reopen-project': this.reopenProjectCommand.bind(this),
+        'application:reopen-project': this.reopenProjectCommand.bind(this)
       })
     );
 
@@ -37,7 +37,7 @@ module.exports = class ReopenProjectMenuManager {
   createReopenProjectListView() {
     if (this.reopenProjectListView == null) {
       const ReopenProjectListView = require('./reopen-project-list-view');
-      this.reopenProjectListView = new ReopenProjectListView((paths) => {
+      this.reopenProjectListView = new ReopenProjectListView(paths => {
         if (paths != null) {
           this.open(paths);
         }
@@ -58,9 +58,7 @@ module.exports = class ReopenProjectMenuManager {
 
   static taskDescription(paths) {
     return paths
-      .map(
-        (path) => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`
-      )
+      .map(path => `${ReopenProjectMenuManager.betterBaseName(path)} (${path})`)
       .join(' ');
   }
 
@@ -75,7 +73,7 @@ module.exports = class ReopenProjectMenuManager {
 
     const removed = this.app
       .getJumpListSettings()
-      .removedItems.map((i) => i.description);
+      .removedItems.map(i => i.description);
     if (removed.length === 0) return;
     for (let project of this.historyManager.getProjects()) {
       if (
@@ -98,22 +96,22 @@ module.exports = class ReopenProjectMenuManager {
       {
         type: 'custom',
         name: 'Recent Projects',
-        items: this.projects.map((project) => ({
+        items: this.projects.map(project => ({
           type: 'task',
           title: project.paths
             .map(ReopenProjectMenuManager.betterBaseName)
             .join(', '),
           description: ReopenProjectMenuManager.taskDescription(project.paths),
           program: process.execPath,
-          args: project.paths.map((path) => `"${path}"`).join(' '),
+          args: project.paths.map(path => `"${path}"`).join(' '),
           iconPath: path.join(
             path.dirname(process.execPath),
             'resources',
             'cli',
             'folder.ico'
           ),
-          iconIndex: 0,
-        })),
+          iconIndex: 0
+        }))
       },
       { type: 'recent' },
       {
@@ -123,10 +121,10 @@ module.exports = class ReopenProjectMenuManager {
             title: 'New Window',
             program: process.execPath,
             args: '--new-window',
-            description: 'Opens a new Atom window',
-          },
-        ],
-      },
+            description: 'Opens a new Atom window'
+          }
+        ]
+      }
     ]);
   }
 
@@ -154,10 +152,10 @@ module.exports = class ReopenProjectMenuManager {
           submenu: projects.map((project, index) => ({
             label: this.createLabel(project),
             command: 'application:reopen-project',
-            commandDetail: { index: index, paths: project.paths },
-          })),
-        },
-      ],
+            commandDetail: { index: index, paths: project.paths }
+          }))
+        }
+      ]
     };
   }
 

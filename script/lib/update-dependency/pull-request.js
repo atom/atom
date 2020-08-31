@@ -4,10 +4,10 @@ const requestWithAuth = request.defaults({
   baseUrl: 'https://api.github.com',
   headers: {
     'user-agent': 'atom',
-    authorization: `token ${process.env.AUTH_TOKEN}`,
+    authorization: `token ${process.env.AUTH_TOKEN}`
   },
   owner: 'atom',
-  repo: 'atom',
+  repo: 'atom'
 });
 
 module.exports = {
@@ -23,18 +23,18 @@ module.exports = {
       title: `⬆️ ${moduleName}@${latest}`,
       body: description,
       base: 'master',
-      head: branch,
+      head: branch
     });
   },
   findPR: async ({ moduleName, latest }, branch) => {
     return requestWithAuth('GET /search/issues', {
-      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch} state:open`,
+      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch} state:open`
     });
   },
-  addLabel: async (pullRequestNumber) => {
+  addLabel: async pullRequestNumber => {
     return requestWithAuth('PATCH /repos/:owner/:repo/issues/:issue_number', {
       labels: ['depency ⬆️'],
-      issue_number: pullRequestNumber,
+      issue_number: pullRequestNumber
     });
-  },
+  }
 };

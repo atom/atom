@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const { escapeRegExp } = require('underscore-plus');
 const temp = require('temp').track();
 
-describe('FileRecoveryService', function () {
+describe('FileRecoveryService', function() {
   let recoveryService, recoveryDirectory, spies;
 
   this.timeout(10 * 1000);
@@ -123,7 +123,7 @@ describe('FileRecoveryService', function () {
       fs.writeFileSync(filePath, 'content');
 
       let logs = [];
-      spies.stub(console, 'log', (message) => logs.push(message));
+      spies.stub(console, 'log', message => logs.push(message));
       spies.stub(dialog, 'showMessageBox');
 
       // Copy files to be recovered before mocking fs.createWriteStream
@@ -133,7 +133,10 @@ describe('FileRecoveryService', function () {
       // attempting to copy the recovered file to its original location
       var fakeEmitter = new EventEmitter();
       var onStub = spies.stub(fakeEmitter, 'on');
-      onStub.withArgs('error').yields(new Error('Nope')).returns(fakeEmitter);
+      onStub
+        .withArgs('error')
+        .yields(new Error('Nope'))
+        .returns(fakeEmitter);
       onStub.withArgs('open').returns(fakeEmitter);
       spies
         .stub(fsreal, 'createWriteStream')

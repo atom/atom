@@ -47,7 +47,7 @@ export default class DeprecationCopView {
         },
         'core:move-to-bottom': () => {
           this.scrollToBottom();
-        },
+        }
       })
     );
   }
@@ -56,7 +56,7 @@ export default class DeprecationCopView {
     return {
       deserializer: this.constructor.name,
       uri: this.getURI(),
-      version: 1,
+      version: 1
     };
   }
 
@@ -80,7 +80,7 @@ export default class DeprecationCopView {
             <div className="pull-right btn-group">
               <button
                 className="btn btn-primary check-for-update"
-                onclick={(event) => {
+                onclick={event => {
                   event.preventDefault();
                   this.checkForUpdates();
                 }}
@@ -114,11 +114,11 @@ export default class DeprecationCopView {
     if (packageNames.length === 0) {
       return <li className="list-item">No deprecated calls</li>;
     } else {
-      return packageNames.sort().map((packageName) => (
+      return packageNames.sort().map(packageName => (
         <li className="deprecation list-nested-item collapsed">
           <div
             className="deprecation-info list-item"
-            onclick={(event) =>
+            onclick={event =>
               event.target.parentElement.classList.toggle('collapsed')
             }
           >
@@ -152,7 +152,7 @@ export default class DeprecationCopView {
                         <a
                           className="stack-line-location"
                           href={location}
-                          onclick={(event) => {
+                          onclick={event => {
                             event.preventDefault();
                             this.openLocation(location);
                           }}
@@ -177,11 +177,11 @@ export default class DeprecationCopView {
     if (packageNames.length === 0) {
       return <li className="list-item">No deprecated selectors</li>;
     } else {
-      return packageNames.map((packageName) => (
+      return packageNames.map(packageName => (
         <li className="deprecation list-nested-item collapsed">
           <div
             className="deprecation-info list-item"
-            onclick={(event) =>
+            onclick={event =>
               event.target.parentElement.classList.toggle('collapsed')
             }
           >
@@ -197,13 +197,15 @@ export default class DeprecationCopView {
                   sourcePath
                 );
                 const issueTitle = `Deprecated selector in \`${relativeSourcePath}\``;
-                const issueBody = `In \`${relativeSourcePath}\`: \n\n${deprecation.message}`;
+                const issueBody = `In \`${relativeSourcePath}\`: \n\n${
+                  deprecation.message
+                }`;
                 return (
                   <li className="list-item source-file">
                     <a
                       className="source-url"
                       href={sourcePath}
-                      onclick={(event) => {
+                      onclick={event => {
                         event.preventDefault();
                         this.openLocation(sourcePath);
                       }}
@@ -241,7 +243,7 @@ export default class DeprecationCopView {
           <div className="btn-group">
             <button
               className="btn check-for-update"
-              onclick={(event) => {
+              onclick={event => {
                 event.preventDefault();
                 this.checkForUpdates();
               }}
@@ -251,7 +253,7 @@ export default class DeprecationCopView {
             <button
               className="btn disable-package"
               data-package-name={packageName}
-              onclick={(event) => {
+              onclick={event => {
                 event.preventDefault();
                 this.disablePackage(packageName);
               }}
@@ -286,7 +288,7 @@ export default class DeprecationCopView {
             data-issue-title={issueTitle}
             data-repo-url={repoURL}
             data-issue-url={issueURL}
-            onclick={(event) => {
+            onclick={event => {
               event.preventDefault();
               this.openIssueURL(repoURL, issueURL, issueTitle);
             }}
@@ -311,7 +313,7 @@ export default class DeprecationCopView {
             data-issue-title={issueTitle}
             data-repo-url={repoURL}
             data-issue-url={issueURL}
-            onclick={(event) => {
+            onclick={event => {
               event.preventDefault();
               this.openIssueURL(repoURL, issueURL, issueTitle);
             }}
@@ -363,8 +365,8 @@ export default class DeprecationCopView {
         method: 'GET',
         headers: {
           Accept: 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       }
     );
 
@@ -397,7 +399,7 @@ export default class DeprecationCopView {
     let result = await fetch('https://is.gd/create.php?format=simple', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `url=${encodedUrl}`,
+      body: `url=${encodedUrl}`
     });
 
     return result.text();
@@ -467,7 +469,7 @@ export default class DeprecationCopView {
         deprecatedSelectorsByPackageName[packageName].push({
           packagePath,
           sourcePath,
-          deprecation,
+          deprecation
         });
       }
     }

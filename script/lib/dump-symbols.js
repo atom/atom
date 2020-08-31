@@ -5,7 +5,7 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
-module.exports = function () {
+module.exports = function() {
   if (process.platform === 'win32') {
     console.log(
       'Skipping symbol dumping because minidump is not supported on Windows'
@@ -24,8 +24,8 @@ module.exports = function () {
 function dumpSymbol(binaryPath) {
   const minidump = require('minidump');
 
-  return new Promise(function (resolve, reject) {
-    minidump.dumpSymbol(binaryPath, function (error, content) {
+  return new Promise(function(resolve, reject) {
+    minidump.dumpSymbol(binaryPath, function(error, content) {
       if (error) {
         console.error(error);
         throw new Error(error);

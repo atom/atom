@@ -12,7 +12,7 @@ module.exports = class SyntaxScopeMap {
   }
 
   addSelector(selector, result) {
-    parser((parseResult) => {
+    parser(parseResult => {
       for (let selectorNode of parseResult.nodes) {
         let currentTable = null;
         let currentIndexValue = null;

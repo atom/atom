@@ -19,7 +19,7 @@ class TreeSitterLanguageMode {
       Object.defineProperty(Parser.SyntaxNode.prototype, 'range', {
         get() {
           return rangeForNode(this);
-        },
+        }
       });
     }
   }
@@ -40,7 +40,7 @@ class TreeSitterLanguageMode {
     }
 
     this.rootScopeDescriptor = new ScopeDescriptor({
-      scopes: [this.grammar.scopeName],
+      scopes: [this.grammar.scopeName]
     });
     this.emitter = new Emitter();
     this.isFoldableCache = [];
@@ -72,7 +72,7 @@ class TreeSitterLanguageMode {
           }
         }
       }
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
   }
 
@@ -118,11 +118,11 @@ class TreeSitterLanguageMode {
     parser.setLanguage(language);
     const result = parser.parseTextBuffer(this.buffer.buffer, oldTree, {
       syncTimeoutMicros: this.syncTimeoutMicros,
-      includedRanges: ranges,
+      includedRanges: ranges
     });
 
     if (result.then) {
-      return result.then((tree) => {
+      return result.then(tree => {
         PARSER_POOL.push(parser);
         return tree;
       });
@@ -330,7 +330,7 @@ class TreeSitterLanguageMode {
     }
 
     const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
-      intersectsRange: range,
+      intersectsRange: range
     });
 
     for (const injectionMarker of injectionMarkers) {
@@ -362,7 +362,7 @@ class TreeSitterLanguageMode {
           )
             continue;
         } else {
-          foldStartNode = children.find((child) =>
+          foldStartNode = children.find(child =>
             hasMatchingFoldSpec(startEntry.matchers, child)
           );
           if (!foldStartNode) continue;
@@ -386,7 +386,7 @@ class TreeSitterLanguageMode {
           )
             continue;
         } else {
-          foldEndNode = children.find((child) =>
+          foldEndNode = children.find(child =>
             hasMatchingFoldSpec(endEntry.matchers, child)
           );
           if (!foldEndNode) continue;
@@ -422,11 +422,11 @@ class TreeSitterLanguageMode {
   Section - Syntax Tree APIs
   */
 
-  getSyntaxNodeContainingRange(range, where = (_) => true) {
+  getSyntaxNodeContainingRange(range, where = _ => true) {
     return this.getSyntaxNodeAndGrammarContainingRange(range, where).node;
   }
 
-  getSyntaxNodeAndGrammarContainingRange(range, where = (_) => true) {
+  getSyntaxNodeAndGrammarContainingRange(range, where = _ => true) {
     const startIndex = this.buffer.characterIndexForPosition(range.start);
     const endIndex = this.buffer.characterIndexForPosition(range.end);
     const searchEndIndex = Math.max(0, endIndex - 1);
@@ -505,7 +505,7 @@ class TreeSitterLanguageMode {
         tokens.push(
           new Token({
             value: lineText.substring(start.column, end.column),
-            scopes: scopes.map((s) => this.grammar.scopeNameForScopeId(s)),
+            scopes: scopes.map(s => this.grammar.scopeNameForScopeId(s))
           })
         );
       }
@@ -531,7 +531,7 @@ class TreeSitterLanguageMode {
       ruleStack: [],
       lineEnding: this.buffer.lineEndingForRow(row),
       tokenIterator: null,
-      grammar: this.grammar,
+      grammar: this.grammar
     });
   }
 
@@ -549,7 +549,7 @@ class TreeSitterLanguageMode {
       point.column--;
     }
 
-    this._forEachTreeWithRange(new Range(point, point), (tree) => {
+    this._forEachTreeWithRange(new Range(point, point), tree => {
       let node = tree.rootNode.descendantForPosition(point);
       while (node) {
         nodes.push(node);
@@ -565,7 +565,7 @@ class TreeSitterLanguageMode {
       (a, b) => a.startIndex - b.startIndex || b.endIndex - a.endIndex
     );
 
-    const nodeTypes = nodes.map((node) => node.type);
+    const nodeTypes = nodes.map(node => node.type);
     nodeTypes.unshift(this.grammar.scopeName);
     return new ScopeDescriptor({ scopes: nodeTypes });
   }
@@ -754,7 +754,7 @@ class LanguageLayer {
       oldEnd,
       newEnd,
       oldText,
-      newText,
+      newText
     } of changes) {
       const newExtent = Point.fromObject(newEnd).traversalFrom(newStart);
       tree.edit(
@@ -817,7 +817,7 @@ class LanguageLayer {
   _populateInjections(range, nodeRangeSet) {
     const existingInjectionMarkers = this.languageMode.injectionsMarkerLayer
       .findMarkers({ intersectsRange: range })
-      .filter((marker) => marker.parentLanguageLayer === this);
+      .filter(marker => marker.parentLanguageLayer === this);
 
     if (existingInjectionMarkers.length > 0) {
       range = range.union(
@@ -929,7 +929,7 @@ class LanguageLayer {
       newEndIndex: startIndex + newText.length,
       startPosition: start,
       oldEndPosition: oldEnd,
-      newEndPosition: newEnd,
+      newEndPosition: newEnd
     };
   }
 }
@@ -943,7 +943,7 @@ class HighlightIterator {
   seek(targetPosition, endRow) {
     const injectionMarkers = this.languageMode.injectionsMarkerLayer.findMarkers(
       {
-        intersectsRange: new Range(targetPosition, new Point(endRow + 1, 0)),
+        intersectsRange: new Range(targetPosition, new Point(endRow + 1, 0))
       }
     );
 
@@ -1062,13 +1062,13 @@ class HighlightIterator {
       } else {
         console.log(
           'close',
-          iterator.closeTags.map((id) =>
+          iterator.closeTags.map(id =>
             this.languageMode.grammar.scopeNameForScopeId(id)
           )
         );
         console.log(
           'open',
-          iterator.openTags.map((id) =>
+          iterator.openTags.map(id =>
             this.languageMode.grammar.scopeNameForScopeId(id)
           )
         );
@@ -1376,7 +1376,7 @@ class NodeRangeSet {
               startIndex: index,
               endIndex: nextIndex,
               startPosition: position,
-              endPosition: child.startPosition,
+              endPosition: child.startPosition
             });
           }
           position = child.endPosition;
@@ -1389,7 +1389,7 @@ class NodeRangeSet {
           startIndex: index,
           endIndex: node.endIndex,
           startPosition: position,
-          endPosition: node.endPosition,
+          endPosition: node.endPosition
         });
       }
     }
@@ -1442,14 +1442,14 @@ class NodeRangeSet {
         ),
         endPosition: new Point(startPosition.row, 0),
         startIndex: startIndex - startPosition.column - 1,
-        endIndex: startIndex - startPosition.column,
+        endIndex: startIndex - startPosition.column
       });
     }
   }
 }
 
 function insertContainingTag(tag, index, tags, indices) {
-  const i = indices.findIndex((existingIndex) => existingIndex > index);
+  const i = indices.findIndex(existingIndex => existingIndex > index);
   if (i === -1) {
     tags.push(tag);
     indices.push(index);
@@ -1509,8 +1509,8 @@ function hasMatchingFoldSpec(specs, node) {
   'decreaseIndentRegexForScopeDescriptor',
   'decreaseNextIndentRegexForScopeDescriptor',
   'regexForPattern',
-  'getNonWordCharacters',
-].forEach((methodName) => {
+  'getNonWordCharacters'
+].forEach(methodName => {
   TreeSitterLanguageMode.prototype[methodName] =
     TextMateLanguageMode.prototype[methodName];
 });

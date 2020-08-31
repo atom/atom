@@ -3,13 +3,13 @@ const path = require('path');
 const ipcHelpers = require('./ipc-helpers');
 const util = require('util');
 
-module.exports = async function () {
+module.exports = async function() {
   const getWindowLoadSettings = require('./get-window-load-settings');
   const {
     test,
     headless,
     resourcePath,
-    benchmarkPaths,
+    benchmarkPaths
   } = getWindowLoadSettings();
   try {
     const Clipboard = require('../src/clipboard');
@@ -31,12 +31,12 @@ module.exports = async function () {
       },
       set(title) {
         documentTitle = title;
-      },
+      }
     });
 
     window.addEventListener(
       'keydown',
-      (event) => {
+      event => {
         // Reload: cmd-r / ctrl-r
         if ((event.metaKey || event.ctrlKey) && event.keyCode === 82) {
           ipcHelpers.call('window-method', 'reload');
@@ -68,7 +68,7 @@ module.exports = async function () {
 
     const clipboard = new Clipboard();
     TextEditor.setClipboard(clipboard);
-    TextEditor.viewForItem = (item) => atom.views.getView(item);
+    TextEditor.viewForItem = item => atom.views.getView(item);
 
     const applicationDelegate = new ApplicationDelegate();
     const environmentParams = {
@@ -77,29 +77,29 @@ module.exports = async function () {
       document,
       clipboard,
       configDirPath: process.env.ATOM_HOME,
-      enablePersistence: false,
+      enablePersistence: false
     };
     global.atom = new AtomEnvironment(environmentParams);
     global.atom.initialize(environmentParams);
 
     // Prevent benchmarks from modifying application menus
-    global.atom.menu.sendToBrowserProcess = function () {};
+    global.atom.menu.sendToBrowserProcess = function() {};
 
     if (headless) {
       Object.defineProperties(process, {
         stdout: { value: remote.process.stdout },
-        stderr: { value: remote.process.stderr },
+        stderr: { value: remote.process.stderr }
       });
 
-      console.log = function (...args) {
+      console.log = function(...args) {
         const formatted = util.format(...args);
         process.stdout.write(formatted + '\n');
       };
-      console.warn = function (...args) {
+      console.warn = function(...args) {
         const formatted = util.format(...args);
         process.stderr.write(formatted + '\n');
       };
-      console.error = function (...args) {
+      console.error = function(...args) {
         const formatted = util.format(...args);
         process.stderr.write(formatted + '\n');
       };

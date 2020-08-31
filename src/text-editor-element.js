@@ -33,12 +33,10 @@ class TextEditorElement extends HTMLElement {
     this.emitter = new Emitter();
     this.initialText = this.textContent;
     if (this.tabIndex == null) this.tabIndex = -1;
-    this.addEventListener('focus', (event) =>
+    this.addEventListener('focus', event =>
       this.getComponent().didFocus(event)
     );
-    this.addEventListener('blur', (event) =>
-      this.getComponent().didBlur(event)
-    );
+    this.addEventListener('blur', event => this.getComponent().didBlur(event));
   }
 
   attachedCallback() {
@@ -270,7 +268,7 @@ class TextEditorElement extends HTMLElement {
       top: start.top,
       left: start.left,
       height: end.top + lineHeight - start.top,
-      width: end.left - start.left,
+      width: end.left - start.left
     };
   }
 
@@ -278,7 +276,7 @@ class TextEditorElement extends HTMLElement {
     range = Range.fromObject(range);
     return {
       start: this.pixelPositionForScreenPosition(range.start),
-      end: this.pixelPositionForScreenPosition(range.end),
+      end: this.pixelPositionForScreenPosition(range.end)
     };
   }
 
@@ -288,7 +286,7 @@ class TextEditorElement extends HTMLElement {
         element: this,
         mini: this.hasAttribute('mini'),
         updatedSynchronously: this.updatedSynchronously,
-        readOnly: this.hasAttribute('readonly'),
+        readOnly: this.hasAttribute('readonly')
       });
       this.updateModelFromAttributes();
     }
@@ -357,5 +355,5 @@ class TextEditorElement extends HTMLElement {
 }
 
 module.exports = document.registerElement('atom-text-editor', {
-  prototype: TextEditorElement.prototype,
+  prototype: TextEditorElement.prototype
 });
