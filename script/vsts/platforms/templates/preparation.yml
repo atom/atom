@@ -43,11 +43,6 @@ steps:
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
-      npm install --global --production windows-build-tools@4
-    displayName: Install windows build tools
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - script: |
       ECHO Installing npm-windows-upgrade
       npm install --global --production npm-windows-upgrade
     displayName: Install npm-windows-upgrade
