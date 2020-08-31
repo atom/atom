@@ -158,14 +158,13 @@ describe('Selection', () => {
 
   describe('.fold()', () => {
     it('folds the buffer range spanned by the selection', () => {
+      const lineTextRegex = new RegExp(String.raw`var${editor.displayLayer.foldCharacter} = function[\s](items)`, 'g');
       selection.setBufferRange([[0, 3], [1, 6]]);
       selection.fold();
 
       expect(selection.getScreenRange()).toEqual([[0, 4], [0, 4]]);
       expect(selection.getBufferRange()).toEqual([[1, 6], [1, 6]]);
-      expect(editor.lineTextForScreenRow(0)).toBe(
-        `var${editor.displayLayer.foldCharacter}sort = function(items) {`
-      );
+      expect(editor.lineTextForScreenRow(0)).toMatch(lineTextRegex);
       expect(editor.isFoldedAtBufferRow(0)).toBe(true);
     });
 
