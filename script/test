@@ -100,21 +100,69 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
     callback(error)
   })
 
-	// on close
+  // on close
   cp.on('close', exitCode => {
-    if (exitCode !== 0) {
-      console.log(`##[error] Tests for ${testName} failed.`.red)
-      console.log(stderrOutput)
-    }
     if (finalize) { finalize() } 		// if finalizer provided
+    if (exitCode !== 0) {
+      retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize)
+    } else {
+      callback(null, {
+        exitCode,
+        step: testName,
+        testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+      })
+    }
+  })
+
+}
+
+const retryNumber = 4 // the number of times a tests repeats
+const retriedTests = new Map() // a cache of retried tests
+
+// Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
+function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize) {
+  const testKey = createTestKey(executablePath, testArguments, testName)
+  if (isTimedOut(stderrOutput) && shouldTryAgain(testKey)) {
+    // retry the timed out test
+    let triedNumber = retriedTests.get(testKey) || 0
+    retriedTests.set(testKey, triedNumber + 1)
+    console.warn(`\n##[warning] Retrying the timed out step: ${testName} \n`)
+    spawnTest(executablePath, testArguments, options, callback, testName, finalize)
+  } else {
+    // fail the test
+    console.log(`##[error] Tests for ${testName} failed.`.red)
+    console.log(stderrOutput)
     callback(null, {
       exitCode,
       step: testName,
       testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
     })
-  })
-
+  }
 }
+
+// creates a key that is specific to a certain test
+function createTestKey(executablePath, testArguments, testName) {
+  return `${executablePath} ${testArguments.join(' ')} ${testName}`
+}
+
+// check if a test is timed out
+function isTimedOut(stderrOutput) {
+  if (stderrOutput) {
+    return ( stderrOutput.includes("timeout: timed out after") )
+  } else {
+    return false
+  }
+}
+
+// check if a tests should be tried again
+function shouldTryAgain(testKey) {
+  if (retriedTests.has(testKey)) {
+    return (retriedTests.get(testKey) < retryNumber)
+  } else {
+    return true
+  }
+}
+
 
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
@@ -305,7 +353,7 @@ async.series(testSuitesToRun, function (err, results) {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
     if (failedSteps.length > 0) {
-      console.warn("##[error] \n \n *** Reporting the errors that happened in all of the tests: *** \n \n")
+      console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
       for (const {step, testCommand} of failedSteps) {
         console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
       }
