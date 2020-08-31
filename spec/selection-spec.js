@@ -158,7 +158,7 @@ describe('Selection', () => {
 
   describe('.fold()', () => {
     it('folds the buffer range spanned by the selection', () => {
-      const lineTextRegex = new RegExp(String.raw`var${editor.displayLayer.foldCharacter} = function[\s](items)`, 'g');
+      const lineTextRegex = new RegExp('var'.concat( editor.displayLayer.foldCharacter, '= function[\s](items)'), 'g');
       selection.setBufferRange([[0, 3], [1, 6]]);
       selection.fold();
 
