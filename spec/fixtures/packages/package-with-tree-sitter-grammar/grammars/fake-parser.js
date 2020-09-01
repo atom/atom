@@ -1,1 +1,1 @@
-exports.isFakeTreeSitterParser = true;
+exports.isFakeTreeSitterParser = true

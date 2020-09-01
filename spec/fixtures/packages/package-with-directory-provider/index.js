@@ -1,36 +1,36 @@
-'use strict';
+'use strict'
 
 class FakeRemoteDirectory {
-  constructor(uri) {
-    this.uri = uri;
+  constructor (uri) {
+    this.uri = uri
   }
 
-  relativize(uri) {
-    return uri;
+  relativize (uri) {
+    return uri
   }
 
-  getPath() {
-    return this.uri;
+  getPath () {
+    return this.uri
   }
 
-  isRoot() {
-    return true;
+  isRoot () {
+    return true
   }
 
-  getSubdirectory() {
+  getSubdirectory () {
     return {
-      existsSync() {
-        return false;
-      },
-    };
+      existsSync () {
+        return false
+      }
+    }
   }
 
-  existsSync() {
-    return true;
+  existsSync () {
+    return true
   }
 
-  contains() {
-    return false;
+  contains () {
+    return false
   }
 }
 
@@ -38,10 +38,10 @@ exports.provideDirectoryProvider = function () {
   return {
     name: 'directory provider from package-with-directory-provider',
 
-    directoryForURISync(uri) {
+    directoryForURISync (uri) {
       if (uri.startsWith('remote://')) {
-        return new FakeRemoteDirectory(uri);
+        return new FakeRemoteDirectory(uri)
       }
-    },
-  };
-};
+    }
+  }
+}

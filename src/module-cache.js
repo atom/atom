@@ -60,8 +60,10 @@ function loadDependencies(modulePath, rootPath, rootMetadata, moduleCache) {
     if (path.basename(childPath) === '.bin') continue;
     if (
       rootPath === modulePath &&
-      rootMetadata.packageDependencies &&
-      rootMetadata.packageDependencies.hasOwnProperty(path.basename(childPath))
+      (rootMetadata.packageDependencies &&
+        rootMetadata.packageDependencies.hasOwnProperty(
+          path.basename(childPath)
+        ))
     ) {
       continue;
     }
@@ -133,8 +135,10 @@ function loadFolderCompatibility(
     if (path.basename(childPath) === '.bin') continue;
     if (
       rootPath === modulePath &&
-      rootMetadata.packageDependencies &&
-      rootMetadata.packageDependencies.hasOwnProperty(path.basename(childPath))
+      (rootMetadata.packageDependencies &&
+        rootMetadata.packageDependencies.hasOwnProperty(
+          path.basename(childPath)
+        ))
     ) {
       continue;
     }

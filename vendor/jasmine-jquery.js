@@ -1,230 +1,227 @@
-'use strict';
+'use strict'
 
-jasmine.JQuery = function () {};
+jasmine.JQuery = function() {}
 
-jasmine.JQuery.browserTagCaseIndependentHtml = function (html) {
-  var div = document.createElement('div');
-  div.innerHTML = html;
-  return div.innerHTML;
-};
+jasmine.JQuery.browserTagCaseIndependentHtml = function(html) {
+  var div = document.createElement('div')
+  div.innerHTML = html
+  return div.innerHTML
+}
 
-jasmine.JQuery.elementToString = function (element) {
+jasmine.JQuery.elementToString = function(element) {
   if (element instanceof HTMLElement) {
-    return element.outerHTML;
+    return element.outerHTML
   } else {
-    return element.html();
+    return element.html()
   }
-};
+}
 
-jasmine.JQuery.matchersClass = {};
+jasmine.JQuery.matchersClass = {}
 
 var jQueryMatchers = {
-  toHaveClass: function (className) {
+  toHaveClass: function(className) {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.classList.contains(className);
+      return this.actual.classList.contains(className)
     } else {
-      return this.actual.hasClass(className);
+      return this.actual.hasClass(className)
     }
   },
 
-  toBeVisible: function () {
+  toBeVisible: function() {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.offsetWidth !== 0 || this.actual.offsetHeight !== 0;
+      return this.actual.offsetWidth !== 0 || this.actual.offsetHeight !== 0
     } else {
-      return this.actual.is(':visible');
+      return this.actual.is(':visible')
     }
   },
 
-  toBeHidden: function () {
+  toBeHidden: function() {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.offsetWidth === 0 && this.actual.offsetHeight === 0;
+      return this.actual.offsetWidth === 0 && this.actual.offsetHeight === 0
     } else {
-      return this.actual.is(':hidden');
+      return this.actual.is(':hidden')
     }
   },
 
-  toBeSelected: function () {
+  toBeSelected: function() {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.selected;
+      return this.actual.selected
     } else {
-      return this.actual.is(':selected');
+      return this.actual.is(':selected')
     }
   },
 
-  toBeChecked: function () {
+  toBeChecked: function() {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.checked;
+      return this.actual.checked
     } else {
-      return this.actual.is(':checked');
+      return this.actual.is(':checked')
     }
   },
 
-  toBeEmpty: function () {
+  toBeEmpty: function() {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.innerHTML === '';
+      return this.actual.innerHTML === ''
     } else {
-      return this.actual.is(':empty');
+      return this.actual.is(':empty')
     }
   },
 
-  toExist: function () {
+  toExist: function() {
     if (this.actual instanceof HTMLElement) {
-      return true;
+      return true
     } else if (this.actual) {
-      return this.actual.size() > 0;
+      return this.actual.size() > 0
     } else {
-      return false;
+      return false
     }
   },
 
-  toHaveAttr: function (attributeName, expectedAttributeValue) {
-    var actualAttributeValue;
+  toHaveAttr: function(attributeName, expectedAttributeValue) {
+    var actualAttributeValue
     if (this.actual instanceof HTMLElement) {
-      actualAttributeValue = this.actual.getAttribute(attributeName);
+      actualAttributeValue = this.actual.getAttribute(attributeName)
     } else {
-      actualAttributeValue = this.actual.attr(attributeName);
+      actualAttributeValue = this.actual.attr(attributeName)
     }
 
-    return hasProperty(actualAttributeValue, expectedAttributeValue);
+    return hasProperty(actualAttributeValue, expectedAttributeValue)
   },
 
-  toHaveId: function (id) {
+  toHaveId: function(id) {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.getAttribute('id') == id;
+      return this.actual.getAttribute('id') == id
     } else {
-      return this.actual.attr('id') == id;
+      return this.actual.attr('id') == id
     }
   },
 
-  toHaveHtml: function (html) {
-    var actualHTML;
+  toHaveHtml: function(html) {
+    var actualHTML
     if (this.actual instanceof HTMLElement) {
-      actualHTML = this.actual.innerHTML;
+      actualHTML = this.actual.innerHTML
     } else {
-      actualHTML = this.actual.html();
+      actualHTML = this.actual.html()
     }
 
-    return actualHTML == jasmine.JQuery.browserTagCaseIndependentHtml(html);
+    return actualHTML == jasmine.JQuery.browserTagCaseIndependentHtml(html)
   },
 
-  toHaveText: function (text) {
-    var actualText;
+  toHaveText: function(text) {
+    var actualText
     if (this.actual instanceof HTMLElement) {
-      actualText = this.actual.textContent;
+      actualText = this.actual.textContent
     } else {
-      actualText = this.actual.text();
+      actualText = this.actual.text()
     }
 
     if (text && typeof text.test === 'function') {
-      return text.test(actualText);
+      return text.test(actualText)
     } else {
-      return actualText == text;
+      return actualText == text
     }
   },
 
-  toHaveValue: function (value) {
+  toHaveValue: function(value) {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.value == value;
+      return this.actual.value == value
     } else {
-      return this.actual.val() == value;
+      return this.actual.val() == value
     }
   },
 
-  toHaveData: function (key, expectedValue) {
+  toHaveData: function(key, expectedValue) {
     if (this.actual instanceof HTMLElement) {
-      var camelCaseKey;
+      var camelCaseKey
       for (var part of key.split('-')) {
         if (camelCaseKey) {
-          camelCaseKey += part[0].toUpperCase() + part.substring(1);
+          camelCaseKey += part[0].toUpperCase() + part.substring(1)
         } else {
-          camelCaseKey = part;
+          camelCaseKey = part
         }
       }
-      return hasProperty(this.actual.dataset[camelCaseKey], expectedValue);
+      return hasProperty(this.actual.dataset[camelCaseKey], expectedValue)
     } else {
-      return hasProperty(this.actual.data(key), expectedValue);
+      return hasProperty(this.actual.data(key), expectedValue)
     }
   },
 
-  toMatchSelector: function (selector) {
+  toMatchSelector: function(selector) {
     if (this.actual instanceof HTMLElement) {
-      return this.actual.matches(selector);
+      return this.actual.matches(selector)
     } else {
-      return this.actual.is(selector);
+      return this.actual.is(selector)
     }
   },
 
-  toContain: function (contained) {
+  toContain: function(contained) {
     if (this.actual instanceof HTMLElement) {
       if (typeof contained === 'string') {
-        return this.actual.querySelector(contained);
+        return this.actual.querySelector(contained)
       } else {
-        return this.actual.contains(contained);
+        return this.actual.contains(contained)
       }
     } else {
-      return this.actual.find(contained).size() > 0;
+      return this.actual.find(contained).size() > 0
     }
   },
 
-  toBeDisabled: function (selector) {
+  toBeDisabled: function(selector){
     if (this.actual instanceof HTMLElement) {
-      return this.actual.disabled;
+      return this.actual.disabled
     } else {
-      return this.actual.is(':disabled');
+      return this.actual.is(':disabled')
     }
   },
 
   // tests the existence of a specific event binding
-  toHandle: function (eventName) {
-    var events = this.actual.data('events');
-    return events && events[eventName].length > 0;
+  toHandle: function(eventName) {
+    var events = this.actual.data("events")
+    return events && events[eventName].length > 0
   },
 
   // tests the existence of a specific event binding + handler
-  toHandleWith: function (eventName, eventHandler) {
-    var stack = this.actual.data('events')[eventName];
-    var i;
+  toHandleWith: function(eventName, eventHandler) {
+    var stack = this.actual.data("events")[eventName]
+    var i
     for (i = 0; i < stack.length; i++) {
       if (stack[i].handler == eventHandler) {
-        return true;
+        return true
       }
     }
-    return false;
-  },
-};
-
-var hasProperty = function (actualValue, expectedValue) {
-  if (expectedValue === undefined) {
-    return actualValue !== undefined;
+    return false
   }
-  return actualValue == expectedValue;
-};
+}
 
-var bindMatcher = function (methodName) {
-  var builtInMatcher = jasmine.Matchers.prototype[methodName];
+var hasProperty = function(actualValue, expectedValue) {
+  if (expectedValue === undefined) {
+    return actualValue !== undefined
+  }
+  return actualValue == expectedValue
+}
 
-  jasmine.JQuery.matchersClass[methodName] = function () {
-    if (
-      (this.actual && this.actual.jquery) ||
-      this.actual instanceof HTMLElement
-    ) {
-      var result = jQueryMatchers[methodName].apply(this, arguments);
-      this.actual = jasmine.JQuery.elementToString(this.actual);
-      return result;
+var bindMatcher = function(methodName) {
+  var builtInMatcher = jasmine.Matchers.prototype[methodName]
+
+  jasmine.JQuery.matchersClass[methodName] = function() {
+    if (this.actual && this.actual.jquery || this.actual instanceof HTMLElement) {
+      var result = jQueryMatchers[methodName].apply(this, arguments)
+      this.actual = jasmine.JQuery.elementToString(this.actual)
+      return result
     }
 
     if (builtInMatcher) {
-      return builtInMatcher.apply(this, arguments);
+      return builtInMatcher.apply(this, arguments)
     }
 
-    return false;
-  };
-};
-
-for (var methodName in jQueryMatchers) {
-  bindMatcher(methodName);
+    return false
+  }
 }
 
-beforeEach(function () {
-  this.addMatchers(jasmine.JQuery.matchersClass);
-});
+for(var methodName in jQueryMatchers) {
+  bindMatcher(methodName)
+}
+
+beforeEach(function() {
+  this.addMatchers(jasmine.JQuery.matchersClass)
+})

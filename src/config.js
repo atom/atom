@@ -500,8 +500,7 @@ class Config {
       [keyPath, callback] = args;
     } else if (
       args.length === 3 &&
-      _.isString(args[0]) &&
-      _.isObject(args[1])
+      (_.isString(args[0]) && _.isObject(args[1]))
     ) {
       [keyPath, options, callback] = args;
       scopeDescriptor = options.scope;
