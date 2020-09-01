@@ -164,7 +164,7 @@ describe('Selection', () => {
       expect(selection.getScreenRange()).toEqual([[0, 4], [0, 4]]);
       expect(selection.getBufferRange()).toEqual([[1, 6], [1, 6]]);
       expect(editor.lineTextForScreenRow(0)).toBe(
-      `var${editor.displayLayer.foldCharacter}sort = function (items) {`
+        `var${editor.displayLayer.foldCharacter}sort = function (items) {`
       );
       expect(editor.isFoldedAtBufferRow(0)).toBe(true);
     });
