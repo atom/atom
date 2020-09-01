@@ -404,7 +404,7 @@ describe('GitRepository', () => {
     it('subscribes to all the serialized buffers in the project', async () => {
       atom.project.setPaths([copyRepository()]);
 
-      await atom.workspace.open('file.txt');
+      await atom.workspace.open('a.txt');
 
       project2 = new Project({
         notificationManager: atom.notifications,
