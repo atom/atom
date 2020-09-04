@@ -1895,8 +1895,9 @@ module.exports = class AtomApplication extends EventEmitter {
       return result;
     }
 
-	const pathReplaceRegex = process.platform === 'win32' ? /[:\s]+$/ : /\s+$/;
-	result.pathToOpen = result.pathToOpen.replace(pathReplaceRegex, '');
+    const pathReplaceRegex = process.platform === 'win32' ? /[:\s]+$/ : /\s+$/;
+    result.pathToOpen = result.pathToOpen.replace(pathReplaceRegex, '');
+
     const match = result.pathToOpen.match(LocationSuffixRegExp);
 
     if (match != null) {
