@@ -33,39 +33,7 @@ jobs:
           BUILD_ARCH: $(buildArch)
         displayName: Run linter
 
-      - script: |
-          IF NOT EXIST C:\tmp MKDIR C:\tmp
-          SET SQUIRREL_TEMP=C:\tmp
-          IF [%IS_RELEASE_BRANCH%]==[true] (
-            ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-            IF [%SHOULD_SIGN%]==[true] (
-             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
-            ) ELSE (
-             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts --create-windows-installer
-            )
-          ) ELSE (
-            IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
-              ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-             IF [%SHOULD_SIGN%]==[true] (
-              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
-             ) ELSE (
-              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
-             )
-            ) ELSE (
-              ECHO Pull request build, no code signing will be performed
-              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
-            )
-          )
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          BUILD_ARCH: $(buildArch)
-          ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
-          ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
-          IS_RELEASE_BRANCH: $(IsReleaseBranch)
-          IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
-          npm_config_build_from_source: true
-        displayName: Build Atom
+      - template: templates/build.yml
 
       - script: node script\vsts\windows-run.js script\test.cmd
         env:
