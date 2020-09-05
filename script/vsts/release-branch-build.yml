@@ -65,8 +65,8 @@ jobs:
           node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
         env:
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+          ATOM_RELEASES_S3_KEY: $(_ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_S3_SECRET: $(_ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(_ATOM_RELEASES_S3_BUCKET)
         displayName: Upload CI Artifacts to S3
         condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))
