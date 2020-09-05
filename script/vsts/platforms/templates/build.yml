@@ -5,11 +5,11 @@ steps:
         $env:SQUIRREL_TEMP="C:/tmp"
         $env:npm_config_build_from_source=true
       }
-      if ($env:AGENT_OS -eq "Darwin") {
+      elseif ($env:AGENT_OS -eq "Darwin") {
         $AC_USER=$env:AC_USER
         $AC_PASSWORD=$env:AC_PASSWORD
       }
-      if ($env:AGENT_OS -eq "Linux") {
+      elseif ($env:AGENT_OS -eq "Linux") {
         $env:CC=clang
         $env:CXX=clang++
         $env:npm_config_clang=1
