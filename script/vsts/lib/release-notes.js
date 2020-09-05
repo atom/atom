@@ -3,6 +3,11 @@ const octokit = require('@octokit/rest')();
 const changelog = require('pr-changelog');
 const childProcess = require('child_process');
 
+const REPO_OWNER = process.env.REPO_OWNER || 'atom';
+const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+const NIGHTLY_RELEASE_REPO =
+  process.env.NIGHTLY_RELEASE_REPO || 'atom-nightly-releases';
+
 module.exports.getRelease = async function(releaseVersion, githubToken) {
   if (githubToken) {
     octokit.authenticate({
@@ -12,8 +17,8 @@ module.exports.getRelease = async function(releaseVersion, githubToken) {
   }
 
   const releases = await octokit.repos.getReleases({
-    owner: 'atom',
-    repo: 'atom'
+    owner: REPO_OWNER,
+    repo: MAIN_REPO
   });
   const release = releases.data.find(r => semver.eq(r.name, releaseVersion));
 
@@ -49,16 +54,16 @@ module.exports.generateForVersion = async function(
     oldVersionName = `v${parsedVersion.major}.${parsedVersion.minor - 1}.0`;
   } else {
     let releases = await octokit.repos.getReleases({
-      owner: 'atom',
-      repo: 'atom'
+      owner: REPO_OWNER,
+      repo: MAIN_REPO
     });
     oldVersion = 'v' + getPreviousRelease(releaseVersion, releases.data).name;
     oldVersionName = oldVersion;
   }
 
   const allChangesText = await changelog.getChangelog({
-    owner: 'atom',
-    repo: 'atom',
+    owner: REPO_OWNER,
+    repo: MAIN_REPO,
     fromTag: oldVersion,
     toTag: newVersionBranch,
     dependencyKey: 'packageDependencies',
@@ -71,7 +76,7 @@ module.exports.generateForVersion = async function(
     }) {
       let prString = changelog.pullRequestsToString(pullRequests);
       let title = repo;
-      if (repo === 'atom') {
+      if (repo === MAIN_REPO) {
         title = 'Atom Core';
         fromTag = oldVersionName;
         toTag = releaseVersion;
@@ -110,13 +115,13 @@ module.exports.generateForNightly = async function(
 
   const latestCommit = latestCommitResult.stdout.toString().trim();
   const output = [
-    `### This nightly release is based on https://github.com/atom/atom/commit/${latestCommit} :atom: :night_with_stars:`
+    `### This nightly release is based on https://github.com/${REPO_OWNER}/${MAIN_REPO}/commit/${latestCommit} :atom: :night_with_stars:`
   ];
 
   try {
     const releases = await octokit.repos.getReleases({
-      owner: 'atom',
-      repo: 'atom-nightly-releases'
+      owner: REPO_OWNER,
+      repo: NIGHTLY_RELEASE_REPO
     });
 
     const previousRelease = getPreviousRelease(releaseVersion, releases.data);
@@ -139,7 +144,7 @@ module.exports.generateForNightly = async function(
           output.push('No changes have been included in this release');
         } else {
           output.push(
-            `Click [here](https://github.com/atom/atom/compare/${previousCommit}...${latestCommit}) to see the changes included with this release!`
+            `Click [here](https://github.com/${REPO_OWNER}/${MAIN_REPO}/compare/${previousCommit}...${latestCommit}) to see the changes included with this release!`
           );
         }
       }

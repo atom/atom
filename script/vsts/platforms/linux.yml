@@ -5,7 +5,6 @@ jobs:
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     pool:
-      # This image is used to host the Docker container that runs the build
       vmImage: ubuntu-16.04
 
     steps:
@@ -22,51 +21,17 @@ jobs:
 
       - template: templates/build.yml
 
-      - script: script/test
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          ATOM_JASMINE_REPORTER: list
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
-          DISPLAY: :99.0
-        displayName: Run tests
-        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+      - template: templates/test.yml
 
-      - script: script/postprocess-junit-results --search-folder "${TEST_JUNIT_XML_ROOT}" --test-results-files "**/*.xml"
-        env:
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
-        displayName: Post-process test results
-        condition: ne(variables['Atom.SkipTests'], 'true')
-
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: JUnit
-          searchFolder: $(Common.TestResultsDirectory)/junit
-          testResultsFiles: '**/*.xml'
-          mergeTestResults: true
-          testRunTitle: Linux
-        condition: ne(variables['Atom.SkipTests'], 'true')
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
-          ArtifactName: atom.x86_64.rpm
-          ArtifactType: Container
-        displayName: Upload atom.x84_64.rpm
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
-          ArtifactName: atom-amd64.deb
-          ArtifactType: Container
-        displayName: Upload atom-amd64.deb
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
-          ArtifactName: atom-amd64.tar.gz
-          ArtifactType: Container
-        displayName: Upload atom-amd64.tar.gz
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - filename: atom.x86_64.rpm
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - filename: atom-amd64.deb
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - filename: atom-amd64.tar.gz
+              dir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

@@ -25,7 +25,7 @@ steps:
       versionSpec: 12.4.0
     displayName: Install Node.js 12.4.0
 
-  - script: npm install --global npm@6.9.0
+  - script: npm install --global npm@6.14.8
     displayName: Update npm
 
   # Use Azure Syntax to set env variables for all shells and steps
@@ -50,17 +50,12 @@ steps:
 
   - script: |
       ECHO Upgrading npm
-      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.9.0
-    displayName: Install npm 6.9.0
+      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.14.8
+    displayName: Install npm 6.14.8
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
-      npm install --global --production windows-build-tools@4.0
-    displayName: Install windows build tools
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - pwsh: |
-      cd script/vsts
+      cd script\vsts
       npm install
     displayName: Install script/vsts dependencies on Windows
     condition: eq(variables['Agent.OS'], 'Windows_NT')
