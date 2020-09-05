@@ -1,4 +1,9 @@
 parameters:
+  # artifacts:
+  # - fileName
+  # - fileDir
+  # - condition
+  # - continueOnError
   - name: artifacts
     type: object
 
@@ -6,10 +11,10 @@ steps:
   - ${{ each artifact in parameters.artifacts }}:
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: ${{artifact.dir}}/${{artifact.filename}}
-        ArtifactName: ${{artifact.filename}}
+        PathtoPublish: ${{artifact.fileDir}}/${{artifact.fileName}}
+        ArtifactName: ${{artifact.fileName}}
         ArtifactType: Container
-      displayName: Upload ${{artifact.filename}}
+      displayName: Upload ${{artifact.fileName}}
       ${{ if artifact.condition }}:
         condition: ${{artifact.condition}}
       ${{ if artifact.continueOnError }}:

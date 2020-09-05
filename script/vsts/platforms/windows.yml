@@ -136,19 +136,19 @@ jobs:
       - template: templates/publish.yml
         parameters:
           artifacts:
-            - filename: atom$(FileID)-windows.zip
-              dir: $(Build.SourcesDirectory)/out
+            - fileName: atom$(FileID)-windows.zip
+              fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-            - filename: AtomSetup$(FileID).exe
-              dir: $(Build.SourcesDirectory)/out
+            - fileName: AtomSetup$(FileID).exe
+              fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
-            - filename: $(AppName)$(FileID)-$(ReleaseVersion)-full.nupkg
-              dir: $(Build.SourcesDirectory)/out
+            - fileName: $(AppName)$(FileID)-$(ReleaseVersion)-full.nupkg
+              fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
-            - filename: $(AppName)$(FileID)-$(ReleaseVersion)-delta.nupkg
-              dir: $(Build.SourcesDirectory)/out
+            - fileName: $(AppName)$(FileID)-$(ReleaseVersion)-delta.nupkg
+              fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
               continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
-            - filename: RELEASES$(FileID)
-              dir: $(Build.SourcesDirectory)/out
+            - fileName: RELEASES$(FileID)
+              fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
