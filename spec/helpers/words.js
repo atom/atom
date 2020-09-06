@@ -1,7 +1,7 @@
 /**
  * List of single words from COMMON.txt
  * http://www.gutenberg.org/ebooks/3201
- * Public Domain
+ * Public Domai
  */
 
 module.exports = [
