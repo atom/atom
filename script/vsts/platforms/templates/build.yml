@@ -5,10 +5,6 @@ steps:
         $env:SQUIRREL_TEMP="C:/tmp"
         $env:npm_config_build_from_source=true
       }
-      elseif ($env:AGENT_OS -eq "Darwin") {
-        $AC_USER=$env:AC_USER
-        $AC_PASSWORD=$env:AC_PASSWORD
-      }
       elseif ($env:AGENT_OS -eq "Linux") {
         $env:CC=clang
         $env:CXX=clang++
@@ -48,6 +44,8 @@ steps:
       ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
       ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+      AC_USER: $(AC_USER)
+      AC_PASSWORD: $(AC_PASSWORD)
       ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
       ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
 
