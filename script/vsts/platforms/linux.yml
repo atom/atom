@@ -20,19 +20,7 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: script/build --no-bootstrap --create-debian-package --create-rpm-package --compress-artifacts
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          CC: clang
-          CXX: clang++
-          npm_config_clang: 1
-        displayName: Build Atom
-
-      - script: |
-          sudo chown root ./out/atom*-amd64/chrome-sandbox
-          sudo chmod 4755 ./out/atom*-amd64/chrome-sandbox
-        displayName: Tweaking chrome-sandbox binary
+      - template: templates/build.yml
 
       - script: script/test
         env:

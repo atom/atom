@@ -23,24 +23,7 @@ jobs:
       - script: script/lint
         displayName: Run linter
 
-      - script: |
-          if [ $SHOULD_SIGN == "true" ] && ([ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]); then
-            script/build --no-bootstrap --code-sign --compress-artifacts
-          else
-            script/build --no-bootstrap --compress-artifacts
-          fi
-        displayName: Build Atom
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          IS_RELEASE_BRANCH: $(IsReleaseBranch)
-          IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
-          ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
-          ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
-          ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
-          ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
-          AC_USER: $(AC_USER)
-          AC_PASSWORD: $(AC_PASSWORD)
+      - template: templates/build.yml
 
       - script: |
           cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
