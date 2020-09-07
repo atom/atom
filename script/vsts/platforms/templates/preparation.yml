@@ -28,12 +28,11 @@ steps:
   - script: npm install --global npm@6.14.8
     displayName: Update npm
 
-  # Windows Specific
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.8'
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
 
+  # Windows Specific
   - script: |
       cd script\vsts
       npm install
