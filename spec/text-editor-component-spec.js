@@ -3444,11 +3444,7 @@ describe('TextEditorComponent', () => {
       const { item, decoration, marker } = createBlockDecorationAtScreenRow(
         editor,
         3,
-        {
-          height: 44,
-          position: 'before',
-          invalidate: 'touch'
-        }
+        { height: 44, position: 'before', invalidate: 'touch' }
       );
       const { component } = buildComponent({ editor, rowsPerTile: 3 });
 
@@ -3772,11 +3768,7 @@ describe('TextEditorComponent', () => {
       const { item: later, decoration } = createBlockDecorationAtScreenRow(
         editor,
         4,
-        {
-          height: 20,
-          position: 'after',
-          order: 3
-        }
+        { height: 20, position: 'after', order: 3 }
       );
       await component.getNextUpdatePromise();
       expect(later.previousSibling).toBe(lineNodeForScreenRow(component, 4));
