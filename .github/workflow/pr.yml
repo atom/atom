@@ -9,5 +9,5 @@ jobs:
         run: |
           cd script/vsts
           npm install
-      - name: Version
+      - name: Get Version
         run: node script/vsts/get-release-version.js
