@@ -35,18 +35,6 @@ steps:
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - script: |
-      ECHO Installing npm-windows-upgrade
-      npm install --global --production npm-windows-upgrade
-    displayName: Install npm-windows-upgrade
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - script: |
-      ECHO Upgrading npm
-      npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.14.8
-    displayName: Install npm 6.14.8
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - script: |
       cd script\vsts
       npm install
     displayName: Install script/vsts dependencies on Windows
