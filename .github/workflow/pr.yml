@@ -1,0 +1,13 @@
+name: Pull Request
+on: pull_request
+jobs:
+  GetReleaseVersion:
+    name: 'Get Release Version'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: npm install
+        run: |
+          cd script/vsts
+          npm install
+      - name: Version
+        run: node script/vsts/get-release-version.js
