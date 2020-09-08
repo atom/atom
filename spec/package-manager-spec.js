@@ -1890,4 +1890,26 @@ describe('PackageManager', () => {
       });
     });
   });
+
+  describe('::getAvailablePackageNames', () => {
+    it('detects a symlinked package', () => {
+      const packageSymLinkedSource = path.join(
+        __dirname,
+        'fixtures',
+        'packages',
+        'folder',
+        'package-symlinked'
+      );
+      const destination = path.join(
+        atom.packages.getPackageDirPaths()[0],
+        'package-symlinked'
+      );
+      if (!fs.isDirectorySync(destination)) {
+        fs.symlinkSync(packageSymLinkedSource, destination, 'junction');
+      }
+      const availablePackages = atom.packages.getAvailablePackageNames();
+      expect(availablePackages.includes('package-symlinked')).toBe(true);
+      fs.removeSync(destination);
+    });
+  });
 });
