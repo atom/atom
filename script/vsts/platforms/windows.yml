@@ -7,10 +7,10 @@ jobs:
       maxParallel: 2
       matrix:
         x64:
-          buildArch: x64
+          BUILD_ARCH: x64
           RunCoreMainTests: true
         x86:
-          buildArch: x86
+          BUILD_ARCH: x86
           RunCoreMainTests: true
 
     pool:
@@ -32,8 +32,6 @@ jobs:
       - template: templates/bootstrap.yml
 
       - script: node script\vsts\windows-run.js script\lint.cmd
-        env:
-          BUILD_ARCH: $(buildArch)
         displayName: Run linter
 
       - template: templates/build.yml
@@ -47,8 +45,6 @@ jobs:
             $env:FileID=""
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
-        env:
-          BUILD_ARCH: $(buildArch)
         displayName: Set FileID based on the arch
 
       - template: templates/publish.yml
@@ -81,12 +77,12 @@ jobs:
         x64_Renderer_Test1:
           RunCoreMainTests: false
           RunCoreRendererTests: 1
-          buildArch: x64
+          BUILD_ARCH: x64
           os: windows-2019
         x64_Renderer_Test2:
           RunCoreMainTests: false
           RunCoreRendererTests: 2
-          buildArch: x64
+          BUILD_ARCH: x64
           os: windows-2019
 
     pool:
@@ -113,8 +109,6 @@ jobs:
             $env:FileID="-x64"
             echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
           }
-        env:
-          BUILD_ARCH: $(buildArch)
         displayName: Set FileID based on the arch
 
       - template: templates/download-unzip.yml
