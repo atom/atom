@@ -2,7 +2,7 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config.js');
 
-module.exports = function (task) {
+module.exports = function(task) {
   task.start('Kill running Atom instances');
 
   if (process.platform === 'win32') {

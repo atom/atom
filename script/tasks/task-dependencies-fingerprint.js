@@ -11,9 +11,13 @@ const FINGERPRINT_PATH = path.join(
 
 module.exports = {
   write: function(task) {
+    task.start('Write dependencies fingerprint');
+
     const fingerprint = this.compute();
     fs.writeFileSync(FINGERPRINT_PATH, fingerprint);
     task.log('Wrote Dependencies Fingerprint:', FINGERPRINT_PATH, fingerprint);
+
+    task.done();
   },
   read: function() {
     return fs.existsSync(FINGERPRINT_PATH)

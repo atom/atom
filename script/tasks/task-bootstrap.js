@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const CONFIG = require('../config');
 const childProcess = require('child_process');
 const cleanDependencies = require('./task-clean-dependencies');
@@ -11,7 +10,7 @@ const runApmInstall = require('./task-run-apm-install');
 const installScriptDependencies = require('./task-install-script-dependencies');
 const verifyMachineRequirements = require('./task-verify-machine-requirements');
 
-module.exports = function (task) {
+module.exports = function(task) {
   task.start('Bootstrap');
 
   // We can't use yargs until installScriptDependencies() is executed, so...
@@ -40,7 +39,7 @@ module.exports = function (task) {
   installApm(ci, task.subtask());
 
   childProcess.execFileSync(CONFIG.getApmBinPath(), ['--version'], {
-    stdio: 'inherit',
+    stdio: 'inherit'
   });
 
   runApmInstall(CONFIG.repositoryRootPath, ci, undefined, task.subtask());

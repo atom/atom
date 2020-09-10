@@ -4,7 +4,7 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config');
 
-module.exports = function (packagePath, ci, stdioOptions, task) {
+module.exports = function(packagePath, ci, stdioOptions, task) {
   task.start('Run apm install');
 
   const installEnv = Object.assign({}, process.env);
@@ -23,7 +23,7 @@ module.exports = function (packagePath, ci, stdioOptions, task) {
   childProcess.execFileSync(apmBinPath, [ci ? 'ci' : 'install'], {
     env: installEnv,
     cwd: packagePath,
-    stdio: stdioOptions || 'inherit',
+    stdio: stdioOptions || 'inherit'
   });
 
   task.done();

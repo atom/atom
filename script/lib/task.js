@@ -146,5 +146,5 @@ class Task {
 
 module.exports = {
   Task,
-  TaskManager,
+  TaskManager
 };
