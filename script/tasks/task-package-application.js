@@ -5,10 +5,10 @@ const childProcess = require('child_process');
 const electronPackager = require('electron-packager');
 const fs = require('fs-extra');
 const hostArch = require('@electron/get').getHostArch;
-const includePathInPackagedApp = require('./include-path-in-packaged-app');
-const getLicenseText = require('./get-license-text');
+const includePathInPackagedApp = require('../lib/include-path-in-packaged-app');
+const getLicenseText = require('../lib/get-license-text');
 const path = require('path');
-const spawnSync = require('./spawn-sync');
+const spawnSync = require('../lib/spawn-sync');
 const template = require('lodash.template');
 
 const CONFIG = require('../config');
