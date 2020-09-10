@@ -18,17 +18,23 @@ module.exports = function(task) {
   // muck with the cwd temporarily.
   const oldWorkingDirectoryPath = process.cwd();
   process.chdir(CONFIG.repositoryRootPath);
-  task.verbose(`Updated cwd from ${oldWorkingDirectoryPath} to ${process.cwd}`);
+  task.verbose(
+    `Updated cwd from ${oldWorkingDirectoryPath} to ${process.cwd()}`
+  );
 
   task.info('Generating CS metadata with donna');
   const coffeeMetadata = donna.generateMetadata(['.'])[0];
+  const numCsMetadataFiles = Object.entries(coffeeMetadata.files).length;
+  task.info(`Generated ${numCsMetadataFiles} CS metadata files`);
 
   task.info('Generating JS metadata with joanna');
   const jsMetadata = joanna(glob.sync(`src/**/*.js`));
+  const numJsMetadataFiles = Object.entries(jsMetadata.files).length;
+  task.info(`Generated ${numJsMetadataFiles} JS metadata files`);
 
   process.chdir(oldWorkingDirectoryPath);
   task.verbose(
-    `Restored cwd from ${CONFIG.repositoryRootPath} to ${process.cwd}`
+    `Restored cwd from ${CONFIG.repositoryRootPath} to ${process.cwd()}`
   );
 
   const metadata = {
@@ -36,6 +42,13 @@ module.exports = function(task) {
     version: coffeeMetadata.version,
     files: Object.assign(coffeeMetadata.files, jsMetadata.files)
   };
+
+  if (
+    numCsMetadataFiles + numJsMetadataFiles !==
+    Object.entries(metadata.files).length
+  ) {
+    task.warn('Overlap between CS and JS metadata files');
+  }
 
   task.info('Digesting metadata with tello');
   const api = tello.digest([metadata]);

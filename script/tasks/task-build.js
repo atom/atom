@@ -49,14 +49,14 @@ module.exports = function(task) {
   const createDebianPackage = require('../lib/create-debian-package');
   const createRpmPackage = require('../lib/create-rpm-package');
   const createWindowsInstaller = require('../lib/create-windows-installer');
-  const dumpSymbols = require('../lib/dump-symbols');
+  const dumpSymbols = require('./task-dump-symbols');
   const generateAPIDocs = require('./task-generate-api-docs');
   const generateMetadata = require('./task-generate-metadata');
   const generateModuleCache = require('./task-generate-module-cache');
-  const generateStartupSnapshot = require('../lib/generate-startup-snapshot');
+  const generateStartupSnapshot = require('./task-generate-startup-snapshot');
   const installApplication = require('../lib/install-application');
   const notarizeOnMac = require('../lib/notarize-on-mac');
-  const packageApplication = require('../lib/package-application');
+  const packageApplication = require('./task-package-application');
   const prebuildLessCache = require('./task-prebuild-less-cache');
   const testSignOnMac = require('../lib/test-sign-on-mac');
   const transpileBabelPaths = require('./task-transpile-babel-paths');
@@ -89,15 +89,17 @@ module.exports = function(task) {
     generateMetadata(task.subtask());
     generateAPIDocs(task.subtask());
     if (!argv.generateApiDocs) {
-      binariesPromise = dumpSymbols();
+      binariesPromise = dumpSymbols(task.subtask());
     }
   }
 
   if (!argv.generateApiDocs) {
     binariesPromise
-      .then(packageApplication)
+      .then(packageApplication, task.subtask())
       .then(packagedAppPath =>
-        generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath)
+        generateStartupSnapshot(packagedAppPath, task.subtask()).then(
+          () => packagedAppPath
+        )
       )
       .then(async packagedAppPath => {
         switch (process.platform) {
