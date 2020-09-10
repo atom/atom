@@ -12,7 +12,6 @@ const includePathInPackagedApp = require('../lib/include-path-in-packaged-app');
 module.exports = function(task) {
   task.start('Copy assets');
 
-  task.log(`Copying assets to ${CONFIG.intermediateAppPath}`);
   let srcPaths = [
     path.join(CONFIG.repositoryRootPath, 'benchmarks', 'benchmark-runner.js'),
     path.join(CONFIG.repositoryRootPath, 'dot-atom'),
@@ -27,6 +26,11 @@ module.exports = function(task) {
       ignore: path.join('**', '*-spec.*')
     })
   );
+
+  task.log(
+    `Copying ${srcPaths.length} assets to ${CONFIG.intermediateAppPath}`
+  );
+
   for (let srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {
       filter: includePathInPackagedApp

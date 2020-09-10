@@ -66,7 +66,11 @@ module.exports = function(task) {
   CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath = {};
   // Warm cache for every combination of the default UI and syntax themes,
   // because themes assign variables which may be used in any style sheet.
-  task.info('Warming cache with all theme combinations');
+  task.info(
+    `Warming cache with all theme combinations (${uiThemes.length} UI x ${
+      syntaxThemes.length
+    } syntax)`
+  );
   for (let uiTheme of uiThemes) {
     for (let syntaxTheme of syntaxThemes) {
       // Build a LessCache instance with import paths based on the current theme combination

@@ -21,7 +21,13 @@ class TaskManager {
       this.concurrentTasks = true;
     }
 
-    this.print(task, '##[group]', task.name);
+    if (task.depth === 0) {
+      this.log(task, `Running: ${task.name}`);
+    } else if (task.depth === 1) {
+      this.print(task, '##[group]', task.name);
+    } else {
+      task.log(`Starting '${task.name}' subtask`);
+    }
   }
 
   done(task) {
@@ -30,7 +36,13 @@ class TaskManager {
       task.parent.remove(task);
     }
 
-    this.print(task, '##[endgroup]', '');
+    if (task.depth === 0) {
+      this.log(task, `Finished: ${task.name}`);
+    } else if (task.depth === 1) {
+      this.print(task, '##[endgroup]', '');
+    } else {
+      task.log(`Finished '${task.name}' subtask`);
+    }
 
     if (task === this.focus) {
       this.focus = task.parent;
