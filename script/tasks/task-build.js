@@ -95,7 +95,7 @@ module.exports = function(task) {
 
   if (!argv.generateApiDocs) {
     binariesPromise
-      .then(packageApplication, task.subtask())
+      .then(() => packageApplication(task.subtask()))
       .then(packagedAppPath =>
         generateStartupSnapshot(packagedAppPath, task.subtask()).then(
           () => packagedAppPath
