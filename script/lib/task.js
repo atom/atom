@@ -22,7 +22,7 @@ class TaskManager {
     }
 
     if (task.depth === 0) {
-      this.log(task, `Running: ${task.name}`);
+      this.print(task, '', `Running: ${task.name}`);
     } else if (task.depth === 1) {
       this.print(task, '##[group]', task.name);
     } else {
@@ -37,7 +37,7 @@ class TaskManager {
     }
 
     if (task.depth === 0) {
-      this.log(task, `Finished: ${task.name}`);
+      this.print(task, '', `Finished: ${task.name}`);
     } else if (task.depth === 1) {
       this.print(task, '##[endgroup]', '');
     } else {
