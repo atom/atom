@@ -66,7 +66,7 @@ module.exports = function(task = new DefaultTask()) {
           { nodir: true }
         );
 
-        this.verbose(
+        task.verbose(
           `Transpiling ${pathsToCompile.length} paths for glob ${config.glob}`
         );
         pathsToCompile.forEach(transpilePath);
