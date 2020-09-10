@@ -68,7 +68,7 @@ class TaskManager {
   }
 
   print(task, prefix, msg) {
-    console.log(prefix + msg);
+    console.log(prefix + ' ' + msg);
   }
 
   debug() {
@@ -242,7 +242,7 @@ class Task {
    * @param  {...String} msg Warning to log
    */
   warn(msg) {
-    this.warning(msg);
+    this.print('##[warning]', msg);
   }
 
   /**
