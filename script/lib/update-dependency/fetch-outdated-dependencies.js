@@ -1,6 +1,8 @@
 const fetch = require('node-fetch');
+const npmCheck = require('npm-check');
+
 // this may be updated to use github releases instead
-module.exports = async function({ dependencies, packageDependencies }) {
+const apm = async function({ dependencies, packageDependencies }) {
   try {
     console.log('Checking apm registry...');
     const coreDependencies = Object.keys(dependencies).filter(dependency => {
@@ -38,4 +40,41 @@ module.exports = async function({ dependencies, packageDependencies }) {
   } catch (ex) {
     console.error(`An error occured: ${ex.message}`);
   }
+};
+
+const npm = async function(cwd) {
+  try {
+    console.log('Checking npm registry...');
+
+    const currentState = await npmCheck({
+      cwd,
+      ignoreDev: true,
+      skipUnused: true
+    });
+    const outdatedPackages = currentState
+      .get('packages')
+      .filter(p => {
+        if (p.packageJson && p.latest && p.installed) {
+          return p.latest > p.installed;
+        }
+      })
+      .map(({ packageJson, installed, moduleName, latest }) => ({
+        packageJson,
+        installed,
+        moduleName,
+        latest,
+        isCorePackage: false
+      }));
+
+    console.log(`${outdatedPackages.length} outdated package(s) found`);
+
+    return outdatedPackages;
+  } catch (ex) {
+    console.error(`An error occured: ${ex.message}`);
+  }
+};
+
+module.exports = {
+  apm,
+  npm
 };

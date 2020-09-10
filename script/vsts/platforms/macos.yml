@@ -12,42 +12,19 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: templates/preparation.yml
 
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-
-      - script: script/bootstrap
-        displayName: Bootstrap build environment
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
-          npm_config_build_from_source: true
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+      - template: templates/bootstrap.yml
 
       - script: script/lint
         displayName: Run linter
 
       - script: |
-          if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
+          if [ $SHOULD_SIGN == "true" ] && ([ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]); then
             script/build --no-bootstrap --code-sign --compress-artifacts
           else
             script/build --no-bootstrap --compress-artifacts
@@ -113,32 +90,15 @@ jobs:
           RunPackageTests: 2
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: templates/preparation.yml
 
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/macos.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
 
       # The artifact caching task does not work on forks, so we need to
       # bootstrap again for pull requests coming from forked repositories.
-      - script: script/bootstrap
-        displayName: Bootstrap build environment
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: /usr/local/bin/npm
-          npm_config_build_from_source: true
-
-        condition: ne(variables['CacheRestored'], 'true')
+      - template: templates/bootstrap.yml
 
       - task: DownloadBuildArtifacts@0
         displayName: Download atom-mac.zip

@@ -20,76 +20,13 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '2.7'
+      - template: templates/preparation.yml
 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: templates/cache.yml
+        parameters:
+          OS: windows
 
-      - script: |
-          ECHO Installing npm-windows-upgrade
-          npm install --global --production npm-windows-upgrade
-        displayName: Install npm-windows-upgrade
-
-      - script: |
-          ECHO Upgrading npm
-          npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.12.1
-        displayName: Install npm 6.12.1
-
-      - script: |
-          npm install --global --production windows-build-tools@4.0
-        displayName: Install windows build tools
-
-      - script: |
-          cd script\vsts
-          npm install
-        displayName: Install Windows build dependencies
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x64)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x86)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
-
-      - script: |
-          node script\vsts\windows-run.js script\bootstrap.cmd
-        env:
-          BUILD_ARCH: $(buildArch)
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.13.1\\x64\\npm.cmd"
-          npm_config_build_from_source: true
-        displayName: Bootstrap build environment
-        condition: ne(variables['CacheRestored'], 'true')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x64)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
-
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x86)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
+      - template: templates/bootstrap.yml
 
       - script: node script\vsts\windows-run.js script\lint.cmd
         env:
@@ -101,11 +38,19 @@ jobs:
           SET SQUIRREL_TEMP=C:\tmp
           IF [%IS_RELEASE_BRANCH%]==[true] (
             ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-            node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
+            IF [%SHOULD_SIGN%]==[true] (
+             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
+            ) ELSE (
+             node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts --create-windows-installer
+            )
           ) ELSE (
             IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
               ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
+             IF [%SHOULD_SIGN%]==[true] (
               node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
+             ) ELSE (
+              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
+             )
             ) ELSE (
               ECHO Pull request build, no code signing will be performed
               node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
