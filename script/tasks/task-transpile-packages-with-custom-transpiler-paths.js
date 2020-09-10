@@ -80,6 +80,8 @@ module.exports = function(task) {
       intermediatePackageBackup.restore();
     }
   }
+
+  task.done();
 };
 
 function transpilePath(path) {

@@ -7,11 +7,21 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
-  console.log(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}`);
-  for (let path of getPathsToTranspile()) {
+module.exports = function(task) {
+  task.start(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}`);
+
+  const paths = getPathsToTranspile();
+  if (paths.length === 0) {
+    task.warn('No paths to transpile');
+  } else {
+    task.info(`Transpiling ${paths.length} paths`);
+  }
+
+  for (let path of paths) {
     transpilePegJsPath(path);
   }
+
+  task.done();
 };
 
 function getPathsToTranspile() {

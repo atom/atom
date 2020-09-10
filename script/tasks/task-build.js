@@ -50,19 +50,19 @@ module.exports = function(task) {
   const createRpmPackage = require('../lib/create-rpm-package');
   const createWindowsInstaller = require('../lib/create-windows-installer');
   const dumpSymbols = require('../lib/dump-symbols');
-  const generateAPIDocs = require('../lib/generate-api-docs');
-  const generateMetadata = require('../lib/generate-metadata');
-  const generateModuleCache = require('../lib/generate-module-cache');
+  const generateAPIDocs = require('./task-generate-api-docs');
+  const generateMetadata = require('./task-generate-metadata');
+  const generateModuleCache = require('./task-generate-module-cache');
   const generateStartupSnapshot = require('../lib/generate-startup-snapshot');
   const installApplication = require('../lib/install-application');
   const notarizeOnMac = require('../lib/notarize-on-mac');
   const packageApplication = require('../lib/package-application');
-  const prebuildLessCache = require('../lib/prebuild-less-cache');
+  const prebuildLessCache = require('./task-prebuild-less-cache');
   const testSignOnMac = require('../lib/test-sign-on-mac');
   const transpileBabelPaths = require('./task-transpile-babel-paths');
   const transpileCoffeeScriptPaths = require('./task-transpile-coffee-script-paths');
-  const transpileCsonPaths = require('../lib/transpile-cson-paths');
-  const transpilePegJsPaths = require('../lib/transpile-peg-js-paths');
+  const transpileCsonPaths = require('./task-transpile-cson-paths');
+  const transpilePegJsPaths = require('./task-transpile-peg-js-paths');
   const transpilePackagesWithCustomTranspilerPaths = require('./task-transpile-packages-with-custom-transpiler-paths.js');
 
   process.on('unhandledRejection', function(e) {
@@ -82,12 +82,12 @@ module.exports = function(task) {
     transpilePackagesWithCustomTranspilerPaths(task.subtask());
     transpileBabelPaths(task.subtask());
     transpileCoffeeScriptPaths(task.subtask());
-    transpileCsonPaths();
-    transpilePegJsPaths();
-    generateModuleCache();
-    prebuildLessCache();
-    generateMetadata();
-    generateAPIDocs();
+    transpileCsonPaths(task.subtask());
+    transpilePegJsPaths(task.subtask());
+    generateModuleCache(task.subtask());
+    prebuildLessCache(task.subtask());
+    generateMetadata(task.subtask());
+    generateAPIDocs(task.subtask());
     if (!argv.generateApiDocs) {
       binariesPromise = dumpSymbols();
     }

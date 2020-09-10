@@ -12,7 +12,7 @@ module.exports = function(task) {
 
   const paths = getPathsToTranspile();
 
-  if (path.length === 0) {
+  if (paths.length === 0) {
     task.warn('No paths to transpile');
   } else {
     task.info(`Transpiling ${paths.length} paths`);
@@ -21,6 +21,8 @@ module.exports = function(task) {
   for (let path of paths) {
     transpileCoffeeScriptPath(path);
   }
+
+  task.done();
 };
 
 function getPathsToTranspile() {

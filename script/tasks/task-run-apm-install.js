@@ -6,6 +6,7 @@ const CONFIG = require('../config');
 
 module.exports = function(packagePath, ci, stdioOptions, task) {
   task.start('Run apm install');
+  task.info(`Installing ${packagePath}`);
 
   const installEnv = Object.assign({}, process.env);
   // Set resource path so that apm can load metadata related to Atom.
