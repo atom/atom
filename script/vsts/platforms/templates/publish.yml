@@ -1,11 +1,11 @@
 parameters:
-  # artifacts:
-  # - fileName
-  # - fileDir
-  # - condition
-  # - continueOnError
   - name: artifacts
     type: object
+    # artifacts is an array with each element having these properties:
+    # - fileName
+    # - fileDir
+    # - condition
+    # - continueOnError
 
 steps:
   - ${{ each artifact in parameters.artifacts }}:
