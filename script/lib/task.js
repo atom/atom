@@ -21,7 +21,7 @@ class TaskManager {
       this.concurrentTasks = true;
     }
 
-    this.print(task, '##[group]', `Running task: ${task.name}`);
+    this.print(task, '##[group]', task.name);
   }
 
   done(task) {

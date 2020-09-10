@@ -20,5 +20,6 @@ module.exports = function(ci, task) {
     { env: process.env, cwd }
   );
 
+  task.info('installation of apm finished');
   task.done();
 };

@@ -26,5 +26,8 @@ module.exports = function(packagePath, ci, stdioOptions, task) {
     stdio: stdioOptions || 'inherit'
   });
 
+  // printing child process can interfere with following log line,
+  // so we add a message here to prevent it breaking the end group
+  task.info('apm install finished');
   task.done();
 };
