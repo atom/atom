@@ -53,6 +53,7 @@ module.exports = function(task = new DefaultTask()) {
         intermediatePackageBackup.nodeModulesPath
       );
 
+      task.log('Adding transpile config for path');
       CompileCache.addTranspilerConfigForPath(
         intermediatePackagePath,
         metadata.name,
@@ -63,6 +64,10 @@ module.exports = function(task = new DefaultTask()) {
         const pathsToCompile = glob.sync(
           path.join(intermediatePackagePath, config.glob),
           { nodir: true }
+        );
+
+        this.verbose(
+          `Transpiling ${pathsToCompile.length} paths for glob ${config.glob}`
         );
         pathsToCompile.forEach(transpilePath);
       }

@@ -26,7 +26,9 @@ module.exports = function(task = new DefaultTask()) {
   const nonThemePackages = [];
 
   task.info(
-    `Sorting ${CONFIG.appMetadata.packageDependencies.length} packages`
+    `Sorting ${
+      Object.entries(CONFIG.appMetadata.packageDependencies).length
+    } packages`
   );
 
   for (let packageName in CONFIG.appMetadata.packageDependencies) {

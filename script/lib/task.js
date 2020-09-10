@@ -23,6 +23,10 @@ class TaskManager {
   start(task) {
     this.active.add(task);
 
+    if (task.parent) {
+      task.parent.children.push(task);
+    }
+
     if (this.focus === undefined) {
       this.focus = task;
     } else if (this.focus === task.parent) {
@@ -128,7 +132,7 @@ class Task {
   }
 
   /**
-   * Internal method to debug the task state
+   * @private Internal method to debug the task state
    */
   debug() {
     let info = `Name: ${this.name}, Children: ${this.children.length}`;
@@ -146,20 +150,18 @@ class Task {
    * @return {Task} Child task
    */
   subtask() {
-    const child = this.manager.subtask(this);
-    this.children.push(child);
-    return child;
+    return new Task(this.manager, this);
   }
 
   /**
-   * Remove a child task from the active children list.
+   * @private Remove a child task from the active children list.
    *
    * @param  {Task} child Child task of this task
    */
   remove(child) {
     const index = this.children.indexOf(child);
     if (index < 0) {
-      this.error('Invalid task state');
+      this.error("INCONSISTENT TASK STATE: Child doesn't exist");
       return;
     }
     this.children.splice(index, 1);

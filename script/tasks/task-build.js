@@ -190,7 +190,7 @@ module.exports = function(task = new DefaultTask()) {
       })
       .then(packagedAppPath => {
         if (argv.compressArtifacts) {
-          compressArtifacts(packagedAppPath);
+          compressArtifacts(packagedAppPath, task.subtask());
         } else {
           task.log(
             'Skipping artifacts compression. Specify the --compress-artifacts option to compress Atom binaries (and symbols on macOS)'
