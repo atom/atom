@@ -9,8 +9,9 @@ const installApm = require('./task-install-apm');
 const runApmInstall = require('./task-run-apm-install');
 const installScriptDependencies = require('./task-install-script-dependencies');
 const verifyMachineRequirements = require('./task-verify-machine-requirements');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Bootstrap');
 
   // We can't use yargs until installScriptDependencies() is executed, so...

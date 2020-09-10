@@ -1,8 +1,9 @@
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Clean dependencies');
 
   // We can't require fs-extra or glob if `script/bootstrap` has never been run,

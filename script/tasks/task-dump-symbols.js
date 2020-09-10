@@ -5,7 +5,9 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
-module.exports = function(task) {
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Dump symbols');
 
   if (process.platform === 'win32') {

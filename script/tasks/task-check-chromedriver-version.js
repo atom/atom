@@ -1,11 +1,13 @@
 'use strict';
 
-const buildMetadata = require('../package.json');
 const semver = require('semver');
 const chromedriverMetadataPath = require('electron-chromedriver/package.json');
 const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
-module.exports = function(task) {
+const buildMetadata = require('../package.json');
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Check chromedriver version');
 
   // Chromedriver should be at least v9.0.0

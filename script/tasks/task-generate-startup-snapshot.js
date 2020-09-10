@@ -3,9 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const electronLink = require('electron-link');
 const terser = require('terser');
-const CONFIG = require('../config');
 
-module.exports = function(packagedAppPath, task) {
+const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(packagedAppPath, task = new DefaultTask()) {
   task.start('Generate startup snapshot');
 
   const snapshotScriptPath = path.join(CONFIG.buildOutputPath, 'startup.js');

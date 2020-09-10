@@ -6,12 +6,13 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 const backupNodeModules = require('../lib/backup-node-modules');
 const runApmInstall = require('./task-run-apm-install');
 
 require('colors');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Transpile packages with custom transpiler configurations');
 
   task.log(

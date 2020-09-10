@@ -4,8 +4,9 @@ const childProcess = require('child_process');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(ci, task) {
+module.exports = function(ci, task = new DefaultTask()) {
   task.start('Verify machine requirements');
 
   verifyNode(task);

@@ -8,8 +8,9 @@ const path = require('path');
 const semver = require('semver');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start(
     `Generating metadata for ${path.join(
       CONFIG.intermediateAppPath,

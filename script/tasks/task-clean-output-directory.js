@@ -1,7 +1,9 @@
 const fs = require('fs-extra');
-const CONFIG = require('../config');
 
-module.exports = function(task) {
+const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Clean output directory');
 
   if (fs.existsSync(CONFIG.buildOutputPath)) {

@@ -5,11 +5,13 @@
 
 const path = require('path');
 const fs = require('fs-extra');
-const CONFIG = require('../config');
 const glob = require('glob');
-const includePathInPackagedApp = require('../lib/include-path-in-packaged-app');
 
-module.exports = function(task) {
+const CONFIG = require('../config');
+const includePathInPackagedApp = require('../lib/include-path-in-packaged-app');
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Copy assets');
 
   let srcPaths = [

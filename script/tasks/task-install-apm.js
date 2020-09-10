@@ -3,8 +3,9 @@
 const childProcess = require('child_process');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(ci, task) {
+module.exports = function(ci, task = new DefaultTask()) {
   task.start('Install apm');
 
   const npmBinPath = CONFIG.getNpmBinPath();

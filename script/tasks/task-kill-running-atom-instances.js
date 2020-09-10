@@ -1,8 +1,9 @@
 const childProcess = require('child_process');
 
 const CONFIG = require('../config.js');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Kill running Atom instances');
 
   if (process.platform === 'win32') {

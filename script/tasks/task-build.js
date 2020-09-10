@@ -1,4 +1,6 @@
-module.exports = function(task) {
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Build');
 
   if (process.argv.includes('--no-bootstrap')) {

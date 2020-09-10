@@ -272,7 +272,42 @@ class Task {
   }
 }
 
+class DefaultTask {
+  subtask() {
+    return this;
+  }
+
+  start(_name) {
+    // ignore
+  }
+
+  done() {
+    // ignore
+  }
+
+  verbose(..._msg) {
+    // ignore
+  }
+
+  info(...msg) {
+    console.info(...msg);
+  }
+
+  log(...msg) {
+    console.log(...msg);
+  }
+
+  warn(...msg) {
+    console.warn(...msg);
+  }
+
+  error(...msg) {
+    console.error(...msg);
+  }
+}
+
 module.exports = {
+  DefaultTask,
   Task,
   TaskManager
 };

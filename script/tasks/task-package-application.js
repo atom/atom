@@ -12,9 +12,11 @@ const spawnSync = require('../lib/spawn-sync');
 const template = require('lodash.template');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
+
 const HOST_ARCH = hostArch();
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Package application');
 
   const appName = getAppName();

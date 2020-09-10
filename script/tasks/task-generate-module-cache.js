@@ -5,8 +5,9 @@ const path = require('path');
 const ModuleCache = require('../../src/module-cache');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start(`Generating module cache for ${CONFIG.intermediateAppPath}`);
 
   const packageNames = Object.keys(CONFIG.appMetadata.packageDependencies);

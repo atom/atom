@@ -3,8 +3,14 @@
 const childProcess = require('child_process');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(packagePath, ci, stdioOptions, task) {
+module.exports = function(
+  packagePath,
+  ci,
+  stdioOptions,
+  task = new DefaultTask()
+) {
   task.start('Run apm install');
   task.info(`Installing ${packagePath}`);
 

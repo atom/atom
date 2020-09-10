@@ -5,8 +5,9 @@ const os = require('os');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start('Clean caches');
 
   const cachePaths = [

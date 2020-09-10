@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
+
 const FINGERPRINT_PATH = path.join(
   CONFIG.repositoryRootPath,
   'node_modules',
@@ -10,7 +12,7 @@ const FINGERPRINT_PATH = path.join(
 );
 
 module.exports = {
-  write: function(task) {
+  write: function(task = new DefaultTask()) {
     task.start('Write dependencies fingerprint');
 
     const fingerprint = this.compute();

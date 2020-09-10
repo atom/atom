@@ -6,18 +6,23 @@ const spawnSync = require('./spawn-sync');
 const { path7za } = require('7zip-bin');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('./task');
 
-module.exports = function(packagedAppPath) {
+module.exports = function(packagedAppPath, task = new DefaultTask()) {
+  task.start('Compress artifacts');
+
   const appArchivePath = path.join(CONFIG.buildOutputPath, getArchiveName());
-  compress(packagedAppPath, appArchivePath);
+  compress(packagedAppPath, appArchivePath, task);
 
   if (process.platform === 'darwin') {
     const symbolsArchivePath = path.join(
       CONFIG.buildOutputPath,
       'atom-mac-symbols.zip'
     );
-    compress(CONFIG.symbolsPath, symbolsArchivePath);
+    compress(CONFIG.symbolsPath, symbolsArchivePath, task);
   }
+
+  task.done();
 };
 
 function getArchiveName() {
@@ -42,13 +47,13 @@ function getLinuxArchiveArch() {
   }
 }
 
-function compress(inputDirPath, outputArchivePath) {
+function compress(inputDirPath, outputArchivePath, task) {
   if (fs.existsSync(outputArchivePath)) {
-    console.log(`Deleting "${outputArchivePath}"`);
+    task.log(`Deleting "${outputArchivePath}"`);
     fs.removeSync(outputArchivePath);
   }
 
-  console.log(`Compressing "${inputDirPath}" to "${outputArchivePath}"`);
+  task.log(`Compressing "${inputDirPath}" to "${outputArchivePath}"`);
   let compressCommand, compressArguments;
   if (process.platform === 'darwin') {
     compressCommand = 'zip';

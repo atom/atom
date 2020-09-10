@@ -6,8 +6,9 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   task.start(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}`);
 
   const paths = getPathsToTranspile();

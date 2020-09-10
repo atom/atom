@@ -3,7 +3,9 @@
 const fs = require('fs');
 const path = require('path');
 
-module.exports = function(task) {
+const { DefaultTask } = require('../lib/task');
+
+module.exports = function(task = new DefaultTask()) {
   task.start('Delete MS Build from PATH');
 
   let removed = 0;

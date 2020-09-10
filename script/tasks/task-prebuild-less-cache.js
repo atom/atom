@@ -7,11 +7,13 @@ const path = require('path');
 const LessCache = require('less-cache');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
+
 const LESS_CACHE_VERSION = require('less-cache/package.json').version;
 const FALLBACK_VARIABLE_IMPORTS =
   '@import "variables/ui-variables";\n@import "variables/syntax-variables";\n';
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   const cacheDirPath = path.join(
     CONFIG.intermediateAppPath,
     'less-compile-cache'

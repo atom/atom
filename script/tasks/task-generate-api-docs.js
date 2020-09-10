@@ -8,8 +8,9 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('../lib/task');
 
-module.exports = function(task) {
+module.exports = function(task = new DefaultTask()) {
   const generatedJSONPath = path.join(CONFIG.docsOutputPath, 'atom-api.json');
   task.start(`Generating API docs at ${generatedJSONPath}`);
 
