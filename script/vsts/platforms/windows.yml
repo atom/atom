@@ -6,9 +6,9 @@ jobs:
       maxParallel: 2
       matrix:
         x64:
-          buildArch: x64
+          BUILD_ARCH: x64
         x86:
-          buildArch: x86
+          BUILD_ARCH: x86
 
     pool:
       vmImage: vs2017-win2016
@@ -30,7 +30,7 @@ jobs:
 
       - script: node script\vsts\windows-run.js script\lint.cmd
         env:
-          BUILD_ARCH: $(buildArch)
+          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Run linter
 
       - template: templates/build.yml
@@ -46,7 +46,7 @@ jobs:
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
         env:
-          BUILD_ARCH: $(buildArch)
+          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Set FileID based on the arch
 
       - template: templates/publish.yml
