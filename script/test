@@ -45,19 +45,24 @@ const CONFIG = require('./config')
 const backupNodeModules = require('./lib/backup-node-modules')
 const runApmInstall = require('./lib/run-apm-install')
 
+function assertExecutablePaths(executablePaths) {
+	assert(executablePaths.length !== 0, `No atom build found. Please run "script/build" and try again.`)
+	assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+}
+
 const resourcePath = CONFIG.repositoryRootPath
 let executablePath
 if (process.platform === 'darwin') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
 } else if (process.platform === 'linux') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, 'atom-*', 'atom'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = executablePaths[0]
 } else if (process.platform === 'win32') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom*.exe'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = executablePaths[0]
 } else {
   throw new Error('Running tests on this platform is not supported.')

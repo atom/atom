@@ -1,25 +1,32 @@
 /* eslint-disable camelcase */
+const simpleGit = require('simple-git');
+const path = require('path');
+
+const { repositoryRootPath } = require('../../config');
+const packageJSON = require(path.join(repositoryRootPath, 'package.json'));
+const git = simpleGit(repositoryRootPath);
+const { createPR, findPR, addLabel } = require('./pull-request');
+const runApmInstall = require('../run-apm-install');
 const {
   makeBranch,
   createCommit,
   switchToMaster,
   publishBranch,
   deleteBranch
-} = require('./git');
-const {
-  updatePackageJson,
-  fetchOutdatedDependencies,
-  runApmInstall,
-  sleep
-} = require('./util');
-const { createPR, findPR, addLabel } = require('./pull-request');
+} = require('./git')(git, repositoryRootPath);
+const { updatePackageJson, sleep } = require('./util')(repositoryRootPath);
+const fetchOutdatedDependencies = require('./fetch-outdated-dependencies');
+
 module.exports = async function() {
   try {
     // ensure we are on master
     await switchToMaster();
     const failedBumps = [];
     const successfullBumps = [];
-    const outdateDependencies = await fetchOutdatedDependencies();
+    const outdateDependencies = [
+      ...(await fetchOutdatedDependencies.npm(repositoryRootPath)),
+      ...(await fetchOutdatedDependencies.apm(packageJSON))
+    ];
     const totalDependencies = outdateDependencies.length;
     const pendingPRs = [];
     for (const dependency of outdateDependencies) {
@@ -49,7 +56,7 @@ module.exports = async function() {
         // }
       } else {
         await updatePackageJson(dependency);
-        // await runApmInstall();
+        runApmInstall(repositoryRootPath, false);
         await createCommit(dependency);
         // await publishBranch(newBranch);
         // pendingPRs.push({
