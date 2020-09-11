@@ -1,16 +1,15 @@
+# workaround for https://bit.ly/2CK8itc
+variables:
+  _ATOM_RELEASES_S3_KEY:  $[ variables.ATOM_RELEASES_S3_KEY ]
+  _ATOM_RELEASES_S3_SECRET:  $[ variables.ATOM_RELEASES_S3_SECRET ]
+  _ATOM_RELEASES_S3_BUCKET: $[ variables.ATOM_RELEASES_S3_BUCKET ]
+  _PACKAGE_CLOUD_API_KEY: $[ variables.PACKAGE_CLOUD_API_KEY ]
+
 jobs:
-  - job: GetReleaseVersion
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
-      - script: |
-          cd script/vsts
-          npm install
-        displayName: npm install
-      - script: node script/vsts/get-release-version.js --nightly
-        name: Version
+  # GetReleaseVersion for nightly release
+  - template: platforms/templates/get-release-version.yml
+    parameters:
+      NightlyFlag: --nightly
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
@@ -24,7 +23,7 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
-      - Windows
+      - Windows_Tests
       - Linux
       - macOS_tests
 
@@ -32,13 +31,8 @@ jobs:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.4.0
-        displayName: Install Node.js 12.4.0
+      - template: platforms/templates/preparation.yml
 
-       #This has to be done separately because VSTS inexplicably
-       #exits the script block after `npm install` completes.
       - script: |
           cd script/vsts
           npm install
@@ -55,10 +49,10 @@ jobs:
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-          PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+          ATOM_RELEASES_S3_KEY: $(_ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_S3_SECRET: $(_ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(_ATOM_RELEASES_S3_BUCKET)
+          PACKAGE_CLOUD_API_KEY: $(_PACKAGE_CLOUD_API_KEY)
         displayName: Create Nightly Release
   - job: bump_dependencies
     displayName: Bump Dependencies
@@ -68,17 +62,9 @@ jobs:
       vmImage: macos-10.14
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: platforms/templates/preparation.yml
 
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
-
-      - script: |
-          script/bootstrap
-        displayName: Bootstrap
+      - template: platforms/templates/bootstrap.yml
 
       - script: |
           cd script/lib
