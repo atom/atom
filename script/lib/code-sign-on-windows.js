@@ -4,15 +4,20 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-module.exports = function(filesToSign) {
+const { DefaultTask } = require('./task');
+
+module.exports = function(filesToSign, task = new DefaultTask()) {
+  task.start('Code sign on Windows');
+
   if (
     !process.env.ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL &&
     !process.env.ATOM_WIN_CODE_SIGNING_CERT_PATH
   ) {
-    console.log(
+    task.log(
       'Skipping code signing because the ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable is not defined'
         .gray
     );
+    task.done();
     return;
   }
 
@@ -26,7 +31,7 @@ module.exports = function(filesToSign) {
   }
   try {
     for (const fileToSign of filesToSign) {
-      console.log(`Code-signing executable at ${fileToSign}`);
+      task.log(`Code-signing executable at ${fileToSign}`);
       signFile(fileToSign);
     }
   } finally {
@@ -69,4 +74,6 @@ module.exports = function(filesToSign) {
       );
     }
   }
+
+  task.done();
 };

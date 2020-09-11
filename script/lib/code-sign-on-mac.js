@@ -1,10 +1,13 @@
 const downloadFileFromGithub = require('./download-file-from-github');
-const CONFIG = require('../config');
 const fs = require('fs-extra');
 const os = require('os');
 const path = require('path');
 const spawnSync = require('./spawn-sync');
 const osxSign = require('electron-osx-sign');
+
+const CONFIG = require('../config');
+const { DefaultTask } = require('./task');
+
 const macEntitlementsPath = path.join(
   CONFIG.repositoryRootPath,
   'resources',
@@ -12,15 +15,18 @@ const macEntitlementsPath = path.join(
   'entitlements.plist'
 );
 
-module.exports = async function(packagedAppPath) {
+module.exports = async function(packagedAppPath, task = new DefaultTask()) {
+  task.start('Code sign on mac');
+
   if (
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL &&
     !process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH
   ) {
-    console.log(
+    task.log(
       'Skipping code signing because the ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL environment variable is not defined'
         .gray
     );
+    task.done();
     return;
   }
 
@@ -33,7 +39,7 @@ module.exports = async function(packagedAppPath) {
     );
   }
   try {
-    console.log(
+    task.log(
       `Ensuring keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN} exists`
     );
     try {
@@ -43,7 +49,7 @@ module.exports = async function(packagedAppPath) {
         { stdio: 'inherit' }
       );
     } catch (err) {
-      console.log(
+      task.log(
         `Creating keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`
       );
       // The keychain doesn't exist, try to create it
@@ -80,7 +86,7 @@ module.exports = async function(packagedAppPath) {
       );
     }
 
-    console.log(
+    task.log(
       `Unlocking keychain ${process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN}`
     );
     const unlockArgs = ['unlock-keychain'];
@@ -94,7 +100,7 @@ module.exports = async function(packagedAppPath) {
     unlockArgs.push(process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN);
     spawnSync('security', unlockArgs, { stdio: 'inherit' });
 
-    console.log(
+    task.log(
       `Importing certificate at ${certPath} into ${
         process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
       } keychain`
@@ -110,7 +116,7 @@ module.exports = async function(packagedAppPath) {
       '/usr/bin/codesign'
     ]);
 
-    console.log(
+    task.log(
       'Running incantation to suppress dialog when signing on macOS Sierra'
     );
     try {
@@ -124,10 +130,10 @@ module.exports = async function(packagedAppPath) {
         process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN
       ]);
     } catch (e) {
-      console.log("Incantation failed... maybe this isn't Sierra?");
+      task.warn("Incantation failed... maybe this isn't Sierra?");
     }
 
-    console.log(`Code-signing application at ${packagedAppPath}`);
+    task.log(`Code-signing application at ${packagedAppPath}`);
 
     try {
       await osxSign.signAsync({
@@ -139,15 +145,17 @@ module.exports = async function(packagedAppPath) {
         platform: 'darwin',
         hardenedRuntime: true
       });
-      console.info('Application signing complete');
+      task.info('Application signing complete');
     } catch (err) {
-      console.error('Applicaiton singing failed');
-      console.error(err);
+      task.error('Applicaiton singing failed');
+      task.error(err);
     }
   } finally {
     if (!process.env.ATOM_MAC_CODE_SIGNING_CERT_PATH) {
-      console.log(`Deleting certificate at ${certPath}`);
+      task.log(`Deleting certificate at ${certPath}`);
       fs.removeSync(certPath);
     }
   }
+
+  task.done();
 };

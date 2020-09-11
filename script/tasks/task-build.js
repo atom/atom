@@ -107,10 +107,10 @@ module.exports = function(task = new DefaultTask()) {
         switch (process.platform) {
           case 'darwin': {
             if (argv.codeSign) {
-              await codeSignOnMac(packagedAppPath);
-              await notarizeOnMac(packagedAppPath);
+              await codeSignOnMac(packagedAppPath, task.subtask());
+              await notarizeOnMac(packagedAppPath, task.subtask());
             } else if (argv.testSign) {
-              testSignOnMac(packagedAppPath);
+              testSignOnMac(packagedAppPath, task.subtask());
             } else {
               task.log(
                 'Skipping code-signing. Specify the --code-sign option to perform code-signing'
@@ -142,7 +142,7 @@ module.exports = function(task = new DefaultTask()) {
                   )
                 );
               }
-              codeSignOnWindows(executablesToSign);
+              codeSignOnWindows(executablesToSign, task.subtask());
             } else {
               task.log(
                 'Skipping code-signing. Specify the --code-sign option to perform code-signing'
@@ -150,12 +150,14 @@ module.exports = function(task = new DefaultTask()) {
               );
             }
             if (argv.createWindowsInstaller) {
-              return createWindowsInstaller(packagedAppPath).then(
-                installerPath => {
-                  argv.codeSign && codeSignOnWindows([installerPath]);
-                  return packagedAppPath;
-                }
-              );
+              return createWindowsInstaller(
+                packagedAppPath,
+                task.subtask()
+              ).then(installerPath => {
+                argv.codeSign &&
+                  codeSignOnWindows([installerPath], task.subtask());
+                return packagedAppPath;
+              });
             } else {
               task.log(
                 'Skipping creating installer. Specify the --create-windows-installer option to create a Squirrel-based Windows installer.'
@@ -166,7 +168,7 @@ module.exports = function(task = new DefaultTask()) {
           }
           case 'linux': {
             if (argv.createDebianPackage) {
-              createDebianPackage(packagedAppPath);
+              createDebianPackage(packagedAppPath, task.subtask());
             } else {
               task.log(
                 'Skipping creating debian package. Specify the --create-debian-package option to create it.'
@@ -175,7 +177,7 @@ module.exports = function(task = new DefaultTask()) {
             }
 
             if (argv.createRpmPackage) {
-              createRpmPackage(packagedAppPath);
+              createRpmPackage(packagedAppPath, task.subtask());
             } else {
               task.log(
                 'Skipping creating rpm package. Specify the --create-rpm-package option to create it.'
@@ -199,7 +201,7 @@ module.exports = function(task = new DefaultTask()) {
         }
 
         if (argv.install != null) {
-          installApplication(packagedAppPath, argv.install);
+          installApplication(packagedAppPath, argv.install, task.subtask());
         } else {
           task.log(
             'Skipping installation. Specify the --install option to install Atom'

@@ -8,18 +8,22 @@ const startCase = require('lodash.startcase');
 const execSync = require('child_process').execSync;
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('./task');
 
-function install(installationDirPath, packagedAppFileName, packagedAppPath) {
+function install(
+  installationDirPath,
+  packagedAppFileName,
+  packagedAppPath,
+  task
+) {
   if (fs.existsSync(installationDirPath)) {
-    console.log(
+    task.log(
       `Removing previously installed "${packagedAppFileName}" at "${installationDirPath}"`
     );
     fs.removeSync(installationDirPath);
   }
 
-  console.log(
-    `Installing "${packagedAppFileName}" at "${installationDirPath}"`
-  );
+  task.log(`Installing "${packagedAppFileName}" at "${installationDirPath}"`);
   fs.copySync(packagedAppPath, installationDirPath);
 }
 
@@ -45,7 +49,13 @@ function findBaseIconThemeDirPath() {
   }
 }
 
-module.exports = function(packagedAppPath, installDir) {
+module.exports = function(
+  packagedAppPath,
+  installDir,
+  task = new DefaultTask()
+) {
+  task.start('Install application');
+
   const packagedAppFileName = path.basename(packagedAppPath);
   if (process.platform === 'darwin') {
     const installPrefix =
@@ -53,7 +63,7 @@ module.exports = function(packagedAppPath, installDir) {
         ? handleTilde(installDir)
         : path.join(path.sep, 'Applications');
     const installationDirPath = path.join(installPrefix, packagedAppFileName);
-    install(installationDirPath, packagedAppFileName, packagedAppPath);
+    install(installationDirPath, packagedAppFileName, packagedAppPath, task);
   } else if (process.platform === 'win32') {
     const installPrefix =
       installDir !== '' ? installDir : process.env.LOCALAPPDATA;
@@ -63,9 +73,9 @@ module.exports = function(packagedAppPath, installDir) {
       'app-dev'
     );
     try {
-      install(installationDirPath, packagedAppFileName, packagedAppPath);
+      install(installationDirPath, packagedAppFileName, packagedAppPath, task);
     } catch (e) {
-      console.log(
+      task.warn(
         `Administrator elevation required to install into "${installationDirPath}"`
       );
       const fsAdmin = require('fs-admin');
@@ -96,7 +106,7 @@ module.exports = function(packagedAppPath, installDir) {
     fs.mkdirpSync(applicationsDirPath);
     fs.mkdirpSync(binDirPath);
 
-    install(installationDirPath, packagedAppFileName, packagedAppPath);
+    install(installationDirPath, packagedAppFileName, packagedAppPath, task);
 
     {
       // Install icons
@@ -113,16 +123,14 @@ module.exports = function(packagedAppPath, installDir) {
         );
         if (fs.existsSync(iconPath)) {
           if (!existingIconsFound) {
-            console.log(
-              `Removing existing icons from "${baseIconThemeDirPath}"`
-            );
+            task.log(`Removing existing icons from "${baseIconThemeDirPath}"`);
           }
           existingIconsFound = true;
           fs.removeSync(iconPath);
         }
       });
 
-      console.log(`Installing icons at "${baseIconThemeDirPath}"`);
+      task.log(`Installing icons at "${baseIconThemeDirPath}"`);
       const appIconsPath = path.join(
         CONFIG.repositoryRootPath,
         'resources',
@@ -146,7 +154,7 @@ module.exports = function(packagedAppPath, installDir) {
         }
       });
 
-      console.log(`Updating icon cache for "${baseIconThemeDirPath}"`);
+      task.log(`Updating icon cache for "${baseIconThemeDirPath}"`);
       try {
         execSync(`gtk-update-icon-cache ${baseIconThemeDirPath} --force`);
       } catch (e) {}
@@ -159,12 +167,12 @@ module.exports = function(packagedAppPath, installDir) {
         `${atomExecutableName}.desktop`
       );
       if (fs.existsSync(desktopEntryPath)) {
-        console.log(
+        task.log(
           `Removing existing desktop entry file at "${desktopEntryPath}"`
         );
         fs.removeSync(desktopEntryPath);
       }
-      console.log(`Writing desktop entry file at "${desktopEntryPath}"`);
+      task.log(`Writing desktop entry file at "${desktopEntryPath}"`);
       const desktopEntryTemplate = fs.readFileSync(
         path.join(
           CONFIG.repositoryRootPath,
@@ -187,12 +195,10 @@ module.exports = function(packagedAppPath, installDir) {
       // Add atom executable to the PATH
       const atomBinDestinationPath = path.join(binDirPath, atomExecutableName);
       if (fs.existsSync(atomBinDestinationPath)) {
-        console.log(
-          `Removing existing executable at "${atomBinDestinationPath}"`
-        );
+        task.log(`Removing existing executable at "${atomBinDestinationPath}"`);
         fs.removeSync(atomBinDestinationPath);
       }
-      console.log(`Copying atom.sh to "${atomBinDestinationPath}"`);
+      task.log(`Copying atom.sh to "${atomBinDestinationPath}"`);
       fs.copySync(
         path.join(CONFIG.repositoryRootPath, 'atom.sh'),
         atomBinDestinationPath
@@ -204,12 +210,10 @@ module.exports = function(packagedAppPath, installDir) {
       const apmBinDestinationPath = path.join(binDirPath, apmExecutableName);
       try {
         fs.lstatSync(apmBinDestinationPath);
-        console.log(
-          `Removing existing executable at "${apmBinDestinationPath}"`
-        );
+        task.log(`Removing existing executable at "${apmBinDestinationPath}"`);
         fs.removeSync(apmBinDestinationPath);
       } catch (e) {}
-      console.log(`Symlinking apm to "${apmBinDestinationPath}"`);
+      task.log(`Symlinking apm to "${apmBinDestinationPath}"`);
       fs.symlinkSync(
         path.join(
           '..',
@@ -226,9 +230,10 @@ module.exports = function(packagedAppPath, installDir) {
       );
     }
 
-    console.log(`Changing permissions to 755 for "${installationDirPath}"`);
+    task.log(`Changing permissions to 755 for "${installationDirPath}"`);
     fs.chmodSync(installationDirPath, '755');
   }
 
+  task.done();
   return Promise.resolve();
 };

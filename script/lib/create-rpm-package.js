@@ -7,9 +7,11 @@ const spawnSync = require('./spawn-sync');
 const template = require('lodash.template');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('./task');
 
-module.exports = function(packagedAppPath) {
-  console.log(`Creating rpm package for "${packagedAppPath}"`);
+module.exports = function(packagedAppPath, task = new DefaultTask()) {
+  task.start(`Creating rpm package for "${packagedAppPath}"`);
+
   const atomExecutableName =
     CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
   const apmExecutableName =
@@ -33,13 +35,11 @@ module.exports = function(packagedAppPath) {
   const rpmPackageIconsDirPath = path.join(rpmPackageBuildDirPath, 'icons');
 
   if (fs.existsSync(rpmPackageDirPath)) {
-    console.log(
-      `Deleting existing rpm build directory at "${rpmPackageDirPath}"`
-    );
+    task.log(`Deleting existing rpm build directory at "${rpmPackageDirPath}"`);
     fs.removeSync(rpmPackageDirPath);
   }
 
-  console.log(
+  task.log(
     `Creating rpm package directory structure at "${rpmPackageDirPath}"`
   );
   fs.mkdirpSync(rpmPackageDirPath);
@@ -47,12 +47,10 @@ module.exports = function(packagedAppPath) {
   fs.mkdirpSync(rpmPackageSourcesDirPath);
   fs.mkdirpSync(rpmPackageSpecsDirPath);
 
-  console.log(
-    `Copying "${packagedAppPath}" to "${rpmPackageApplicationDirPath}"`
-  );
+  task.log(`Copying "${packagedAppPath}" to "${rpmPackageApplicationDirPath}"`);
   fs.copySync(packagedAppPath, rpmPackageApplicationDirPath);
 
-  console.log(`Copying icons into "${rpmPackageIconsDirPath}"`);
+  task.log(`Copying icons into "${rpmPackageIconsDirPath}"`);
   fs.copySync(
     path.join(
       CONFIG.repositoryRootPath,
@@ -64,7 +62,7 @@ module.exports = function(packagedAppPath) {
     rpmPackageIconsDirPath
   );
 
-  console.log(`Writing rpm package spec file into "${rpmPackageSpecsDirPath}"`);
+  task.log(`Writing rpm package spec file into "${rpmPackageSpecsDirPath}"`);
   const rpmPackageSpecFilePath = path.join(rpmPackageSpecsDirPath, 'atom.spec');
   const rpmPackageSpecsTemplate = fs.readFileSync(
     path.join(
@@ -86,7 +84,7 @@ module.exports = function(packagedAppPath) {
   });
   fs.writeFileSync(rpmPackageSpecFilePath, rpmPackageSpecsContents);
 
-  console.log(`Writing desktop entry file into "${rpmPackageBuildDirPath}"`);
+  task.log(`Writing desktop entry file into "${rpmPackageBuildDirPath}"`);
   const desktopEntryTemplate = fs.readFileSync(
     path.join(
       CONFIG.repositoryRootPath,
@@ -107,19 +105,19 @@ module.exports = function(packagedAppPath) {
     desktopEntryContents
   );
 
-  console.log(`Copying atom.sh into "${rpmPackageBuildDirPath}"`);
+  task.log(`Copying atom.sh into "${rpmPackageBuildDirPath}"`);
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'atom.sh'),
     path.join(rpmPackageBuildDirPath, 'atom.sh')
   );
 
-  console.log(`Copying atom.policy into "${rpmPackageBuildDirPath}"`);
+  task.log(`Copying atom.policy into "${rpmPackageBuildDirPath}"`);
   fs.copySync(
     path.join(CONFIG.repositoryRootPath, 'resources', 'linux', 'atom.policy'),
     path.join(rpmPackageBuildDirPath, policyFileName)
   );
 
-  console.log(`Generating .rpm package from "${rpmPackageDirPath}"`);
+  task.log(`Generating .rpm package from "${rpmPackageDirPath}"`);
   spawnSync('rpmbuild', ['-ba', '--clean', rpmPackageSpecFilePath]);
   for (let generatedArch of fs.readdirSync(rpmPackageRpmsDirPath)) {
     const generatedArchDirPath = path.join(
@@ -139,9 +137,11 @@ module.exports = function(packagedAppPath) {
       CONFIG.buildOutputPath,
       `atom.${generatedArch}.rpm`
     );
-    console.log(
+    task.log(
       `Copying "${generatedPackageFilePath}" into "${outputRpmPackageFilePath}"`
     );
     fs.copySync(generatedPackageFilePath, outputRpmPackageFilePath);
   }
+
+  task.done();
 };

@@ -6,8 +6,9 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { DefaultTask } = require('./task');
 
-module.exports = packagedAppPath => {
+module.exports = (packagedAppPath, task = new DefaultTask()) => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch;
   const updateUrlPrefix =
     process.env.ATOM_UPDATE_URL_PREFIX || 'https://atom.io';
@@ -53,7 +54,7 @@ module.exports = packagedAppPath => {
       `${CONFIG.buildOutputPath}/${appName}-*.nupkg`
     )) {
       if (!nupkgPath.includes(CONFIG.computedAppVersion)) {
-        console.log(
+        task.log(
           `Deleting downloaded nupkg for previous version at ${nupkgPath} to prevent it from being stored as an artifact`
         );
         fs.unlinkSync(nupkgPath);
@@ -72,11 +73,15 @@ module.exports = packagedAppPath => {
     return `${CONFIG.buildOutputPath}/${options.setupExe}`;
   };
 
-  console.log(`Creating Windows Installer for ${packagedAppPath}`);
+  task.start(`Creating Windows Installer for ${packagedAppPath}`);
   return electronInstaller
     .createWindowsInstaller(options)
     .then(cleanUp, error => {
       cleanUp();
       return Promise.reject(error);
+    })
+    .then(r => {
+      task.done();
+      return r;
     });
 };

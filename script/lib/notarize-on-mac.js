@@ -1,10 +1,13 @@
 const notarize = require('electron-notarize').notarize;
 
-module.exports = async function(packagedAppPath) {
+const { DefaultTask } = require('./task');
+
+module.exports = async function(packagedAppPath, task = new DefaultTask()) {
   const appBundleId = 'com.github.atom';
   const appleId = process.env.AC_USER;
   const appleIdPassword = process.env.AC_PASSWORD;
-  console.log(`Notarizing application at ${packagedAppPath}`);
+  task.start(`Notarizing application at ${packagedAppPath}`);
+
   try {
     await notarize({
       appBundleId: appBundleId,
@@ -15,4 +18,6 @@ module.exports = async function(packagedAppPath) {
   } catch (e) {
     throw new Error(e);
   }
+
+  task.done();
 };
