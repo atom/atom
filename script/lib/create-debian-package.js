@@ -54,11 +54,6 @@ module.exports = function(packagedAppPath) {
     debianPackageShareDirPath,
     'pixmaps'
   );
-  const debianPackageLintianOverridesDirPath = path.join(
-    debianPackageShareDirPath,
-    'lintian',
-    'overrides'
-  );
   const debianPackageDocsDirPath = path.join(
     debianPackageShareDirPath,
     'doc',
@@ -93,7 +88,6 @@ module.exports = function(packagedAppPath) {
   fs.mkdirpSync(debianPackageShareDirPath);
   fs.mkdirpSync(debianPackageApplicationsDirPath);
   fs.mkdirpSync(debianPackageIconsDirPath);
-  fs.mkdirpSync(debianPackageLintianOverridesDirPath);
   fs.mkdirpSync(debianPackageDocsDirPath);
   fs.mkdirpSync(debianPackageBinDirPath);
 
@@ -120,6 +114,8 @@ module.exports = function(packagedAppPath) {
     ),
     path.join(debianPackageBinDirPath, apmExecutableName)
   );
+
+  fs.chmodSync(path.join(debianPackageAtomDirPath, 'chrome-sandbox'), '4755');
 
   console.log(`Writing control file into "${debianPackageConfigPath}"`);
   const packageSizeInKilobytes = spawnSync('du', ['-sk', packagedAppPath])
@@ -188,20 +184,6 @@ module.exports = function(packagedAppPath) {
   fs.copySync(
     path.join(packagedAppPath, 'resources', 'LICENSE.md'),
     path.join(debianPackageDocsDirPath, 'copyright')
-  );
-
-  console.log(
-    `Copying lintian overrides into "${debianPackageLintianOverridesDirPath}"`
-  );
-  fs.copySync(
-    path.join(
-      CONFIG.repositoryRootPath,
-      'resources',
-      'linux',
-      'debian',
-      'lintian-overrides'
-    ),
-    path.join(debianPackageLintianOverridesDirPath, atomExecutableName)
   );
 
   console.log(

@@ -1,0 +1,30 @@
+parameters:
+  - name: OS
+    displayName: Operating System
+    type: string
+    values:
+      - windows
+      - linux
+      - macos
+
+steps:
+  - task: Cache@2
+    displayName: Cache node_modules
+    inputs:
+      key: 'npm_main | "$(Agent.OS)" | "$(BUILD_ARCH)" | package.json, package-lock.json, apm/package.json, script/package.json, script/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml, script/vsts/platforms/templates/preparation.yml'
+      path: 'node_modules'
+      cacheHitVar: MainNodeModulesRestored
+
+  - task: Cache@2
+    displayName: Cache script/node_modules
+    inputs:
+      key: 'npm_script | "$(Agent.OS)" | "$(BUILD_ARCH)" | package.json, package-lock.json, apm/package.json, script/package.json, script/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml, script/vsts/platforms/templates/preparation.yml'
+      path: 'script/node_modules'
+      cacheHitVar: ScriptNodeModulesRestored
+
+  - task: Cache@2
+    displayName: Cache apm/node_modules
+    inputs:
+      key: 'npm_apm | "$(Agent.OS)" | "$(BUILD_ARCH)" | package.json, package-lock.json, apm/package.json, script/package.json, script/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml, script/vsts/platforms/templates/preparation.yml'
+      path: 'apm/node_modules'
+      cacheHitVar: ApmNodeModulesRestored

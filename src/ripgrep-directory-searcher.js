@@ -129,7 +129,7 @@ function processUnicodeMatch(match) {
 
 // This function processes a ripgrep submatch to create the correct
 // range. This is mostly needed for multi-line results, since the range
-// will have differnt start and end rows and we need to calculate these
+// will have different start and end rows and we need to calculate these
 // based on the lines that ripgrep returns.
 function processSubmatch(submatch, lineText, offsetRow) {
   const lineParts = lineText.split('\n');
