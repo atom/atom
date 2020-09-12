@@ -11,7 +11,7 @@ module.exports = function(task = new DefaultTask()) {
     require('./task-bootstrap')(task.subtask());
   }
 
-  // Needed so we can require src/module-cache.coffee during generateModuleCache
+  // Required to load CS files in this build script, such as those in `donna`
   require('coffee-script/register');
   require('colors');
 
