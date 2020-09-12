@@ -4,7 +4,7 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config');
 
-module.exports = function(ci) {
+function installApm(ci) {
   console.log('Installing apm');
   // npm ci leaves apm with a bunch of unmet dependencies
   childProcess.execFileSync(
@@ -12,4 +12,11 @@ module.exports = function(ci) {
     ['--global-style', '--loglevel=error', 'install'],
     { env: process.env, cwd: CONFIG.apmRootPath }
   );
-};
+  childProcess.execFileSync(CONFIG.getApmBinPath(), ['--version'], {
+    stdio: 'inherit'
+  });
+}
+
+const { expose } = require(`${CONFIG.scriptRunnerModulesPath}/threads/worker`);
+expose(installApm);
+module.exports = installApm;
