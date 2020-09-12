@@ -21,6 +21,6 @@ module.exports = function(ci, task = new DefaultTask()) {
     { env: process.env, cwd }
   );
 
-  task.info('installation of apm finished');
+  task.info('Installation of apm finished');
   task.done();
 };

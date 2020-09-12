@@ -1,99 +1,6 @@
 /**
- * Manages a task hierarchy. Each Task belongs to a manager,
- * and many of it's methods delegate to this manager. This
- * is not entirely necessary right now, but should make
- * tracking concurrent task execution easier.
- *
- * This should be constructed and the `subtask` method used
- * to get a root task object. Other methods are internal and
- * only for use by the private Task methods. There is no need
- * to use this further after creating the root task.
- */
-class TaskManager {
-  constructor() {
-    this.active = new Set();
-    this.focus = undefined;
-    this.concurrentTasks = false;
-  }
-
-  subtask(parent) {
-    return new Task(this, parent);
-  }
-
-  start(task) {
-    this.active.add(task);
-
-    if (task.parent) {
-      task.parent.children.push(task);
-    }
-
-    if (this.focus === undefined) {
-      this.focus = task;
-    } else if (this.focus === task.parent) {
-      this.focus = task;
-    } else {
-      this.concurrentTasks = true;
-    }
-
-    if (task.depth === 0) {
-      this.print(task, '', `Running: ${task.name}`);
-    } else if (task.depth === 1) {
-      this.print(task, '##[group]', task.name);
-    } else {
-      task.log(`Starting '${task.name}' subtask`);
-    }
-  }
-
-  done(task) {
-    this.active.delete(task);
-    if (task.parent) {
-      task.parent.remove(task);
-    }
-
-    if (task.depth === 0) {
-      this.print(task, '', `Finished: ${task.name}`);
-    } else if (task.depth === 1) {
-      this.print(task, '##[endgroup]', '');
-    } else {
-      task.log(`Finished '${task.name}' subtask`);
-    }
-
-    if (task === this.focus) {
-      this.focus = task.parent;
-    } else if (!this.concurrentTasks) {
-      console.error('INCONSISTENT TASK STATE: Done task is not focused');
-    }
-
-    for (const child of task.children) {
-      if (!child.complete) {
-        console.error('INCONSISTENT TASK STATE: Child not done');
-      }
-    }
-  }
-
-  print(task, prefix, msg) {
-    console.log(prefix + ' ' + msg);
-  }
-
-  debug() {
-    console.log(`TaskManager stats:`);
-    console.log(`Active tasks: ${this.active.size}`);
-    console.log(`Is concurrent: ${this.concurrentTasks}`);
-    for (const task of this.active) {
-      let info = `- ${task.debug()}`;
-      if (this.focus === task) {
-        info += ' (focused)';
-      }
-      console.log(info);
-    }
-  }
-}
-
-/**
  * A lightweight interface to units of work. Primarily provides
- * a uniform interface for different logging methods. Do not
- * construct directly, rather use the `subtask` method to build
- * a child task or get a root task from a TaskManager.
+ * a uniform interface for different logging methods.
  *
  * Typical usage is as follows:
   ```
@@ -117,29 +24,80 @@ class TaskManager {
   ```
  */
 class Task {
-  constructor(manager, parent = undefined) {
-    this.manager = manager;
-    this.parent = parent;
-    this.children = [];
-    this.name = 'Unnamed';
-    this.complete = false;
+  constructor({
+    stack = [],
+    parallel = false,
+    format = undefined,
+    childId = undefined
+  } = {}) {
+    /** Mark if this task has been started yet */
+    this.started = false;
 
-    if (!this.parent) {
-      this.depth = 0;
-    } else {
-      this.depth = this.parent.depth + 1;
-    }
+    /** Mark if this task has been declared done */
+    this.finished = false;
+
+    /** Count the number of child tasks derived from this one */
+    this.numChildren = 0;
+
+    /** Specifies how log levels are formatted, etc. */
+    this.format = format || this.defaultFormat();
+
+    /** Task stack (list of parent names, root task first) */
+    this.stack = stack;
+
+    /** Is this task running in parallel with other tasks */
+    this.parallel = parallel;
+
+    /** Name of this task (properly set when started) */
+    this.name = 'child' + (childId !== undefined ? childId : '(unnamed)');
+  }
+
+  defaultFormat() {
+    return {
+      /** Minimum priority of messages to log. 0 is verbose, 3 is error. */
+      minPriority: 1,
+
+      /** Prepended to each log, repeated task depth times */
+      indent: '',
+
+      /** Prefix for verbose logs */
+      verbose: '##[debug]',
+
+      /** Prefix for info logs */
+      info: '##[debug]',
+
+      /** Prefix for warning logs */
+      warn: '##[warning]',
+
+      /** Prefix for error logs */
+      error: '##[error]',
+
+      /** Prefix for starting a new task */
+      start: '##[group]',
+
+      /** Prefix for ending a task */
+      end: '##[endgroup]',
+
+      /** Only use start and end prefixes for top level groups (not including root) */
+      flat: true
+    };
   }
 
   /**
-   * @private Internal method to debug the task state
+   * @private Serialize this Task to a JSON format. This allows
+   * it to be passed virtually anywhere, including worker threads
+   * if necessary. It is also used as the parameters to making a
+   * sub task.
+   *
+   * @return {JSON} JSON serialization of this Task
    */
-  debug() {
-    let info = `Name: ${this.name}, Children: ${this.children.length}`;
-    if (!this.parent) {
-      info += ' (root)';
-    }
-    return info;
+  serialize() {
+    return {
+      stack: [...this.stack, this.name],
+      parallel: this.parallel,
+      format: this.format,
+      childId: this.numChildren++
+    };
   }
 
   /**
@@ -147,24 +105,16 @@ class Task {
    * creation does not imply activaton. You must call the
    * `start` method with the task name to have it be active.
    *
+   * @param params {{parallel: boolean}}
+   *    - parallel: If the child task will be run in parallel
+   *                with other tasks
+   *
    * @return {Task} Child task
    */
-  subtask() {
-    return new Task(this.manager, this);
-  }
-
-  /**
-   * @private Remove a child task from the active children list.
-   *
-   * @param  {Task} child Child task of this task
-   */
-  remove(child) {
-    const index = this.children.indexOf(child);
-    if (index < 0) {
-      this.error("INCONSISTENT TASK STATE: Child doesn't exist");
-      return;
-    }
-    this.children.splice(index, 1);
+  subtask({ parallel = false } = {}) {
+    const sub = new Task(this.serialize());
+    sub.parallel |= parallel;
+    return sub;
   }
 
   /**
@@ -176,7 +126,16 @@ class Task {
    */
   start(name) {
     this.name = name;
-    this.manager.start(this);
+    this.started = true;
+    this.printStart();
+  }
+
+  printStart() {
+    if (!this.parallel && (!this.format.flat || this.stack.length === 1)) {
+      this.print(Infinity, this.format.start, this.name);
+    } else {
+      this.print(Infinity, this.format.info, `Starting ${this.name}`);
+    }
   }
 
   /**
@@ -187,8 +146,16 @@ class Task {
    * logging methods after calling this method.
    */
   done() {
-    this.complete = true;
-    this.manager.done(this);
+    this.printDone();
+    this.finished = true;
+  }
+
+  printDone() {
+    if (!this.parallel && (!this.format.flat || this.stack.length === 1)) {
+      this.print(Infinity, this.format.end, this.name);
+    } else {
+      this.print(Infinity, this.format.info, `Finished ${this.name}`);
+    }
   }
 
   /**
@@ -202,7 +169,7 @@ class Task {
    * @param  {...String} msg Message to log
    */
   verbose(...msg) {
-    this.print('##[debug]', msg.join(' '));
+    this.print(0, this.format.verbose, msg.join(' '));
   }
 
   /**
@@ -230,7 +197,7 @@ class Task {
    * @param  {...String} msg Message to log
    */
   info(msg) {
-    this.print('##[debug]', msg);
+    this.print(1, this.format.info, msg);
   }
 
   /**
@@ -244,7 +211,7 @@ class Task {
    * @param  {...String} msg Warning to log
    */
   warn(msg) {
-    this.print('##[warning]', msg);
+    this.print(2, this.format.warn, msg);
   }
 
   /**
@@ -259,18 +226,35 @@ class Task {
    * @param  {...String} msg Error to log
    */
   error(msg) {
-    this.print('##[error]', msg);
+    this.print(3, this.format.error, msg);
   }
 
   /**
-   * @private Internal method to print a message.
-   * Delegates to the TaskManager.
+   * @private Internal method to print a message. Right
+   * now just uses console.log, but could be changed to
+   * log to a file instead, or do both.
    *
    * @param  {String} prefix Prefix of log entry
    * @param  {String} msg    Message for log entry
    */
-  print(prefix, msg) {
-    this.manager.print(this, prefix, msg);
+  print(priority, prefix, msg) {
+    if (priority < this.format.minPriority) {
+      return;
+    }
+
+    if (!this.started || this.finished) {
+      console.error('Invalid task state');
+    }
+
+    let out = this.format.indent.repeat(this.stack.length) + prefix;
+
+    if (this.parallel) {
+      out += ' ' + this.stack.join(':') + ':' + this.name + ':';
+    }
+
+    out += ' ' + msg;
+
+    console.log(out);
   }
 }
 
@@ -310,6 +294,5 @@ class DefaultTask {
 
 module.exports = {
   DefaultTask,
-  Task,
-  TaskManager
+  Task
 };

@@ -7,6 +7,5 @@ process.on('unhandledRejection', function(e) {
   process.exit(1);
 });
 
-const { TaskManager } = require('./lib/task');
-const manager = new TaskManager();
-require('./tasks/task-bootstrap')(manager.subtask());
+const { Task } = require('./lib/task');
+require('./tasks/task-bootstrap')(new Task());

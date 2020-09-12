@@ -2,6 +2,5 @@
 
 'use strict';
 
-const { TaskManager } = require('./lib/task');
-const manager = new TaskManager();
-require('./tasks/task-clean')(manager.subtask());
+const { Task } = require('./lib/task');
+require('./tasks/task-clean')(new Task());
