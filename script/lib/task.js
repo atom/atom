@@ -33,8 +33,14 @@ class Task {
     /** Mark if this task has been started yet */
     this.started = false;
 
+    /** Record when this task started doing work */
+    this.startTime = undefined;
+
     /** Mark if this task has been declared done */
     this.finished = false;
+
+    /** Record when this task (and all it's children) finished doing work */
+    this.finishedTime = undefined;
 
     /** Count the number of child tasks derived from this one */
     this.numChildren = 0;
@@ -127,6 +133,7 @@ class Task {
   start(name) {
     this.name = name;
     this.started = true;
+    this.startTime = Date.now();
     this.printStart();
   }
 
@@ -146,11 +153,13 @@ class Task {
    * logging methods after calling this method.
    */
   done() {
+    this.finishedTime = Date.now();
     this.printDone();
     this.finished = true;
   }
 
   printDone() {
+    this.log(`Completed in ${(this.finishedTime - this.startTime) / 1000}s`);
     if (!this.parallel && (!this.format.flat || this.stack.length === 1)) {
       this.print(Infinity, this.format.end, this.name);
     } else {
