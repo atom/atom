@@ -63,8 +63,6 @@ process.on('unhandledRejection', function (e) {
 
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
-let binariesPromise = Promise.resolve()
-
 async function transpile() {
   const { spawn, Thread, Worker } = require(`${CONFIG.scriptRunnerModulesPath}/threads`)
 
@@ -105,26 +103,7 @@ async function transpile() {
   await Thread.terminate(prebuildLessCache)
 }
 
-async function build() {
-
-if (!argv.existingBinaries) {
-  checkChromedriverVersion()
-  cleanOutputDirectory()
-  copyAssets()
-  await transpile()
-  generateModuleCache()
-  generateMetadata()
-  generateAPIDocs()
-  if (!argv.generateApiDocs) {
-    binariesPromise = dumpSymbols()
-  }
-}
-
-if (!argv.generateApiDocs) {
-  binariesPromise
-    .then(packageApplication)
-    .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(async packagedAppPath => {
+async function singAndCreateInstaller(packagedAppPath) {
       switch (process.platform) {
         case 'darwin': {
           if (argv.codeSign) {
@@ -179,7 +158,28 @@ if (!argv.generateApiDocs) {
       }
 
       return Promise.resolve(packagedAppPath)
-    }).then(packagedAppPath => {
+}
+
+
+async function build() {
+
+  if (!argv.existingBinaries) {
+    checkChromedriverVersion()
+    cleanOutputDirectory()
+    copyAssets()
+    await transpile()
+    generateModuleCache()
+    generateMetadata()
+    generateAPIDocs()
+    if (!argv.generateApiDocs) {
+      await dumpSymbols()
+    }
+  }
+
+  if (!argv.generateApiDocs) {
+      const packagedAppPath = await packageApplication()
+      await generateStartupSnapshot(packagedAppPath)
+      await singAndCreateInstaller(packagedAppPath)
       if (argv.compressArtifacts) {
         compressArtifacts(packagedAppPath)
       } else {
@@ -191,8 +191,7 @@ if (!argv.generateApiDocs) {
       } else {
         console.log('Skipping installation. Specify the --install option to install Atom'.gray)
       }
-    })
-}
+  }
 
 }
 
