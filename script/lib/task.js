@@ -58,7 +58,7 @@ class Task {
       minPriority: 1,
 
       /** Prepended to each log, repeated task depth times */
-      indent: '',
+      indent: '  ',
 
       /** Prefix for verbose logs */
       verbose: '##[debug]',
@@ -78,23 +78,25 @@ class Task {
       /** Prefix for ending a task */
       end: '##[endgroup]',
 
-      /** Only use start and end prefixes for top level groups (not including root) */
+      /**
+       * Only use start and end prefixes for top level groups (not including root).
+       * Also don't apply indent to logs at this level.
+       */
       flat: true
     };
   }
 
   /**
-   * @private Serialize this Task to a JSON format. This allows
-   * it to be passed virtually anywhere, including worker threads
-   * if necessary. It is also used as the parameters to making a
-   * sub task.
+   * Create a JSON object that can be used as parameters to make a
+   * child task of this one. This allows it to be passed virtually
+   * anywhere, including worker threads if necessary.
    *
-   * @return {JSON} JSON serialization of this Task
+   * @return {JSON} JSON serialization of child params for this Task
    */
-  serialize() {
+  getChildParams({ parallel = false } = {}) {
     return {
       stack: [...this.stack, this.name],
-      parallel: this.parallel,
+      parallel: parallel || this.parallel,
       format: this.format,
       childId: this.numChildren++
     };
@@ -105,16 +107,14 @@ class Task {
    * creation does not imply activaton. You must call the
    * `start` method with the task name to have it be active.
    *
-   * @param params {{parallel: boolean}}
+   * @param options {{parallel: boolean}}
    *    - parallel: If the child task will be run in parallel
    *                with other tasks
    *
    * @return {Task} Child task
    */
-  subtask({ parallel = false } = {}) {
-    const sub = new Task(this.serialize());
-    sub.parallel |= parallel;
-    return sub;
+  subtask(options) {
+    return new Task(this.getChildParams(options));
   }
 
   /**
@@ -246,7 +246,11 @@ class Task {
       console.error('Invalid task state');
     }
 
-    let out = this.format.indent.repeat(this.stack.length) + prefix;
+    const indent = this.format.flat
+      ? Math.max(0, this.stack.length - 1)
+      : this.stack.length;
+
+    let out = this.format.indent.repeat(indent) + prefix;
 
     if (this.parallel) {
       out += ' ' + this.stack.join(':') + ':' + this.name + ':';
