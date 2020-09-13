@@ -11,7 +11,7 @@ const runApmInstall = require('./run-apm-install');
 
 require('colors');
 
-module.exports = function() {
+function transpilePackagesWithCustomTranspilerPaths() {
   console.log(
     `Transpiling packages with custom transpiler configurations in ${
       CONFIG.intermediateAppPath
@@ -78,7 +78,7 @@ module.exports = function() {
       intermediatePackageBackup.restore();
     }
   }
-};
+}
 
 function transpilePath(path) {
   fs.writeFileSync(
@@ -86,3 +86,7 @@ function transpilePath(path) {
     CompileCache.addPathToCache(path, CONFIG.atomHomeDirPath)
   );
 }
+
+const { expose } = require(`${CONFIG.scriptRunnerModulesPath}/threads/worker`);
+expose(transpilePackagesWithCustomTranspilerPaths);
+module.exports = transpilePackagesWithCustomTranspilerPaths;
