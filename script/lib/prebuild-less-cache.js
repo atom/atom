@@ -11,7 +11,7 @@ const LESS_CACHE_VERSION = require('less-cache/package.json').version;
 const FALLBACK_VARIABLE_IMPORTS =
   '@import "variables/ui-variables";\n@import "variables/syntax-variables";\n';
 
-module.exports = function() {
+function prebuildLessCache() {
   const cacheDirPath = path.join(
     CONFIG.intermediateAppPath,
     'less-compile-cache'
@@ -215,4 +215,8 @@ module.exports = function() {
     lessCache.cssForFile(lessFilePath, lessSource);
     saveIntoSnapshotAuxiliaryData(lessFilePath, lessSource);
   }
-};
+}
+
+const { expose } = require(`${CONFIG.scriptRunnerModulesPath}/threads/worker`);
+expose(prebuildLessCache);
+module.exports = prebuildLessCache;
