@@ -1,0 +1,19 @@
+parameters:
+  - name: NightlyFlag
+    type: string
+    values:
+      - ' '
+      - --nightly
+    default: ' '
+
+jobs:
+
+- job: GetReleaseVersion
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+    - script: |
+        cd script/vsts
+        npm install
+        node get-release-version.js ${{ parameters.NightlyFlag }}
+      name: Version
