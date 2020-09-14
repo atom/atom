@@ -148,7 +148,10 @@ function createTestKey(executablePath, testArguments, testName) {
 // check if a test is timed out
 function isTimedOut(stderrOutput) {
   if (stderrOutput) {
-    return ( stderrOutput.includes("timeout: timed out after") )
+    return (
+			stderrOutput.includes("timeout: timed out after") ||
+			stderrOutput.includes("Error Downloading Update: Could not get code signature for running application")
+		)
   } else {
     return false
   }
