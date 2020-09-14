@@ -14,9 +14,9 @@ module.exports = function(ci) {
       ['--loglevel=error', ci ? 'ci' : 'install'],
       { env: process.env, cwd: CONFIG.scriptRootPath },
       () => {
-        console.log("Installed script dependencies");
-        resolve()
-      },
+        console.log('Installed script dependencies');
+        resolve();
+      }
     );
-  })
+  });
 };
