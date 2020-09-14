@@ -116,7 +116,7 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
 
 }
 
-const retryNumber = 4 // the number of times a tests repeats
+const retryNumber = 6 // the number of times a tests repeats
 const retriedTests = new Map() // a cache of retried tests
 
 // Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
@@ -148,7 +148,10 @@ function createTestKey(executablePath, testArguments, testName) {
 // check if a test is timed out
 function isTimedOut(stderrOutput) {
   if (stderrOutput) {
-    return ( stderrOutput.includes("timeout: timed out after") )
+    return (
+			stderrOutput.includes("timeout: timed out after") ||
+			stderrOutput.includes("Error Downloading Update: Could not get code signature for running application")
+		)
   } else {
     return false
   }
