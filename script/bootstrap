@@ -8,9 +8,7 @@ const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
 const dependenciesFingerprint = require('./lib/dependencies-fingerprint')
-const installApm = require('./lib/install-apm')
-const runApmInstall = require('./lib/run-apm-install')
-const installScriptDependencies = require('./lib/install-script-dependencies')
+const installScriptRunnerDependencies = require('./lib/install-script-runner-dependencies')
 const verifyMachineRequirements = require('./lib/verify-machine-requirements')
 
 process.on('unhandledRejection', function (e) {
@@ -34,13 +32,26 @@ if (dependenciesFingerprint.isOutdated()) {
 
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
-installScriptDependencies(ci)
-installApm(ci)
-childProcess.execFileSync(
-  CONFIG.getApmBinPath(),
-  ['--version'],
-  {stdio: 'inherit'}
-)
-runApmInstall(CONFIG.repositoryRootPath, ci)
+async function bootstrap() {
 
-dependenciesFingerprint.write()
+  installScriptRunnerDependencies()
+
+  const { spawn, Thread, Worker } = require(`${CONFIG.scriptRunnerModulesPath}/threads`)
+
+  const installScriptDependencies = await spawn(new Worker('./lib/install-script-dependencies'))
+  const installScriptDependenciesPromise = installScriptDependencies(ci)
+
+  const installApm = await spawn(new Worker('./lib/install-apm'))
+  await installApm(ci);
+  await Thread.terminate(installApm)
+
+  const runApmInstall = require('./lib/run-apm-install')
+  runApmInstall(CONFIG.repositoryRootPath, ci)
+
+  await installScriptDependenciesPromise;
+  await Thread.terminate(installScriptDependencies)
+
+  dependenciesFingerprint.write()
+}
+
+bootstrap().then(() => {process.exit(0)}).catch((e) =>  {throw e;})

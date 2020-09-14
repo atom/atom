@@ -2,12 +2,16 @@
 
 'use strict'
 
+const CONFIG = require('./config')
+
 if (process.argv.includes('--no-bootstrap')) {
   console.log('Skipping bootstrap')
 } else {
   // Bootstrap first to ensure all the dependencies used later in this script
   // are installed.
-  require('./bootstrap')
+  const path = require('path')
+  const childProcess = require('child_process')
+  childProcess.execFileSync(process.execPath, [path.join(CONFIG.scriptRootPath, 'bootstrap')], { env: process.env, cwd: CONFIG.repositoryRootPath, stdio: 'inherit' });
 }
 
 // Required to load CS files in this build script, such as those in `donna`
@@ -63,7 +67,6 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-const CONFIG = require('./config')
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
 let binariesPromise = Promise.resolve()

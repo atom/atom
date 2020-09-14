@@ -1,0 +1,7 @@
+{
+  "name": "atom-build-scripts-runner",
+  "description": "Atom build scripts runner",
+  "dependencies": {
+    "threads": "^1.6.3"
+  }
+}
