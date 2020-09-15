@@ -19,6 +19,8 @@ process.on('unhandledRejection', function (e) {
 })
 
 if (process.env.npm_config_jobs === undefined) {
+  const os = require("os")
+  console.log(`Cores: ${os.cpus().length}`)
   process.env.npm_config_jobs = "max"
 }
 
