@@ -35,7 +35,9 @@ async function bootstrap() {
 
   if (process.platform === 'win32') deleteMsbuildFromPath()
 
-  process.env.JOBS = "max";
+  if (proces.env.JOBS === undefined) {
+    process.env.JOBS = "max";
+  }
 
   await Promise.all([
     installScriptDependencies(ci),
