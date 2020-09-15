@@ -66,6 +66,10 @@ process.on('unhandledRejection', function (e) {
 const CONFIG = require('./config')
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
+if (process.env.npm_config_jobs === undefined) {
+  process.env.npm_config_jobs = "max"
+}
+
 let binariesPromise = Promise.resolve()
 
 if (!argv.existingBinaries) {

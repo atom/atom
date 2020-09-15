@@ -18,6 +18,10 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
+if (process.env.npm_config_jobs === undefined) {
+  process.env.npm_config_jobs = "max"
+}
+
 // We can't use yargs until installScriptDependencies() is executed, so...
 let ci = process.argv.indexOf('--ci') !== -1
 
