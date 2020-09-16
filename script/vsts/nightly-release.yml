@@ -22,6 +22,7 @@ jobs:
 
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsNightlyBranch: true
 
     steps:
       - template: platforms/templates/preparation.yml
