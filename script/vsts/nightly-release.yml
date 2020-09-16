@@ -27,11 +27,6 @@ jobs:
     steps:
       - template: platforms/templates/preparation.yml
 
-      - script: |
-          cd script/vsts
-          npm install
-        displayName: npm install
-
       - task: DownloadBuildArtifacts@0
         inputs:
           itemPattern: '**'

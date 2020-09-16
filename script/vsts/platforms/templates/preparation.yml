@@ -28,6 +28,12 @@ steps:
   - script: npm install --global npm@6.14.8
     displayName: Update npm
 
+  - pwsh: |
+      cd script/vsts
+      npm install
+    displayName: Install script/vsts dependencies
+    condition: or(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['IsReleaseBranch'], 'true'), eq(variables['IsSignedZipBranch'], true), eq(variables['IsNightlyBranch'], 'true'))
+
   # Windows Specific
   - task: UsePythonVersion@0
     inputs:
@@ -37,10 +43,4 @@ steps:
   - script: |
       npm install --global --production windows-build-tools@4.0
     displayName: Install windows build tools
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - pwsh: |
-      cd script/vsts
-      npm install
-    displayName: Install script/vsts dependencies on Windows
     condition: eq(variables['Agent.OS'], 'Windows_NT')
