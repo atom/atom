@@ -102,10 +102,11 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
 
   // on close
   cp.on('close', exitCode => {
-    if (finalize) { finalize() } 		// if finalizer provided
     if (exitCode !== 0) {
       retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize)
     } else {
+      // successful test
+      if (finalize) { finalize() } 		// if finalizer provided
       callback(null, {
         exitCode,
         step: testName,
@@ -130,6 +131,7 @@ function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, 
     spawnTest(executablePath, testArguments, options, callback, testName, finalize)
   } else {
     // fail the test
+    if (finalize) { finalize() } 		// if finalizer provided
     console.log(`##[error] Tests for ${testName} failed.`.red)
     console.log(stderrOutput)
     callback(null, {
