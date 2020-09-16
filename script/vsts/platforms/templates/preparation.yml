@@ -28,13 +28,13 @@ steps:
   - script: npm install --global npm@6.14.8
     displayName: Update npm
 
+  - pwsh: |
+      cd script/vsts
+      npm install
+    displayName: Install script/vsts dependencies
+    condition: or(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['IsReleaseBranch'], 'true'), eq(variables['IsNightlyBranch'], 'true'))
+
+  # Windows Specific
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.8'
-
-  # Windows Specific
-  - script: |
-      cd script\vsts
-      npm install
-    displayName: Install script/vsts dependencies on Windows
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
