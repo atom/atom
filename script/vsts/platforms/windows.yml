@@ -81,13 +81,15 @@ jobs:
           RunCoreMainTests: false
           RunCoreRendererTests: 1
           BUILD_ARCH: x64
+          os: windows-2019
         x64_Renderer_Test2:
           RunCoreMainTests: false
           RunCoreRendererTests: 2
           BUILD_ARCH: x64
+          os: windows-2019
 
     pool:
-      vmImage: vs2017-win2016
+      vmImage: $(os)
 
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
