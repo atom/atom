@@ -9,6 +9,7 @@ parameters:
 jobs:
 
 - job: GetReleaseVersion
+  displayName: Get Release Version
   pool:
     vmImage: 'ubuntu-latest'
   steps:
