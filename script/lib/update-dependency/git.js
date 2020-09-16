@@ -13,7 +13,9 @@ const git = (git, repositoryRootPath) => {
       if (!err && !remotes.map(({ name }) => name).includes('ATOM')) {
         git.addRemote(
           'ATOM',
-          `https://atom:${process.env.AUTH_TOKEN}@github.com/${REPO_OWNER}/${MAIN_REPO}.git/`
+          `https://atom:${
+            process.env.AUTH_TOKEN
+          }@github.com/${REPO_OWNER}/${MAIN_REPO}.git/`
         );
       }
     });
