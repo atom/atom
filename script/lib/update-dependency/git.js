@@ -1,3 +1,6 @@
+const REPO_OWNER = process.env.REPO_OWNER || 'atom';
+const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+
 const git = (git, repositoryRootPath) => {
   const path = require('path');
   const packageJsonFilePath = path.join(repositoryRootPath, 'package.json');
@@ -10,7 +13,9 @@ const git = (git, repositoryRootPath) => {
       if (!err && !remotes.map(({ name }) => name).includes('ATOM')) {
         git.addRemote(
           'ATOM',
-          `https://atom:${process.env.AUTH_TOKEN}@github.com/atom/atom.git/`
+          `https://atom:${
+            process.env.AUTH_TOKEN
+          }@github.com/${REPO_OWNER}/${MAIN_REPO}.git/`
         );
       }
     });
