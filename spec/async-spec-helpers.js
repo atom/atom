@@ -7,7 +7,12 @@ async function conditionPromise(
   while (true) {
     await timeoutPromise(100);
 
-    if (await condition()) {
+    // if condition is sync
+    if (condition.constructor.name !== 'AsyncFunction' && condition()) {
+      return;
+    }
+    // if condition is async
+    else if (await condition()) {
       return;
     }
 
