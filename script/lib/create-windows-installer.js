@@ -7,6 +7,9 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
+const REPO_OWNER = process.env.REPO_OWNER || 'atom';
+const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+
 module.exports = packagedAppPath => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch;
   const updateUrlPrefix =
@@ -17,7 +20,7 @@ module.exports = packagedAppPath => {
     exe: CONFIG.executableName,
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
-    iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${
+    iconUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${MAIN_REPO}/master/resources/app-icons/${
       CONFIG.channel
     }/atom.ico`,
     loadingGif: path.join(
