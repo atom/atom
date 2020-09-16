@@ -19,6 +19,7 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
+      - Lint
       - Windows_test
       - Linux
       - macOS_tests
