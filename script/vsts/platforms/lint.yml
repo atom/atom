@@ -1,0 +1,12 @@
+jobs:
+  - job: Lint
+    timeoutInMinutes: 5
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - script: |
+          cd script
+          npm install
+        displayName: Install script dependencies
+      - script: script/lint
+        displayName: Run linter
