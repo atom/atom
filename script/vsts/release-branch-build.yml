@@ -36,12 +36,7 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - script: |
-          cd script/vsts
-          npm install
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-        displayName: npm install
+      - template: platforms/templates/preparation.yml
 
       - task: DownloadBuildArtifacts@0
         inputs:

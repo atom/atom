@@ -14,6 +14,6 @@ jobs:
   steps:
     - script: |
         cd script/vsts
-        npm ci
+        npm install
         node get-release-version.js ${{ parameters.NightlyFlag }}
       name: Version
