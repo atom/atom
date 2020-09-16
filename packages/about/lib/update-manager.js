@@ -1,5 +1,10 @@
 const { Emitter, CompositeDisposable } = require('atom');
 
+const REPO_OWNER = process.env.REPO_OWNER || 'atom';
+const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+const NIGHTLY_RELEASE_REPO =
+  process.env.NIGHTLY_RELEASE_REPO || 'atom-nightly-releases';
+
 const Unsupported = 'unsupported';
 const Idle = 'idle';
 const CheckingForUpdate = 'checking';
@@ -133,8 +138,8 @@ let UpdateManager = class UpdateManager {
     }
 
     const releaseRepo =
-      appVersion.indexOf('nightly') > -1 ? 'atom-nightly-releases' : 'atom';
-    return `https://github.com/atom/${releaseRepo}/releases/tag/${appVersion}`;
+      appVersion.indexOf('nightly') > -1 ? NIGHTLY_RELEASE_REPO : MAIN_REPO;
+    return `https://github.com/${REPO_OWNER}/${releaseRepo}/releases/tag/${appVersion}`;
   }
 };
 
