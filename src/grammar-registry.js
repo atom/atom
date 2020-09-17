@@ -154,7 +154,7 @@ module.exports = class GrammarRegistry {
   // * `buffer` The {TextBuffer} whose grammar will be set.
   // * `grammar` The desired {Grammar}.
   //
-  // Returns a {Boolean} that indicates whether the assignment was sucessful
+  // Returns a {Boolean} that indicates whether the assignment was successful
   assignGrammar(buffer, grammar) {
     if (!grammar) return false;
     if (buffer.getBuffer) buffer = buffer.getBuffer();
@@ -547,7 +547,7 @@ module.exports = class GrammarRegistry {
   // * `grammarPath` A {String} absolute file path to a grammar file.
   // * `callback` A {Function} to call when loaded with the following arguments:
   //   * `error` An {Error}, may be null.
-  //   * `grammar` A {Grammar} or null if an error occured.
+  //   * `grammar` A {Grammar} or null if an error occurred.
   loadGrammar(grammarPath, callback) {
     this.readGrammar(grammarPath, (error, grammar) => {
       if (error) return callback(error);
@@ -572,7 +572,7 @@ module.exports = class GrammarRegistry {
   // * `grammarPath` A {String} absolute file path to a grammar file.
   // * `callback` A {Function} to call when read with the following arguments:
   //   * `error` An {Error}, may be null.
-  //   * `grammar` A {Grammar} or null if an error occured.
+  //   * `grammar` A {Grammar} or null if an error occurred.
   //
   // Returns undefined.
   readGrammar(grammarPath, callback) {
