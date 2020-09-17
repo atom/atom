@@ -53,7 +53,7 @@ jobs:
     pool:
       vmImage: macos-10.15
     strategy:
-      maxParallel: 3
+      maxParallel: 1
       matrix:
         # renderer:
         #   RunCoreRendererTests: true
