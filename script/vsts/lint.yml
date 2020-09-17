@@ -4,7 +4,7 @@ jobs:
     pool:
       vmImage: ubuntu-latest
     steps:
-      - template: templates/cache.yml
+      - template: platforms/templates/cache.yml
         parameters:
           OS: linux
       - script: |
