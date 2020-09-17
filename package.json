@@ -56,7 +56,7 @@
     "etch": "0.14.0",
     "event-kit": "^2.5.3",
     "exception-reporting": "file:packages/exception-reporting",
-    "find-and-replace": "find-and-replace#flakes",
+    "find-and-replace": "Aerijo/find-and-replace#flakes",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.4.1",
     "focus-trap": "2.4.5",
