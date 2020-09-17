@@ -46,8 +46,8 @@ const backupNodeModules = require('./lib/backup-node-modules')
 const runApmInstall = require('./lib/run-apm-install')
 
 function assertExecutablePaths(executablePaths) {
-	assert(executablePaths.length !== 0, `No atom build found. Please run "script/build" and try again.`)
-	assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assert(executablePaths.length !== 0, `No atom build found. Please run "script/build" and try again.`)
+  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
 }
 
 const resourcePath = CONFIG.repositoryRootPath
@@ -68,9 +68,9 @@ if (process.platform === 'darwin') {
   throw new Error('##[error] Running tests on this platform is not supported.')
 }
 
-function prepareEnv (suiteName) {
+function prepareEnv(suiteName) {
   const atomHomeDirPath = temp.mkdirSync(suiteName)
-  const env = Object.assign({}, process.env, {ATOM_HOME: atomHomeDirPath})
+  const env = Object.assign({}, process.env, { ATOM_HOME: atomHomeDirPath })
 
   if (process.env.TEST_JUNIT_XML_ROOT) {
     // Tell Jasmine to output this suite's results as a JUnit XML file to a subdirectory of the root, so that a
@@ -87,11 +87,11 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
   const cp = childProcess.spawn(executablePath, testArguments, options)
 
   // collect outputs and errors
-	let stderrOutput = ''
-	if (cp.stdout) {
-	  cp.stderr.on('data', data => { stderrOutput += data })
-	  cp.stdout.on('data', data => { stderrOutput += data })
-	}
+  let stderrOutput = ''
+  if (cp.stdout) {
+    cp.stderr.on('data', data => { stderrOutput += data })
+    cp.stdout.on('data', data => { stderrOutput += data })
+  }
 
   // on error
   cp.on('error', error => {
@@ -100,7 +100,7 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
     callback(error)
   })
 
-	// on close
+  // on close
   cp.on('close', exitCode => {
     if (exitCode !== 0) {
       console.log(`##[error] Tests for ${testName} failed.`.red)
@@ -116,112 +116,114 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
 
 }
 
-function runCoreMainProcessTests (callback) {
+function runCoreMainProcessTests(callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
     '--resource-path', resourcePath,
     '--test', '--main-process', testPath
   ]
 
-  if(process.env.CI && process.platform === 'linux') {
-      testArguments.push('--no-sandbox')
+  if (process.env.CI && process.platform === 'linux') {
+    testArguments.push('--no-sandbox')
   }
 
-  const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
+  const testEnv = Object.assign({}, prepareEnv('core-main-process'), { ATOM_GITHUB_INLINE_GIT_EXEC: 'true' })
 
   console.log('##[command] Executing core main process tests'.bold.green)
-  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, 'core-main-process')
+  spawnTest(executablePath, testArguments, { stdio: 'inherit', env: testEnv }, callback, 'core-main-process')
 }
 
 function getCoreRenderProcessTestSuites() {
 
-// Build an array of functions, each running tests for a different rendering test
-const coreRenderProcessTestSuites = []
-const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
-let testFiles = glob.sync(path.join(testPath, '*-spec.+(js|coffee|ts|jsx|tsx|mjs)'))
-for (let testFile of testFiles) {
-	const testArguments = [
-		'--resource-path', resourcePath,
-		'--test', testFile
-	]
-	// the function which runs by async:
-  coreRenderProcessTestSuites.push( function (callback) {
-    const testEnv = prepareEnv('core-render-process')
-    console.log(`##[command] Executing core render process tests for ${testFile}`.bold.green)
-    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `core-render-process in ${testFile}.`)
-  })
-}
+  // Build an array of functions, each running tests for a different rendering test
+  const coreRenderProcessTestSuites = []
+  const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
+  let testFiles = glob.sync(path.join(testPath, '*-spec.+(js|coffee|ts|jsx|tsx|mjs)'))
+  for (let testFile of testFiles) {
+    const testArguments = [
+      '--resource-path', resourcePath,
+      '--test', testFile
+    ]
+    // the function which runs by async:
+    coreRenderProcessTestSuites.push(function (callback) {
+      const testEnv = prepareEnv('core-render-process')
+      console.log(`##[command] Executing core render process tests for ${testFile}`.bold.green)
+      spawnTest(executablePath, testArguments, { env: testEnv }, callback, `core-render-process in ${testFile}.`)
+    })
+  }
 
-	return coreRenderProcessTestSuites
+  return coreRenderProcessTestSuites
 }
 
 
 function getPackageTestSuites() {
 
-// Build an array of functions, each running tests for a different bundled package
-const packageTestSuites = []
-for (let packageName in CONFIG.appMetadata.packageDependencies) {
-  if (process.env.ATOM_PACKAGES_TO_TEST) {
-    const packagesToTest = process.env.ATOM_PACKAGES_TO_TEST.split(',').map(pkg => pkg.trim())
-    if (!packagesToTest.includes(packageName)) continue
-  }
-
-  const repositoryPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
-  const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
-
-  if (!testSubdir) {
-    console.log(`No test folder found for package: ${packageName}`.yellow)
-    continue
-  }
-
-  const testFolder = path.join(repositoryPackagePath, testSubdir)
-
-	const testArguments = [
-		'--resource-path', resourcePath,
-		'--test', testFolder
-	]
-
-	const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
-	const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
-
-	// the function which runs by async:
-  packageTestSuites.push(function (callback) {
-    const testEnv = prepareEnv(`bundled-package-${packageName}`)
-    let finalize = () => null
-    if (require(pkgJsonPath).atomTestRunner) {
-      console.log(`##[command] Installing test runner dependencies for ${packageName}`.bold.green)
-      if (fs.existsSync(nodeModulesPath)) {
-        const backup = backupNodeModules(repositoryPackagePath)
-        finalize = backup.restore
-      } else {
-        finalize = () => fs.removeSync(nodeModulesPath)
-      }
-      runApmInstall(repositoryPackagePath)
-      console.log(`##[command] Executing ${packageName} tests`.green)
-    } else {
-      console.log(`##[command] Executing ${packageName} tests`.bold.green)
+  // Build an array of functions, each running tests for a different bundled package
+  const packageTestSuites = []
+  for (let packageName in CONFIG.appMetadata.packageDependencies) {
+    if (process.env.ATOM_PACKAGES_TO_TEST) {
+      const packagesToTest = process.env.ATOM_PACKAGES_TO_TEST.split(',').map(pkg => pkg.trim())
+      if (!packagesToTest.includes(packageName)) continue
     }
-    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `${packageName} package`, finalize)
-  })
+
+    const repositoryPackagePath = path.join(CONFIG.repositoryRootPath, 'node_modules', packageName)
+    const testSubdir = ['spec', 'test'].find(subdir => fs.existsSync(path.join(repositoryPackagePath, subdir)))
+
+    if (!testSubdir) {
+      console.log(`No test folder found for package: ${packageName}`.yellow)
+      continue
+    }
+
+    const testFolder = path.join(repositoryPackagePath, testSubdir)
+
+    const testArguments = [
+      '--resource-path', resourcePath,
+      '--test', testFolder
+    ]
+
+    const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
+    const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+
+    // the function which runs by async:
+    for (let i = 0; i < 6; i++) {
+      packageTestSuites.push(function (callback) {
+        const testEnv = prepareEnv(`bundled-package-${packageName}`)
+        let finalize = () => null
+        if (require(pkgJsonPath).atomTestRunner) {
+          console.log(`##[command] Installing test runner dependencies for ${packageName}`.bold.green)
+          if (fs.existsSync(nodeModulesPath)) {
+            const backup = backupNodeModules(repositoryPackagePath)
+            finalize = backup.restore
+          } else {
+            finalize = () => fs.removeSync(nodeModulesPath)
+          }
+          runApmInstall(repositoryPackagePath)
+          console.log(`##[command] Executing ${packageName} tests`.green)
+        } else {
+          console.log(`##[command] Executing ${packageName} tests`.bold.green)
+        }
+        spawnTest(executablePath, testArguments, { env: testEnv }, callback, `${packageName} package`, finalize)
+      })
+    }
+  }
+
+  return packageTestSuites
 }
 
-	return packageTestSuites
-}
 
-
-function runBenchmarkTests (callback) {
+function runBenchmarkTests(callback) {
   const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
   const testArguments = ['--benchmark-test', benchmarksPath]
   const testEnv = prepareEnv('benchmark')
 
   console.log('##[command] Executing benchmark tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, `core-benchmarks`)
+  const cp = childProcess.spawn(executablePath, testArguments, { stdio: 'inherit', env: testEnv })
+  spawnTest(executablePath, testArguments, { stdio: 'inherit', env: testEnv }, callback, `core-benchmarks`)
 }
 
 let testSuitesToRun = requestedTestSuites(process.platform)
 
-function requestedTestSuites (platform) {
+function requestedTestSuites(platform) {
   // env variable or argv options
   let coreAll = process.env.ATOM_RUN_CORE_TESTS === 'true'
   let coreMain = process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true' || argv.coreMain
@@ -268,8 +270,8 @@ function requestedTestSuites (platform) {
   }
 
   // Package tests
-	if (packageAll) {
-	  suites.push(...getPackageTestSuites())
+  if (packageAll) {
+    suites.push(...getPackageTestSuites())
   } else {
     // split
     if (packages1) {
@@ -304,11 +306,11 @@ async.series(testSuitesToRun, function (err, results) {
     console.error(err)
     process.exit(1)
   } else {
-    const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
+    const failedSteps = results.filter(({ exitCode }) => exitCode !== 0)
 
     if (failedSteps.length > 0) {
-			console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
-      for (const {step, testCommand} of failedSteps) {
+      console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
+      for (const { step, testCommand } of failedSteps) {
         console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
       }
       process.exit(1)

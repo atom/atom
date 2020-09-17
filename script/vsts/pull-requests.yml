@@ -5,6 +5,6 @@ jobs:
   - template: platforms/templates/get-release-version.yml
 
   # Import OS-specific build definitions
-  - template: platforms/windows.yml
+  # - template: platforms/windows.yml
   - template: platforms/macos.yml
-  - template: platforms/linux.yml
+  # - template: platforms/linux.yml

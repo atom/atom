@@ -24,6 +24,7 @@ steps:
       ATOM_RUN_CORE_MAIN_TESTS: $(RunCoreMainTests)
       ATOM_RUN_CORE_RENDER_TESTS: $(RunCoreRendererTests)
       ATOM_RUN_PACKAGE_TESTS: $(RunPackageTests)
+      ATOM_PACKAGES_TO_TEST: find-and-replace
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 

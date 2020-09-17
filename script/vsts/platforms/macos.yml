@@ -21,30 +21,30 @@ jobs:
 
       - template: templates/bootstrap.yml
 
-      - script: script/lint
-        displayName: Run linter
+      # - script: script/lint
+      #   displayName: Run linter
 
       - template: templates/build.yml
 
       # core main tests
       - template: templates/test.yml
 
-      - script: |
-          cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
-        displayName: Stage Artifacts
+      # - script: |
+      #     cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+      #   displayName: Stage Artifacts
 
-      - template: templates/publish.yml
-        parameters:
-          artifacts:
-            - fileName: atom-mac.zip
-              fileDir: $(Build.ArtifactStagingDirectory)
-              condition: succeeded()
-            - fileName: atom-mac-symbols.zip
-              fileDir: $(Build.ArtifactStagingDirectory)
-              condition: succeeded()
-            - fileName: atom-api.json
-              fileDir: $(Build.SourcesDirectory)/docs/output
-              condition: succeeded()
+      # - template: templates/publish.yml
+      #   parameters:
+      #     artifacts:
+      #       - fileName: atom-mac.zip
+      #         fileDir: $(Build.ArtifactStagingDirectory)
+      #         condition: succeeded()
+      #       - fileName: atom-mac-symbols.zip
+      #         fileDir: $(Build.ArtifactStagingDirectory)
+      #         condition: succeeded()
+      #       - fileName: atom-api.json
+      #         fileDir: $(Build.SourcesDirectory)/docs/output
+      #         condition: succeeded()
 
   - job: macOS_tests
     displayName: macOS test
@@ -55,15 +55,15 @@ jobs:
     strategy:
       maxParallel: 3
       matrix:
-        renderer:
-          RunCoreRendererTests: true
-          RunPackageTests: false
+        # renderer:
+        #   RunCoreRendererTests: true
+        #   RunPackageTests: false
         packages-1:
           RunCoreTests: false
           RunPackageTests: 1
-        packages-2:
-          RunCoreTests: false
-          RunPackageTests: 2
+        # packages-2:
+        #   RunCoreTests: false
+        #   RunPackageTests: 2
 
     steps:
       - template: templates/preparation.yml
