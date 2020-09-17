@@ -15,9 +15,9 @@ jobs:
     steps:
       - template: templates/preparation.yml
 
-      - template: templates/cache.yml
-        parameters:
-          OS: macos
+      # - template: templates/cache.yml
+      #   parameters:
+      #     OS: macos
 
       - template: templates/bootstrap.yml
 
