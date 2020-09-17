@@ -8,6 +8,7 @@ process.env.ELECTRON_CUSTOM_VERSION = CONFIG.appMetadata.electronVersion;
 
 module.exports = function(ci) {
   console.log('Installing script dependencies');
+  process.env.npm_config_jobs = "max";
   childProcess.execFileSync(
     CONFIG.getNpmBinPath(ci),
     ['--loglevel=error', ci ? 'ci' : 'install'],

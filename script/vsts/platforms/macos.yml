@@ -29,22 +29,22 @@ jobs:
       # core main tests
       - template: templates/test.yml
 
-      # - script: |
-      #     cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
-      #   displayName: Stage Artifacts
+      - script: |
+          cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+        displayName: Stage Artifacts
 
-      # - template: templates/publish.yml
-      #   parameters:
-      #     artifacts:
-      #       - fileName: atom-mac.zip
-      #         fileDir: $(Build.ArtifactStagingDirectory)
-      #         condition: succeeded()
-      #       - fileName: atom-mac-symbols.zip
-      #         fileDir: $(Build.ArtifactStagingDirectory)
-      #         condition: succeeded()
-      #       - fileName: atom-api.json
-      #         fileDir: $(Build.SourcesDirectory)/docs/output
-      #         condition: succeeded()
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom-mac.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-mac-symbols.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-api.json
+              fileDir: $(Build.SourcesDirectory)/docs/output
+              condition: succeeded()
 
   - job: macOS_tests
     displayName: macOS test
