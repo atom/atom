@@ -4,6 +4,9 @@ jobs:
     pool:
       vmImage: ubuntu-latest
     steps:
+      - template: templates/cache.yml
+        parameters:
+          OS: linux
       - script: |
           cd script
           npm install --ci
