@@ -8,5 +8,6 @@ jobs:
           cd script
           npm install --ci
         displayName: Install script dependencies
+        condition: ne(variables['ScriptNodeModulesRestored'], 'true')
       - script: script/lint
         displayName: Run linter
