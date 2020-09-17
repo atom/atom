@@ -1,6 +1,6 @@
 'use strict';
 
-const focusTrap = require('focus-trap');
+const { createFocusTrap } = require('focus-trap');
 const { CompositeDisposable } = require('event-kit');
 
 class PanelContainerElement extends HTMLElement {
@@ -79,7 +79,7 @@ class PanelContainerElement extends HTMLElement {
         if (panel.autoFocus !== true) {
           focusOptions.initialFocus = panel.autoFocus;
         }
-        const modalFocusTrap = focusTrap(panelElement, focusOptions);
+        const modalFocusTrap = createFocusTrap(panelElement, focusOptions);
 
         this.subscriptions.add(
           panel.onDidChangeVisible(visible => {
