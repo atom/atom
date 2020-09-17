@@ -56,5 +56,22 @@
   },
   "scripts": {
     "postinstall": "node ./redownload-electron-bins.js"
-  }
+  },
+  "lintDependencies": [
+    "babel-core",
+    "babel-eslint",
+    "coffeelint",
+    "colors",
+    "eslint",
+    "eslint-config-prettier",
+    "eslint-config-standard",
+    "eslint-plugin-import",
+    "eslint-plugin-node",
+    "eslint-plugin-prettier",
+    "eslint-plugin-promise",
+    "eslint-plugin-standard",
+    "prettier",
+    "stylelint",
+    "stylelint-config-standard"
+  ]
 }
