@@ -1,0 +1,376 @@
+@import "ui-variables";
+@import "syntax-variables";
+
+// result markers
+atom-text-editor {
+  .find-result .region {
+    background-color: transparent;
+    border-radius: @component-border-radius;
+    border: 1px solid @syntax-result-marker-color;
+    box-sizing: border-box;
+    z-index: 0;
+  }
+
+  .current-result .region {
+    border-radius: @component-border-radius;
+    border: 1px solid @syntax-result-marker-color-selected;
+    box-sizing: border-box;
+    z-index: 0;
+  }
+
+  .find-result,
+  .current-result {
+    display: none;
+  }
+}
+
+atom-workspace.find-visible {
+  atom-text-editor {
+    .find-result,
+    .current-result {
+      display: block;
+    }
+  }
+}
+
+// Both project and buffer FNR styles
+.find-and-replace,
+.preview-pane,
+.project-find {
+  @min-width: 200px; // min width before it starts scrolling
+
+  -webkit-user-select: none;
+  padding: @component-padding/2;
+  overflow-x: auto;
+
+  .header {
+    padding: @component-padding/4 @component-padding/2;
+    min-width: @min-width;
+    line-height: 1.75;
+  }
+  .header-item {
+    margin: @component-padding/4 0;
+  }
+
+  .input-block {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: @min-width;
+  }
+  .input-block-item {
+    display: flex;
+    flex: 1;
+    padding: @component-padding / 2;
+  }
+
+  .btn-group {
+    display: flex;
+    flex: 1;
+    .btn {
+      flex: 1;
+    }
+    & + .btn-group {
+      margin-left: @component-padding;
+    }
+  }
+
+  .btn > .icon {
+    width: 20px;
+    height: 16px;
+    vertical-align: middle;
+    fill: currentColor;
+    stroke: currentColor;
+    pointer-events: none;
+  }
+
+  .close-button {
+    margin-left: @component-padding;
+    cursor: pointer;
+    color: @text-color-subtle;
+    &:hover {
+      color: @text-color-highlight;
+    }
+    .icon::before {
+      margin-right: 0;
+      text-align: center;
+      vertical-align: middle;
+    }
+  }
+
+  .description {
+    display: inline-block;
+    .subtle-info-message {
+      padding-left: 5px;
+      color: @text-color-subtle;
+      .highlight {
+        color: @text-color;
+        font-weight: normal;
+      }
+    }
+  }
+
+  .options-label {
+    color: @text-color-subtle;
+    position: relative;
+    .options {
+      margin-right: .5em;
+      color: @text-color;
+    }
+  }
+
+  .btn-group-options {
+    display: inline-flex;
+    margin-top: -.1em;
+
+    .btn {
+      width: 36px;
+      padding: 0;
+      line-height: 1.75;
+    }
+  }
+
+  .editor-container {
+    position: relative;
+    atom-text-editor {
+      width: 100%;
+    }
+  }
+
+}
+
+// Buffer find and replace
+.find-and-replace {
+  @input-width: 260px;
+  @block-width: 260px;
+
+  .input-block-item {
+    flex: 1 1 @block-width;
+  }
+  .input-block-item--flex {
+    flex: 100 1 @input-width;
+  }
+
+  .btn-group-find,
+  .btn-group-replace {
+    flex: 1;
+  }
+
+  .btn-group-find-all,
+  .btn-group-replace-all {
+    flex: 2;
+  }
+
+  .find-container atom-text-editor {
+    padding-right: 64px; // leave some room for the results count
+  }
+
+  // results count
+  .find-meta-container {
+    position: absolute;
+    top: 1px;
+    right: 0;
+    margin: @component-padding/2 @component-padding/2 0 0;
+    z-index: 2;
+    font-size: .9em;
+    line-height: @component-line-height;
+    pointer-events: none;
+    .result-counter {
+      margin-right: @component-padding;
+    }
+  }
+}
+
+.find-wrap-icon {
+  @wrap-size: @font-size * 10;
+
+  opacity: 0;
+  transition: opacity 0.5s;
+  &.visible { opacity: 1; }
+
+  position: absolute;
+
+  // These are getting placed in the DOM as a pane item, so override the pane
+  // item positioning styles. :/
+  top: 50% !important;
+  left: 50% !important;
+  right: initial !important;
+  bottom: initial !important;
+
+  margin-top: @wrap-size * -0.5;
+  margin-left: @wrap-size * -0.5;
+
+  background: fadeout(darken(@syntax-background-color, 4%), 55%);
+  border-radius: @component-border-radius * 2;
+  text-align: center;
+  pointer-events: none;
+  &:before {
+    // Octicons look best in sizes that are multiples of 16px
+    font-size: @wrap-size - mod(@wrap-size, 16px) - 32px;
+    line-height: @wrap-size;
+    height: @wrap-size;
+    width: @wrap-size;
+    color: @syntax-text-color;
+    opacity: .5;
+  }
+}
+
+// Project find and replace
+.project-find {
+  @project-input-width: 260px;
+  @project-block-width: 160px;
+
+  .input-block-item {
+    flex: 1 1 @project-block-width;
+  }
+  .input-block-item--flex {
+    flex: 100 1 @project-input-width;
+  }
+
+  .loading,
+  .preview-block,
+  .error-messages,
+  .filter-container {
+    display: none;
+  }
+}
+
+.preview-pane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+
+  .preview-header {
+    display: flex;
+    flex-wrap: wrap;
+    padding: @component-padding/2;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    font-weight: normal;
+    border-bottom: 1px solid @panel-heading-border-color;
+    background-color: @panel-heading-background-color;
+  }
+
+  .preview-count {
+    margin: @component-padding/2;
+  }
+
+  .preview-controls {
+    display: flex;
+    flex-wrap: wrap;
+    .btn-group {
+      margin: @component-padding/2;
+    }
+  }
+
+  .loading-spinner-tiny,
+  .loading-spinner-tiny + .inline-block {
+    vertical-align: middle;
+  }
+
+  .no-results-overlay {
+    visibility: hidden;
+  }
+
+  &.no-results .no-results-overlay {
+    visibility: visible;
+  }
+
+  .results-view {
+    overflow: auto;
+    position: relative;
+    flex: 1;
+
+    &-container {
+      // adds some padding
+      // so the last item can be clicked
+      // when there is a horizontal scrollbar -> #943
+      padding-bottom: @component-padding;
+    }
+
+    .list-item {
+      padding: 0 0 0 @component-padding;
+    }
+    .context-row, .match-row {
+      padding: 0 0 0 @component-padding;
+      margin-left: 8px;
+
+      box-shadow: inset 0 1px 0 mix(@base-border-color, @base-background-color);
+
+      // box-shadow over a border is used to not affect height calculation
+      &.separator {
+        box-shadow: inset 0 1px 0 @base-border-color;
+      }
+    }
+
+    .line-number {
+      margin-right: 1ex;
+      text-align: right;
+      display: inline-block;
+    }
+    .match-row.selected .line-number {
+      color: @text-color-selected;
+    }
+
+    .path-match-number {
+      padding-left: @component-padding;
+      color: @text-color-subtle;
+    }
+
+    .preview {
+      word-break: break-all;
+      white-space: pre;
+      color: @text-color-subtle;
+    }
+
+    .match-row .preview {
+      color: @text-color-highlight;
+    }
+    .match-row.selected .preview {
+      color: @text-color-selected;
+    }
+
+
+    .selected {
+      .highlight-info {
+        box-shadow: inset 0 0 1px lighten(@background-color-info, 50%);
+      }
+
+      .highlight-error {
+        box-shadow: inset 0 0 1px lighten(@background-color-error, 25%);
+      }
+
+      .highlight-success {
+        box-shadow: inset 0 0 1px lighten(@background-color-success, 25%);
+      }
+    }
+  }
+}
+
+.find-container atom-text-editor, .replace-container atom-text-editor {
+  // Styles for regular expression highlighting
+  .syntax--regexp {
+    .syntax--escape {
+      color: @text-color-info;
+    }
+    .syntax--range, .syntax--character-class, .syntax--wildcard {
+      color: @text-color-success;
+    }
+    .syntax--wildcard {
+      font-weight: bold;
+    }
+    .syntax--set {
+      color: inherit;
+    }
+    .syntax--keyword, .syntax--punctuation {
+      color: @text-color-error;
+      font-weight: normal;
+    }
+
+    .syntax--replacement.syntax--variable {
+      color: @text-color-warning;
+    }
+  }
+}

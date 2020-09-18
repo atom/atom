@@ -1,0 +1,146 @@
+{
+  "name": "find-and-replace",
+  "main": "./lib/find",
+  "description": "Find and replace within buffers and across the project.",
+  "version": "0.219.5",
+  "license": "MIT",
+  "activationCommands": {
+    "atom-workspace": [
+      "project-find:show",
+      "project-find:toggle",
+      "project-find:show-in-current-directory",
+      "find-and-replace:show",
+      "find-and-replace:toggle",
+      "find-and-replace:find-all",
+      "find-and-replace:find-next",
+      "find-and-replace:find-previous",
+      "find-and-replace:find-next-selected",
+      "find-and-replace:find-previous-selected",
+      "find-and-replace:use-selection-as-find-pattern",
+      "find-and-replace:use-selection-as-replace-pattern",
+      "find-and-replace:show-replace",
+      "find-and-replace:replace-next",
+      "find-and-replace:replace-all",
+      "find-and-replace:select-next",
+      "find-and-replace:select-all",
+      "find-and-replace:clear-history"
+    ]
+  },
+  "repository": "https://github.com/atom/find-and-replace",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "binary-search": "^1.3.3",
+    "etch": "0.9.3",
+    "fs-plus": "^3.0.0",
+    "temp": "^0.8.3",
+    "underscore-plus": "1.x"
+  },
+  "devDependencies": {
+    "coffeelint": "^1.9.7",
+    "dedent": "^0.6.0"
+  },
+  "consumedServices": {
+    "atom.file-icons": {
+      "versions": {
+        "1.0.0": "consumeFileIcons"
+      }
+    },
+    "autocomplete.watchEditor": {
+      "versions": {
+        "1.0.0": "consumeAutocompleteWatchEditor"
+      }
+    },
+    "file-icons.element-icons": {
+      "versions": {
+        "1.0.0": "consumeElementIcons"
+      }
+    },
+    "metrics-reporter": {
+      "versions": {
+        "^1.1.0": "consumeMetricsReporter"
+      }
+    }
+  },
+  "providedServices": {
+    "find-and-replace": {
+      "description": "Atom's bundled find-and-replace package",
+      "versions": {
+        "0.0.1": "provideService"
+      }
+    }
+  },
+  "configSchema": {
+    "focusEditorAfterSearch": {
+      "type": "boolean",
+      "default": false,
+      "description": "Focus the editor and select the next match when a file search is executed. If no matches are found, the editor will not be focused."
+    },
+    "projectSearchResultsPaneSplitDirection": {
+      "type": "string",
+      "default": "none",
+      "enum": [
+        "none",
+        "right",
+        "down"
+      ],
+      "title": "Direction to open results pane",
+      "description": "Direction to split the active pane when showing project search results. If 'none', the results will be shown in the active pane."
+    },
+    "closeFindPanelAfterSearch": {
+      "type": "boolean",
+      "default": false,
+      "title": "Close Project Find Panel After Search",
+      "description": "Close the find panel after executing a project-wide search."
+    },
+    "scrollToResultOnLiveSearch": {
+      "type": "boolean",
+      "default": false,
+      "title": "Scroll To Result On Live-Search (incremental find in buffer)",
+      "description": "Scroll to and select the closest match while typing in the buffer find box."
+    },
+    "liveSearchMinimumCharacters": {
+      "type": "integer",
+      "default": 3,
+      "minimum": 0,
+      "description": "The minimum number of characters which need to be typed into the buffer find box before search starts matching and highlighting matches as you type."
+    },
+    "searchContextLineCountBefore": {
+      "type": "integer",
+      "default": 3,
+      "minimum": 0,
+      "description": "The number of extra lines of context to query before the match for project results"
+    },
+    "searchContextLineCountAfter": {
+      "type": "integer",
+      "default": 3,
+      "minimum": 0,
+      "description": "The number of extra lines of context to query after the match for project results"
+    },
+    "showSearchWrapIcon": {
+      "type": "boolean",
+      "default": true,
+      "title": "Show Search Wrap Icon",
+      "description": "Display a visual cue over the editor when looping through search results."
+    },
+    "useRipgrep": {
+      "type": "boolean",
+      "default": false,
+      "title": "Use ripgrep",
+      "description": "Use the experimental `ripgrep` search crawler. This will make searches substantially faster on large projects."
+    },
+    "enablePCRE2": {
+      "type": "boolean",
+      "default": false,
+      "title": "Enable PCRE2 regex engine",
+      "description": "Enable PCRE2 regex engine (applies only to `ripgrep` search). This will enable additional regex features such as lookbehind, but may make searches slower."
+    },
+    "autocompleteSearches": {
+      "type": "boolean",
+      "default": false,
+      "title": "Autocomplete Search",
+      "description": "Autocompletes entries in the find search field."
+    }
+  }
+}

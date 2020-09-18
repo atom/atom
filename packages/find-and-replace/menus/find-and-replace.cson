@@ -1,0 +1,33 @@
+'menu': [
+  'label': 'Find'
+  'submenu': [
+    { 'label': 'Find in Buffer', 'command': 'find-and-replace:show'}
+    { 'label': 'Replace in Buffer', 'command': 'find-and-replace:show-replace'}
+    { 'label': 'Select Next', 'command': 'find-and-replace:select-next'}
+    { 'label': 'Select All', 'command': 'find-and-replace:select-all'}
+    { 'label': 'Toggle Find in Buffer', 'command': 'find-and-replace:toggle'}
+    { 'type': 'separator' }
+    { 'label': 'Find in Project', 'command': 'project-find:show'}
+    { 'label': 'Toggle Find in Project', 'command': 'project-find:toggle'}
+    { 'type': 'separator' }
+    { 'label': 'Find All', 'command': 'find-and-replace:find-all'}
+    { 'label': 'Find Next', 'command': 'find-and-replace:find-next'}
+    { 'label': 'Find Previous', 'command': 'find-and-replace:find-previous'}
+    { 'label': 'Replace Next', 'command': 'find-and-replace:replace-next'}
+    { 'label': 'Replace All', 'command': 'find-and-replace:replace-all'}
+    { 'type': 'separator' }
+    { 'label': 'Clear History', 'command': 'find-and-replace:clear-history'}
+    { 'type': 'separator' }
+  ]
+]
+
+'context-menu':
+  '.tree-view li.directory': [
+    { 'label': 'Search in Folder', 'command': 'project-find:show-in-current-directory' }
+  ]
+  '.list-item.match-row': [
+    { 'label': 'Copy', 'command': 'core:copy' }
+  ]
+  '.list-item.match-row, .list-item.path-row': [
+    { 'label': 'Copy Path', 'command': 'find-and-replace:copy-path' }
+  ]

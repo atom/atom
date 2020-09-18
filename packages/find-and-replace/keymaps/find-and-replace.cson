@@ -1,0 +1,85 @@
+'.platform-darwin':
+  'cmd-F': 'project-find:show'
+  'cmd-f': 'find-and-replace:show'
+  'cmd-alt-f': 'find-and-replace:show-replace'
+
+'.platform-win32, .platform-linux':
+  'ctrl-F': 'project-find:show'
+  'ctrl-f': 'find-and-replace:show'
+
+'.platform-darwin atom-text-editor':
+  'cmd-g': 'find-and-replace:find-next'
+  'cmd-G': 'find-and-replace:find-previous'
+  'cmd-f3': 'find-and-replace:find-next-selected'
+  'cmd-shift-f3': 'find-and-replace:find-previous-selected'
+  'cmd-ctrl-g': 'find-and-replace:select-all'
+  'cmd-d': 'find-and-replace:select-next'
+  'cmd-alt-e': 'find-and-replace:replace-next'
+  'cmd-e': 'find-and-replace:use-selection-as-find-pattern'
+  'cmd-shift-e': 'find-and-replace:use-selection-as-replace-pattern'
+  'cmd-u': 'find-and-replace:select-undo'
+  'cmd-k cmd-d': 'find-and-replace:select-skip'
+
+'.platform-win32 atom-text-editor, .platform-linux atom-text-editor':
+  'f3': 'find-and-replace:find-next'
+  'shift-f3': 'find-and-replace:find-previous'
+  'ctrl-f3': 'find-and-replace:find-next-selected'
+  'ctrl-shift-f3': 'find-and-replace:find-previous-selected'
+  'alt-f3': 'find-and-replace:select-all'
+  'ctrl-d': 'find-and-replace:select-next'
+  'ctrl-e': 'find-and-replace:use-selection-as-find-pattern'
+  'ctrl-shift-e': 'find-and-replace:use-selection-as-replace-pattern'
+  'ctrl-u': 'find-and-replace:select-undo'
+  'ctrl-k ctrl-d': 'find-and-replace:select-skip'
+
+'.platform-darwin .find-and-replace':
+  'shift-enter': 'find-and-replace:show-previous'
+  'cmd-enter': 'find-and-replace:confirm'
+  'alt-enter': 'find-and-replace:find-all'
+  'cmd-alt-/': 'find-and-replace:toggle-regex-option'
+  'cmd-alt-c': 'find-and-replace:toggle-case-option'
+  'cmd-alt-s': 'find-and-replace:toggle-selection-option'
+  'cmd-alt-w': 'find-and-replace:toggle-whole-word-option'
+
+'.platform-win32 .find-and-replace, .platform-linux .find-and-replace':
+  'shift-enter': 'find-and-replace:show-previous'
+  'ctrl-enter': 'find-and-replace:confirm'
+  'alt-enter': 'find-and-replace:find-all'
+  'ctrl-alt-/': 'find-and-replace:toggle-regex-option'
+  'ctrl-shift-c': 'find-and-replace:toggle-case-option'
+
+'.platform-darwin .project-find':
+  'cmd-enter': 'project-find:confirm'
+  'cmd-alt-/': 'project-find:toggle-regex-option'
+  'cmd-alt-c': 'project-find:toggle-case-option'
+  'cmd-alt-w': 'project-find:toggle-whole-word-option'
+
+'.platform-win32 .project-find, .platform-linux .project-find':
+  'ctrl-enter': 'project-find:confirm'
+  'ctrl-alt-/': 'project-find:toggle-regex-option'
+  'ctrl-shift-c': 'project-find:toggle-case-option'
+
+'.find-and-replace, .project-find, .project-find .results-view':
+  'tab': 'find-and-replace:focus-next'
+  'shift-tab': 'find-and-replace:focus-previous'
+
+'.platform-darwin .find-and-replace .replace-container atom-text-editor':
+  'cmd-enter': 'find-and-replace:replace-all'
+'.platform-darwin .project-find .replace-container atom-text-editor':
+  'cmd-enter': 'project-find:replace-all'
+
+'.platform-win32 .find-and-replace .replace-container atom-text-editor':
+  'ctrl-enter': 'find-and-replace:replace-all'
+'.platform-win32 .project-find .replace-container atom-text-editor':
+  'ctrl-enter': 'project-find:replace-all'
+
+'.platform-linux .find-and-replace .replace-container atom-text-editor':
+  'ctrl-enter': 'find-and-replace:replace-all'
+'.platform-linux .project-find .replace-container atom-text-editor':
+  'ctrl-enter': 'project-find:replace-all'
+
+'.results-view':
+  'home': 'core:move-to-top'
+  'ctrl-home': 'core:move-to-top'
+  'end': 'core:move-to-bottom'
+  'ctrl-end': 'core:move-to-bottom'
