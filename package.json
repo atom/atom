@@ -39,7 +39,7 @@
     "base16-tomorrow-light-theme": "file:packages/base16-tomorrow-light-theme",
     "bookmarks": "https://www.atom.io/api/packages/bookmarks/versions/0.46.0/tarball",
     "bracket-matcher": "https://www.atom.io/api/packages/bracket-matcher/versions/0.91.2/tarball",
-    "chai": "3.5.0",
+    "chai": "4.2.0",
     "chart.js": "^2.3.0",
     "clear-cut": "^2.0.2",
     "coffee-script": "1.12.7",
