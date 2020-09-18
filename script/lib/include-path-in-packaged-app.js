@@ -81,6 +81,14 @@ const EXCLUDE_REGEXPS_SOURCES = [
     escapeRegExp(path.sep) +
     '_*te?sts?_*' +
     escapeRegExp(path.sep),
+
+  'node_modules' +
+    escapeRegExp(path.sep) +
+    '.*' +
+    escapeRegExp(path.sep) +
+    'tests?' +
+    escapeRegExp(path.sep),
+
   'node_modules' +
     escapeRegExp(path.sep) +
     '.*' +
