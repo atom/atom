@@ -54,6 +54,7 @@ const generateStartupSnapshot = require('./lib/generate-startup-snapshot')
 const installApplication = require('./lib/install-application')
 const notarizeOnMac = require('./lib/notarize-on-mac')
 const packageApplication = require('./lib/package-application')
+const prebuildLessCache = require('./lib/prebuild-less-cache')
 const testSignOnMac = require('./lib/test-sign-on-mac')
 
 process.on('unhandledRejection', function (e) {
@@ -82,9 +83,6 @@ async function transpile() {
   const transpilePegJsPaths = await spawn(new Worker('./lib/transpile-peg-js-paths'))
   const transpilePegJsPathsPromise = transpilePegJsPaths()
 
-  const prebuildLessCache = await spawn(new Worker('./lib/prebuild-less-cache'))
-  const prebuildLessCachePromise = prebuildLessCache()
-
   await transpilePackagesWithCustomTranspilerPathsPromise;
   await Thread.terminate(transpilePackagesWithCustomTranspilerPaths)
 
@@ -99,9 +97,6 @@ async function transpile() {
 
   await transpilePegJsPathsPromise;
   await Thread.terminate(transpilePegJsPaths)
-
-  await prebuildLessCachePromise;
-  await Thread.terminate(prebuildLessCache)
 }
 
 async function singAndCreateInstaller(packagedAppPath) {
@@ -170,6 +165,7 @@ async function build() {
     copyAssets()
     await transpile()
     generateModuleCache()
+    prebuildLessCache()
     generateMetadata()
     generateAPIDocs()
     if (!argv.generateApiDocs) {
