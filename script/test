@@ -147,34 +147,7 @@ function createTestKey(executablePath, testArguments, testName) {
   return `${executablePath} ${testArguments.join(' ')} ${testName}`
 }
 
-<<<<<<< HEAD
 function runCoreMainProcessTests(callback) {
-=======
-// check if a test is timed out
-function isTimedOut(stderrOutput) {
-  if (stderrOutput) {
-    return (
-			stderrOutput.includes("timeout: timed out after") || // happens in core renderer tests
-			stderrOutput.includes("Error: timeout of") || // happens in core main tests
-			stderrOutput.includes("Error Downloading Update: Could not get code signature for running application") // happens in github tests
-		)
-  } else {
-    return false
-  }
-}
-
-// check if a tests should be tried again
-function shouldTryAgain(testKey) {
-  if (retriedTests.has(testKey)) {
-    return (retriedTests.get(testKey) < retryNumber)
-  } else {
-    return true
-  }
-}
-
-
-function runCoreMainProcessTests (callback) {
->>>>>>> 9cc29fa9ae884ec8d3a9561d1c810c7e736fa0b7
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
     '--resource-path', resourcePath,
