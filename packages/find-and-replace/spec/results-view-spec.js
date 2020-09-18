@@ -90,205 +90,205 @@ describe('ResultsView', () => {
     await activationPromise;
   });
 
-  // describe("when the result is for a long line", () => {
-  //   it("renders the context around the match", async () => {
-  //     projectFindView.findEditor.setText('ghijkl');
-  //     atom.commands.dispatch(projectFindView.element, 'core:confirm');
-  //     await searchPromise;
+  describe("when the result is for a long line", () => {
+    it("renders the context around the match", async () => {
+      projectFindView.findEditor.setText('ghijkl');
+      atom.commands.dispatch(projectFindView.element, 'core:confirm');
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe("one-long-line.coffee");
-  //     expect(resultsView.refs.listView.element.querySelectorAll('.preview').length).toBe(1);
-  //     expect(resultsView.refs.listView.element.querySelector('.preview').textContent).toBe('test test test test test test test test test test test a b c d e f g h i j k l abcdefghijklmnopqrstuvwxyz');
-  //     expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
-  //   })
-  // });
+      resultsView = getResultsView();
+      expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe("one-long-line.coffee");
+      expect(resultsView.refs.listView.element.querySelectorAll('.preview').length).toBe(1);
+      expect(resultsView.refs.listView.element.querySelector('.preview').textContent).toBe('test test test test test test test test test test test a b c d e f g h i j k l abcdefghijklmnopqrstuvwxyz');
+      expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
+    })
+  });
 
-  // describe("when there are multiple project paths", () => {
-  //   beforeEach(() => {
-  //     atom.project.addPath(temp.mkdirSync("another-project-path"))
-  //   });
+  describe("when there are multiple project paths", () => {
+    beforeEach(() => {
+      atom.project.addPath(temp.mkdirSync("another-project-path"))
+    });
 
-  //   it("includes the basename of the project path that contains the match", async () => {
-  //     projectFindView.findEditor.setText('ghijkl');
-  //     atom.commands.dispatch(projectFindView.element, 'core:confirm');
-  //     await searchPromise;
+    it("includes the basename of the project path that contains the match", async () => {
+      projectFindView.findEditor.setText('ghijkl');
+      atom.commands.dispatch(projectFindView.element, 'core:confirm');
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe(path.join("project", "one-long-line.coffee"));
-  //   });
-  // });
+      resultsView = getResultsView();
+      expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe(path.join("project", "one-long-line.coffee"));
+    });
+  });
 
-  // describe("rendering replacement text", () => {
-  //   let modifiedDelay = null;
+  describe("rendering replacement text", () => {
+    let modifiedDelay = null;
 
-  //   beforeEach(() => {
-  //     projectFindView.findEditor.setText('ghijkl');
-  //     modifiedDelay = projectFindView.replaceEditor.getBuffer().stoppedChangingDelay;
-  //   });
+    beforeEach(() => {
+      projectFindView.findEditor.setText('ghijkl');
+      modifiedDelay = projectFindView.replaceEditor.getBuffer().stoppedChangingDelay;
+    });
 
-  //   it("renders the replacement when doing a search and there is a replacement pattern", async () => {
-  //     projectFindView.replaceEditor.setText('cats');
-  //     atom.commands.dispatch(projectFindView.element, 'core:confirm');
-  //     await searchPromise;
+    it("renders the replacement when doing a search and there is a replacement pattern", async () => {
+      projectFindView.replaceEditor.setText('cats');
+      atom.commands.dispatch(projectFindView.element, 'core:confirm');
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe("one-long-line.coffee");
-  //     expect(resultsView.refs.listView.element.querySelectorAll('.preview').length).toBe(1);
-  //     expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('cats');
-  //   });
+      resultsView = getResultsView();
+      expect(resultsView.refs.listView.element.querySelector('.path-name').textContent).toBe("one-long-line.coffee");
+      expect(resultsView.refs.listView.element.querySelectorAll('.preview').length).toBe(1);
+      expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
+      expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('cats');
+    });
 
-  //   it("renders the replacement when changing the text in the replacement field", async () => {
-  //     atom.commands.dispatch(projectFindView.element, 'core:confirm');
-  //     await searchPromise;
+    it("renders the replacement when changing the text in the replacement field", async () => {
+      atom.commands.dispatch(projectFindView.element, 'core:confirm');
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
-  //     expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-info');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeHidden();
+      resultsView = getResultsView();
+      expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
+      expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-info');
+      expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('');
+      expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeHidden();
 
-  //     projectFindView.replaceEditor.setText('cats');
-  //     advanceClock(modifiedDelay);
-  //     await etch.update(resultsView);
+      projectFindView.replaceEditor.setText('cats');
+      advanceClock(modifiedDelay);
+      await etch.update(resultsView);
 
-  //     expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
-  //     expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-error');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('cats');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeVisible();
+      expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
+      expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-error');
+      expect(resultsView.refs.listView.element.querySelector('.replacement').textContent).toBe('cats');
+      expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeVisible();
 
-  //     projectFindView.replaceEditor.setText('');
-  //     advanceClock(modifiedDelay);
-  //     await etch.update(resultsView);
+      projectFindView.replaceEditor.setText('');
+      advanceClock(modifiedDelay);
+      await etch.update(resultsView);
 
-  //     expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
-  //     expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-info');
-  //     expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeHidden();
-  //   });
+      expect(resultsView.refs.listView.element.querySelector('.match').textContent).toBe('ghijkl');
+      expect(resultsView.refs.listView.element.querySelector('.match')).toHaveClass('highlight-info');
+      expect(resultsView.refs.listView.element.querySelector('.replacement')).toBeHidden();
+    });
 
-  //   it('renders the captured text when the replace pattern uses captures', async () => {
-  //     projectFindView.refs.regexOptionButton.click();
-  //     projectFindView.findEditor.setText('function ?(\\([^)]*\\))');
-  //     projectFindView.replaceEditor.setText('$1 =>')
-  //     atom.commands.dispatch(projectFindView.element, 'core:confirm');
-  //     await searchPromise;
+    it('renders the captured text when the replace pattern uses captures', async () => {
+      projectFindView.refs.regexOptionButton.click();
+      projectFindView.findEditor.setText('function ?(\\([^)]*\\))');
+      projectFindView.replaceEditor.setText('$1 =>')
+      atom.commands.dispatch(projectFindView.element, 'core:confirm');
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     const listElement = resultsView.refs.listView.element;
-  //     expect(listElement.querySelectorAll('.match')[0].textContent).toBe('function ()');
-  //     expect(listElement.querySelectorAll('.replacement')[0].textContent).toBe('() =>');
-  //     expect(listElement.querySelectorAll('.match')[1].textContent).toBe('function(items)');
-  //     expect(listElement.querySelectorAll('.replacement')[1].textContent).toBe('(items) =>');
-  //   })
-  // });
+      resultsView = getResultsView();
+      const listElement = resultsView.refs.listView.element;
+      expect(listElement.querySelectorAll('.match')[0].textContent).toBe('function ()');
+      expect(listElement.querySelectorAll('.replacement')[0].textContent).toBe('() =>');
+      expect(listElement.querySelectorAll('.match')[1].textContent).toBe('function(items)');
+      expect(listElement.querySelectorAll('.replacement')[1].textContent).toBe('(items) =>');
+    })
+  });
 
-  // describe("core:page-up and core:page-down", () => {
-  //   beforeEach(async () => {
-  //     workspaceElement.style.height = '300px';
-  //     workspaceElement.style.width = '1024px';
-  //     projectFindView.findEditor.setText(' ');
-  //     projectFindView.confirm();
+  describe("core:page-up and core:page-down", () => {
+    beforeEach(async () => {
+      workspaceElement.style.height = '300px';
+      workspaceElement.style.width = '1024px';
+      projectFindView.findEditor.setText(' ');
+      projectFindView.confirm();
 
-  //     await searchPromise;
+      await searchPromise;
 
-  //     resultsView = getResultsView();
-  //     const { listView } = resultsView.refs;
-  //     expect(listView.element.scrollTop).toBe(0);
-  //     expect(listView.element.scrollHeight).toBeGreaterThan(listView.element.offsetHeight);
-  //   });
+      resultsView = getResultsView();
+      const { listView } = resultsView.refs;
+      expect(listView.element.scrollTop).toBe(0);
+      expect(listView.element.scrollHeight).toBeGreaterThan(listView.element.offsetHeight);
+    });
 
-  //   function getSelectedItem() {
-  //     return resultsView.refs.listView.element.querySelector('.selected');
-  //   }
+    function getSelectedItem() {
+      return resultsView.refs.listView.element.querySelector('.selected');
+    }
 
-  //   function getRecursivePosition(element, substract_scroll) {
-  //     let x = 0;
-  //     let y = 0;
-  //     while (element && !isNaN(element.offsetLeft) && !isNaN(element.offsetTop)) {
-  //       x += element.offsetLeft;
-  //       y += element.offsetTop;
-  //       if (substract_scroll) {
-  //         x -= element.scrollLeft;
-  //         y -= element.scrollTop;
-  //       }
-  //       element = element.offsetParent;
-  //     }
-  //     return { top: y, left: x };
-  //   }
+    function getRecursivePosition(element, substract_scroll) {
+      let x = 0;
+      let y = 0;
+      while (element && !isNaN(element.offsetLeft) && !isNaN(element.offsetTop)) {
+        x += element.offsetLeft;
+        y += element.offsetTop;
+        if (substract_scroll) {
+          x -= element.scrollLeft;
+          y -= element.scrollTop;
+        }
+        element = element.offsetParent;
+      }
+      return { top: y, left: x };
+    }
 
-  //   function getSelectedOffset() {
-  //     return getRecursivePosition(getSelectedItem(), true).top;
-  //   }
+    function getSelectedOffset() {
+      return getRecursivePosition(getSelectedItem(), true).top;
+    }
 
-  //   function getSelectedPosition() {
-  //     return getRecursivePosition(getSelectedItem(), false).top;
-  //   }
+    function getSelectedPosition() {
+      return getRecursivePosition(getSelectedItem(), false).top;
+    }
 
-  //   it("selects the first result on the next page when core:page-down is triggered", async () => {
-  //     const { listView } = resultsView.refs;
-  //     expect(listView.element.querySelectorAll('.path-row').length).not.toBeGreaterThan(resultsView.model.getPathCount());
-  //     expect(listView.element.querySelectorAll('.match-row').length).not.toBeGreaterThan(resultsView.model.getMatchCount());
-  //     expect(listView.element.querySelector('.path-row').parentElement).toHaveClass('selected');
+    it("selects the first result on the next page when core:page-down is triggered", async () => {
+      const { listView } = resultsView.refs;
+      expect(listView.element.querySelectorAll('.path-row').length).not.toBeGreaterThan(resultsView.model.getPathCount());
+      expect(listView.element.querySelectorAll('.match-row').length).not.toBeGreaterThan(resultsView.model.getMatchCount());
+      expect(listView.element.querySelector('.path-row').parentElement).toHaveClass('selected');
 
-  //     let initiallySelectedItem = getSelectedItem();
-  //     let initiallySelectedOffset = getSelectedOffset();
-  //     let initiallySelectedPosition = getSelectedPosition();
+      let initiallySelectedItem = getSelectedItem();
+      let initiallySelectedOffset = getSelectedOffset();
+      let initiallySelectedPosition = getSelectedPosition();
 
-  //     await resultsView.pageDown();
+      await resultsView.pageDown();
 
-  //     expect(getSelectedItem()).not.toBe(initiallySelectedItem);
-  //     expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
+      expect(getSelectedItem()).not.toBe(initiallySelectedItem);
+      expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
 
-  //     initiallySelectedItem = getSelectedItem();
-  //     initiallySelectedOffset = getSelectedOffset();
-  //     initiallySelectedPosition = getSelectedPosition();
+      initiallySelectedItem = getSelectedItem();
+      initiallySelectedOffset = getSelectedOffset();
+      initiallySelectedPosition = getSelectedPosition();
 
-  //     await resultsView.pageDown();
+      await resultsView.pageDown();
 
-  //     expect(getSelectedItem()).not.toBe(initiallySelectedItem);
-  //     expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
+      expect(getSelectedItem()).not.toBe(initiallySelectedItem);
+      expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
 
-  //     initiallySelectedPosition = getSelectedPosition();
+      initiallySelectedPosition = getSelectedPosition();
 
-  //     for (let i = 0; i < 100; i++) resultsView.pageDown();
-  //     await resultsView.pageDown();
-  //     expect(_.last(resultsView.element.querySelectorAll('.match-row'))).toHaveClass('selected');
-  //     expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
-  //   });
+      for (let i = 0; i < 100; i++) resultsView.pageDown();
+      await resultsView.pageDown();
+      expect(_.last(resultsView.element.querySelectorAll('.match-row'))).toHaveClass('selected');
+      expect(getSelectedPosition()).toBeGreaterThan(initiallySelectedPosition);
+    });
 
-  //   it("selects the first result on the previous page when core:page-up is triggered", async () => {
-  //     await resultsView.moveToBottom();
-  //     expect(_.last(resultsView.element.querySelectorAll('.match-row'))).toHaveClass('selected');
+    it("selects the first result on the previous page when core:page-up is triggered", async () => {
+      await resultsView.moveToBottom();
+      expect(_.last(resultsView.element.querySelectorAll('.match-row'))).toHaveClass('selected');
 
-  //     const { listView } = resultsView.refs;
+      const { listView } = resultsView.refs;
 
-  //     let initiallySelectedItem = getSelectedItem();
-  //     let initiallySelectedOffset = getSelectedOffset();
-  //     let initiallySelectedPosition = getSelectedPosition();
+      let initiallySelectedItem = getSelectedItem();
+      let initiallySelectedOffset = getSelectedOffset();
+      let initiallySelectedPosition = getSelectedPosition();
 
-  //     await resultsView.pageUp();
+      await resultsView.pageUp();
 
-  //     expect(getSelectedItem()).not.toBe(initiallySelectedItem);
-  //     expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
+      expect(getSelectedItem()).not.toBe(initiallySelectedItem);
+      expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
 
-  //     initiallySelectedItem = getSelectedItem();
-  //     initiallySelectedOffset = getSelectedOffset();
-  //     initiallySelectedPosition = getSelectedPosition();
+      initiallySelectedItem = getSelectedItem();
+      initiallySelectedOffset = getSelectedOffset();
+      initiallySelectedPosition = getSelectedPosition();
 
-  //     await resultsView.pageUp();
+      await resultsView.pageUp();
 
-  //     expect(getSelectedItem()).not.toBe(initiallySelectedItem);
-  //     expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
+      expect(getSelectedItem()).not.toBe(initiallySelectedItem);
+      expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
 
-  //     initiallySelectedPosition = getSelectedPosition();
+      initiallySelectedPosition = getSelectedPosition();
 
-  //     for (let i = 0; i < 100; i++) resultsView.pageUp();
-  //     await resultsView.pageUp();
-  //     expect(listView.element.querySelector('.path-row').parentElement).toHaveClass('selected');
-  //     expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
-  //   });
-  // });
+      for (let i = 0; i < 100; i++) resultsView.pageUp();
+      await resultsView.pageUp();
+      expect(listView.element.querySelector('.path-row').parentElement).toHaveClass('selected');
+      expect(getSelectedPosition()).toBeLessThan(initiallySelectedPosition);
+    });
+  });
 
   describe("core:move-to-top and core:move-to-bottom", () => {
     beforeEach(async () => {
