@@ -208,8 +208,13 @@ module.exports = function(packagedAppPath) {
     compressionLevel = 6;
     compressionType = 'xz';
   }
+  // use sudo if available to speed up build
+  let sudoCommand = 'fakeroot';
+  if (process.env.CI === true || (process.getuid && process.getuid() === 0)) {
+    sudoCommand = 'sudo';
+  }
   spawnSync(
-    'fakeroot',
+    sudoCommand,
     [
       'dpkg-deb',
       `-Z${compressionType}`,
