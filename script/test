@@ -103,20 +103,78 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
   // on close
   cp.on('close', exitCode => {
     if (exitCode !== 0) {
-      console.log(`##[error] Tests for ${testName} failed.`.red)
-      console.log(stderrOutput)
+      retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize)
+    } else {
+      // successful test
+      if (finalize) { finalize() } 		// if finalizer provided
+      callback(null, {
+        exitCode,
+        step: testName,
+        testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+      })
     }
+  })
+
+}
+
+const retryNumber = 6 // the number of times a tests repeats
+const retriedTests = new Map() // a cache of retried tests
+
+// Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
+function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize) {
+  const testKey = createTestKey(executablePath, testArguments, testName)
+  if (isTimedOut(stderrOutput) && shouldTryAgain(testKey)) {
+    // retry the timed out test
+    let triedNumber = retriedTests.get(testKey) || 0
+    retriedTests.set(testKey, triedNumber + 1)
+    console.warn(`\n##[warning] Retrying the timed out step: ${testName} \n`)
+    spawnTest(executablePath, testArguments, options, callback, testName, finalize)
+  } else {
+    // fail the test
     if (finalize) { finalize() } 		// if finalizer provided
+    console.log(`##[error] Tests for ${testName} failed.`.red)
+    console.log(stderrOutput)
     callback(null, {
       exitCode,
       step: testName,
       testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
     })
-  })
-
+  }
 }
 
+// creates a key that is specific to a certain test
+function createTestKey(executablePath, testArguments, testName) {
+  return `${executablePath} ${testArguments.join(' ')} ${testName}`
+}
+
+<<<<<<< HEAD
 function runCoreMainProcessTests(callback) {
+=======
+// check if a test is timed out
+function isTimedOut(stderrOutput) {
+  if (stderrOutput) {
+    return (
+			stderrOutput.includes("timeout: timed out after") || // happens in core renderer tests
+			stderrOutput.includes("Error: timeout of") || // happens in core main tests
+			stderrOutput.includes("Error Downloading Update: Could not get code signature for running application") // happens in github tests
+		)
+  } else {
+    return false
+  }
+}
+
+// check if a tests should be tried again
+function shouldTryAgain(testKey) {
+  if (retriedTests.has(testKey)) {
+    return (retriedTests.get(testKey) < retryNumber)
+  } else {
+    return true
+  }
+}
+
+
+function runCoreMainProcessTests (callback) {
+>>>>>>> 9cc29fa9ae884ec8d3a9561d1c810c7e736fa0b7
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
     '--resource-path', resourcePath,
