@@ -200,9 +200,27 @@ module.exports = function(packagedAppPath) {
   );
 
   console.log(`Generating .deb file from ${debianPackageDirPath}`);
-  spawnSync('fakeroot', ['dpkg-deb', '-b', debianPackageDirPath], {
-    stdio: 'inherit'
-  });
+
+  // don't compress by default to speed up build
+  let compressionLevel = 0;
+  let compressionType = 'none';
+  if (process.env.IS_RELEASE_BRANCH || process.env.IS_SIGNED_ZIP_BRANCH) {
+    compressionLevel = 6;
+    compressionType = 'xz';
+  }
+  spawnSync(
+    'fakeroot',
+    [
+      'dpkg-deb',
+      `-Z${compressionType}`,
+      `-z${compressionLevel}`,
+      '-b',
+      debianPackageDirPath
+    ],
+    {
+      stdio: 'inherit'
+    }
+  );
 
   console.log(
     `Copying generated package into "${outputDebianPackageFilePath}"`
