@@ -34,7 +34,7 @@ steps:
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
     displayName: Install script/vsts dependencies
-    condition: or(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['IsReleaseBranch'], 'true'), eq(variables['IsNightlyBranch'], 'true'))
+    condition: or(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['IsReleaseBranch'], 'true'), eq(variables['IsSignedZipBranch'], true), eq(variables['IsNightlyBranch'], 'true'))
 
   # Windows Specific
   - task: UsePythonVersion@0
