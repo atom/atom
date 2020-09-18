@@ -270,7 +270,7 @@ function requestedTestSuites(platform) {
   coreMain = coreMain || (platform === 'linux') || (platform === 'win32' && process.arch === 'x86')
 
   // split package tests (used for macos in CI)
-  const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  const PACKAGES_TO_TEST_IN_PARALLEL = 100
   // split core render test (used for windows x64 in CI)
   const CORE_RENDER_TO_TEST_IN_PARALLEL = 45
 
