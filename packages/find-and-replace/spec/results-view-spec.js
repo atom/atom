@@ -302,6 +302,9 @@ describe('ResultsView', () => {
     it("selects the first/last item when core:move-to-top/move-to-bottom is triggered", async () => {
       // console.log("Running bad test");
       const { listView } = resultsView.refs;
+
+      expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
+
       expect(listView.element.querySelectorAll('li').length).toBeLessThan(resultsView.model.getPathCount() + resultsView.model.getMatchCount());
 
       expect(listView.element.querySelectorAll('li').length).toBeGreaterThan(0);
@@ -309,6 +312,7 @@ describe('ResultsView', () => {
 
       await resultsView.moveToBottom();
 
+      expect(listView.element.querySelectorAll('li').length).toBeGreaterThan(0);
       expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
 
       expect(_.last(listView.element.querySelectorAll('.match-row'))).toHaveClass('selected');
