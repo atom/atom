@@ -300,7 +300,7 @@ describe('ResultsView', () => {
     });
 
     it("selects the first/last item when core:move-to-top/move-to-bottom is triggered", async () => {
-      console.log("Running bad test");
+      // console.log("Running bad test");
       const { listView } = resultsView.refs;
       expect(listView.element.querySelectorAll('li').length).toBeLessThan(resultsView.model.getPathCount() + resultsView.model.getMatchCount());
 
