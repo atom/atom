@@ -299,6 +299,10 @@ describe('ResultsView', () => {
       resultsView = getResultsView();
       const { listView } = resultsView.refs;
       expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
+
+      if (listView.element.querySelectorAll('.match-row').length === 0) {
+        console.log(`Paths: ${atom.project.getPaths()}`);
+      }
     });
 
     it("selects the first/last item when core:move-to-top/move-to-bottom is triggered", async () => {
