@@ -297,6 +297,8 @@ describe('ResultsView', () => {
       projectFindView.confirm();
       await searchPromise;
       resultsView = getResultsView();
+      const { listView } = resultsView.refs;
+      expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
     });
 
     it("selects the first/last item when core:move-to-top/move-to-bottom is triggered", async () => {
