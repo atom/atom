@@ -298,12 +298,6 @@ describe('ResultsView', () => {
       await searchPromise;
       resultsView = getResultsView();
       const { listView } = resultsView.refs;
-
-      if (listView.element.querySelectorAll('.match-row').length === 0) {
-        console.error("EDITOR CONTENTS:")
-        console.log(atom.workspace.getCenter().getActiveTextEditor().getText());
-      }
-
       expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
     });
 
