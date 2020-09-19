@@ -326,7 +326,7 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
 
           if (resultsView.refs.listView.element.querySelectorAll('.match-row').length === 0) {
             console.error(`Paths: ${atom.project.getPaths()}`);
-            console.error(require("util").inspect(resultsView.refs.element, { showHidden: true, depth: Infinity }))
+            console.error(require("util").inspect(resultsView.refs.listView, { showHidden: true, depth: Infinity }))
           }
 
           expect(resultsView.element).toBeVisible();
@@ -773,9 +773,9 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
           const resultsView = getResultsView();
           const resultsPaneView = getExistingResultsPane();
 
-          if (resultsView.refs.element.querySelectorAll('.match-row').length === 0) {
+          if (resultsView.refs.listView.element.querySelectorAll('.match-row').length === 0) {
             console.error(`Paths: ${atom.project.getPaths()}`);
-            console.error(require("util").inspect(resultsView.refs.element, { showHidden: true, depth: Infinity }))
+            console.error(require("util").inspect(resultsView.refs.listView, { showHidden: true, depth: Infinity }))
           }
 
           expect(resultsView.element).toBeVisible();

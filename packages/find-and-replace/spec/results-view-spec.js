@@ -301,7 +301,7 @@ describe('ResultsView', () => {
 
       if (listView.element.querySelectorAll('.match-row').length === 0) {
         console.error(`Paths: ${atom.project.getPaths()}`);
-        console.error(require("util").inspect(listView.element, { showHidden: true, depth: Infinity }))
+        console.error(require("util").inspect(listView, { showHidden: true, depth: Infinity }))
       }
 
       expect(listView.element.querySelectorAll('.match-row').length).toBeGreaterThan(0);
