@@ -297,7 +297,6 @@ function requestedTestSuites(platform) {
         suites.push(...getCoreRenderProcessTestSuites().slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
     }
-
   }
 
   // Package tests
