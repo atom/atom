@@ -210,7 +210,7 @@ module.exports = function(packagedAppPath) {
   }
   // use sudo if available to speed up build
   let sudoCommand = 'fakeroot';
-  if (process.env.CI === true || (process.getuid && process.getuid() === 0)) {
+  if (process.env.CI || (process.getuid && process.getuid() === 0)) {
     sudoCommand = 'sudo';
   }
   spawnSync(
