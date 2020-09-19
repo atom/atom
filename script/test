@@ -91,6 +91,8 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
   if (cp.stdout) {
     cp.stderr.on('data', data => { stderrOutput += data })
     cp.stdout.on('data', data => { stderrOutput += data })
+
+    cp.stdout.on("data", data => console.log(data))
   }
 
   // on error
@@ -130,11 +132,6 @@ function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, 
     step: testName,
     testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
   })
-}
-
-// creates a key that is specific to a certain test
-function createTestKey(executablePath, testArguments, testName) {
-  return `${executablePath} ${testArguments.join(' ')} ${testName}`
 }
 
 function runCoreMainProcessTests(callback) {

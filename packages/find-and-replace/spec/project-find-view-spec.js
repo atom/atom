@@ -764,6 +764,11 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
           atom.commands.dispatch(projectFindView.element, 'core:confirm');
           await searchPromise;
 
+          if (resultsView.refs.element.querySelectorAll('.match-row').length === 0) {
+            console.error(`Paths: ${atom.project.getPaths()}`);
+            console.error(require("util").inspect(resultsView.refs.element, { showHidden: true, depth: Infinity }))
+          }
+
           const resultsView = getResultsView();
           const resultsPaneView = getExistingResultsPane();
 
