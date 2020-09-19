@@ -323,6 +323,12 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
           await searchPromise;
 
           const resultsView = getResultsView();
+
+          if (resultsView.refs.listView.element.querySelectorAll('.match-row').length === 0) {
+            console.error(`Paths: ${atom.project.getPaths()}`);
+            console.error(require("util").inspect(resultsView.refs.element, { showHidden: true, depth: Infinity }))
+          }
+
           expect(resultsView.element).toBeVisible();
           expect(resultsView.refs.listView.element.querySelectorAll(".match-row")).toHaveLength(2);
           expect(resultsView.refs.listView.element.querySelectorAll(".match.highlight-info")).toHaveLength(3);
@@ -764,13 +770,13 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
           atom.commands.dispatch(projectFindView.element, 'core:confirm');
           await searchPromise;
 
+          const resultsView = getResultsView();
+          const resultsPaneView = getExistingResultsPane();
+
           if (resultsView.refs.element.querySelectorAll('.match-row').length === 0) {
             console.error(`Paths: ${atom.project.getPaths()}`);
             console.error(require("util").inspect(resultsView.refs.element, { showHidden: true, depth: Infinity }))
           }
-
-          const resultsView = getResultsView();
-          const resultsPaneView = getExistingResultsPane();
 
           expect(resultsView.element).toBeVisible();
           expect(resultsView.refs.listView.element.querySelectorAll(".match-row")).toHaveLength(11);

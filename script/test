@@ -92,7 +92,7 @@ function spawnTest(executablePath, testArguments, options, callback, testName, f
     cp.stderr.on('data', data => { stderrOutput += data })
     cp.stdout.on('data', data => { stderrOutput += data })
 
-    cp.stdout.on("data", data => console.log(data))
+    // cp.stdout.on("data", data => console.log(data))
   }
 
   // on error
