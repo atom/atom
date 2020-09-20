@@ -4,6 +4,7 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config');
 
+// For the 'electron-mksnapshot' dependency
 process.env.ELECTRON_CUSTOM_VERSION = CONFIG.appMetadata.electronVersion;
 
 module.exports = function(ci) {
