@@ -10,6 +10,7 @@ module.exports = class ListView {
     this.previousScrollTop = 0
     this.previousClientHeight = 0
     etch.initialize(this);
+    etch.update(this);
 
     const resizeObserver = new ResizeObserver(() => etch.update(this));
     resizeObserver.observe(this.element);
@@ -82,7 +83,7 @@ module.exports = class ListView {
     }
 
     console.error(`Rendering list view with ${this.items.length} items and ${children.length} children`);
-    
+
 
     return $.div(
       {
