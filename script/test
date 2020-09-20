@@ -203,7 +203,7 @@ function getPackageTestSuites() {
     const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
 
     // the function which runs by async:
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 100; i++) {
       packageTestSuites.push(function (callback) {
         const testEnv = prepareEnv(`bundled-package-${packageName}`)
         let finalize = () => null

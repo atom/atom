@@ -28,57 +28,56 @@ module.exports = class ListView {
     const children = [];
     let itemTopPosition = 0;
 
-    if (this.element) {
-      let {scrollTop, clientHeight} = this.element;
-      if (clientHeight > 0) {
-        this.previousScrollTop = scrollTop
-        this.previousClientHeight = clientHeight
-      } else {
-        scrollTop = this.previousScrollTop
-        clientHeight = this.previousClientHeight
-      }
+    let scrollTop = this.previousScrollTop
+    let clientHeight = this.previousClientHeight
 
-      const scrollBottom = scrollTop + clientHeight;
+    if (this.element && this.element.clientHeight > 0) {
+      scrollTop = this.element.scrollTop;
+      clientHeight = this.element.clientHeight;
+      this.previousScrollTop = scrollTop
+      this.previousClientHeight = clientHeight
+    }
 
-      let i = 0;
+    const scrollBottom = scrollTop + clientHeight;
 
-      for (; i < this.items.length; i++) {
-        let itemBottomPosition = itemTopPosition + this.heightForItem(this.items[i], i);
-        if (itemBottomPosition > scrollTop) break;
-        itemTopPosition = itemBottomPosition;
-      }
+    let i = 0;
 
-      for (; i < this.items.length; i++) {
-        const item = this.items[i];
-        const itemHeight = this.heightForItem(this.items[i], i);
-        children.push(
-          $.div(
-            {
-              style: {
-                position: 'absolute',
-                height: `${itemHeight}px`,
-                width: '100%',
-                top: `${itemTopPosition}px`
-              },
-              key: i
+    for (; i < this.items.length; i++) {
+      let itemBottomPosition = itemTopPosition + this.heightForItem(this.items[i], i);
+      if (itemBottomPosition > scrollTop) break;
+      itemTopPosition = itemBottomPosition;
+    }
+
+    for (; i < this.items.length; i++) {
+      const item = this.items[i];
+      const itemHeight = this.heightForItem(this.items[i], i);
+      children.push(
+        $.div(
+          {
+            style: {
+              position: 'absolute',
+              height: `${itemHeight}px`,
+              width: '100%',
+              top: `${itemTopPosition}px`
             },
-            etch.dom(this.itemComponent, {
-              item: item,
-              top: Math.max(0, scrollTop - itemTopPosition),
-              bottom: Math.min(itemHeight, scrollBottom - itemTopPosition)
-            })
-          )
-        );
+            key: i
+          },
+          etch.dom(this.itemComponent, {
+            item: item,
+            top: Math.max(0, scrollTop - itemTopPosition),
+            bottom: Math.min(itemHeight, scrollBottom - itemTopPosition)
+          })
+        )
+      );
 
-        itemTopPosition += itemHeight;
-        if (itemTopPosition >= scrollBottom) {
-          i++
-          break;
-        }
+      itemTopPosition += itemHeight;
+      if (itemTopPosition >= scrollBottom) {
+        i++
+        break;
       }
-      for (; i < this.items.length; i++) {
-        itemTopPosition += this.heightForItem(this.items[i], i);
-      }
+    }
+    for (; i < this.items.length; i++) {
+      itemTopPosition += this.heightForItem(this.items[i], i);
     }
 
     return $.div(
