@@ -20,9 +20,7 @@ global.beforeEach(function () {
 });
 
 global.beforeEach(function() {
-  beforeEach(() => {
-    spyOn(atom, 'openDevTools').andReturn((console.error("ERROR: OPENING DEV TOOLS"), Promise.resolve()));
-  });
+  spyOn(atom, 'openDevTools').andReturn((console.error("ERROR: OPENING DEV TOOLS"), Promise.resolve()));
 })
 
 describe('ResultsView', () => {

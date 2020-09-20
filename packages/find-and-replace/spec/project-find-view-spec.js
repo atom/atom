@@ -52,12 +52,6 @@ describe(`ProjectFindView (ripgrep=${ripgrep})`, () => {
     });
   });
 
-  let devToolsPromise = null;
-  beforeEach(() => {
-    devToolsPromise = Promise.resolve();
-    spyOn(atom, 'openDevTools').andReturn((console.error("project-find-view-spec-ERROR: OPENING DEV TOOLS"), devToolsPromise));
-  });
-
   describe("when project-find:show is triggered", () => {
     it("attaches ProjectFindView to the root view", async () => {
       atom.commands.dispatch(workspaceElement, 'project-find:show');
