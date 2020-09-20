@@ -25,6 +25,7 @@ module.exports = class ListView {
   }
 
   render() {
+    console.trace(`Rendering list view with ${this.items.length} items`);
     const children = [];
     let itemTopPosition = 0;
 
