@@ -25,7 +25,7 @@ module.exports = class ListView {
   }
 
   render() {
-    console.trace(`Rendering list view with ${this.items.length} items`);
+    console.error("Rendering listView")
     const children = [];
     let itemTopPosition = 0;
 
@@ -80,6 +80,9 @@ module.exports = class ListView {
     for (; i < this.items.length; i++) {
       itemTopPosition += this.heightForItem(this.items[i], i);
     }
+
+    console.error(`Rendering list view with ${this.items.length} items and ${children.length} children`);
+    
 
     return $.div(
       {

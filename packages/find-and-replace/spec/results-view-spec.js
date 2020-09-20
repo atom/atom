@@ -301,6 +301,7 @@ describe('ResultsView', () => {
 
       if (listView.element.querySelectorAll('.match-row').length === 0) {
         console.error(`Paths: ${atom.project.getPaths()}`);
+        console.error(`ListView has ${listView.items.length} items and ${listView.element.querySelectorAll('li').length} li nodes`)
         console.error(require("util").inspect(listView, { showHidden: true, depth: Infinity }))
       }
 
