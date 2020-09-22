@@ -16,7 +16,7 @@ describe('FileRecoveryService', function() {
   beforeEach(() => {
     recoveryDirectory = temp.mkdirSync('atom-spec-file-recovery');
     recoveryService = new FileRecoveryService(recoveryDirectory);
-    spies = sinon.sandbox.create();
+    spies = sinon.createSandbox();
   });
 
   afterEach(() => {
@@ -123,7 +123,7 @@ describe('FileRecoveryService', function() {
       fs.writeFileSync(filePath, 'content');
 
       let logs = [];
-      spies.stub(console, 'log', message => logs.push(message));
+      spies.stub(console, 'log').callsFake(message => logs.push(message));
       spies.stub(dialog, 'showMessageBox');
 
       // Copy files to be recovered before mocking fs.createWriteStream
