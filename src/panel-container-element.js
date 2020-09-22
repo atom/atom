@@ -73,7 +73,8 @@ class PanelContainerElement extends HTMLElement {
           fallbackFocus: panelElement,
           // closing is handled by core Atom commands and this already deactivates
           // on visibility changes
-          escapeDeactivates: false
+          escapeDeactivates: false,
+          delayInitialFocus: false
         };
 
         if (panel.autoFocus !== true) {
