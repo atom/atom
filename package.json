@@ -135,7 +135,7 @@
     "open-on-github": "https://www.atom.io/api/packages/open-on-github/versions/1.3.2/tarball",
     "package-generator": "https://www.atom.io/api/packages/package-generator/versions/1.3.0/tarball",
     "pathwatcher": "8.1.0",
-    "postcss": "8.0.5",
+    "postcss": "8.0.8",
     "postcss-selector-parser": "2.2.1",
     "prebuild-install": "5.3.5",
     "property-accessors": "^1.1.3",
