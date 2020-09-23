@@ -16,6 +16,13 @@ steps:
       cacheHitVar: MainNodeModulesRestored
 
   - task: Cache@2
+    displayName: Cache script/script-runner/node_modules
+    inputs:
+      key: 'npm_script_runner | "$(Agent.OS)" | "$(BUILD_ARCH)" | package.json, package-lock.json, apm/package.json, script/package.json, script/package-lock.json, script/script-runner/package.json, script/script-runner/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml, script/vsts/platforms/templates/preparation.yml'
+      path: 'script/script-runner/node_modules'
+      cacheHitVar: ScriptRunnerNodeModulesRestored
+
+  - task: Cache@2
     displayName: Cache script/node_modules
     inputs:
       key: 'npm_script | "$(Agent.OS)" | "$(BUILD_ARCH)" | package.json, package-lock.json, apm/package.json, script/package.json, script/package-lock.json, script/script-runner/package.json, script/script-runner/package-lock.json, script/vsts/platforms/${{ parameters.OS }}.yml, script/vsts/platforms/templates/preparation.yml'
