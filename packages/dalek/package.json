@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "atom-mocha-test-runner": "^1.0.0",
-    "sinon": "^2.0.0",
+    "sinon": "9.0.3",
     "standard": "^8.6.0"
   },
   "standard": {
