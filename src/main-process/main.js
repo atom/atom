@@ -12,8 +12,7 @@ const CSON = require('season');
 const yargs = require('yargs');
 const { app } = require('electron');
 
-const version = `
-Atom    : ${app.getVersion()}
+const version = `Atom    : ${app.getVersion()}
 Electron: ${process.versions.electron}
 Chrome  : ${process.versions.chrome}
 Node    : ${process.versions.node}`;
