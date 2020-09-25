@@ -166,7 +166,11 @@ async function publishReleaseAsync(options) {
 
 // Wrap the call the async function and catch errors from its promise because
 // Node.js doesn't yet allow use of await at the script scope
-uploadArtifacts().catch(err => {
-  console.error('An error occurred while uploading the release:\n\n', err);
-  process.exit(1);
-});
+if (process.env.ATOM_RELEASES_S3_KEY) {
+  uploadArtifacts().catch(err => {
+    console.error('An error occurred while uploading the release:\n\n', err);
+    process.exit(1);
+  });
+} else {
+  console.log('Skipping uploading to S3');
+}
