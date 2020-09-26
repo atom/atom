@@ -113,10 +113,6 @@ module.exports = function parseCommandLine(processArgs) {
       'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
     );
   options
-    .alias('v', 'version')
-    .boolean('v')
-    .describe('v', 'Print the version information.');
-  options
     .alias('w', 'wait')
     .boolean('w')
     .describe('w', 'Wait for window to be closed before returning.');
@@ -149,16 +145,6 @@ module.exports = function parseCommandLine(processArgs) {
 
   if (args.help) {
     process.stdout.write(options.help());
-    process.exit(0);
-  }
-
-  if (args.version) {
-    process.stdout.write(
-      `Atom    : ${app.getVersion()}\n` +
-        `Electron: ${process.versions.electron}\n` +
-        `Chrome  : ${process.versions.chrome}\n` +
-        `Node    : ${process.versions.node}\n`
-    );
     process.exit(0);
   }
 

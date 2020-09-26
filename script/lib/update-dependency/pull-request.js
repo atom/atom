@@ -31,7 +31,7 @@ module.exports = {
   },
   findPR: async ({ moduleName, latest }, branch) => {
     return requestWithAuth('GET /search/issues', {
-      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:${REPO_OWNER}/${MAIN_REPO} head:${branch} state:open`
+      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:${REPO_OWNER}/${MAIN_REPO} head:${branch}`
     });
   },
   addLabel: async pullRequestNumber => {
