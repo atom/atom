@@ -134,7 +134,7 @@ let UpdateManager = class UpdateManager {
 
     const releaseRepo =
       appVersion.indexOf('nightly') > -1 ? 'atom-nightly-releases' : 'atom';
-    return `https://github.com/atom/${releaseRepo}/releases/tag/${appVersion}`;
+    return `https://github.com/atom-ide-community/${releaseRepo}/releases/tag/${appVersion}`;
   }
 };
 

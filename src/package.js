@@ -881,8 +881,9 @@ module.exports = class Package {
   requireMainModule() {
     if (this.bundledPackage && this.packageManager.packagesCache[this.name]) {
       if (this.packageManager.packagesCache[this.name].main) {
-        this.mainModule = require(this.packageManager.packagesCache[this.name]
-          .main);
+        this.mainModule = this._require(
+          this.packageManager.packagesCache[this.name].main
+        );
         return this.mainModule;
       }
     } else if (this.mainModuleRequired) {
@@ -904,7 +905,7 @@ module.exports = class Package {
 
         const previousViewProviderCount = this.viewRegistry.getViewProviderCount();
         const previousDeserializerCount = this.deserializerManager.getDeserializerCount();
-        this.mainModule = require(mainModulePath);
+        this.mainModule = this._require(mainModulePath);
         if (
           this.viewRegistry.getViewProviderCount() ===
             previousViewProviderCount &&
@@ -917,6 +918,27 @@ module.exports = class Package {
           );
         }
         return this.mainModule;
+      }
+    }
+  }
+
+  // a require function with both ES5 and ES6 default export support
+  _require(path) {
+    const modul = require(path);
+    if (modul === null || modul === undefined) {
+      // if null do not bother
+      return modul;
+    } else {
+      if (
+        modul.__esModule === true &&
+        typeof modul.default === 'object' &&
+        typeof modul.default.activate === 'function'
+      ) {
+        // __esModule flag is true and the activate function exists inside it, which means
+        // an object containing the main functions (e.g. activate, etc) is default exported
+        return modul.default;
+      } else {
+        return modul;
       }
     }
   }
