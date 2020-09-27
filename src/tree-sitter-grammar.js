@@ -31,14 +31,8 @@ module.exports = class TreeSitterGrammar {
       for (let selector of selectors) {
         selector = selector.trim();
         if (!selector) continue;
-        if (scopeSelectors[selector]) {
-          scopeSelectors[selector] = [].concat(
-            scopeSelectors[selector],
-            classes
-          );
-        } else {
-          scopeSelectors[selector] = classes;
-        }
+        if (!scopeSelectors[selector]) scopeSelectors[selector] = [];
+        scopeSelectors[selector].push(classes);
       }
     }
 
@@ -146,11 +140,17 @@ module.exports = class TreeSitterGrammar {
 const preprocessScopes = value =>
   typeof value === 'string'
     ? value
+    : value == null
+    ? '.'
     : Array.isArray(value)
     ? value.map(preprocessScopes)
-    : value.match
+    : typeof value.exact === 'string'
+    ? { exact: value.exact, scopes: preprocessScopes(value.scopes) }
+    : typeof value.match === 'string'
     ? { match: new RegExp(value.match), scopes: preprocessScopes(value.scopes) }
-    : Object.assign({}, value, { scopes: preprocessScopes(value.scopes) });
+    : typeof value.with === 'string'
+    ? { with: value.with.split('.'), scopes: preprocessScopes(value.scopes) }
+    : preprocessScopes(value.scopes);
 
 const NODE_NAME_REGEX = /[\w_]+/;
 

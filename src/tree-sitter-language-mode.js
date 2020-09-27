@@ -1304,26 +1304,42 @@ class LayerHighlightIterator {
   }
 }
 
-const applyLeafRules = (rules, cursor) => {
-  if (!rules || typeof rules === 'string') return rules;
+const applyLeafRules = (rules, cursor, scopes = [], depth = 0) => {
+  if (rules == null) return undefined;
   if (Array.isArray(rules)) {
-    for (let i = 0, { length } = rules; i !== length; ++i) {
-      const result = applyLeafRules(rules[i], cursor);
-      if (result) return result;
+    let head, tail;
+    for (let rule of rules) {
+      const result = applyLeafRules(rule, cursor, [...scopes], depth + 1);
+      if (!result) continue;
+      if (depth > 1) return result;
+      if (result[0] && (!head || depth === 0)) {
+        tail = undefined;
+        head = [...result[0]];
+        scopes = [...result[0]];
+      }
+      if (result[1]) {
+        tail = tail || [];
+        tail.push(...result[1]);
+        scopes.push(...result[1]);
+      }
     }
-    return undefined;
+    if (depth > 0) return head || tail ? [head, tail] : undefined;
+    return scopes.length ? [...new Set(scopes)].join('.') : undefined;
+  }
+  if (typeof rules === 'string') {
+    if (rules === '.') return [];
+    if (rules.startsWith('.'))
+      return [undefined, rules.substring(1).split('.')];
+    return [rules.length ? rules.split('.') : []];
   }
   if (typeof rules === 'object') {
-    if (rules.exact) {
-      return cursor.nodeText === rules.exact
-        ? applyLeafRules(rules.scopes, cursor)
-        : undefined;
-    }
-    if (rules.match) {
-      return rules.match.test(cursor.nodeText)
-        ? applyLeafRules(rules.scopes, cursor)
-        : undefined;
-    }
+    if (
+      (rules.exact && rules.exact === cursor.nodeText) ||
+      (rules.match && rules.match.test(cursor.nodeText)) ||
+      (rules.with &&
+        rules.with.every(scope => !scope || scopes.includes(scope)))
+    )
+      return applyLeafRules(rules.scopes, cursor, scopes, depth);
   }
 };
 

@@ -428,6 +428,205 @@ describe('TreeSitterLanguageMode', () => {
       ]);
     });
 
+    it('appends scopes starting with a period to the most specific scope', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          identifier: 'd.o',
+          'identifier, property_identifier': '.g',
+          'call_expression > member_expression > identifier': '.a.t',
+          'member_expression > property_identifier': 'w.o.m',
+          'member_expression > identifier': 'c.a',
+          'call_expression > member_expression > property_identifier': '.a.n'
+        }
+      });
+
+      buffer.setText(`selina.kyle()`);
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'selina', scopes: ['c a t'] },
+          { text: '.', scopes: [] },
+          { text: 'kyle', scopes: ['w o m a n'] },
+          { text: '()', scopes: [] }
+        ]
+      ]);
+    });
+
+    it('understands empty and single period scopes', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          'identifier, property_identifier': 'm',
+          'member_expression > identifier': {
+            exact: 'bruce',
+            scopes: ''
+          },
+          'member_expression > property_identifier': '.',
+          'member_expression > identifier, member_expression > property_identifier': [
+            {
+              exact: 'wayne'
+            },
+            '.b.a'
+          ],
+          'call_expression > member_expression > identifier': '.t',
+          'call_expression > member_expression > property_identifier': '.a.n'
+        }
+      });
+
+      buffer.setText(`bruce.wayne()`);
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'bruce', scopes: ['b a t'] },
+          { text: '.', scopes: [] },
+          { text: 'wayne', scopes: ['m a n'] },
+          { text: '()', scopes: [] }
+        ]
+      ]);
+    });
+
+    it('selects appropriate scopes based on previously selected scopes', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          identifier: 's',
+
+          'identifier, shorthand_property_identifier': [
+            {
+              with: 's',
+              scopes: '.p.i'
+            },
+            'c.a'
+          ],
+
+          'identifier, property_identifier': 't',
+
+          'member_expression > identifier': [
+            [
+              {
+                with: 't',
+                scopes: '.w'
+              },
+              {
+                with: 'i',
+                scopes: [
+                  {
+                    with: 'w',
+                    scopes: '.o'
+                  },
+                  '.d'
+                ]
+              },
+              '.m'
+            ],
+            '.a'
+          ],
+
+          'call_expression > member_expression > identifier': [
+            {
+              with: '.i.d.',
+              scopes: '.e.r'
+            },
+            '.n'
+          ],
+
+          'member_expression > property_identifier': [['m.a'], '.h'],
+
+          'function > identifier, member_expression > property_identifier': {
+            with: 'h',
+            scopes: '.o'
+          },
+
+          'call_expression > member_expression > property_identifier': [
+            {
+              with: '',
+              scopes: '.n'
+            },
+            ['.r']
+          ]
+        }
+      });
+
+      buffer.setText(`peter.parker()`);
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'peter', scopes: ['s p i d e r'] },
+          { text: '.', scopes: [] },
+          { text: 'parker', scopes: ['m a n'] },
+          { text: '()', scopes: [] }
+        ]
+      ]);
+    });
+
+    it('understands wildcards and :nth-child selectors', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
+        parser: 'tree-sitter-python',
+        scopes: {
+          identifier: 'i',
+          '* > identifier': '.r',
+          'attribute > *': '.o',
+          'call > attribute > *:nth-child(2), attribute > identifier': '.n',
+          '* > attribute > identifier:nth-child(2)': 'm',
+          'call > * > identifier:nth-child(2)': '.a',
+          'attribute > "."': ''
+        }
+      });
+
+      buffer.setText(`tony.stark()`);
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'tony', scopes: ['i r o n'] },
+          { text: '.', scopes: [] },
+          { text: 'stark', scopes: ['m a n'] },
+          { text: '()', scopes: [] }
+        ]
+      ]);
+    });
+
+    it('exits a ruleset on the first match', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, pythonGrammarPath, {
+        parser: 'tree-sitter-python',
+        scopes: {
+          identifier: ['super', '.great', 'mr', '.awesome'],
+          'call > identifier': {
+            match: 'parr',
+            scopes: 'incredible'
+          },
+          'call > identifier:nth-child(0)': {
+            match: 'kent',
+            scopes: ['.man', 'adult', '.citizen']
+          }
+        }
+      });
+
+      buffer.setText(`clark_kent()`);
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'clark_kent', scopes: ['super man'] },
+          { text: '()', scopes: [] }
+        ]
+      ]);
+    });
+
     it('handles nodes that start before their first child and end after their last child', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, rubyGrammarPath, {
         parser: 'tree-sitter-ruby',
