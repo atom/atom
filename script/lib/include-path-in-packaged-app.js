@@ -40,7 +40,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
     path.join('get-parameter-names', 'node_modules', '.bin', 'testla')
   ),
   escapeRegExp(path.join('jasmine-reporters', 'ext')),
-  escapeRegExp(path.join('node_modules', 'nan')),
+  escapeRegExp(path.join('node_modules', 'nan')) + '\\b',
   escapeRegExp(path.join('node_modules', 'native-mate')),
   escapeRegExp(path.join('build', 'binding.Makefile')),
   escapeRegExp(path.join('build', 'config.gypi')),
