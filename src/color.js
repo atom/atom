@@ -18,7 +18,7 @@ module.exports = class Color {
         if (Array.isArray(value)) {
           return null;
         }
-        value = value.toRGBAString();
+        value = Object.values(value);
         break;
       default:
         return null;
