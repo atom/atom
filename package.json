@@ -43,7 +43,7 @@
     "chart.js": "^2.3.0",
     "clear-cut": "^2.0.2",
     "coffee-script": "1.12.7",
-    "color": "^0.7.3",
+    "color": "3.1.2",
     "command-palette": "https://www.atom.io/api/packages/command-palette/versions/0.43.5/tarball",
     "dalek": "file:packages/dalek",
     "dedent": "^0.7.0",
