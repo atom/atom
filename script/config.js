@@ -126,4 +126,7 @@ function getNpmBinPath(external = false) {
     : npmBinName;
 }
 
-process.env.JOBS = 'max'; // parallel build in node-gyp
+// parallel build in node-gyp
+if (!process.env.JOBS) {
+  process.env.JOBS = 'max';
+}

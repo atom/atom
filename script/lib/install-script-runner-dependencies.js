@@ -4,8 +4,6 @@ const childProcess = require('child_process');
 
 const CONFIG = require('../config');
 
-process.env.ELECTRON_CUSTOM_VERSION = CONFIG.appMetadata.electronVersion;
-
 function installScriptRunnerDependencies(ci) {
   console.log('Installing script runner dependencies');
   childProcess.execFileSync(
