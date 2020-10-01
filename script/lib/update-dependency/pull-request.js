@@ -1,7 +1,5 @@
 const { request } = require('@octokit/request');
-
-const REPO_OWNER = process.env.REPO_OWNER || 'atom';
-const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+const { REPO_OWNER, MAIN_REPO } = require('../../config');
 
 const requestWithAuth = request.defaults({
   baseUrl: 'https://api.github.com',

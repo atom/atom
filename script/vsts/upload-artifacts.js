@@ -11,11 +11,7 @@ const uploadToS3 = require('./lib/upload-to-s3');
 const uploadLinuxPackages = require('./lib/upload-linux-packages');
 
 const CONFIG = require('../config');
-
-const REPO_OWNER = process.env.REPO_OWNER || 'atom';
-const MAIN_REPO = process.env.MAIN_REPO || 'atom';
-const NIGHTLY_RELEASE_REPO =
-  process.env.NIGHTLY_RELEASE_REPO || 'atom-nightly-releases';
+const { REPO_OWNER, MAIN_REPO, NIGHTLY_RELEASE_REPO } = CONFIG;
 
 const yargs = require('yargs');
 const argv = yargs

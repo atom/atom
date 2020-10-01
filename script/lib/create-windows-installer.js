@@ -6,9 +6,7 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
-
-const REPO_OWNER = process.env.REPO_OWNER || 'atom';
-const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+const { REPO_OWNER, MAIN_REPO } = CONFIG;
 
 module.exports = packagedAppPath => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch;
