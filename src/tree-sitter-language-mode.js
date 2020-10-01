@@ -1336,8 +1336,7 @@ const applyLeafRules = (rules, cursor, scopes = [], depth = 0) => {
     if (
       (rules.exact && rules.exact === cursor.nodeText) ||
       (rules.match && rules.match.test(cursor.nodeText)) ||
-      (rules.with &&
-        rules.with.every(scope => !scope || scopes.includes(scope)))
+      (rules.with && rules.with.every(scope => scopes.includes(scope)))
     )
       return applyLeafRules(rules.scopes, cursor, scopes, depth);
   }

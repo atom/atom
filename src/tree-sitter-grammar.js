@@ -149,7 +149,10 @@ const preprocessScopes = value =>
     : typeof value.match === 'string'
     ? { match: new RegExp(value.match), scopes: preprocessScopes(value.scopes) }
     : typeof value.with === 'string'
-    ? { with: value.with.split('.'), scopes: preprocessScopes(value.scopes) }
+    ? {
+        with: value.with.split('.').filter(scope => scope !== ''),
+        scopes: preprocessScopes(value.scopes)
+      }
     : preprocessScopes(value.scopes);
 
 const NODE_NAME_REGEX = /[\w_]+/;
