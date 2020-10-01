@@ -161,7 +161,7 @@ async function build() {
   if (!argv.existingBinaries) {
     checkChromedriverVersion()
     cleanOutputDirectory()
-    copyAssets()
+    await copyAssets()
     await transpile()
     generateModuleCache()
     prebuildLessCache()
