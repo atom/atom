@@ -25,10 +25,14 @@ module.exports = function() {
       ignore: path.join('**', '*-spec.*')
     })
   );
+
+  const copyPromises = [];
   for (let srcPath of srcPaths) {
-    fs.copySync(srcPath, computeDestinationPath(srcPath), {
-      filter: includePathInPackagedApp
-    });
+    copyPromises.push(
+      fs.copy(srcPath, computeDestinationPath(srcPath), {
+        filter: includePathInPackagedApp
+      })
+    );
   }
 
   // Run a copy pass to dereference symlinked directories under node_modules.
@@ -50,20 +54,26 @@ module.exports = function() {
         'node_modules',
         path.basename(modulePath)
       );
-      fs.copySync(modulePath, destPath, { filter: includePathInPackagedApp });
+      copyPromises.push(
+        fs.copy(modulePath, destPath, { filter: includePathInPackagedApp })
+      );
     });
 
-  fs.copySync(
-    path.join(
-      CONFIG.repositoryRootPath,
-      'resources',
-      'app-icons',
-      CONFIG.channel,
-      'png',
-      '1024.png'
-    ),
-    path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
+  copyPromises.push(
+    fs.copy(
+      path.join(
+        CONFIG.repositoryRootPath,
+        'resources',
+        'app-icons',
+        CONFIG.channel,
+        'png',
+        '1024.png'
+      ),
+      path.join(CONFIG.intermediateAppPath, 'resources', 'atom.png')
+    )
   );
+
+  return Promise.all(copyPromises);
 };
 
 function computeDestinationPath(srcPath) {
