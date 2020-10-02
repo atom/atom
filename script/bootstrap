@@ -26,13 +26,12 @@ if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) 
 
 verifyMachineRequirements(ci)
 
-if (dependenciesFingerprint.isOutdated()) {
-  cleanDependencies()
-}
-
-if (process.platform === 'win32') deleteMsbuildFromPath()
-
 async function bootstrap() {
+  if (dependenciesFingerprint.isOutdated()) {
+    await cleanDependencies()
+  }
+
+  if (process.platform === 'win32') deleteMsbuildFromPath()
 
   installScriptRunnerDependencies()
 
