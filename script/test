@@ -194,14 +194,14 @@ const coreRenderProcessTestSuites = []
 const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
 let testFiles = glob.sync(path.join(testPath, '*-spec.+(js|coffee|ts|jsx|tsx|mjs)'))
 for (let testFile of testFiles) {
+	const testArguments = [
+		'--resource-path', resourcePath,
+		'--test', testFile
+	]
+	// the function which runs by async:
   coreRenderProcessTestSuites.push( function (callback) {
-
     const testEnv = prepareEnv('core-render-process')
     console.log(`##[command] Executing core render process tests for ${testFile}`.bold.green)
-    const testArguments = [
-      '--resource-path', resourcePath,
-      '--test', testFile
-    ]
     spawnTest(executablePath, testArguments, {env: testEnv}, callback, `core-render-process in ${testFile}.`)
   })
 }
@@ -230,15 +230,17 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
 
   const testFolder = path.join(repositoryPackagePath, testSubdir)
 
-  packageTestSuites.push(function (callback) {
-    const testArguments = [
-      '--resource-path', resourcePath,
-      '--test', testFolder
-    ]
-    const testEnv = prepareEnv(`bundled-package-${packageName}`)
+	const testArguments = [
+		'--resource-path', resourcePath,
+		'--test', testFolder
+	]
 
-    const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
-    const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+	const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
+	const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+
+	// the function which runs by async:
+  packageTestSuites.push(function (callback) {
+    const testEnv = prepareEnv(`bundled-package-${packageName}`)
     let finalize = () => null
     if (require(pkgJsonPath).atomTestRunner) {
       console.log(`##[command] Installing test runner dependencies for ${packageName}`.bold.green)
@@ -359,7 +361,7 @@ async.series(testSuitesToRun, function (err, results) {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
     if (failedSteps.length > 0) {
-      console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
+			console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
       for (const {step, testCommand} of failedSteps) {
         console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
       }
