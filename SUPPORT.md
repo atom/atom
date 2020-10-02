@@ -7,5 +7,6 @@ If you're looking for support for Atom there are a lot of options, check out:
 * FAQ &mdash; [The Atom FAQ on Discuss](https://discuss.atom.io/c/faq)
 * Message Board &mdash; [Discuss, the official Atom and Electron message board](https://discuss.atom.io)
 * Chat &mdash; [Join the Atom Slack team](https://atom-slack.herokuapp.com/)
+* Swag &mdash; [Atom Gear](https://github.myshopify.com/search?q=atom)
 
 On Discuss and in the Atom Slack team, there are a bunch of helpful community members that should be willing to point you in the right direction.
