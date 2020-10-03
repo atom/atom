@@ -3,7 +3,7 @@ const octokit = require('@octokit/rest')();
 const changelog = require('pr-changelog');
 const childProcess = require('child_process');
 
-const { REPO_OWNER, MAIN_REPO, NIGHTLY_RELEASE_REPO } = require('../config');
+const { REPO_OWNER, MAIN_REPO, NIGHTLY_RELEASE_REPO } = require('../../config');
 
 module.exports.getRelease = async function(releaseVersion, githubToken) {
   if (githubToken) {
