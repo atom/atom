@@ -1,18 +1,11 @@
-PaneContainer = require '../src/pane-container'
-
 describe "PaneElement", ->
-  [paneElement, container, containerElement, pane] = []
+  [paneElement, containerElement, pane] = []
 
   beforeEach ->
     spyOn(atom.applicationDelegate, "open")
 
-    container = new PaneContainer
-      location: 'center'
-      config: atom.config
-      confirm: atom.confirm.bind(atom)
-      viewRegistry: atom.views
-      applicationDelegate: atom.applicationDelegate
-    containerElement = container.getElement()
+    container = atom.workspace.getActivePaneContainer()
+    containerElement = container.paneContainer.getElement()
     pane = container.getActivePane()
     paneElement = pane.getElement()
 
@@ -247,9 +240,9 @@ describe "PaneElement", ->
       expect(document.activeElement).toBe paneElement
 
   describe "drag and drop", ->
-    buildDragEvent = (type, files) ->
+    buildDragEvent = (type, items) ->
       dataTransfer =
-        files: files
+        items: items
         data: {}
         setData: (key, value) -> @data[key] = value
         getData: (key) -> @data[key]
@@ -258,18 +251,36 @@ describe "PaneElement", ->
       event.dataTransfer = dataTransfer
       event
 
-    describe "when a file is dragged to the pane", ->
-      it "opens it", ->
-        event = buildDragEvent("drop", [{path: "/fake1"}, {path: "/fake2"}])
-        paneElement.dispatchEvent(event)
-        expect(atom.applicationDelegate.open.callCount).toBe 1
-        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2'], here: true
+    describe "when the pane is in the center workspace", ->
+      describe "when a file is dragged to the pane", ->
+        it "opens it", ->
+          event = buildDragEvent("drop", [
+            {kind: "file", getAsFile: -> {path: "/fake1"}},
+            {kind: "file", getAsFile: -> {path: "/fake2"}}
+          ])
+          paneElement.dispatchEvent(event)
+          expect(atom.applicationDelegate.open.callCount).toBe 1
+          expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual pathsToOpen: ['/fake1', '/fake2'], here: true
 
-    describe "when a non-file is dragged to the pane", ->
-      it "does nothing", ->
-        event = buildDragEvent("drop", [])
-        paneElement.dispatchEvent(event)
-        expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
+      describe "when a non-file is dragged to the pane", ->
+        it "does nothing", ->
+          event = buildDragEvent("drop", [])
+          paneElement.dispatchEvent(event)
+          expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
+
+    describe "when the pane is not in the center workspace", ->
+      beforeEach ->
+        pane = atom.workspace.getLeftDock().getActivePane()
+        paneElement = pane.getElement()
+
+      describe "when a drop event occurs", ->
+        it "does nothing", ->
+          event = buildDragEvent("drop", [
+            {kind: "file", getAsFile: -> {path: "/fake1"}},
+            {kind: "file", getAsFile: -> {path: "/fake2"}}
+          ])
+          paneElement.dispatchEvent(event)
+          expect(atom.applicationDelegate.open).not.toHaveBeenCalled()
 
   describe "resize", ->
     it "shrinks independently of its contents' width", ->
