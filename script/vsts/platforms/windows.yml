@@ -1,5 +1,6 @@
 jobs:
   - job: Windows_build
+    displayName: Windows Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
     strategy:
@@ -72,6 +73,7 @@ jobs:
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
 
   - job: Windows_tests
+    displayName: Windows Tests
     dependsOn: Windows_build
     timeoutInMinutes: 180
     strategy:

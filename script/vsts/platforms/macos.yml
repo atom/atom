@@ -1,6 +1,6 @@
 jobs:
   - job: macOS_build
-    displayName: macOS build
+    displayName: macOS Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
 
@@ -47,7 +47,7 @@ jobs:
               condition: succeeded()
 
   - job: macOS_tests
-    displayName: macOS test
+    displayName: macOS Tests
     dependsOn: macOS_build
     timeoutInMinutes: 180
     pool:
