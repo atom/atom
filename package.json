@@ -59,7 +59,7 @@
     "find-and-replace": "https://www.atom.io/api/packages/find-and-replace/versions/0.219.6/tarball",
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.4.1",
-    "focus-trap": "6.1.0",
+    "focus-trap": "6.1.2",
     "fs-admin": "0.15.0",
     "fs-plus": "^3.1.1",
     "fstream": "1.0.12",
