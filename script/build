@@ -64,6 +64,8 @@ process.on('unhandledRejection', function (e) {
 })
 
 const CONFIG = require('./config')
+
+// Used by the 'github' package for Babel configuration
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
 let binariesPromise = Promise.resolve()
