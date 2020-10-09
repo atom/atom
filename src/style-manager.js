@@ -293,8 +293,8 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
   }
 
   if (transformedSource) {
-    transformedSource.walkRules(rule => {
-      const transformedSelector = selectorParser(selectors => {
+    transformedSource.walkRules(async rule => {
+      const transformedSelector = await selectorParser(selectors => {
         selectors.each(selector => {
           const firstNode = selector.nodes[0];
           if (
@@ -339,7 +339,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
             }
           });
         });
-      }).process(rule.selector, { lossless: true }).result;
+      }).process(rule.selector, { lossless: true });
       if (transformedSelector !== rule.selector) {
         transformedSelectors.push({
           before: rule.selector,
