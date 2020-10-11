@@ -293,8 +293,8 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
   }
 
   if (transformedSource) {
-    transformedSource.walkRules(async rule => {
-      const transformedSelector = await selectorParser(selectors => {
+    transformedSource.walkRules(rule => {
+      const transformedSelector = selectorParser(selectors => {
         selectors.each(selector => {
           const firstNode = selector.nodes[0];
           if (
@@ -327,7 +327,6 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
                 targetsAtomTextEditorShadow = true;
               }
             }
-
             previousNode = node;
             if (node.type === 'combinator') {
               previousNodeIsAtomTextEditor = false;
@@ -339,7 +338,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
             }
           });
         });
-      }).process(rule.selector, { lossless: true });
+      }).processSync(rule.selector, { lossless: true });
       if (transformedSelector !== rule.selector) {
         transformedSelectors.push({
           before: rule.selector,
@@ -348,6 +347,7 @@ function transformDeprecatedShadowDOMSelectors(css, context) {
         rule.selector = transformedSelector;
       }
     });
+
     let deprecationMessage;
     if (transformedSelectors.length > 0) {
       deprecationMessage =
