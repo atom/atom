@@ -19,11 +19,11 @@ module.exports = class CommandInstaller {
   }
 
   installShellCommandsInteractively() {
-    const showErrorDialog = error => {
+    const showErrorDialog = (error) => {
       this.applicationDelegate.confirm(
         {
           message: 'Failed to install shell commands',
-          detail: error.message
+          detail: error.message,
         },
         () => {}
       );
@@ -36,7 +36,7 @@ module.exports = class CommandInstaller {
         this.applicationDelegate.confirm(
           {
             message: 'Commands installed.',
-            detail: `The shell commands \`${atomCommandName}\` and \`${apmCommandName}\` are installed.`
+            detail: `The shell commands \`${atomCommandName}\` and \`${apmCommandName}\` are installed.`,
           },
           () => {}
         );
@@ -91,10 +91,10 @@ module.exports = class CommandInstaller {
     fs.readlink(destinationPath, (error, realpath) => {
       if (error && error.code !== 'ENOENT') return callback(error);
       if (realpath === commandPath) return callback(null, commandName);
-      this.createSymlink(fs, commandPath, destinationPath, error => {
+      this.createSymlink(fs, commandPath, destinationPath, (error) => {
         if (error && error.code === 'EACCES' && askForPrivilege) {
           const fsAdmin = require('fs-admin');
-          this.createSymlink(fsAdmin, commandPath, destinationPath, error => {
+          this.createSymlink(fsAdmin, commandPath, destinationPath, (error) => {
             callback(error, commandName);
           });
         } else {
@@ -105,9 +105,9 @@ module.exports = class CommandInstaller {
   }
 
   createSymlink(fs, sourcePath, destinationPath, callback) {
-    fs.unlink(destinationPath, error => {
+    fs.unlink(destinationPath, (error) => {
       if (error && error.code !== 'ENOENT') return callback(error);
-      fs.makeTree(path.dirname(destinationPath), error => {
+      fs.makeTree(path.dirname(destinationPath), (error) => {
         if (error) return callback(error);
         fs.symlink(sourcePath, destinationPath, callback);
       });

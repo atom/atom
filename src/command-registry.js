@@ -251,7 +251,7 @@ module.exports = class CommandRegistry {
           commandNames.add(name);
           const targetListeners = listeners.get(currentTarget);
           commands.push(
-            ...targetListeners.map(listener => listener.descriptor)
+            ...targetListeners.map((listener) => listener.descriptor)
           );
         }
       }
@@ -333,41 +333,41 @@ module.exports = class CommandRegistry {
 
     const dispatchedEvent = new CustomEvent(event.type, {
       bubbles: true,
-      detail: event.detail
+      detail: event.detail,
     });
     Object.defineProperty(dispatchedEvent, 'eventPhase', {
-      value: Event.BUBBLING_PHASE
+      value: Event.BUBBLING_PHASE,
     });
     Object.defineProperty(dispatchedEvent, 'currentTarget', {
       get() {
         return currentTarget;
-      }
+      },
     });
     Object.defineProperty(dispatchedEvent, 'target', { value: currentTarget });
     Object.defineProperty(dispatchedEvent, 'preventDefault', {
       value() {
         return event.preventDefault();
-      }
+      },
     });
     Object.defineProperty(dispatchedEvent, 'stopPropagation', {
       value() {
         event.stopPropagation();
         propagationStopped = true;
-      }
+      },
     });
     Object.defineProperty(dispatchedEvent, 'stopImmediatePropagation', {
       value() {
         event.stopImmediatePropagation();
         propagationStopped = true;
         immediatePropagationStopped = true;
-      }
+      },
     });
     Object.defineProperty(dispatchedEvent, 'abortKeyBinding', {
       value() {
         if (typeof event.abortKeyBinding === 'function') {
           event.abortKeyBinding();
         }
-      }
+      },
     });
 
     for (const key of Object.keys(event)) {
@@ -389,7 +389,7 @@ module.exports = class CommandRegistry {
         const selectorBasedListeners = (
           this.selectorBasedListenersByCommandName[event.type] || []
         )
-          .filter(listener => listener.matchesTarget(currentTarget))
+          .filter((listener) => listener.matchesTarget(currentTarget))
           .sort((a, b) => a.compare(b));
         listeners = selectorBasedListeners.concat(listeners);
       }
@@ -475,7 +475,7 @@ function extractDescriptor(name, listener) {
     name,
     displayName: listener.displayName
       ? listener.displayName
-      : _.humanizeEventName(name)
+      : _.humanizeEventName(name),
   });
 }
 

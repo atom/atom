@@ -28,9 +28,7 @@ module.exports = class FileRecoveryService {
       await recoveryFile.retain();
     } catch (err) {
       console.log(
-        `Couldn't retain ${recoveryFile.recoveryPath}. Code: ${
-          err.code
-        }. Message: ${err.message}`
+        `Couldn't retain ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`
       );
       return;
     }
@@ -54,9 +52,7 @@ module.exports = class FileRecoveryService {
         await recoveryFile.release();
       } catch (err) {
         console.log(
-          `Couldn't release ${recoveryFile.recoveryPath}. Code: ${
-            err.code
-          }. Message: ${err.message}`
+          `Couldn't release ${recoveryFile.recoveryPath}. Code: ${err.code}. Message: ${err.message}`
         );
       }
       if (recoveryFile.isReleased()) this.recoveryFilesByFilePath.delete(path);
@@ -73,15 +69,11 @@ module.exports = class FileRecoveryService {
       promises.push(
         recoveryFile
           .recover()
-          .catch(error => {
+          .catch((error) => {
             const message = 'A file that Atom was saving could be corrupted';
             const detail =
-              `Error ${error.code}. There was a crash while saving "${
-                recoveryFile.originalPath
-              }", so this file might be blank or corrupted.\n` +
-              `Atom couldn't recover it automatically, but a recovery file has been saved at: "${
-                recoveryFile.recoveryPath
-              }".`;
+              `Error ${error.code}. There was a crash while saving "${recoveryFile.originalPath}", so this file might be blank or corrupted.\n` +
+              `Atom couldn't recover it automatically, but a recovery file has been saved at: "${recoveryFile.recoveryPath}".`;
             console.log(detail);
             dialog.showMessageBox(
               window,
@@ -140,7 +132,7 @@ class RecoveryFile {
 
   async remove() {
     return new Promise((resolve, reject) =>
-      fs.unlink(this.recoveryPath, error =>
+      fs.unlink(this.recoveryPath, (error) =>
         error && error.code !== 'ENOENT' ? reject(error) : resolve()
       )
     );
@@ -169,7 +161,7 @@ async function tryStatFile(path) {
 
 async function copyFile(source, destination, mode) {
   return new Promise((resolve, reject) => {
-    mkdirp(Path.dirname(destination), error => {
+    mkdirp(Path.dirname(destination), (error) => {
       if (error) return reject(error);
       const readStream = fs.createReadStream(source);
       readStream.on('error', reject).once('open', () => {

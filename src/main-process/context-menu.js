@@ -12,7 +12,7 @@ module.exports = class ContextMenu {
   // closures are dragged across processes and failed to be garbage collected
   // appropriately.
   createClickHandlers(template) {
-    template.forEach(item => {
+    template.forEach((item) => {
       if (item.command) {
         if (!item.commandDetail) item.commandDetail = {};
         item.commandDetail.contextCommand = true;

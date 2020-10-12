@@ -47,7 +47,7 @@ module.exports = class BufferedNodeProcess extends BufferedProcess {
       options,
       stdout,
       stderr,
-      exit
+      exit,
     });
   }
 };

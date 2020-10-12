@@ -139,7 +139,7 @@ module.exports = function parseCommandLine(processArgs) {
     args = {
       uriHandler: true,
       'uri-handler': true,
-      _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
+      _: args._.filter((str) => str.startsWith('atom://')).slice(0, 1),
     };
   }
 
@@ -223,6 +223,6 @@ module.exports = function parseCommandLine(processArgs) {
     mainProcess,
     benchmark,
     benchmarkTest,
-    env: process.env
+    env: process.env,
   };
 };
