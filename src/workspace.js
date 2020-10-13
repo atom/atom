@@ -375,10 +375,12 @@ module.exports = class Workspace extends Model {
 
   initialize() {
     this.originalFontSize = this.config.get('editor.fontSize');
+    this.defaultFontSize = this.config.get('editor.defaultFontSize');
     this.project.onDidChangePaths(this.updateWindowTitle);
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
     this.subscribeToDockToggling();
+    this.subscribeToFontSize();
   }
 
   consumeServices({ serviceHub }) {
@@ -1744,13 +1746,18 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  // Restore to the window's original editor font size.
+  // Restore to the window's default editor font size.
   resetFontSize() {
-    if (this.originalFontSize) {
-      this.config.set('editor.fontSize', this.originalFontSize);
+    if (this.defaultFontSize) {
+      this.config.set('editor.fontSize', this.defaultFontSize);
     }
   }
 
+  subscribeToFontSize() {
+    return this.config.onDidChange('editor.defaultFontSize', () => {
+      this.defaultFontSize = this.config.get('editor.defaultFontSize');
+    });
+  }
   // Removes the item's uri from the list of potential items to reopen.
   itemOpened(item) {
     let uri;
