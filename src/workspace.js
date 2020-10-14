@@ -373,6 +373,9 @@ module.exports = class Workspace extends Model {
   }
 
   initialize() {
+    // we set originalFontSize to avoid breaking packages that might have relied on it
+    this.originalFontSize = this.config.get('defaultFontSize');
+
     this.project.onDidChangePaths(this.updateWindowTitle);
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
