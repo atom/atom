@@ -59,7 +59,7 @@ module.exports = function parseCommandLine(processArgs) {
   options
     .alias('l', 'log-file')
     .string('l')
-    .describe('l', 'Log all output to file.');
+    .describe('l', 'Log all output to file when running tests.');
   options
     .alias('n', 'new-window')
     .boolean('n')

@@ -4,6 +4,9 @@ jobs:
     parameters:
       NightlyFlag: --nightly
 
+  # Import lint definition
+  - template: lint.yml
+
   # Import OS-specific build definitions
   - template: platforms/windows.yml
   - template: platforms/macos.yml
@@ -16,6 +19,7 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
+      - Lint
       - Windows_tests
       - Linux
       - macOS_tests

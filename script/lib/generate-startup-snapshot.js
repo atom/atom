@@ -233,6 +233,8 @@ module.exports = function(packagedAppPath) {
         requiredModuleRelativePath ===
           path.join('..', 'node_modules', 'yauzl', 'index.js') ||
         requiredModuleRelativePath ===
+          path.join('..', 'node_modules', 'util-deprecate', 'node.js') ||
+        requiredModuleRelativePath ===
           path.join('..', 'node_modules', 'winreg', 'lib', 'registry.js') ||
         requiredModuleRelativePath ===
           path.join('..', 'node_modules', 'scandal', 'lib', 'scandal.js') ||
