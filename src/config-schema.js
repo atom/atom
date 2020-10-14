@@ -447,6 +447,14 @@ const configSchema = {
         maximum: 100,
         description: 'Height in pixels of editor text.'
       },
+      defaultFontSize: {
+        type: 'integer',
+        default: 14,
+        minimum: 1,
+        maximum: 100,
+        description:
+          'Default height in pixels of the editor text. Useful when resetting font size'
+      },
       lineHeight: {
         type: ['string', 'number'],
         default: 1.5,
