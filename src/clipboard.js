@@ -54,6 +54,18 @@ module.exports = class Clipboard {
     return clipboard.readText();
   }
 
+  // Public: Write the given text to the macOS find pasteboard
+  writeFindText(text) {
+    clipboard.writeFindText(text);
+  }
+
+  // Public: Read the text from the macOS find pasteboard.
+  //
+  // Returns a {String}.
+  readFindText() {
+    return clipboard.readFindText();
+  }
+
   // Public: Read the text from the clipboard and return both the text and the
   // associated metadata.
   //
