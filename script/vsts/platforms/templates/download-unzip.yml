@@ -1,0 +1,18 @@
+parameters:
+  - name: artifacts
+    type: object
+    default: {}
+  - name: downloadPath
+    type: string
+    default: $(Build.SourcesDirectory)
+
+steps:
+  - ${{ each artifact in parameters.artifacts }}:
+    - task: DownloadBuildArtifacts@0
+      displayName: Download ${{artifact}}
+      inputs:
+        artifactName: ${{artifact}}
+        downloadPath: ${{parameters.downloadPath}}
+
+    - script: unzip ${{artifact}}/${{artifact}} -d out
+      displayName: Unzip ${{artifact}}

@@ -45,22 +45,27 @@ const CONFIG = require('./config')
 const backupNodeModules = require('./lib/backup-node-modules')
 const runApmInstall = require('./lib/run-apm-install')
 
+function assertExecutablePaths(executablePaths) {
+	assert(executablePaths.length !== 0, `No atom build found. Please run "script/build" and try again.`)
+	assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+}
+
 const resourcePath = CONFIG.repositoryRootPath
 let executablePath
 if (process.platform === 'darwin') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '*.app'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = path.join(executablePaths[0], 'Contents', 'MacOS', path.basename(executablePaths[0], '.app'))
 } else if (process.platform === 'linux') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, 'atom-*', 'atom'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = executablePaths[0]
 } else if (process.platform === 'win32') {
   const executablePaths = glob.sync(path.join(CONFIG.buildOutputPath, '**', 'atom*.exe'))
-  assert(executablePaths.length === 1, `More than one application to run tests against was found. ${executablePaths.join(',')}`)
+  assertExecutablePaths(executablePaths)
   executablePath = executablePaths[0]
 } else {
-  throw new Error('Running tests on this platform is not supported.')
+  throw new Error('##[error] Running tests on this platform is not supported.')
 }
 
 function prepareEnv (suiteName) {
@@ -78,6 +83,93 @@ function prepareEnv (suiteName) {
   return env
 }
 
+function spawnTest(executablePath, testArguments, options, callback, testName, finalize = null) {
+  const cp = childProcess.spawn(executablePath, testArguments, options)
+
+  // collect outputs and errors
+	let stderrOutput = ''
+	if (cp.stdout) {
+	  cp.stderr.on('data', data => { stderrOutput += data })
+	  cp.stdout.on('data', data => { stderrOutput += data })
+	}
+
+  // on error
+  cp.on('error', error => {
+    console.log(error, "error")
+    if (finalize) { finalize() } 		// if finalizer provided
+    callback(error)
+  })
+
+  // on close
+  cp.on('close', exitCode => {
+    if (exitCode !== 0) {
+      retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize)
+    } else {
+      // successful test
+      if (finalize) { finalize() } 		// if finalizer provided
+      callback(null, {
+        exitCode,
+        step: testName,
+        testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+      })
+    }
+  })
+
+}
+
+const retryNumber = 6 // the number of times a tests repeats
+const retriedTests = new Map() // a cache of retried tests
+
+// Retries the tests if it is timed out for a number of times. Fails the rest of the tests or those that are tried enough times.
+function retryOrFailTest(stderrOutput, exitCode, executablePath, testArguments, options, callback, testName, finalize) {
+  const testKey = createTestKey(executablePath, testArguments, testName)
+  if (isTimedOut(stderrOutput) && shouldTryAgain(testKey)) {
+    // retry the timed out test
+    let triedNumber = retriedTests.get(testKey) || 0
+    retriedTests.set(testKey, triedNumber + 1)
+    console.warn(`\n##[warning] Retrying the timed out step: ${testName} \n`)
+    spawnTest(executablePath, testArguments, options, callback, testName, finalize)
+  } else {
+    // fail the test
+    if (finalize) { finalize() } 		// if finalizer provided
+    console.log(`##[error] Tests for ${testName} failed.`.red)
+    console.log(stderrOutput)
+    callback(null, {
+      exitCode,
+      step: testName,
+      testCommand: `You can run the test again using: \n\t ${executablePath} ${testArguments.join(' ')}`,
+    })
+  }
+}
+
+// creates a key that is specific to a certain test
+function createTestKey(executablePath, testArguments, testName) {
+  return `${executablePath} ${testArguments.join(' ')} ${testName}`
+}
+
+// check if a test is timed out
+function isTimedOut(stderrOutput) {
+  if (stderrOutput) {
+    return (
+			stderrOutput.includes("timeout: timed out after") || // happens in core renderer tests
+			stderrOutput.includes("Error: timeout of") || // happens in core main tests
+			stderrOutput.includes("Error Downloading Update: Could not get code signature for running application") // happens in github tests
+		)
+  } else {
+    return false
+  }
+}
+
+// check if a tests should be tried again
+function shouldTryAgain(testKey) {
+  if (retriedTests.has(testKey)) {
+    return (retriedTests.get(testKey) < retryNumber)
+  } else {
+    return true
+  }
+}
+
+
 function runCoreMainProcessTests (callback) {
   const testPath = path.join(CONFIG.repositoryRootPath, 'spec', 'main-process')
   const testArguments = [
@@ -91,25 +183,34 @@ function runCoreMainProcessTests (callback) {
 
   const testEnv = Object.assign({}, prepareEnv('core-main-process'), {ATOM_GITHUB_INLINE_GIT_EXEC: 'true'})
 
-  console.log('Executing core main process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-main-process'}) })
+  console.log('##[command] Executing core main process tests'.bold.green)
+  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, 'core-main-process')
 }
 
-function runCoreRenderProcessTests (callback) {
-  const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
-  const testArguments = [
-    '--resource-path', resourcePath,
-    '--test', testPath
-  ]
-  const testEnv = prepareEnv('core-render-process')
+function getCoreRenderProcessTestSuites() {
 
-  console.log('Executing core render process tests'.bold.green)
-  const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-render-process'}) })
+// Build an array of functions, each running tests for a different rendering test
+const coreRenderProcessTestSuites = []
+const testPath = path.join(CONFIG.repositoryRootPath, 'spec')
+let testFiles = glob.sync(path.join(testPath, '*-spec.+(js|coffee|ts|jsx|tsx|mjs)'))
+for (let testFile of testFiles) {
+	const testArguments = [
+		'--resource-path', resourcePath,
+		'--test', testFile
+	]
+	// the function which runs by async:
+  coreRenderProcessTestSuites.push( function (callback) {
+    const testEnv = prepareEnv('core-render-process')
+    console.log(`##[command] Executing core render process tests for ${testFile}`.bold.green)
+    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `core-render-process in ${testFile}.`)
+  })
 }
+
+	return coreRenderProcessTestSuites
+}
+
+
+function getPackageTestSuites() {
 
 // Build an array of functions, each running tests for a different bundled package
 const packageTestSuites = []
@@ -129,18 +230,20 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
 
   const testFolder = path.join(repositoryPackagePath, testSubdir)
 
-  packageTestSuites.push(function (callback) {
-    const testArguments = [
-      '--resource-path', resourcePath,
-      '--test', testFolder
-    ]
-    const testEnv = prepareEnv(`bundled-package-${packageName}`)
+	const testArguments = [
+		'--resource-path', resourcePath,
+		'--test', testFolder
+	]
 
-    const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
-    const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+	const pkgJsonPath = path.join(repositoryPackagePath, 'package.json')
+	const nodeModulesPath = path.join(repositoryPackagePath, 'node_modules')
+
+	// the function which runs by async:
+  packageTestSuites.push(function (callback) {
+    const testEnv = prepareEnv(`bundled-package-${packageName}`)
     let finalize = () => null
     if (require(pkgJsonPath).atomTestRunner) {
-      console.log(`Installing test runner dependencies for ${packageName}`.bold.green)
+      console.log(`##[command] Installing test runner dependencies for ${packageName}`.bold.green)
       if (fs.existsSync(nodeModulesPath)) {
         const backup = backupNodeModules(repositoryPackagePath)
         finalize = backup.restore
@@ -148,89 +251,103 @@ for (let packageName in CONFIG.appMetadata.packageDependencies) {
         finalize = () => fs.removeSync(nodeModulesPath)
       }
       runApmInstall(repositoryPackagePath)
-      console.log(`Executing ${packageName} tests`.green)
+      console.log(`##[command] Executing ${packageName} tests`.green)
     } else {
-      console.log(`Executing ${packageName} tests`.bold.green)
+      console.log(`##[command] Executing ${packageName} tests`.bold.green)
     }
-    const cp = childProcess.spawn(executablePath, testArguments, {env: testEnv})
-
-    let stderrOutput = ''
-    cp.stderr.on('data', data => { stderrOutput += data })
-    cp.stdout.on('data', data => { stderrOutput += data })
-    cp.on('error', error => {
-      console.log(error, "error")
-      finalize()
-      callback(error)
-    })
-    cp.on('close', exitCode => {
-      if (exitCode !== 0) {
-        console.log(`Package tests failed for ${packageName}:`.red)
-        console.log(stderrOutput)
-      }
-      finalize()
-      callback(null, {exitCode, step: `package-${packageName}`})
-    })
+    spawnTest(executablePath, testArguments, {env: testEnv}, callback, `${packageName} package`, finalize)
   })
 }
+
+	return packageTestSuites
+}
+
 
 function runBenchmarkTests (callback) {
   const benchmarksPath = path.join(CONFIG.repositoryRootPath, 'benchmarks')
   const testArguments = ['--benchmark-test', benchmarksPath]
   const testEnv = prepareEnv('benchmark')
 
-  console.log('Executing benchmark tests'.bold.green)
+  console.log('##[command] Executing benchmark tests'.bold.green)
   const cp = childProcess.spawn(executablePath, testArguments, {stdio: 'inherit', env: testEnv})
-  cp.on('error', error => { callback(error) })
-  cp.on('close', exitCode => { callback(null, {exitCode, step: 'core-benchmarks'}) })
+  spawnTest(executablePath, testArguments, {stdio: 'inherit', env: testEnv}, callback, `core-benchmarks`)
 }
 
-let testSuitesToRun = requestedTestSuites() || testSuitesForPlatform(process.platform)
+let testSuitesToRun = requestedTestSuites(process.platform)
 
-function requestedTestSuites () {
-  const suites = []
-  if (argv.coreMain) {
-    suites.push(runCoreMainProcessTests)
-  }
-  if (argv.coreRenderer) {
-    suites.push(runCoreRenderProcessTests)
-  }
-  if (argv.coreBenchmark) {
-    suites.push(runBenchmarkTests)
-  }
-  if (argv.package) {
-    suites.push(...packageTestSuites)
-  }
-  return suites.length > 0 ? suites : null
-}
+function requestedTestSuites (platform) {
+  // env variable or argv options
+  let coreAll = process.env.ATOM_RUN_CORE_TESTS === 'true'
+  let coreMain = process.env.ATOM_RUN_CORE_MAIN_TESTS === 'true' || argv.coreMain
+  let coreRenderer = argv.coreRenderer || process.env.ATOM_RUN_CORE_RENDER_TESTS == 'true'
+  let coreRenderer1 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '1'
+  let coreRenderer2 = process.env.ATOM_RUN_CORE_RENDER_TESTS === '2'
+  let packageAll = argv.package || process.env.ATOM_RUN_PACKAGE_TESTS == 'true'
+  let packages1 = process.env.ATOM_RUN_PACKAGE_TESTS === '1'
+  let packages2 = process.env.ATOM_RUN_PACKAGE_TESTS === '2'
+  let benchmark = argv.coreBenchmark
 
-function testSuitesForPlatform (platform) {
+  // Operating system overrides:
+  coreMain = coreMain || (platform === 'linux') || (platform === 'win32' && process.arch === 'x86')
+
+  // split package tests (used for macos in CI)
+  const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  // split core render test (used for windows x64 in CI)
+  const CORE_RENDER_TO_TEST_IN_PARALLEL = 45
+
   let suites = []
-  switch (platform) {
-    case 'darwin':
-      const PACKAGES_TO_TEST_IN_PARALLEL = 23
+  // Core tess
+  if (coreAll) {
+    suites.push(...[runCoreMainProcessTests, ...getCoreRenderProcessTestSuites()])
+  } else {
 
-      if (process.env.ATOM_RUN_CORE_TESTS === 'true') {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests]
-      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '1') {
-        suites = packageTestSuites.slice(0, PACKAGES_TO_TEST_IN_PARALLEL)
-      } else if (process.env.ATOM_RUN_PACKAGE_TESTS === '2') {
-        suites = packageTestSuites.slice(PACKAGES_TO_TEST_IN_PARALLEL)
-      } else {
-        suites = [runCoreMainProcessTests, runCoreRenderProcessTests].concat(packageTestSuites)
+    // Core main tests
+    if (coreMain) {
+      suites.push(runCoreMainProcessTests)
+    }
+
+    // Core renderer tests
+    if (coreRenderer) {
+      suites.push(...getCoreRenderProcessTestSuites())
+    } else {
+      // split
+      if (coreRenderer1) {
+        suites.push(...getCoreRenderProcessTestSuites().slice(0, CORE_RENDER_TO_TEST_IN_PARALLEL))
       }
-      break
-    case 'win32':
-      suites = (process.arch === 'x64') ? [runCoreMainProcessTests, runCoreRenderProcessTests] : [runCoreMainProcessTests]
-      break
-    case 'linux':
-      suites = [runCoreMainProcessTests]
-      break
-    default:
-      console.log(`Unrecognized platform: ${platform}`)
+      if (coreRenderer2) {
+        suites.push(...getCoreRenderProcessTestSuites().slice(CORE_RENDER_TO_TEST_IN_PARALLEL))
+      }
+    }
+
+  }
+
+  // Package tests
+	if (packageAll) {
+	  suites.push(...getPackageTestSuites())
+  } else {
+    // split
+    if (packages1) {
+      suites.push(...getPackageTestSuites().slice(0, PACKAGES_TO_TEST_IN_PARALLEL))
+    }
+    if (packages2) {
+      suites.push(...getPackageTestSuites().slice(PACKAGES_TO_TEST_IN_PARALLEL))
+    }
+  }
+
+  // Benchmark tests
+  if (benchmark) {
+    suites.push(runBenchmarkTests)
   }
 
   if (argv.skipMainProcessTests) {
     suites = suites.filter(suite => suite !== runCoreMainProcessTests)
+  }
+
+  // Remove duplicates
+  suites = Array.from(new Set(suites))
+
+  if (suites.length == 0) {
+    throw new Error("No tests was requested")
   }
 
   return suites
@@ -243,10 +360,14 @@ async.series(testSuitesToRun, function (err, results) {
   } else {
     const failedSteps = results.filter(({exitCode}) => exitCode !== 0)
 
-    for (const {step} of failedSteps) {
-      console.error(`Error! The '${step}' test step finished with a non-zero exit code`)
+    if (failedSteps.length > 0) {
+			console.warn("\n \n ##[error] *** Reporting the errors that happened in all of the tests: *** \n \n")
+      for (const {step, testCommand} of failedSteps) {
+        console.error(`##[error] The '${step}' test step finished with a non-zero exit code \n ${testCommand}`)
+      }
+      process.exit(1)
     }
 
-    process.exit(failedSteps.length === 0 ? 0 : 1)
+    process.exit(0)
   }
 })

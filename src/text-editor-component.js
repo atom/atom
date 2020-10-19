@@ -1868,7 +1868,7 @@ module.exports = class TextEditorComponent {
   // keydown(code: X), keypress, keydown(code: X)
   //
   // The code X must be the same in the keydown events that bracket the
-  // keypress, meaning we're *holding* the _same_ key we intially pressed.
+  // keypress, meaning we're *holding* the _same_ key we initially pressed.
   // Got that?
   didKeydown(event) {
     // Stop dragging when user interacts with the keyboard. This prevents
@@ -2320,15 +2320,10 @@ module.exports = class TextEditorComponent {
     let desiredScrollTop, desiredScrollBottom;
     if (options && options.center) {
       const desiredScrollCenter = (screenRangeTop + screenRangeBottom) / 2;
-      if (
-        desiredScrollCenter < this.getScrollTop() ||
-        desiredScrollCenter > this.getScrollBottom()
-      ) {
-        desiredScrollTop =
-          desiredScrollCenter - this.getScrollContainerClientHeight() / 2;
-        desiredScrollBottom =
-          desiredScrollCenter + this.getScrollContainerClientHeight() / 2;
-      }
+      desiredScrollTop =
+        desiredScrollCenter - this.getScrollContainerClientHeight() / 2;
+      desiredScrollBottom =
+        desiredScrollCenter + this.getScrollContainerClientHeight() / 2;
     } else {
       desiredScrollTop = screenRangeTop - verticalScrollMargin;
       desiredScrollBottom = screenRangeBottom + verticalScrollMargin;

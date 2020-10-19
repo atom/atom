@@ -41,7 +41,7 @@ describe('dalek', function() {
       atom.devMode = false;
       bundledPackages = ['duplicated-package', 'unduplicated-package'];
       packageDirPaths = [path.join('Users', 'username', '.atom', 'packages')];
-      sandbox = sinon.sandbox.create();
+      sandbox = sinon.createSandbox();
       sandbox
         .stub(dalek, 'realpath')
         .callsFake(filePath =>

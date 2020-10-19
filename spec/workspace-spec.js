@@ -1741,17 +1741,26 @@ describe('Workspace', () => {
   });
 
   describe('::resetFontSize()', () => {
-    it("resets the font size to the window's starting font size", () => {
-      const originalFontSize = atom.config.get('editor.fontSize');
+    it("resets the font size to the window's default font size", () => {
+      const defaultFontSize = atom.config.get('editor.defaultFontSize');
 
       workspace.increaseFontSize();
-      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize + 1);
+      expect(atom.config.get('editor.fontSize')).toBe(defaultFontSize + 1);
       workspace.resetFontSize();
-      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize);
+      expect(atom.config.get('editor.fontSize')).toBe(defaultFontSize);
       workspace.decreaseFontSize();
-      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize - 1);
+      expect(atom.config.get('editor.fontSize')).toBe(defaultFontSize - 1);
       workspace.resetFontSize();
-      expect(atom.config.get('editor.fontSize')).toBe(originalFontSize);
+      expect(atom.config.get('editor.fontSize')).toBe(defaultFontSize);
+    });
+
+    it('resets the font size the default font size when it is changed', () => {
+      const defaultFontSize = atom.config.get('editor.defaultFontSize');
+      workspace.increaseFontSize();
+      expect(atom.config.get('editor.fontSize')).toBe(defaultFontSize + 1);
+      atom.config.set('editor.defaultFontSize', 14);
+      workspace.resetFontSize();
+      expect(atom.config.get('editor.fontSize')).toBe(14);
     });
 
     it('does nothing if the font size has not been changed', () => {

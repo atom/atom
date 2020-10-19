@@ -60,7 +60,7 @@ The primary drawback of this approach is that Updatable bundled packages might e
 
 ### Increased Atom startup time
 
-Another major drawback is that the snapshotted code for the bundled package will no longer be used since a newer version has been installed.  This updated version of the package cannot be easily added back into Atom's snapshot so it could cause a noticable drag on Atom's startup time.  Some quick measurements with Timecop show a 10x increase in GitHub package load time for bundled (snapshot) vs updated (non-snapshot) package code:
+Another major drawback is that the snapshotted code for the bundled package will no longer be used since a newer version has been installed.  This updated version of the package cannot be easily added back into Atom's snapshot so it could cause a noticeable drag on Atom's startup time.  Some quick measurements with Timecop show a 10x increase in GitHub package load time for bundled (snapshot) vs updated (non-snapshot) package code:
 
 | GitHub Package Code              | Load Time |
 |----------------------------------|-----------|

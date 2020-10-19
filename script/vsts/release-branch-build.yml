@@ -2,18 +2,14 @@ trigger:
   - master
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
+pr: none # no PR triggers
 
 jobs:
-  - job: GetReleaseVersion
-    steps:
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
-      - script: |
-          cd script\vsts
-          npm install
-        displayName: npm install
-      - script: node script\vsts\get-release-version.js
-        name: Version
+  # Import "GetReleaseVersion" job definition
+  - template: platforms/templates/get-release-version.yml
+
+  # Import lint definition
+  - template: lint.yml
 
   # Import OS-specific build definitions.
   - template: platforms/windows.yml
@@ -22,11 +18,12 @@ jobs:
 
   - job: UploadArtifacts
     pool:
-      vmImage: vs2017-win2016
+      vmImage: 'ubuntu-latest'
 
     dependsOn:
       - GetReleaseVersion
-      - Windows
+      - Lint
+      - Windows_tests
       - Linux
       - macOS_tests
 
@@ -36,15 +33,10 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: platforms/templates/preparation.yml
 
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
       - script: |
-          cd script\vsts
+          cd script/vsts
           npm install
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
@@ -57,7 +49,7 @@ jobs:
         displayName: Download Release Artifacts
 
       - script: |
-          node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
@@ -69,7 +61,7 @@ jobs:
         condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
 
       - script: |
-          node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
         env:
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
           ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
