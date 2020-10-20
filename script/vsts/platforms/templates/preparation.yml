@@ -25,6 +25,7 @@ steps:
         echo "##vso[task.setvariable variable=IsWinX86]true"
       }
     displayName: Set "IsWinX86" based on "BUILD_ARCH"
+    # Convert "BUILD_ARCH" to a boolean ("IsWinX86") for the following NodeTool task.
     # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available in ${{ template expressions }}.
     # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set "IsWinX86".
 
