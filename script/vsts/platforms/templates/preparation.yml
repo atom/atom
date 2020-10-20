@@ -22,16 +22,16 @@ steps:
   # Common
   - pwsh: |
       if ($env:BUILD_ARCH -eq "x86") {
-        echo "##vso[task.setvariable variable=SHOULD_FORCE_32_BIT_NODE]true"
+        echo "##vso[task.setvariable variable=IsWinX86]true"
       }
-    displayName: Set SHOULD_FORCE_32_BIT_NODE based on BUILD_ARCH
+    displayName: Set "IsWinX86" based on "BUILD_ARCH"
     # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available in ${{ template expressions }}.
-    # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set SHOULD_FORCE_32_BIT_NODE.
+    # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set "IsWinX86".
 
   - task: NodeTool@0
     inputs:
       versionSpec: 12.16.3
-      force32bit: $(SHOULD_FORCE_32_BIT_NODE)
+      force32bit: $(IsWinX86)
     displayName: Install Node.js 12.16.3
 
   - script: npm install --global npm@6.14.8
