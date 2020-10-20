@@ -25,7 +25,8 @@ steps:
         echo "##vso[task.setvariable variable=SHOULD_FORCE_32_BIT_NODE]true"
       }
     displayName: Set SHOULD_FORCE_32_BIT_NODE based on BUILD_ARCH
-    # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available. Scripts evaluate at runtime, so "BUILD_ARCH" will be available.
+    # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available in ${{ template expressions }}.
+    # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set SHOULD_FORCE_32_BIT_NODE.
 
   - task: NodeTool@0
     inputs:
