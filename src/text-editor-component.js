@@ -1673,7 +1673,7 @@ module.exports = class TextEditorComponent {
       this.scheduleUpdate();
     }
 
-    this.getHiddenInput().focus({preventScroll:true});
+    this.getHiddenInput().focus({ preventScroll: true });
   }
 
   // Called by TextEditorElement so that this function is always the first
@@ -1926,7 +1926,7 @@ module.exports = class TextEditorComponent {
         // Disabling the hidden input makes it lose focus as well, so we have to
         // re-enable and re-focus it.
         this.getHiddenInput().disabled = false;
-        this.getHiddenInput().focus({preventScroll:true});
+        this.getHiddenInput().focus({ preventScroll: true });
       });
       return;
     }
