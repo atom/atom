@@ -15,6 +15,9 @@ jobs:
   # GetReleaseVersion
   - template: platforms/templates/get-release-version.yml
 
+  # Import lint definition
+  - template: lint.yml
+
   # Import OS-specific build definitions.
   - template: platforms/windows.yml
   - template: platforms/macos.yml
@@ -26,7 +29,8 @@ jobs:
 
     dependsOn:
       - GetReleaseVersion
-      - Windows_Tests
+      - Lint
+      - Windows_tests
       - Linux
       - macOS_tests
 

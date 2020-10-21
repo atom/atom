@@ -1,6 +1,6 @@
 jobs:
   - job: Windows_build
-    displayName: Windows build
+    displayName: Windows Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
     strategy:
@@ -30,11 +30,6 @@ jobs:
           OS: windows
 
       - template: templates/bootstrap.yml
-
-      - script: node script\vsts\windows-run.js script\lint.cmd
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
-        displayName: Run linter
 
       - template: templates/build.yml
 
@@ -69,8 +64,8 @@ jobs:
               fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
 
-  - job: Windows_Tests
-    displayName: Windows test
+  - job: Windows_tests
+    displayName: Windows Tests
     dependsOn: Windows_build
     timeoutInMinutes: 180
     strategy:

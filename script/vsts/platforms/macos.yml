@@ -1,6 +1,6 @@
 jobs:
   - job: macOS_build
-    displayName: macOS build
+    displayName: macOS Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
 
@@ -20,9 +20,6 @@ jobs:
           OS: macos
 
       - template: templates/bootstrap.yml
-
-      - script: script/lint
-        displayName: Run linter
 
       - template: templates/build.yml
 
@@ -47,7 +44,7 @@ jobs:
               condition: succeeded()
 
   - job: macOS_tests
-    displayName: macOS test
+    displayName: macOS Tests
     dependsOn: macOS_build
     timeoutInMinutes: 180
     pool:
