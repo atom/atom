@@ -1,19 +1,12 @@
 @import "ui-variables";
 @import "octicon-utf-codes";
 @import "octicon-mixins";
+@import "utils.less";
 
 :root {
   // Fixes specs
   --editor-font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
-
-// CSS containment variables.
-// The words after `but` show the excluded/incompatible values.
-@contain_all: layout size paint style;
-@contain_but_size: layout paint style;
-@contain_but_layout: size paint style;
-@contain_but_paint: layout size style;
-@contain_but_layout_size: paint style;
 
 atom-text-editor {
   contain: @contain_but_size;
