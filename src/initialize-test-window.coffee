@@ -62,8 +62,8 @@ module.exports = ({blobStore}) ->
       # Copy: cmd-c / ctrl-c
       if (event.metaKey or event.ctrlKey) and event.keyCode is 67
         atom.clipboard.write(window.getSelection().toString())
-        
-    window.addEventListener('keydown', handleKeydown, true)
+
+    window.addEventListener('keydown', handleKeydown, {capture: true})
 
     # Add 'exports' to module search path.
     exportsPath = path.join(getWindowLoadSettings().resourcePath, 'exports')

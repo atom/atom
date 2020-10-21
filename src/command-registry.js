@@ -421,11 +421,9 @@ module.exports = class CommandRegistry {
 
   commandRegistered(commandName) {
     if (this.rootNode != null && !this.registeredCommands[commandName]) {
-      this.rootNode.addEventListener(
-        commandName,
-        this.handleCommandEvent,
-        true
-      );
+      this.rootNode.addEventListener(commandName, this.handleCommandEvent, {
+        capture: true
+      });
       return (this.registeredCommands[commandName] = true);
     }
   }
