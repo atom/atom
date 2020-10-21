@@ -13,8 +13,13 @@ function installApm(ci = false, showVersion = true) {
     { env: process.env, cwd: CONFIG.apmRootPath }
   );
   if (showVersion) {
+    const apmVersionEnv = {
+      ...process.env,
+      ATOM_RESOURCE_PATH: CONFIG.repositoryRootPath
+    };
     childProcess.execFileSync(CONFIG.getApmBinPath(), ['--version'], {
-      stdio: 'inherit'
+      stdio: 'inherit',
+      env: apmVersionEnv
     });
   }
 }
