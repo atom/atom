@@ -1,7 +1,7 @@
 trigger: none # No CI builds, only PR builds
 
 jobs:
-  # Import "GetReleaseVersion" job definition
+  # GetReleaseVersion
   - template: platforms/templates/get-release-version.yml
 
   # Import lint definition

@@ -10,6 +10,8 @@ const spawnSync = require('./lib/spawn-sync');
 const repositoryRootPath = path.resolve(__dirname, '..');
 const apmRootPath = path.join(repositoryRootPath, 'apm');
 const scriptRootPath = path.join(repositoryRootPath, 'script');
+const scriptRunnerRootPath = path.join(scriptRootPath, 'script-runner');
+const scriptRunnerModulesPath = path.join(scriptRunnerRootPath, 'node_modules');
 const buildOutputPath = path.join(repositoryRootPath, 'out');
 const docsOutputPath = path.join(repositoryRootPath, 'docs', 'output');
 const intermediateAppPath = path.join(buildOutputPath, 'app');
@@ -29,6 +31,11 @@ const appName = getAppName(channel);
 const executableName = getExecutableName(channel, appName);
 const channelName = getChannelName(channel);
 
+const REPO_OWNER = process.env.REPO_OWNER || 'atom';
+const MAIN_REPO = process.env.MAIN_REPO || 'atom';
+const NIGHTLY_RELEASE_REPO =
+  process.env.NIGHTLY_RELEASE_REPO || 'atom-nightly-releases';
+
 module.exports = {
   appMetadata,
   apmMetadata,
@@ -40,6 +47,8 @@ module.exports = {
   repositoryRootPath,
   apmRootPath,
   scriptRootPath,
+  scriptRunnerRootPath,
+  scriptRunnerModulesPath,
   buildOutputPath,
   docsOutputPath,
   intermediateAppPath,
@@ -49,7 +58,10 @@ module.exports = {
   homeDirPath,
   getApmBinPath,
   getNpmBinPath,
-  snapshotAuxiliaryData: {}
+  snapshotAuxiliaryData: {},
+  REPO_OWNER,
+  MAIN_REPO,
+  NIGHTLY_RELEASE_REPO
 };
 
 function getChannelName(channel) {
@@ -120,4 +132,9 @@ function getNpmBinPath(external = false) {
   return !external && fs.existsSync(localNpmBinPath)
     ? localNpmBinPath
     : npmBinName;
+}
+
+// parallel build in node-gyp
+if (!process.env.JOBS) {
+  process.env.JOBS = 'max';
 }

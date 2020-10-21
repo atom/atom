@@ -6,6 +6,6 @@
     "url": "https://github.com/atom/atom.git"
   },
   "dependencies": {
-    "atom-package-manager": "2.5.2"
+    "atom-package-manager": "npm:@atom-ide-community/atom-package-manager@2.5.2-atomic.3.1"
   }
 }

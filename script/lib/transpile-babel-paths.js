@@ -7,12 +7,12 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+function transpileBabelPaths() {
   console.log(`Transpiling Babel paths in ${CONFIG.intermediateAppPath}`);
   for (let path of getPathsToTranspile()) {
     transpileBabelPath(path);
   }
-};
+}
 
 function getPathsToTranspile() {
   let paths = [];
@@ -49,3 +49,7 @@ function transpileBabelPath(path) {
     CompileCache.addPathToCache(path, CONFIG.atomHomeDirPath)
   );
 }
+
+const { expose } = require(`${CONFIG.scriptRunnerModulesPath}/threads/worker`);
+expose(transpileBabelPaths);
+module.exports = transpileBabelPaths;

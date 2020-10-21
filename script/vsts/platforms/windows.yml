@@ -35,7 +35,6 @@ jobs:
 
       - template: templates/test.yml
 
-
       - pwsh: |
           if ($env:BUILD_ARCH -eq "x64") {
             $env:FileID="-x64"
@@ -43,8 +42,6 @@ jobs:
             $env:FileID=""
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Set FileID based on the arch
 
       - template: templates/publish.yml
@@ -120,5 +117,5 @@ jobs:
           artifacts:
             -  atom$(FileID)-windows.zip
 
-      #  Core renderer tests
+      #  tests
       - template: templates/test.yml
