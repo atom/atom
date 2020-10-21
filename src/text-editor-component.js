@@ -1673,7 +1673,7 @@ module.exports = class TextEditorComponent {
       this.scheduleUpdate();
     }
 
-    this.getHiddenInput().focus();
+    this.getHiddenInput().focus({ preventScroll: true });
   }
 
   // Called by TextEditorElement so that this function is always the first
@@ -1698,12 +1698,6 @@ module.exports = class TextEditorComponent {
   }
 
   didFocusHiddenInput() {
-    // Focusing the hidden input when it is off-screen causes the browser to
-    // scroll it into view. Since we use synthetic scrolling this behavior
-    // causes all the lines to disappear so we counteract it by always setting
-    // the scroll position to 0.
-    this.refs.scrollContainer.scrollTop = 0;
-    this.refs.scrollContainer.scrollLeft = 0;
     if (!this.focused) {
       this.focused = true;
       this.startCursorBlinking();
@@ -1932,7 +1926,7 @@ module.exports = class TextEditorComponent {
         // Disabling the hidden input makes it lose focus as well, so we have to
         // re-enable and re-focus it.
         this.getHiddenInput().disabled = false;
-        this.getHiddenInput().focus();
+        this.getHiddenInput().focus({ preventScroll: true });
       });
       return;
     }
