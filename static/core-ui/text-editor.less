@@ -1,16 +1,12 @@
 @import "ui-variables";
 @import "octicon-utf-codes";
 @import "octicon-mixins";
+@import "utils.less";
 
 :root {
   // Fixes specs
   --editor-font-family: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
 }
-
-@contain_all: layout size paint style;
-@contain_but_size: layout paint style;
-@contain_but_layout: size paint style;
-@contain_but_paint: layout size style;
 
 atom-text-editor {
   contain: @contain_but_size;
@@ -40,7 +36,7 @@ atom-text-editor {
 
   .gutter:hover {
     .line-number.foldable .icon-right {
-      contain: paint style;
+      contain: @contain_but_layout_size;
       visibility: visible;
 
       &:hover {
@@ -51,7 +47,7 @@ atom-text-editor {
 
   .gutter, .gutter:hover {
     .line-number.folded .icon-right {
-      contain: paint style;
+      contain: @contain_but_layout_size;
       .octicon(chevron-right, 0.8em);
 
       visibility: visible;
@@ -77,7 +73,7 @@ atom-text-editor {
     position: relative;
 
     .icon-right {
-      contain: paint style;
+      contain: @contain_but_layout_size;
       .octicon(chevron-down, 0.8em);
       display: inline-block;
       visibility: hidden;
@@ -136,7 +132,7 @@ atom-text-editor {
   }
 
   .indent-guide {
-    contain: paint style;
+    contain: @contain_but_layout_size;
     display: inline-block;
     box-shadow: inset 1px 0;
   }
