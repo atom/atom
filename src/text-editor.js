@@ -4316,7 +4316,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Boolean}.
   setSoftWrapped(softWrapped) {
-    this.update({ softWrapped });
+    this.updateSoftWrapped(softWrapped, true);
     return this.isSoftWrapped();
   }
 
