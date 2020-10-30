@@ -397,7 +397,7 @@ module.exports = class TextEditor {
 
       switch (param) {
         case 'autoIndent':
-          this.autoIndent = value;
+          this.updateAutoIndent(value, false);
           break;
 
         case 'autoIndentOnPaste':
@@ -617,6 +617,11 @@ module.exports = class TextEditor {
     } else {
       return Promise.resolve();
     }
+  }
+
+  updateAutoIndent(value, finish) {
+    this.autoIndent = value;
+    if (finish) this.finishUpdate();
   }
 
   scheduleComponentUpdate() {
