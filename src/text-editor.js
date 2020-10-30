@@ -489,10 +489,7 @@ module.exports = class TextEditor {
           break;
 
         case 'invisibles':
-          if (!_.isEqual(value, this.invisibles)) {
-            this.invisibles = value;
-            displayLayerParams.invisibles = this.getInvisibles();
-          }
+          this.updateInvisibles(value, false, displayLayerParams);
           break;
 
         case 'editorWidthInChars':
@@ -727,6 +724,14 @@ module.exports = class TextEditor {
   updateShowInvisibles(value, finish, displayLayerParams = {}) {
     if (value !== this.showInvisibles) {
       this.showInvisibles = value;
+      displayLayerParams.invisibles = this.getInvisibles();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateInvisibles(value, finish, displayLayerParams = {}) {
+    if (!_.isEqual(value, this.invisibles)) {
+      this.invisibles = value;
       displayLayerParams.invisibles = this.getInvisibles();
     }
     if (finish) this.finishUpdate(displayLayerParams);
