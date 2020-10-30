@@ -465,12 +465,7 @@ module.exports = class TextEditor {
           break;
 
         case 'keyboardInputEnabled':
-          if (value !== this.keyboardInputEnabled) {
-            this.keyboardInputEnabled = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateKeyboardInputEnabled(value, false);
           break;
 
         case 'placeholderText':
@@ -695,6 +690,16 @@ module.exports = class TextEditor {
   updateReadOnly(value, finish) {
     if (value !== this.readOnly) {
       this.readOnly = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateKeyboardInputEnabled(value, finish) {
+    if (value !== this.keyboardInputEnabled) {
+      this.keyboardInputEnabled = value;
       if (this.component != null) {
         this.component.scheduleUpdate();
       }
