@@ -405,7 +405,7 @@ module.exports = class TextEditor {
           break;
 
         case 'undoGroupingInterval':
-          this.undoGroupingInterval = value;
+          this.updateUndoGroupingInterval(value, false);
           break;
 
         case 'scrollSensitivity':
@@ -626,6 +626,11 @@ module.exports = class TextEditor {
 
   updateAutoIndentOnPaste(value, finish) {
     this.autoIndentOnPaste = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateUndoGroupingInterval(value, finish) {
+    this.undoGroupingInterval = value;
     if (finish) this.finishUpdate();
   }
 
