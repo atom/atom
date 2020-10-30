@@ -1269,7 +1269,7 @@ module.exports = class TextEditor {
   }
 
   setReadOnly(readOnly) {
-    this.update({ readOnly });
+    this.updateReadOnly(readOnly, true);
   }
 
   isReadOnly() {
