@@ -4233,7 +4233,7 @@ module.exports = class TextEditor {
   // * `tabLength` {Number} length of a single tab. Setting to `null` will
   //   fallback to using the `editor.tabLength` config setting
   setTabLength(tabLength) {
-    this.update({ tabLength });
+    this.updateTabLength(tabLength, true);
   }
 
   // Returns an {Object} representing the current invisible character
