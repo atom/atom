@@ -5256,7 +5256,7 @@ module.exports = class TextEditor {
   //
   // * `placeholderText` {String} text that is displayed when the editor has no content.
   setPlaceholderText(placeholderText) {
-    this.update({ placeholderText });
+    this.updatePlaceholderText(placeholderText, true);
   }
 
   pixelPositionForBufferPosition(bufferPosition) {
