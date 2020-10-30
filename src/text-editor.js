@@ -413,7 +413,7 @@ module.exports = class TextEditor {
           break;
 
         case 'encoding':
-          this.buffer.setEncoding(value);
+          this.updateEncoding(value, false);
           break;
 
         case 'softTabs':
@@ -636,6 +636,11 @@ module.exports = class TextEditor {
 
   updateScrollSensitivity(value, finish) {
     this.scrollSensitivity = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateEncoding(value, finish) {
+    this.buffer.setEncoding(value);
     if (finish) this.finishUpdate();
   }
 
