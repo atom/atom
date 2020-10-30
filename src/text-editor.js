@@ -1343,7 +1343,7 @@ module.exports = class TextEditor {
   // * `editorWidthInChars` A {Number} representing the width of the
   // {TextEditorElement} in characters.
   setEditorWidthInChars(editorWidthInChars) {
-    this.update({ editorWidthInChars });
+    this.updateEditorWidthInChars(editorWidthInChars, true);
   }
 
   // Returns the editor width in characters.
