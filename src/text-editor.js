@@ -481,12 +481,7 @@ module.exports = class TextEditor {
           break;
 
         case 'showLineNumbers':
-          if (value !== this.showLineNumbers) {
-            this.showLineNumbers = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateShowLineNumbers(value, false);
           break;
 
         case 'showInvisibles':
@@ -720,6 +715,16 @@ module.exports = class TextEditor {
       displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
     }
     if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateShowLineNumbers(value, finish) {
+    if (value !== this.showLineNumbers) {
+      this.showLineNumbers = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
   }
 
   scheduleComponentUpdate() {
