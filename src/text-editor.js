@@ -485,10 +485,7 @@ module.exports = class TextEditor {
           break;
 
         case 'showInvisibles':
-          if (value !== this.showInvisibles) {
-            this.showInvisibles = value;
-            displayLayerParams.invisibles = this.getInvisibles();
-          }
+          this.updateShowInvisibles(value, false, displayLayerParams);
           break;
 
         case 'invisibles':
@@ -725,6 +722,14 @@ module.exports = class TextEditor {
       }
     }
     if (finish) this.finishUpdate();
+  }
+
+  updateShowInvisibles(value, finish, displayLayerParams = {}) {
+    if (value !== this.showInvisibles) {
+      this.showInvisibles = value;
+      displayLayerParams.invisibles = this.getInvisibles();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
   }
 
   scheduleComponentUpdate() {
