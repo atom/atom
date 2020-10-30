@@ -477,10 +477,7 @@ module.exports = class TextEditor {
           break;
 
         case 'showIndentGuide':
-          if (value !== this.showIndentGuide) {
-            this.showIndentGuide = value;
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
-          }
+          this.updateShowIndentGuide(value, false, displayLayerParams);
           break;
 
         case 'showLineNumbers':
@@ -715,6 +712,14 @@ module.exports = class TextEditor {
       );
     }
     if (finish) this.finishUpdate();
+  }
+
+  updateShowIndentGuide(value, finish, displayLayerParams = {}) {
+    if (value !== this.showIndentGuide) {
+      this.showIndentGuide = value;
+      displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
   }
 
   scheduleComponentUpdate() {
