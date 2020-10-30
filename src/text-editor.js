@@ -449,10 +449,7 @@ module.exports = class TextEditor {
           break;
 
         case 'preferredLineLength':
-          if (value !== this.preferredLineLength) {
-            this.preferredLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updatePreferredLineLength(value, false, displayLayerParams);
           break;
 
         case 'maxScreenLineLength':
@@ -677,6 +674,14 @@ module.exports = class TextEditor {
   updateSoftWrapAtPreferredLineLength(value, finish, displayLayerParams = {}) {
     if (value !== this.softWrapAtPreferredLineLength) {
       this.softWrapAtPreferredLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updatePreferredLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.preferredLineLength) {
+      this.preferredLineLength = value;
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
