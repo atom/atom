@@ -509,9 +509,7 @@ module.exports = class TextEditor {
           break;
 
         case 'autoWidth':
-          if (value !== this.autoWidth) {
-            this.autoWidth = value;
-          }
+          this.updateAutoWidth(value, false);
           break;
 
         case 'showCursorOnSelection':
@@ -753,6 +751,13 @@ module.exports = class TextEditor {
   updateAutoHight(value, finish) {
     if (value !== this.autoHeight) {
       this.autoHeight = value;
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoWidth(value, finish) {
+    if (value !== this.autoWidth) {
+      this.autoWidth = value;
     }
     if (finish) this.finishUpdate();
   }
