@@ -417,9 +417,7 @@ module.exports = class TextEditor {
           break;
 
         case 'softTabs':
-          if (value !== this.softTabs) {
-            this.softTabs = value;
-          }
+          this.updateSoftTabs(value, false);
           break;
 
         case 'atomicSoftTabs':
@@ -641,6 +639,13 @@ module.exports = class TextEditor {
 
   updateEncoding(value, finish) {
     this.buffer.setEncoding(value);
+    if (finish) this.finishUpdate();
+  }
+
+  updateSoftTabs(value, finish) {
+    if (value !== this.softTabs) {
+      this.softTabs = value;
+    }
     if (finish) this.finishUpdate();
   }
 
