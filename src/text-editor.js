@@ -606,6 +606,10 @@ module.exports = class TextEditor {
       }
     }
 
+    return this.finishUpdate(displayLayerParams);
+  }
+
+  finishUpdate(displayLayerParams = {}) {
     this.displayLayer.reset(displayLayerParams);
 
     if (this.component) {
