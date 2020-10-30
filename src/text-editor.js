@@ -441,10 +441,11 @@ module.exports = class TextEditor {
           break;
 
         case 'softWrapAtPreferredLineLength':
-          if (value !== this.softWrapAtPreferredLineLength) {
-            this.softWrapAtPreferredLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateSoftWrapAtPreferredLineLength(
+            value,
+            false,
+            displayLayerParams
+          );
           break;
 
         case 'preferredLineLength':
@@ -669,6 +670,14 @@ module.exports = class TextEditor {
   updateSoftWrapHangingIndentLength(value, finish, displayLayerParams = {}) {
     if (value !== this.displayLayer.softWrapHangingIndent) {
       displayLayerParams.softWrapHangingIndent = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapAtPreferredLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.softWrapAtPreferredLineLength) {
+      this.softWrapAtPreferredLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
