@@ -433,9 +433,11 @@ module.exports = class TextEditor {
           break;
 
         case 'softWrapHangingIndentLength':
-          if (value !== this.displayLayer.softWrapHangingIndent) {
-            displayLayerParams.softWrapHangingIndent = value;
-          }
+          this.updateSoftWrapHangingIndentLength(
+            value,
+            false,
+            displayLayerParams
+          );
           break;
 
         case 'softWrapAtPreferredLineLength':
@@ -660,6 +662,13 @@ module.exports = class TextEditor {
       this.softWrapped = value;
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
       this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapHangingIndentLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.displayLayer.softWrapHangingIndent) {
+      displayLayerParams.softWrapHangingIndent = value;
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
