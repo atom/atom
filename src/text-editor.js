@@ -409,7 +409,7 @@ module.exports = class TextEditor {
           break;
 
         case 'scrollSensitivity':
-          this.scrollSensitivity = value;
+          this.updateScrollSensitivity(value, false);
           break;
 
         case 'encoding':
@@ -631,6 +631,11 @@ module.exports = class TextEditor {
 
   updateUndoGroupingInterval(value, finish) {
     this.undoGroupingInterval = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateScrollSensitivity(value, finish) {
+    this.scrollSensitivity = value;
     if (finish) this.finishUpdate();
   }
 
