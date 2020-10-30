@@ -425,9 +425,7 @@ module.exports = class TextEditor {
           break;
 
         case 'tabLength':
-          if (value > 0 && value !== this.displayLayer.tabLength) {
-            displayLayerParams.tabLength = value;
-          }
+          this.updateTabLength(value, false, displayLayerParams);
           break;
 
         case 'softWrapped':
@@ -650,6 +648,13 @@ module.exports = class TextEditor {
   updateAtomicSoftTabs(value, finish, displayLayerParams = {}) {
     if (value !== this.displayLayer.atomicSoftTabs) {
       displayLayerParams.atomicSoftTabs = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateTabLength(value, finish, displayLayerParams = {}) {
+    if (value > 0 && value !== this.displayLayer.tabLength) {
+      displayLayerParams.tabLength = value;
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
