@@ -461,12 +461,7 @@ module.exports = class TextEditor {
           break;
 
         case 'readOnly':
-          if (value !== this.readOnly) {
-            this.readOnly = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateReadOnly(value, false);
           break;
 
         case 'keyboardInputEnabled':
@@ -695,6 +690,16 @@ module.exports = class TextEditor {
       }
     }
     if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateReadOnly(value, finish) {
+    if (value !== this.readOnly) {
+      this.readOnly = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
   }
 
   scheduleComponentUpdate() {
