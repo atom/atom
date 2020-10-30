@@ -501,10 +501,7 @@ module.exports = class TextEditor {
           break;
 
         case 'scrollPastEnd':
-          if (value !== this.scrollPastEnd) {
-            this.scrollPastEnd = value;
-            if (this.component) this.component.scheduleUpdate();
-          }
+          this.updateScrollPastEnd(value, false);
           break;
 
         case 'autoHeight':
@@ -745,6 +742,14 @@ module.exports = class TextEditor {
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateScrollPastEnd(value, finish) {
+    if (value !== this.scrollPastEnd) {
+      this.scrollPastEnd = value;
+      if (this.component) this.component.scheduleUpdate();
+    }
+    if (finish) this.finishUpdate();
   }
 
   scheduleComponentUpdate() {
