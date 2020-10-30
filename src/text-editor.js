@@ -401,7 +401,7 @@ module.exports = class TextEditor {
           break;
 
         case 'autoIndentOnPaste':
-          this.autoIndentOnPaste = value;
+          this.updateAutoIndentOnPaste(value, false);
           break;
 
         case 'undoGroupingInterval':
@@ -621,6 +621,11 @@ module.exports = class TextEditor {
 
   updateAutoIndent(value, finish) {
     this.autoIndent = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoIndentOnPaste(value, finish) {
+    this.autoIndentOnPaste = value;
     if (finish) this.finishUpdate();
   }
 
