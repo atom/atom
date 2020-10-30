@@ -1277,7 +1277,7 @@ module.exports = class TextEditor {
   }
 
   enableKeyboardInput(enabled) {
-    this.update({ keyboardInputEnabled: enabled });
+    this.updateKeyboardInputEnabled(enabled, true);
   }
 
   isKeyboardInputEnabled() {
