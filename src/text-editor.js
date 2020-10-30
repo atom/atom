@@ -457,24 +457,7 @@ module.exports = class TextEditor {
           break;
 
         case 'mini':
-          if (value !== this.mini) {
-            this.mini = value;
-            this.emitter.emit('did-change-mini', value);
-            displayLayerParams.invisibles = this.getInvisibles();
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
-            if (this.mini) {
-              for (let decoration of this.cursorLineDecorations) {
-                decoration.destroy();
-              }
-              this.cursorLineDecorations = null;
-            } else {
-              this.decorateCursorLine();
-            }
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateMini(value, false, displayLayerParams);
           break;
 
         case 'readOnly':
@@ -688,6 +671,28 @@ module.exports = class TextEditor {
     if (value !== this.maxScreenLineLength) {
       this.maxScreenLineLength = value;
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateMini(value, finish, displayLayerParams = {}) {
+    if (value !== this.mini) {
+      this.mini = value;
+      this.emitter.emit('did-change-mini', value);
+      displayLayerParams.invisibles = this.getInvisibles();
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+      displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
+      if (this.mini) {
+        for (let decoration of this.cursorLineDecorations) {
+          decoration.destroy();
+        }
+        this.cursorLineDecorations = null;
+      } else {
+        this.decorateCursorLine();
+      }
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
