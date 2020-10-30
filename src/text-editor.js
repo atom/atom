@@ -505,9 +505,7 @@ module.exports = class TextEditor {
           break;
 
         case 'autoHeight':
-          if (value !== this.autoHeight) {
-            this.autoHeight = value;
-          }
+          this.updateAutoHight(value, false);
           break;
 
         case 'autoWidth':
@@ -748,6 +746,13 @@ module.exports = class TextEditor {
     if (value !== this.scrollPastEnd) {
       this.scrollPastEnd = value;
       if (this.component) this.component.scheduleUpdate();
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoHight(value, finish) {
+    if (value !== this.autoHeight) {
+      this.autoHeight = value;
     }
     if (finish) this.finishUpdate();
   }
