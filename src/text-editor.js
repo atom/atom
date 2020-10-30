@@ -453,10 +453,7 @@ module.exports = class TextEditor {
           break;
 
         case 'maxScreenLineLength':
-          if (value !== this.maxScreenLineLength) {
-            this.maxScreenLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateMaxScreenLineLength(value, false, displayLayerParams);
           break;
 
         case 'mini':
@@ -682,6 +679,14 @@ module.exports = class TextEditor {
   updatePreferredLineLength(value, finish, displayLayerParams = {}) {
     if (value !== this.preferredLineLength) {
       this.preferredLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateMaxScreenLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.maxScreenLineLength) {
+      this.maxScreenLineLength = value;
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
