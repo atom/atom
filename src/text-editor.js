@@ -1289,7 +1289,7 @@ module.exports = class TextEditor {
   }
 
   setLineNumberGutterVisible(lineNumberGutterVisible) {
-    this.update({ lineNumberGutterVisible });
+    this.updateLineNumberGutterVisible(lineNumberGutterVisible, true);
   }
 
   isLineNumberGutterVisible() {
