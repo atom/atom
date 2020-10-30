@@ -513,10 +513,7 @@ module.exports = class TextEditor {
           break;
 
         case 'showCursorOnSelection':
-          if (value !== this.showCursorOnSelection) {
-            this.showCursorOnSelection = value;
-            if (this.component) this.component.scheduleUpdate();
-          }
+          this.updateShowCursorOnSelection(value, false);
           break;
 
         default:
@@ -758,6 +755,14 @@ module.exports = class TextEditor {
   updateAutoWidth(value, finish) {
     if (value !== this.autoWidth) {
       this.autoWidth = value;
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateShowCursorOnSelection(value, finish) {
+    if (value !== this.showCursorOnSelection) {
+      this.showCursorOnSelection = value;
+      if (this.component) this.component.scheduleUpdate();
     }
     if (finish) this.finishUpdate();
   }
