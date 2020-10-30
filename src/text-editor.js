@@ -429,11 +429,7 @@ module.exports = class TextEditor {
           break;
 
         case 'softWrapped':
-          if (value !== this.softWrapped) {
-            this.softWrapped = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-            this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
-          }
+          this.updateSoftWrapped(value, false, displayLayerParams);
           break;
 
         case 'softWrapHangingIndentLength':
@@ -655,6 +651,15 @@ module.exports = class TextEditor {
   updateTabLength(value, finish, displayLayerParams = {}) {
     if (value > 0 && value !== this.displayLayer.tabLength) {
       displayLayerParams.tabLength = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapped(value, finish, displayLayerParams = {}) {
+    if (value !== this.softWrapped) {
+      this.softWrapped = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+      this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
