@@ -1261,7 +1261,7 @@ module.exports = class TextEditor {
   }
 
   setMini(mini) {
-    this.update({ mini });
+    this.updateMini(mini, true);
   }
 
   isMini() {
