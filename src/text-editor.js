@@ -497,10 +497,7 @@ module.exports = class TextEditor {
           break;
 
         case 'width':
-          if (value !== this.width) {
-            this.width = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateWidth(value, false, displayLayerParams);
           break;
 
         case 'scrollPastEnd':
@@ -737,6 +734,14 @@ module.exports = class TextEditor {
   updateEditorWidthInChars(value, finish, displayLayerParams = {}) {
     if (value > 0 && value !== this.editorWidthInChars) {
       this.editorWidthInChars = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateWidth(value, finish, displayLayerParams = {}) {
+    if (value !== this.width) {
+      this.width = value;
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
