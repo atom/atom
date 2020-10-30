@@ -493,10 +493,7 @@ module.exports = class TextEditor {
           break;
 
         case 'editorWidthInChars':
-          if (value > 0 && value !== this.editorWidthInChars) {
-            this.editorWidthInChars = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateEditorWidthInChars(value, false, displayLayerParams);
           break;
 
         case 'width':
@@ -733,6 +730,14 @@ module.exports = class TextEditor {
     if (!_.isEqual(value, this.invisibles)) {
       this.invisibles = value;
       displayLayerParams.invisibles = this.getInvisibles();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateEditorWidthInChars(value, finish, displayLayerParams = {}) {
+    if (value > 0 && value !== this.editorWidthInChars) {
+      this.editorWidthInChars = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
