@@ -473,17 +473,7 @@ module.exports = class TextEditor {
           break;
 
         case 'lineNumberGutterVisible':
-          if (value !== this.lineNumberGutterVisible) {
-            if (value) {
-              this.lineNumberGutter.show();
-            } else {
-              this.lineNumberGutter.hide();
-            }
-            this.emitter.emit(
-              'did-change-line-number-gutter-visible',
-              this.lineNumberGutter.isVisible()
-            );
-          }
+          this.updateLineNumberGutterVisible(value, false);
           break;
 
         case 'showIndentGuide':
@@ -708,6 +698,21 @@ module.exports = class TextEditor {
     if (value !== this.placeholderText) {
       this.placeholderText = value;
       this.emitter.emit('did-change-placeholder-text', value);
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateLineNumberGutterVisible(value, finish) {
+    if (value !== this.lineNumberGutterVisible) {
+      if (value) {
+        this.lineNumberGutter.show();
+      } else {
+        this.lineNumberGutter.hide();
+      }
+      this.emitter.emit(
+        'did-change-line-number-gutter-visible',
+        this.lineNumberGutter.isVisible()
+      );
     }
     if (finish) this.finishUpdate();
   }
