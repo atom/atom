@@ -29,11 +29,7 @@ steps:
 
       # Build
       $esc = '--%'
-      if (($env:AGENT_OS  -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
-        node 'script\vsts\windows-run.js' 'script\build.cmd' --no-bootstrap --compress-artifacts $esc $CodeSign $CreateWindowsInstallaer
-      } else {
-        script/build --no-bootstrap --compress-artifacts $esc $env:LinuxArgs $CodeSign $CreateWindowsInstallaer
-      }
+      script/build --no-bootstrap --compress-artifacts $esc $env:LinuxArgs $CodeSign $CreateWindowsInstallaer
     displayName: Build Atom
     env:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
