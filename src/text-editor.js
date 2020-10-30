@@ -4207,7 +4207,7 @@ module.exports = class TextEditor {
   // * `softTabs` A {Boolean}
   setSoftTabs(softTabs) {
     this.softTabs = softTabs;
-    this.update({ softTabs: this.softTabs });
+    this.updateSoftTabs(this.softTabs, true);
   }
 
   // Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
