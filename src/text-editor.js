@@ -469,10 +469,7 @@ module.exports = class TextEditor {
           break;
 
         case 'placeholderText':
-          if (value !== this.placeholderText) {
-            this.placeholderText = value;
-            this.emitter.emit('did-change-placeholder-text', value);
-          }
+          this.updatePlaceholderText(value, false);
           break;
 
         case 'lineNumberGutterVisible':
@@ -703,6 +700,14 @@ module.exports = class TextEditor {
       if (this.component != null) {
         this.component.scheduleUpdate();
       }
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updatePlaceholderText(value, finish) {
+    if (value !== this.placeholderText) {
+      this.placeholderText = value;
+      this.emitter.emit('did-change-placeholder-text', value);
     }
     if (finish) this.finishUpdate();
   }
