@@ -367,10 +367,6 @@ function runBenchmarkTests(callback) {
   const testEnv = prepareEnv('benchmark');
 
   console.log('##[command] Executing benchmark tests'.bold.green);
-  const cp = childProcess.spawn(executablePath, testArguments, {
-    stdio: 'inherit',
-    env: testEnv
-  });
   spawnTest(
     executablePath,
     testArguments,
