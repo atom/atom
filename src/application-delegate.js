@@ -228,11 +228,11 @@ module.exports = class ApplicationDelegate {
         { type: 'info', normalizeAccessKeys: true },
         options
       );
-      remote.dialog.showMessageBox(
-        remote.getCurrentWindow(),
-        options,
-        callback
-      );
+      remote.dialog
+        .showMessageBox(remote.getCurrentWindow(), options)
+        .then(result => {
+          callback(result.response);
+        });
     } else {
       // Legacy sync version: options can only have `message`,
       // `detailedMessage` (optional), and buttons array or object (optional)
@@ -246,13 +246,16 @@ module.exports = class ApplicationDelegate {
         buttonLabels = Object.keys(buttons);
       }
 
-      const chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'info',
-        message,
-        detail: detailedMessage,
-        buttons: buttonLabels,
-        normalizeAccessKeys: true
-      });
+      const chosen = remote.dialog.showMessageBoxSync(
+        remote.getCurrentWindow(),
+        {
+          type: 'info',
+          message,
+          detail: detailedMessage,
+          buttons: buttonLabels,
+          normalizeAccessKeys: true
+        }
+      );
 
       if (Array.isArray(buttons)) {
         return chosen;

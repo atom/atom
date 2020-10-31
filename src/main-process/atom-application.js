@@ -2025,8 +2025,8 @@ module.exports = class AtomApplication extends EventEmitter {
     dialog.showOpenDialog(parentWindow, openOptions, callback);
   }
 
-  promptForRestart() {
-    dialog.showMessageBox(
+  async promptForRestart() {
+    const result = await dialog.showMessageBox(
       BrowserWindow.getFocusedWindow(),
       {
         type: 'warning',
@@ -2034,11 +2034,9 @@ module.exports = class AtomApplication extends EventEmitter {
         message:
           'You will need to restart Atom for this change to take effect.',
         buttons: ['Restart Atom', 'Cancel']
-      },
-      response => {
-        if (response === 0) this.restart();
       }
     );
+    if (result.response === 0) this.restart();
   }
 
   restart() {
