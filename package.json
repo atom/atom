@@ -35,6 +35,7 @@
     "autoflow": "file:packages/autoflow",
     "autosave": "https://www.atom.io/api/packages/autosave/versions/0.24.6/tarball",
     "babel-core": "5.8.38",
+    "babel-preset-atomic": "^3.0.0",
     "background-tips": "https://www.atom.io/api/packages/background-tips/versions/0.28.0/tarball",
     "base16-tomorrow-dark-theme": "file:packages/base16-tomorrow-dark-theme",
     "base16-tomorrow-light-theme": "file:packages/base16-tomorrow-light-theme",
