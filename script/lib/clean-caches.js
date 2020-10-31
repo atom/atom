@@ -20,9 +20,11 @@ module.exports = function() {
     path.join(os.tmpdir(), 'atom-build'),
     path.join(os.tmpdir(), 'atom-cached-atom-shells')
   ];
-
+  const rmPromises = [];
   for (let path of cachePaths) {
     console.log(`Cleaning ${path}`);
-    fs.removeSync(path);
+    rmPromises.push(fs.remove(path));
   }
+
+  return Promise.all(rmPromises);
 };
