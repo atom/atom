@@ -259,7 +259,9 @@ Tooltip.prototype.leave = function(event) {
 Tooltip.prototype.show = function() {
   if (this.hasContent() && this.enabled) {
     if (this.hideOnClickOutsideOfTooltip) {
-      window.addEventListener('click', this.hideOnClickOutsideOfTooltip, true);
+      window.addEventListener('click', this.hideOnClickOutsideOfTooltip, {
+        capture: true
+      });
     }
 
     if (this.hideOnKeydownOutsideOfTooltip) {
