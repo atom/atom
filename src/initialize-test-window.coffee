@@ -86,6 +86,7 @@ module.exports = ({blobStore}) ->
     TextEditor.viewForItem = (item) -> atom.views.getView(item)
 
     testRunner = require(testRunnerPath)
+    testRunner = testRunner.default if testRunner.__esModule
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()
     buildAtomEnvironment = (params) ->
