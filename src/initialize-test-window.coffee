@@ -1,4 +1,5 @@
 ipcHelpers = require './ipc-helpers'
+{requireModule} = require './module-utils'
 
 cloneObject = (object) ->
   clone = {}
@@ -85,7 +86,7 @@ module.exports = ({blobStore}) ->
     TextEditor.setClipboard(clipboard)
     TextEditor.viewForItem = (item) -> atom.views.getView(item)
 
-    testRunner = require(testRunnerPath)
+    testRunner = requireModule(testRunnerPath)
     legacyTestRunner = require(legacyTestRunnerPath)
     buildDefaultApplicationDelegate = -> new ApplicationDelegate()
     buildAtomEnvironment = (params) ->
