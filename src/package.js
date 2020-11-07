@@ -8,6 +8,7 @@ const dedent = require('dedent');
 const CompileCache = require('./compile-cache');
 const ModuleCache = require('./module-cache');
 const BufferedProcess = require('./buffered-process');
+const { requireX } = require('./module-utils');
 
 // Extended: Loads and activates a package's main module and resources such as
 // stylesheets, keymaps, grammar, editor properties, and menus.
@@ -881,7 +882,7 @@ module.exports = class Package {
   requireMainModule() {
     if (this.bundledPackage && this.packageManager.packagesCache[this.name]) {
       if (this.packageManager.packagesCache[this.name].main) {
-        this.mainModule = this._require(
+        this.mainModule = requireX(
           this.packageManager.packagesCache[this.name].main
         );
         return this.mainModule;
@@ -905,7 +906,7 @@ module.exports = class Package {
 
         const previousViewProviderCount = this.viewRegistry.getViewProviderCount();
         const previousDeserializerCount = this.deserializerManager.getDeserializerCount();
-        this.mainModule = this._require(mainModulePath);
+        this.mainModule = requireX(mainModulePath);
         if (
           this.viewRegistry.getViewProviderCount() ===
             previousViewProviderCount &&
@@ -918,26 +919,6 @@ module.exports = class Package {
           );
         }
         return this.mainModule;
-      }
-    }
-  }
-
-  // a require function with both ES5 and ES6 default export support
-  _require(path) {
-    const modul = require(path);
-    if (modul === null || modul === undefined) {
-      // if null do not bother
-      return modul;
-    } else {
-      if (
-        modul.__esModule === true &&
-        typeof modul.default === 'object'
-      ) {
-        // __esModule flag is true and default is exported, which means that
-        // an object containing the main functions (e.g. activate, etc) is default exported
-        return modul.default;
-      } else {
-        return modul;
       }
     }
   }
