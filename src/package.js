@@ -8,7 +8,7 @@ const dedent = require('dedent');
 const CompileCache = require('./compile-cache');
 const ModuleCache = require('./module-cache');
 const BufferedProcess = require('./buffered-process');
-const { requireX } = require('./module-utils');
+const { requireModule } = require('./module-utils');
 
 // Extended: Loads and activates a package's main module and resources such as
 // stylesheets, keymaps, grammar, editor properties, and menus.
@@ -882,7 +882,7 @@ module.exports = class Package {
   requireMainModule() {
     if (this.bundledPackage && this.packageManager.packagesCache[this.name]) {
       if (this.packageManager.packagesCache[this.name].main) {
-        this.mainModule = requireX(
+        this.mainModule = requireModule(
           this.packageManager.packagesCache[this.name].main
         );
         return this.mainModule;
@@ -906,7 +906,7 @@ module.exports = class Package {
 
         const previousViewProviderCount = this.viewRegistry.getViewProviderCount();
         const previousDeserializerCount = this.deserializerManager.getDeserializerCount();
-        this.mainModule = requireX(mainModulePath);
+        this.mainModule = requireModule(mainModulePath);
         if (
           this.viewRegistry.getViewProviderCount() ===
             previousViewProviderCount &&

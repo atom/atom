@@ -1,5 +1,5 @@
 // a require function with both ES5 and ES6 default export support
-function requireX(path) {
+function requireModule(path) {
   const modul = require(path);
   if (modul === null || modul === undefined) {
     // if null do not bother
@@ -18,4 +18,4 @@ function requireX(path) {
   }
 }
 
-exports.requireX = requireX;
+exports.requireModule = requireModule;
