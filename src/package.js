@@ -931,10 +931,9 @@ module.exports = class Package {
     } else {
       if (
         modul.__esModule === true &&
-        typeof modul.default === 'object' &&
-        typeof modul.default.activate === 'function'
+        typeof modul.default === 'object'
       ) {
-        // __esModule flag is true and the activate function exists inside it, which means
+        // __esModule flag is true and default is exported, which means that
         // an object containing the main functions (e.g. activate, etc) is default exported
         return modul.default;
       } else {
