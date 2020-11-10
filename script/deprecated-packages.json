@@ -1035,9 +1035,9 @@
     "latestHasDeprecations": true
   },
   "minimap": {
-    "version": "<=3.5.6",
-    "hasDeprecations": true,
-    "latestHasDeprecations": false
+    "hasAlternative": true,
+    "message": "`minimap` has been replaced by `minimap-plus`. Please install `minimap-plus` instead",
+    "alternative": "minimap-plus"
   },
   "minimap-color-highlight": {
     "version": "<=4.1.3",
