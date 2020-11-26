@@ -49,7 +49,9 @@ module.exports = class AtomWindow extends EventEmitter {
         // (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
-        webviewTag: true
+        webviewTag: true,
+        // multi-threading
+        nodeIntegrationInWorker: true
       },
       simpleFullscreen: this.getSimpleFullscreen()
     };

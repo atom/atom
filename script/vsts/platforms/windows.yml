@@ -35,7 +35,6 @@ jobs:
 
       - template: templates/test.yml
 
-
       - pwsh: |
           if ($env:BUILD_ARCH -eq "x64") {
             $env:FileID="-x64"
@@ -116,5 +115,5 @@ jobs:
           artifacts:
             -  atom$(FileID)-windows.zip
 
-      #  Core renderer tests
+      #  tests
       - template: templates/test.yml

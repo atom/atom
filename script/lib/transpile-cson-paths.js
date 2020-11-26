@@ -7,12 +7,12 @@ const path = require('path');
 
 const CONFIG = require('../config');
 
-module.exports = function() {
+function transpileCsonPaths() {
   console.log(`Transpiling CSON paths in ${CONFIG.intermediateAppPath}`);
   for (let path of getPathsToTranspile()) {
     transpileCsonPath(path);
   }
-};
+}
 
 function getPathsToTranspile() {
   let paths = [];
@@ -53,3 +53,7 @@ function transpileCsonPath(csonPath) {
   );
   fs.unlinkSync(csonPath);
 }
+
+const { expose } = require(`${CONFIG.scriptRunnerModulesPath}/threads/worker`);
+expose(transpileCsonPaths);
+module.exports = transpileCsonPaths;

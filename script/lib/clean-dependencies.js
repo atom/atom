@@ -10,23 +10,25 @@ module.exports = function() {
   const fs = require('fs-extra');
   const glob = require('glob');
 
+  const rmPromises = [];
+
   const apmDependenciesPath = path.join(CONFIG.apmRootPath, 'node_modules');
   console.log(`Cleaning ${apmDependenciesPath}`);
-  fs.removeSync(apmDependenciesPath);
+  rmPromises.push(fs.remove(apmDependenciesPath));
 
   const atomDependenciesPath = path.join(
     CONFIG.repositoryRootPath,
     'node_modules'
   );
   console.log(`Cleaning ${atomDependenciesPath}`);
-  fs.removeSync(atomDependenciesPath);
+  rmPromises.push(fs.remove(atomDependenciesPath));
 
   const scriptDependenciesPath = path.join(
     CONFIG.scriptRootPath,
     'node_modules'
   );
   console.log(`Cleaning ${scriptDependenciesPath}`);
-  fs.removeSync(scriptDependenciesPath);
+  rmPromises.push(fs.remove(scriptDependenciesPath));
 
   const bundledPackageDependenciesPaths = path.join(
     CONFIG.repositoryRootPath,
@@ -37,6 +39,8 @@ module.exports = function() {
   for (const bundledPackageDependencyPath of glob.sync(
     bundledPackageDependenciesPaths
   )) {
-    fs.removeSync(bundledPackageDependencyPath);
+    rmPromises.push(fs.remove(bundledPackageDependencyPath));
   }
+
+  return Promise.all(rmPromises);
 };

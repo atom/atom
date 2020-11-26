@@ -11,6 +11,7 @@ const uploadToS3 = require('./lib/upload-to-s3');
 const uploadLinuxPackages = require('./lib/upload-linux-packages');
 
 const CONFIG = require('../config');
+const { REPO_OWNER, MAIN_REPO, NIGHTLY_RELEASE_REPO } = CONFIG;
 
 const yargs = require('yargs');
 const argv = yargs
@@ -60,27 +61,43 @@ async function uploadArtifacts() {
     return;
   }
 
-  console.log(
-    `Uploading ${
-      assets.length
-    } release assets for ${releaseVersion} to S3 under '${bucketPath}'`
-  );
+  if (
+    process.env.ATOM_RELEASES_S3_KEY &&
+    process.env.ATOM_RELEASES_S3_SECRET &&
+    process.env.ATOM_RELEASES_S3_BUCKET
+  ) {
+    console.log(
+      `Uploading ${
+        assets.length
+      } release assets for ${releaseVersion} to S3 under '${bucketPath}'`
+    );
 
-  await uploadToS3(
-    process.env.ATOM_RELEASES_S3_KEY,
-    process.env.ATOM_RELEASES_S3_SECRET,
-    process.env.ATOM_RELEASES_S3_BUCKET,
-    bucketPath,
-    assets
-  );
-
-  if (argv.linuxRepoName) {
-    await uploadLinuxPackages(
-      argv.linuxRepoName,
-      process.env.PACKAGE_CLOUD_API_KEY,
-      releaseVersion,
+    await uploadToS3(
+      process.env.ATOM_RELEASES_S3_KEY,
+      process.env.ATOM_RELEASES_S3_SECRET,
+      process.env.ATOM_RELEASES_S3_BUCKET,
+      bucketPath,
       assets
     );
+  } else {
+    console.log(
+      '\nEnvironment variables "ATOM_RELEASES_S3_BUCKET", "ATOM_RELEASES_S3_KEY" and/or "ATOM_RELEASES_S3_SECRET" are not set, skipping S3 upload.'
+    );
+  }
+
+  if (argv.linuxRepoName) {
+    if (process.env.PACKAGE_CLOUD_API_KEY) {
+      await uploadLinuxPackages(
+        argv.linuxRepoName,
+        process.env.PACKAGE_CLOUD_API_KEY,
+        releaseVersion,
+        assets
+      );
+    } else {
+      console.log(
+        '\nEnvironment variable "PACKAGE_CLOUD_API_KEY" is not set, skipping PackageCloud upload.'
+      );
+    }
   } else {
     console.log(
       '\nNo Linux package repo name specified, skipping Linux package upload.'
@@ -127,13 +144,13 @@ async function uploadArtifacts() {
       ? spawnSync('git', ['rev-parse', 'HEAD'])
           .stdout.toString()
           .trimEnd()
-      : 'master'; // Nightly tags are created in atom/atom-nightly-releases so the SHA is irrelevant
+      : 'master'; // Nightly tags are created in REPO_OWNER/NIGHTLY_RELEASE_REPO so the SHA is irrelevant
 
     console.log(`Creating GitHub release v${releaseVersion}`);
     const release = await publishReleaseAsync({
       token: process.env.GITHUB_TOKEN,
-      owner: 'atom',
-      repo: !isNightlyRelease ? 'atom' : 'atom-nightly-releases',
+      owner: REPO_OWNER,
+      repo: !isNightlyRelease ? MAIN_REPO : NIGHTLY_RELEASE_REPO,
       name: CONFIG.computedAppVersion,
       notes: newReleaseNotes,
       target_commitish: releaseSha,
