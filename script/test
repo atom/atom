@@ -214,10 +214,7 @@ function isTimedOut(stderrOutput) {
   if (stderrOutput) {
     return (
       stderrOutput.includes('timeout: timed out after') || // happens in core renderer tests
-      stderrOutput.includes('Error: timeout of') || // happens in core main tests
-      stderrOutput.includes(
-        'Error Downloading Update: Could not get code signature for running application'
-      ) // happens in github tests
+      stderrOutput.includes('Error: timeout of') // happens in core main tests
     );
   } else {
     return false;
