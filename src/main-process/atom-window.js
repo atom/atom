@@ -49,7 +49,10 @@ module.exports = class AtomWindow extends EventEmitter {
         // (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
-        webviewTag: true
+        webviewTag: true,
+
+        // TodoElectronIssue: remote module is deprecated https://www.electronjs.org/docs/breaking-changes#default-changed-enableremotemodule-defaults-to-false
+        enableRemoteModule: true
       },
       simpleFullscreen: this.getSimpleFullscreen()
     };
