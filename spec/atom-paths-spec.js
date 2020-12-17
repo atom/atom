@@ -1,10 +1,9 @@
 /** @babel */
 
-import { remote } from 'electron';
+import { app } from 'remote';
 import atomPaths from '../src/atom-paths';
 import fs from 'fs-plus';
 import path from 'path';
-const app = remote.app;
 const temp = require('temp').track();
 
 describe('AtomPaths', () => {

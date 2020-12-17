@@ -1,7 +1,7 @@
 const path = require('path');
 const http = require('http');
 const temp = require('temp').track();
-const { remote } = require('electron');
+const remote = require('remote');
 const { once } = require('underscore-plus');
 const { spawn } = require('child_process');
 const webdriverio = require('../../../script/node_modules/webdriverio');
