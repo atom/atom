@@ -1,6 +1,6 @@
 const { Disposable } = require('atom');
 const etch = require('etch');
-const shell = require('shell');
+const { shell } = require('electron');
 const AtomLogo = require('./atom-logo');
 const EtchComponent = require('../etch-component');
 const UpdateView = require('./update-view');
