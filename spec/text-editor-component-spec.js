@@ -723,7 +723,7 @@ describe('TextEditorComponent', () => {
       expect(hiddenInput.getBoundingClientRect().top).toBe(
         clientTopForLine(component, 7)
       );
-      expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(
+      expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBeNear(
         clientLeftForCharacter(component, 7, 4)
       );
     });
@@ -1483,7 +1483,7 @@ describe('TextEditorComponent', () => {
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
         editor.horizontalScrollMargin *
           component.measurements.baseCharacterWidth;
-      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0);
+      expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
 
       editor.scrollToScreenRange([[1, 12], [2, 28]], { reversed: false });
       await component.getNextUpdatePromise();
@@ -1494,7 +1494,7 @@ describe('TextEditorComponent', () => {
         editor.horizontalScrollMargin *
           component.measurements.baseCharacterWidth -
         component.getScrollContainerClientWidth();
-      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0);
+      expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
     });
 
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
@@ -2247,10 +2247,10 @@ describe('TextEditorComponent', () => {
         expect(regionRect.top).toBe(
           lineNodeForScreenRow(component, 1).getBoundingClientRect().top
         );
-        expect(Math.round(regionRect.left)).toBe(
+        expect(Math.round(regionRect.left)).toBeNear(
           clientLeftForCharacter(component, 1, 2)
         );
-        expect(Math.round(regionRect.right)).toBe(
+        expect(Math.round(regionRect.right)).toBeNear(
           clientLeftForCharacter(component, 1, 10)
         );
       }
@@ -2268,10 +2268,10 @@ describe('TextEditorComponent', () => {
         expect(regionRect.bottom).toBe(
           lineNodeForScreenRow(component, 1).getBoundingClientRect().bottom
         );
-        expect(Math.round(regionRect.left)).toBe(
+        expect(Math.round(regionRect.left)).toBeNear(
           clientLeftForCharacter(component, 1, 4)
         );
-        expect(Math.round(regionRect.right)).toBe(
+        expect(Math.round(regionRect.right)).toBeNear(
           clientLeftForCharacter(component, 1, 8)
         );
       }
@@ -2296,10 +2296,10 @@ describe('TextEditorComponent', () => {
         expect(region0Rect.bottom).toBe(
           lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom
         );
-        expect(Math.round(region0Rect.left)).toBe(
+        expect(Math.round(region0Rect.left)).toBeNear(
           clientLeftForCharacter(component, 2, 4)
         );
-        expect(Math.round(region0Rect.right)).toBe(
+        expect(Math.round(region0Rect.right)).toBeNear(
           component.refs.content.getBoundingClientRect().right
         );
 
@@ -2310,10 +2310,10 @@ describe('TextEditorComponent', () => {
         expect(region1Rect.bottom).toBe(
           lineNodeForScreenRow(component, 3).getBoundingClientRect().bottom
         );
-        expect(Math.round(region1Rect.left)).toBe(
+        expect(Math.round(region1Rect.left)).toBeNear(
           clientLeftForCharacter(component, 3, 0)
         );
-        expect(Math.round(region1Rect.right)).toBe(
+        expect(Math.round(region1Rect.right)).toBeNear(
           clientLeftForCharacter(component, 3, 4)
         );
       }
@@ -2334,10 +2334,10 @@ describe('TextEditorComponent', () => {
         expect(region0Rect.bottom).toBe(
           lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom
         );
-        expect(Math.round(region0Rect.left)).toBe(
+        expect(Math.round(region0Rect.left)).toBeNear(
           clientLeftForCharacter(component, 2, 4)
         );
-        expect(Math.round(region0Rect.right)).toBe(
+        expect(Math.round(region0Rect.right)).toBeNear(
           component.refs.content.getBoundingClientRect().right
         );
 
@@ -2365,7 +2365,7 @@ describe('TextEditorComponent', () => {
         expect(Math.round(region2Rect.left)).toBe(
           component.refs.content.getBoundingClientRect().left
         );
-        expect(Math.round(region2Rect.right)).toBe(
+        expect(Math.round(region2Rect.right)).toBeNear(
           clientLeftForCharacter(component, 5, 4)
         );
       }
@@ -2599,13 +2599,13 @@ describe('TextEditorComponent', () => {
       expect(overlayWrapper.getBoundingClientRect().top).toBe(
         clientTopForLine(component, 5)
       );
-      expect(overlayWrapper.getBoundingClientRect().left).toBe(
+      expect(overlayWrapper.getBoundingClientRect().left).toBeNear(
         clientLeftForCharacter(component, 4, 25)
       );
 
       // Updates the horizontal position on scroll
       await setScrollLeft(component, 150);
-      expect(overlayWrapper.getBoundingClientRect().left).toBe(
+      expect(overlayWrapper.getBoundingClientRect().left).toBeNear(
         clientLeftForCharacter(component, 4, 25)
       );
 
@@ -5761,7 +5761,7 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(
           clientTopForLine(referenceComponent, 0) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 0, 5) -
             referenceContentRect.left
         );
@@ -5775,7 +5775,7 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(
           clientTopForLine(referenceComponent, 12) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 12, 1) -
             referenceContentRect.left
         );
@@ -5792,7 +5792,7 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(
           clientTopForLine(referenceComponent, 3) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 3, 5) -
             referenceContentRect.left
         );
