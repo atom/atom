@@ -1,0 +1,25 @@
+name: Pull Request spam checker
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  SpamCheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check Pull Request comments
+        uses: atom-ide-community/check-pr-comments-action@v0.0.3
+        with:
+          comments-must-contain: '### Description'
+          comments-must-not-contain: 'Hello there! Welcome. Please follow the steps below to tell us about your contribution'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Spamtoberfest
+        uses: atom-ide-community/spamtoberfest@v1.1
+        with:
+          action-type: close
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
