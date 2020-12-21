@@ -102,17 +102,7 @@ const createSocketSecret = async atomVersion => {
 
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options);
-
-  // Even if the following IV is not cryptographically secure, there's a really good chance
-  // it's going to be unique between executions which is the requirement for GCM.
-  // We're not using `crypto.randomBytes()` because in electron v2, that API is really slow
-  // on Windows machines, which affects the startup time of Atom.
-  // TodoElectronIssue: Once we upgrade to electron v3 we can use `crypto.randomBytes()`
-  const initVectorHash = crypto.createHash('sha1');
-  initVectorHash.update(Date.now() + '');
-  initVectorHash.update(Math.random() + '');
-  const initVector = initVectorHash.digest();
-
+  const initVector = crypto.randomBytes(16); // AES uses 16 bytes for iV
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector);
 
   let content = cipher.update(message, 'utf8', 'hex');
