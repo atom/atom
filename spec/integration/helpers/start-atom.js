@@ -53,13 +53,6 @@ const chromeDriverDown = done => {
 };
 
 const buildAtomClient = async (args, env) => {
-  // Since ChromeDriver v2.41, ChromeDriver will only connect if, either we precise a port
-  // for remote debugging, either the embedder (ie electron) made sure to pass `USER_DATA_DIR`
-  // to the remote debugging server.
-  // So, for now, we'll just use a random port (we don't care about its value since we're not
-  // connecting through it).
-  // (inspired by https://github.com/electron/spectron/pull/361/commits/737db138bd8a6daaf80f9c2bff710ce4a5fff39b).
-
   const userDataDir = temp.mkdirSync('atom-user-data-dir');
   const client = await webdriverio.remote({
     host: 'localhost',
