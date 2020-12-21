@@ -486,12 +486,12 @@ describe('TextEditorComponent', () => {
 
         expect(getHorizontalScrollbarHeight(component)).toBeNear(10);
         expect(getVerticalScrollbarWidth(component)).toBeNear(10);
-        expect(component.refs.horizontalScrollbar.element.style.right).toHaveNearPixels(
-          '10px'
-        );
-        expect(component.refs.verticalScrollbar.element.style.bottom).toHaveNearPixels(
-          '10px'
-        );
+        expect(
+          component.refs.horizontalScrollbar.element.style.right
+        ).toHaveNearPixels('10px');
+        expect(
+          component.refs.verticalScrollbar.element.style.bottom
+        ).toHaveNearPixels('10px');
         expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeNear(
           10
         );
@@ -507,12 +507,12 @@ describe('TextEditorComponent', () => {
 
         expect(getHorizontalScrollbarHeight(component)).toBeNear(10);
         expect(getVerticalScrollbarWidth(component)).toBeNear(10);
-        expect(component.refs.horizontalScrollbar.element.style.right).toHaveNearPixels(
-          '10px'
-        );
-        expect(component.refs.verticalScrollbar.element.style.bottom).toHaveNearPixels(
-          '10px'
-        );
+        expect(
+          component.refs.horizontalScrollbar.element.style.right
+        ).toHaveNearPixels('10px');
+        expect(
+          component.refs.verticalScrollbar.element.style.bottom
+        ).toHaveNearPixels('10px');
         expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeNear(
           10
         );
