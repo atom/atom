@@ -1,0 +1,35 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:hoek:20180212':
+    - less-cache > less > request > hawk > hoek:
+        patched: '2020-12-21T15:13:17.836Z'
+    - less-cache > less > request > hawk > boom > hoek:
+        patched: '2020-12-21T15:13:17.836Z'
+    - less-cache > less > request > hawk > sntp > hoek:
+        patched: '2020-12-21T15:13:17.836Z'
+    - less-cache > less > request > hawk > cryptiles > boom > hoek:
+        patched: '2020-12-21T15:13:17.836Z'
+  SNYK-JS-LODASH-567746:
+    - mocha-multi-reporters > lodash:
+        patched: '2020-12-21T15:13:17.836Z'
+    - markdown-preview > cheerio > lodash:
+        patched: '2020-12-21T15:13:17.836Z'
+  'npm:lodash:20180130':
+    - babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2020-12-21T15:13:17.836Z'
+  'npm:minimatch:20160620':
+    - scandal > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
+    - settings-view > glob > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
+    - tree-view > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
+    - jasmine-tagged > jasmine-focused > jasmine-node > gaze > fileset > glob > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
+    - jasmine-tagged > jasmine-focused > jasmine-node > gaze > fileset > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
+    - jasmine-tagged > jasmine-focused > jasmine-node > gaze > minimatch:
+        patched: '2020-12-21T15:13:17.836Z'
