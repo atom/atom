@@ -16,7 +16,7 @@
   "dependencies": {
     "@atom/nsfw": "1.0.26",
     "@atom/source-map-support": "^0.3.4",
-    "@atom/watcher": "1.3.4-0",
+    "@atom/watcher": "1.3.5",
     "about": "file:packages/about",
     "archive-view": "https://www.atom.io/api/packages/archive-view/versions/0.65.2/tarball",
     "async": "3.2.0",
@@ -33,7 +33,7 @@
     "autocomplete-snippets": "https://www.atom.io/api/packages/autocomplete-snippets/versions/1.12.1/tarball",
     "autoflow": "file:packages/autoflow",
     "autosave": "https://www.atom.io/api/packages/autosave/versions/0.24.6/tarball",
-    "babel-core": "5.8.38",
+    "babel-core": "6.10.4",
     "background-tips": "https://www.atom.io/api/packages/background-tips/versions/0.28.0/tarball",
     "base16-tomorrow-dark-theme": "file:packages/base16-tomorrow-dark-theme",
     "base16-tomorrow-light-theme": "file:packages/base16-tomorrow-light-theme",
@@ -168,7 +168,8 @@
     "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.7/tarball",
     "winreg": "^1.2.1",
     "wrap-guide": "https://www.atom.io/api/packages/wrap-guide/versions/0.41.0/tarball",
-    "yargs": "16.1.0"
+    "yargs": "16.1.0",
+    "snyk": "^1.437.2"
   },
   "packageDependencies": {
     "atom-dark-syntax": "file:./packages/atom-dark-syntax",
@@ -268,7 +269,9 @@
   "private": true,
   "scripts": {
     "preinstall": "node -e 'process.exit(0)'",
-    "test": "node script/test"
+    "test": "node script/test",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "standard-engine": "./script/node_modules/standard",
   "standard": {
@@ -282,5 +285,6 @@
       "atom",
       "snapshotResult"
     ]
-  }
+  },
+  "snyk": true
 }
