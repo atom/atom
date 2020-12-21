@@ -266,8 +266,8 @@ addCustomMatchers = (spec) ->
       return (typeof expected is 'number') and (typeof acceptedError is 'number') and (typeof @actual is 'number') and (expected - acceptedError <= @actual) and (@actual <= expected + acceptedError)
 
     toHaveNearPixels: (expected, acceptedError = 1, actual) ->
-      expectedNumber =  parseInt(expected, 10)
-      actualNumber =  parseInt(@actual, 10)
+      expectedNumber =  parseFloat(expected)
+      actualNumber =  parseFloat(@actual)
       return (typeof expected is 'string') and (typeof acceptedError is 'number') and (typeof @actual is 'string') and (expected.indexOf('px') >= 1) and (@actual.indexOf('px') >= 1) and (expectedNumber - acceptedError <= actualNumber) and (actualNumber <= expectedNumber + acceptedError)
 
 window.waitsForPromise = (args...) ->
