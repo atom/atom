@@ -268,11 +268,6 @@ module.exports = class AtomApplication extends EventEmitter {
       this.safeMode
     );
 
-    // Don't await for the following method to avoid delaying the opening of a new window.
-    // (we await it just after opening it).
-    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
-    // which is really slow on Windows machines.
-    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
     let socketServerPromise;
     if (options.test || options.benchmark || options.benchmarkTest) {
       socketServerPromise = Promise.resolve();
@@ -280,11 +275,11 @@ module.exports = class AtomApplication extends EventEmitter {
       socketServerPromise = this.listenForArgumentsFromNewProcess();
     }
 
+    await socketServerPromise;
     this.setupDockMenu();
 
     const result = await this.launch(options);
     this.autoUpdateManager.initialize();
-    await socketServerPromise;
 
     StartupTime.addMarker('main-process:atom-application:initialize:end');
 
