@@ -69,7 +69,7 @@ const buildAtomClient = async (args, env) => {
             .join(' ')}`,
           'dev',
           'safe',
-          `user-data-dir=${userDataDir}`,
+          `user-data-dir=${userDataDir}`
         ]
       }
     }
