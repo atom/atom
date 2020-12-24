@@ -5,6 +5,7 @@ const ScopeDescriptor = require('./scope-descriptor');
 
 const EDITOR_PARAMS_BY_SETTING_KEY = [
   ['core.fileEncoding', 'encoding'],
+  ['core.fileEncodingAutoDetect', 'detectEncoding'],
   ['editor.atomicSoftTabs', 'atomicSoftTabs'],
   ['editor.showInvisibles', 'showInvisibles'],
   ['editor.tabLength', 'tabLength'],
