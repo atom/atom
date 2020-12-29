@@ -446,7 +446,7 @@ describe('TextEditorElement', () => {
       expect(pixelRect.height).toEqual(
         bottom + editor.getLineHeightInPixels() - top
       );
-      expect(pixelRect.width).toBeCloseTo(right - left);
+      expect(pixelRect.width).toBeNear(right - left);
     });
   });
 
