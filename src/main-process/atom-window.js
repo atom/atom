@@ -327,7 +327,19 @@ module.exports = class AtomWindow extends EventEmitter {
   }
 
   replaceEnvironment(env) {
-    this.browserWindow.webContents.send('environment', env);
+    const {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    } = env;
+
+    this.browserWindow.webContents.send('environment', {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    });
   }
 
   sendMessage(message, detail) {
