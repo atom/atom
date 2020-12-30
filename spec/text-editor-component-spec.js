@@ -965,6 +965,7 @@ describe('TextEditorComponent', () => {
           '0',
           '1',
           '2',
+          '2',
           '3',
           '3',
           '4',
@@ -1001,7 +1002,8 @@ describe('TextEditorComponent', () => {
           '15',
           '16',
           '17',
-          '18'
+          '18',
+          '19'
         ]);
       }
 
@@ -1018,6 +1020,7 @@ describe('TextEditorComponent', () => {
           '0',
           '1',
           '2',
+          '3',
           '3',
           '4',
           '4',
@@ -1056,7 +1059,8 @@ describe('TextEditorComponent', () => {
           '16',
           '17',
           '18',
-          '19'
+          '19',
+          '20'
         ]);
       }
     });
