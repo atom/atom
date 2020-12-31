@@ -9,7 +9,7 @@
     "atom": ">0.50.0"
   },
   "dependencies": {
-    "etch": "^0.12.2"
+    "etch": "^0.14.1"
   },
   "consumedServices": {
     "status-bar": {
