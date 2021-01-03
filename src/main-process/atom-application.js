@@ -458,10 +458,8 @@ module.exports = class AtomApplication extends EventEmitter {
       if (this.applicationMenu != null) {
         this.applicationMenu.enableWindowSpecificItems(false);
       }
-      if (['win32', 'linux'].includes(process.platform)) {
-        app.quit();
-        return;
-      }
+      app.quit();
+      return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
   }

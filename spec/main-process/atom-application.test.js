@@ -1107,19 +1107,11 @@ describe('AtomApplication', function() {
   });
 
   describe('when closing the last window', function() {
-    if (process.platform === 'linux' || process.platform === 'win32') {
-      it('quits the application', async function() {
-        const [w] = await scenario.launch(parseCommandLine(['a']));
-        scenario.getApplication(0).removeWindow(w);
-        assert.isTrue(electron.app.quit.called);
-      });
-    } else if (process.platform === 'darwin') {
-      it('leaves the application open', async function() {
-        const [w] = await scenario.launch(parseCommandLine(['a']));
-        scenario.getApplication(0).removeWindow(w);
-        assert.isFalse(electron.app.quit.called);
-      });
-    }
+    it('quits the application', async function() {
+      const [w] = await scenario.launch(parseCommandLine(['a']));
+      scenario.getApplication(0).removeWindow(w);
+      assert.isTrue(electron.app.quit.called);
+    });
   });
 
   describe('quitting', function() {
