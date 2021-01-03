@@ -4,7 +4,7 @@
   "dependencies": {
     "7zip-bin": "^4.0.2",
     "async": "2.0.1",
-    "babel-core": "5.8.38",
+    "babel-core": "6.9.0",
     "babel-eslint": "^10.0.1",
     "cheerio": "1.0.0-rc.2",
     "coffeelint": "1.15.7",
