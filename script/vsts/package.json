@@ -7,7 +7,7 @@
     "download": "^7.1.0",
     "glob": "7.0.3",
     "pr-changelog": "^0.3.2",
-    "publish-release": "^1.6.0",
+    "publish-release": "^1.6.1",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "semver": "5.3.0",
