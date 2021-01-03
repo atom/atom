@@ -1,0 +1,131 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:extend:20180424':
+    - npm > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - webdriverio > webdriver > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > node-gyp > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-client > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - electron-chromedriver > electron-download > nugget > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - electron-packager > electron-download > nugget > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - electron-mksnapshot > electron-download > nugget > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - electron-packager > asar > mksnapshot > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-lifecycle > node-gyp > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - stylelint > postcss-markdown > remark > unified > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > extend:
+        patched: '2021-01-03T16:53:24.517Z'
+  'npm:hoek:20180212':
+    - npm > request > hawk > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > request > hawk > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > request > hawk > sntp > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > node-gyp > request > hawk > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-client > request > hawk > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > request > hawk > cryptiles > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > node-gyp > request > hawk > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-client > request > hawk > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > node-gyp > request > hawk > sntp > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-client > request > hawk > sntp > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-client > request > hawk > cryptiles > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > sntp > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-lifecycle > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > sntp > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > npm-lifecycle > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2021-01-03T16:53:24.517Z'
+  SNYK-JS-HTTPSPROXYAGENT-469131:
+    - npm > pacote > make-fetch-happen > https-proxy-agent:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-profile > make-fetch-happen > https-proxy-agent:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > npm-registry-fetch > make-fetch-happen > https-proxy-agent:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libcipm > pacote > make-fetch-happen > https-proxy-agent:
+        patched: '2021-01-03T16:53:24.517Z'
+    - npm > libnpmhook > npm-registry-fetch > make-fetch-happen > https-proxy-agent:
+        patched: '2021-01-03T16:53:24.517Z'
+  SNYK-JS-LODASH-567746:
+    - async > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - cheerio > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - stylelint > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - donna > async > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - stylelint > postcss-reporter > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - stylelint > table > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - eslint > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - eslint-plugin-import > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - eslint > inquirer > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - eslint > table > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/generator > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/generator > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/helper-get-function-arity > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-eslint > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+  'npm:lodash:20180130':
+    - babel-core > babel-plugin-proto-to-assign > lodash:
+        patched: '2021-01-03T16:53:24.517Z'
+  'npm:minimatch:20160620':
+    - glob > minimatch:
+        patched: '2021-01-03T16:53:24.517Z'
+    - babel-core > regenerator > commoner > glob > minimatch:
+        patched: '2021-01-03T16:53:24.517Z'
+    - legal-eagle > read-installed > read-package-json > glob > minimatch:
+        patched: '2021-01-03T16:53:24.517Z'
+    - stylelint > file-entry-cache > flat-cache > del > globby > glob > minimatch:
+        patched: '2021-01-03T16:53:24.517Z'
