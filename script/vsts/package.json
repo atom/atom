@@ -3,7 +3,7 @@
   "description": "Atom release scripts",
   "dependencies": {
     "@octokit/rest": "^15.9.5",
-    "aws-sdk": "^2.5.2",
+    "aws-sdk": "^2.808.0",
     "download": "^7.1.0",
     "glob": "7.0.3",
     "pr-changelog": "^0.3.2",
