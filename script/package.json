@@ -4,7 +4,7 @@
   "dependencies": {
     "7zip-bin": "^4.0.2",
     "async": "2.0.1",
-    "babel-core": "6.9.0",
+    "babel-core": "5.8.38",
     "babel-eslint": "^10.0.1",
     "cheerio": "1.0.0-rc.2",
     "coffeelint": "1.15.7",
@@ -47,6 +47,12 @@
     "tello": "1.2.0",
     "terser": "^3.8.1",
     "webdriverio": "^5.9.2",
-    "yargs": "4.8.1"
-  }
+    "yargs": "4.8.1",
+    "snyk": "^1.437.3"
+  },
+  "scripts": {
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
+  },
+  "snyk": true
 }
