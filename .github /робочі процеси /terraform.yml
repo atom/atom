@@ -88,3 +88,10 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
       run: terraform apply -auto-approve
+- name: Download a Build Artifact
+  uses: actions/download-artifact@v2.0.7
+  with:
+    # Artifact name
+    name: # optional
+    # Destination path
+    path: # optional
