@@ -33,7 +33,7 @@
     "ConsentView": "createConsentView"
   },
   "dependencies": {
-    "etch": "0.9.0"
+    "etch": "0.14.1"
   },
   "devDependencies": {
     "atom-mocha-test-runner": "^1.0.0",
