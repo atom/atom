@@ -104,14 +104,6 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
     })
   );
 
-  // Don't quit when the last window is closed on macOS. Overrides the default Electron behavior.
-  // See: https://github.com/electron/electron/blob/v11.1.1/docs/api/app.md#event-window-all-closed
-  app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
-  });
-
   if (args.userDataDir != null) {
     app.setPath('userData', args.userDataDir);
   } else if (args.test || args.benchmark || args.benchmarkTest) {

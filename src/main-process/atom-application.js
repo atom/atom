@@ -773,6 +773,16 @@ module.exports = class AtomApplication extends EventEmitter {
       })
     );
 
+    // Don't quit when the last window is closed on macOS. Overrides the default Electron behavior.
+    // See: https://github.com/electron/electron/blob/v11.1.1/docs/api/app.md#event-window-all-closed
+    this.disposable.add(
+      ipcHelpers.on(app, 'window-all-closed', () => {
+        if (process.platform !== 'darwin') {
+          app.quit();
+        }
+      })
+    );
+
     // Triggered by the 'open-file' event from Electron:
     // https://electronjs.org/docs/api/app#event-open-file-macos
     // For example, this is fired when a file is dragged and dropped onto the Atom application icon in the dock.
