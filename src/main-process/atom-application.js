@@ -455,8 +455,7 @@ module.exports = class AtomApplication extends EventEmitter {
   removeWindow(window) {
     this.windowStack.removeWindow(window);
     if (this.getAllWindows().length === 0 && process.platform !== 'darwin') {
-      // We should be quitting now in the 'window-all-closed' event handler.
-      // We can skip anything past this point in removeWindow().
+      app.quit();
       return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
