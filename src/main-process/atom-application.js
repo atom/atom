@@ -768,13 +768,13 @@ module.exports = class AtomApplication extends EventEmitter {
       })
     );
 
-    // Don't quit when the last window is closed on macOS. Overrides the default Electron behavior.
-    // See: https://github.com/electron/electron/blob/v11.1.1/docs/api/app.md#event-window-all-closed
+    // See: https://www.electronjs.org/docs/api/app#event-window-all-closed
     this.disposable.add(
       ipcHelpers.on(app, 'window-all-closed', () => {
         if (this.applicationMenu != null) {
           this.applicationMenu.enableWindowSpecificItems(false);
         }
+        // Don't quit when the last window is closed on macOS.
         if (process.platform !== 'darwin') {
           app.quit();
         }
