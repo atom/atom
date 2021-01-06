@@ -454,14 +454,10 @@ module.exports = class AtomApplication extends EventEmitter {
   // Public: Removes the {AtomWindow} from the global window list.
   removeWindow(window) {
     this.windowStack.removeWindow(window);
-    if (this.getAllWindows().length === 0) {
-      if (this.applicationMenu != null) {
-        this.applicationMenu.enableWindowSpecificItems(false);
-      }
-      if (['win32', 'linux'].includes(process.platform)) {
-        app.quit();
-        return;
-      }
+    if (this.getAllWindows().length === 0 && process.platform !== 'darwin') {
+      // We should be quitting now in the 'window-all-closed' event handler.
+      // We can skip anything past this point in removeWindow().
+      return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
   }
@@ -777,6 +773,9 @@ module.exports = class AtomApplication extends EventEmitter {
     // See: https://github.com/electron/electron/blob/v11.1.1/docs/api/app.md#event-window-all-closed
     this.disposable.add(
       ipcHelpers.on(app, 'window-all-closed', () => {
+        if (this.applicationMenu != null) {
+          this.applicationMenu.enableWindowSpecificItems(false);
+        }
         if (process.platform !== 'darwin') {
           app.quit();
         }
