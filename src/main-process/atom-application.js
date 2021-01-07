@@ -454,14 +454,9 @@ module.exports = class AtomApplication extends EventEmitter {
   // Public: Removes the {AtomWindow} from the global window list.
   removeWindow(window) {
     this.windowStack.removeWindow(window);
-    if (this.getAllWindows().length === 0) {
-      if (this.applicationMenu != null) {
-        this.applicationMenu.enableWindowSpecificItems(false);
-      }
-      if (['win32', 'linux'].includes(process.platform)) {
-        app.quit();
-        return;
-      }
+    if (this.getAllWindows().length === 0 && process.platform !== 'darwin') {
+      app.quit();
+      return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
   }
@@ -770,6 +765,19 @@ module.exports = class AtomApplication extends EventEmitter {
           this.deleteSocketFile(),
           this.deleteSocketSecretFile()
         ]);
+      })
+    );
+
+    // See: https://www.electronjs.org/docs/api/app#event-window-all-closed
+    this.disposable.add(
+      ipcHelpers.on(app, 'window-all-closed', () => {
+        if (this.applicationMenu != null) {
+          this.applicationMenu.enableWindowSpecificItems(false);
+        }
+        // Don't quit when the last window is closed on macOS.
+        if (process.platform !== 'darwin') {
+          app.quit();
+        }
       })
     );
 
