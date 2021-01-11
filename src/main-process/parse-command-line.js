@@ -193,6 +193,11 @@ module.exports = function parseCommandLine(processArgs) {
   let devMode = args['dev'];
 
   for (const path of args._) {
+    if (typeof path !== 'string') {
+      // Sometimes non-strings (such as numbers or boolean true) get into args._
+      // In the next block, .startsWith() only works on strings. So, skip non-string arguments.
+      continue;
+    }
     if (path.startsWith('atom://')) {
       urlsToOpen.push(path);
     } else {
