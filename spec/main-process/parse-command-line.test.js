@@ -41,4 +41,27 @@ describe('parseCommandLine', () => {
       assert.deepEqual(args.pathsToOpen, []);
     });
   });
+
+  describe('when evil macOS Gatekeeper flag "-psn_0_[six or seven digits here]" is passed', () => {
+    it('ignores any arguments starting with "-psn_"', () => {
+      const getPsnFlag = () => { return `-psn_0_${Math.floor(Math.random() * 10_000_000)}` };
+      const args = parseCommandLine([
+        getPsnFlag(),
+        '/some/path',
+        getPsnFlag(),
+        getPsnFlag(),
+        'some/other/path',
+        'atom://test/url',
+        getPsnFlag(),
+        'atom://other/url',
+        '-psn_ Any argument starting with "-psn_" should be ignored, even this one.',
+        './another-path.file'
+      ]);
+      assert.deepEqual(args.urlsToOpen, [
+        'atom://test/url',
+        'atom://other/url'
+      ]);
+      assert.deepEqual(args.pathsToOpen, ['/some/path', 'some/other/path', './another-path.file']);
+    });
+  });
 });
