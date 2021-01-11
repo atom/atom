@@ -724,7 +724,7 @@ describe('AtomApplication', function() {
     });
 
     it('opens a file to a specific line number and column', async function() {
-      await scenario.open(parseCommandLine('b/2.md:12:5'));
+      await scenario.open(parseCommandLine(['b/2.md:12:5']));
       await scenario.assert('[_ 2.md]');
 
       const w = scenario.getWindow(0);
@@ -750,7 +750,7 @@ describe('AtomApplication', function() {
     });
 
     it('truncates trailing whitespace and colons', async function() {
-      await scenario.open(parseCommandLine('b/2.md::  '));
+      await scenario.open(parseCommandLine(['b/2.md::  ']));
       await scenario.assert('[_ 2.md]');
 
       const w = scenario.getWindow(0);
