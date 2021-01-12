@@ -24,7 +24,6 @@ describe('parseCommandLine', () => {
 
     describe('and --_ or -_ are passed', () => {
       it('does not attempt to parse booleans as paths or URIs', () => {
-        const getPsnFlag = () => { return `-psn_0_${Math.floor(Math.random() * 10_000_000)}` };
         const args = parseCommandLine([
           '--_',
           '/some/path',
@@ -44,13 +43,16 @@ describe('parseCommandLine', () => {
           'atom://test/url',
           'atom://other/url'
         ]);
-        assert.deepEqual(args.pathsToOpen, ['/some/path', 'some/other/path', './another-path.file']);
+        assert.deepEqual(args.pathsToOpen, [
+          '/some/path',
+          'some/other/path',
+          './another-path.file'
+        ]);
       });
     });
 
     describe('and a non-flag number is passed as an argument', () => {
       it('does not attempt to parse numbers as paths or URIs', () => {
-        const getPsnFlag = () => { return `-psn_0_${Math.floor(Math.random() * 10_000_000)}` };
         const args = parseCommandLine([
           '43',
           '/some/path',
@@ -67,7 +69,11 @@ describe('parseCommandLine', () => {
           'atom://test/url',
           'atom://other/url'
         ]);
-        assert.deepEqual(args.pathsToOpen, ['/some/path', 'some/other/path', './another-path.file']);
+        assert.deepEqual(args.pathsToOpen, [
+          '/some/path',
+          'some/other/path',
+          './another-path.file'
+        ]);
       });
     });
   });
@@ -93,7 +99,9 @@ describe('parseCommandLine', () => {
 
   describe('when evil macOS Gatekeeper flag "-psn_0_[six or seven digits here]" is passed', () => {
     it('ignores any arguments starting with "-psn_"', () => {
-      const getPsnFlag = () => { return `-psn_0_${Math.floor(Math.random() * 10_000_000)}` };
+      const getPsnFlag = () => {
+        return `-psn_0_${Math.floor(Math.random() * 10_000_000)}`;
+      };
       const args = parseCommandLine([
         getPsnFlag(),
         '/some/path',
@@ -110,7 +118,11 @@ describe('parseCommandLine', () => {
         'atom://test/url',
         'atom://other/url'
       ]);
-      assert.deepEqual(args.pathsToOpen, ['/some/path', 'some/other/path', './another-path.file']);
+      assert.deepEqual(args.pathsToOpen, [
+        '/some/path',
+        'some/other/path',
+        './another-path.file'
+      ]);
     });
   });
 });
