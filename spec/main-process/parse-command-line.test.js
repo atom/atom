@@ -22,6 +22,10 @@ describe('parseCommandLine', () => {
       assert.deepEqual(args.pathsToOpen, ['/some/path']);
     });
 
+    // The "underscore flag" with no "non-flag argument" after it
+    // is the minimal reproducer for the macOS Gatekeeper startup bug.
+    // By default, it causes the addition of boolean "true"s into yargs' "non-flag argument" array: `argv._`
+    // Whereas we do string-only operations on these arguments, expecting them to be paths or URIs.
     describe('and --_ or -_ are passed', () => {
       it('does not attempt to parse booleans as paths or URIs', () => {
         const args = parseCommandLine([
