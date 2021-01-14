@@ -1966,11 +1966,11 @@ module.exports = class TextEditorComponent {
 
     if (button === 1) {
       model.setCursorScreenPosition(screenPosition, { autoscroll: false });
-
+i
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
-      // automatically on mouseup.
-      if (platform === 'linux' && this.isInputEnabled())
+      // automatically on mouseup if editor.selectionClipboard is set to true.
+      if (platform === 'linux' && this.isInputEnabled() && atom.config.get('editor.selectionClipboard'))
         model.insertText(clipboard.readText('selection'));
       return;
     }
