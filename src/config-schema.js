@@ -660,4 +660,12 @@ if (process.platform === 'darwin') {
   };
 }
 
+if (process.platform === 'linux') {
+  configSchema.editor.properties.selectionClipboard = {
+    type: 'boolean',
+    default: true,
+    description: 'Enable pasting on middle mouse button click'
+  };
+}
+
 module.exports = configSchema;
