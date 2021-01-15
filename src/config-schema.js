@@ -665,7 +665,7 @@ if (process.platform === 'linux') {
     type: 'boolean',
     default: true,
     description: 'Enable pasting on middle mouse button click'
-  }
+  };
 }
 
 module.exports = configSchema;
