@@ -12,7 +12,7 @@
     "url": "https://github.com/atom/atom/issues"
   },
   "license": "MIT",
-  "electronVersion": "9.3.5",
+  "electronVersion": "9.4.1",
   "dependencies": {
     "@atom/fuzzy-native": "^1.2.0",
     "@atom/nsfw": "^1.0.27",
