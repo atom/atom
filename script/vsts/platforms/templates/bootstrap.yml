@@ -23,4 +23,4 @@ steps:
       GITHUB_TOKEN: $(GITHUB_TOKEN)
       CI: true
       CI_PROVIDER: VSTS
-    condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'))
+    condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'), ne(variables['LocalPackagesRestored'], 'true'))
