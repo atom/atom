@@ -1656,15 +1656,6 @@ module.exports = class TextEditorComponent {
   // Called by TextEditorElement so that focus events can be handled before
   // the element is attached to the DOM.
   didFocus() {
-    // This element can be focused from a parent custom element's
-    // attachedCallback before *its* attachedCallback is fired. This protects
-    // against that case.
-    if (!this.attached) this.didAttach();
-
-    // The element can be focused before the intersection observer detects that
-    // it has been shown for the first time. If this element is being focused,
-    // it is necessarily visible, so we call `didShow` to ensure the hidden
-    // input is rendered before we try to shift focus to it.
     if (!this.visible) this.didShow();
 
     if (!this.focused) {
