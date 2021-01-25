@@ -2,7 +2,7 @@
 
 import _ from 'underscore-plus';
 import { CompositeDisposable, Disposable } from 'atom';
-import SelectListView from 'atom-select-list';
+import { Selector } from './selector';
 import StatusBarItem from './status-bar-item';
 import helpers from './helpers';
 
@@ -16,53 +16,28 @@ const LFRegExp = /(\A|[^\r])\n/g;
 const CRLFRegExp = /\r\n/g;
 
 let disposables = null;
-let modalPanel = null;
-let lineEndingListView = null;
 
 export function activate() {
   disposables = new CompositeDisposable();
+  let selectorDisposable;
+  let selector;
 
   disposables.add(
     atom.commands.add('atom-text-editor', {
-      'line-ending-selector:show': event => {
-        if (!modalPanel) {
-          lineEndingListView = new SelectListView({
-            items: [
-              { name: 'LF', value: '\n' },
-              { name: 'CRLF', value: '\r\n' }
-            ],
-            filterKeyForItem: lineEnding => lineEnding.name,
-            didConfirmSelection: lineEnding => {
-              setLineEnding(
-                atom.workspace.getActiveTextEditor(),
-                lineEnding.value
-              );
-              modalPanel.hide();
-            },
-            didCancelSelection: () => {
-              modalPanel.hide();
-            },
-            elementForItem: lineEnding => {
-              const element = document.createElement('li');
-              element.textContent = lineEnding.name;
-              return element;
-            }
-          });
-          modalPanel = atom.workspace.addModalPanel({
-            item: lineEndingListView
-          });
-          disposables.add(
-            new Disposable(() => {
-              lineEndingListView.destroy();
-              modalPanel.destroy();
-              modalPanel = null;
-            })
-          );
+      'line-ending-selector:show': () => {
+        // Initiating Selector object - called only once when `line-ending-selector:show` is called
+        if (!selectorDisposable) {
+          // make a Selector object
+          selector = new Selector([
+            { name: 'LF', value: '\n' },
+            { name: 'CRLF', value: '\r\n' }
+          ]);
+          // Add disposable for selector
+          selectorDisposable = new Disposable(() => selector.dispose());
+          disposables.add(selectorDisposable);
         }
 
-        lineEndingListView.reset();
-        modalPanel.show();
-        lineEndingListView.focus();
+        selector.show();
       },
 
       'line-ending-selector:convert-to-LF': event => {
@@ -187,7 +162,7 @@ function getLineEndings(buffer) {
   }
 }
 
-function setLineEnding(item, lineEnding) {
+export function setLineEnding(item, lineEnding) {
   if (item && item.getBuffer) {
     let buffer = item.getBuffer();
     buffer.setPreferredLineEnding(lineEnding);
