@@ -58,6 +58,7 @@ jobs:
         packages-1:
           RunCoreTests: false
           RunPackageTests: 1
+          ATOM_PACKAGES_TO_SKIP: "github"
         packages-2:
           RunCoreTests: false
           RunPackageTests: 2
@@ -80,3 +81,6 @@ jobs:
             - atom-mac-symbols.zip
 
       - template: templates/test.yml
+
+  # Import "macOS_tests_github" job
+  - template: templates/macos-tests-github.yml

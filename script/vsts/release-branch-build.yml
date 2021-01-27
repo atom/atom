@@ -26,6 +26,7 @@ jobs:
       - Windows_tests
       - Linux
       - macOS_tests
+      - macOS_tests_github
 
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
