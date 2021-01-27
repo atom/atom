@@ -5,7 +5,14 @@ const path = require('path');
 const { repositoryRootPath } = require('../../config');
 const packageJSON = require(path.join(repositoryRootPath, 'package.json'));
 const git = simpleGit(repositoryRootPath);
-const { createPR, findPR, addLabel } = require('./pull-request');
+const {
+  createPR,
+  findPR,
+  addLabel,
+  findOpenPRs,
+  checkCIstatus,
+  mergePR
+} = require('./pull-request');
 const runApmInstall = require('../run-apm-install');
 const {
   makeBranch,
@@ -93,5 +100,23 @@ module.exports = async function() {
     console.table(failedBumps);
   } catch (ex) {
     console.log(ex.message);
+  }
+
+  // merge previous bumps that passed CI requirements
+  try {
+    const {
+      data: { items }
+    } = await findOpenPRs();
+    for (const { title } of items) {
+      const ref = title.replace('⬆️ ', '').replace('@', '-');
+      const {
+        data: { state }
+      } = await checkCIstatus({ ref });
+      if (state === 'success') {
+        await mergePR({ ref });
+      }
+    }
+  } catch (ex) {
+    console.log(ex);
   }
 };

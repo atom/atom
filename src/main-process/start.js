@@ -1,7 +1,7 @@
 const { app } = require('electron');
 const nslog = require('nslog');
 const path = require('path');
-const temp = require('temp').track();
+const temp = require('temp');
 const parseCommandLine = require('./parse-command-line');
 const startCrashReporter = require('../crash-reporter-start');
 const getReleaseChannel = require('../get-release-channel');

@@ -5,7 +5,7 @@ const { EventEmitter } = require('events');
 const temp = require('temp').track();
 const fs = require('fs-plus');
 const electron = require('electron');
-const { sandbox } = require('sinon');
+const sandbox = require('sinon').createSandbox();
 
 const AtomApplication = require('../../src/main-process/atom-application');
 const parseCommandLine = require('../../src/main-process/parse-command-line');
@@ -52,7 +52,7 @@ describe('AtomApplication', function() {
   }
 
   beforeEach(async function() {
-    sinon = sandbox.create();
+    sinon = sandbox;
     scenario = await LaunchScenario.create(sinon);
   });
 
@@ -724,7 +724,7 @@ describe('AtomApplication', function() {
     });
 
     it('opens a file to a specific line number and column', async function() {
-      await scenario.open(parseCommandLine('b/2.md:12:5'));
+      await scenario.open(parseCommandLine(['b/2.md:12:5']));
       await scenario.assert('[_ 2.md]');
 
       const w = scenario.getWindow(0);
@@ -750,7 +750,7 @@ describe('AtomApplication', function() {
     });
 
     it('truncates trailing whitespace and colons', async function() {
-      await scenario.open(parseCommandLine('b/2.md::  '));
+      await scenario.open(parseCommandLine(['b/2.md::  ']));
       await scenario.assert('[_ 2.md]');
 
       const w = scenario.getWindow(0);
@@ -909,9 +909,9 @@ describe('AtomApplication', function() {
 
       app = scenario.getApplication(0);
       sinon.spy(app, 'openPaths');
-      sinon.stub(app, 'promptForPath', (_type, callback, defaultPath) =>
-        callback([defaultPath])
-      );
+      sinon
+        .stub(app, 'promptForPath')
+        .callsFake((_type, callback, defaultPath) => callback([defaultPath]));
     });
 
     // This is the IPC message used to handle:
@@ -921,7 +921,7 @@ describe('AtomApplication', function() {
     // * deprecated call links in deprecation-cop
     // * other direct callers of `atom.open()`
     it('"open" opens a fixed path by the standard opening rules', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w1);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w1);
 
       electron.ipcMain.emit(
         'open',
@@ -949,14 +949,14 @@ describe('AtomApplication', function() {
     });
 
     it('"open" without any option open the prompt for selecting a path', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w1);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w1);
 
       electron.ipcMain.emit('open', {});
       assert.strictEqual(app.promptForPath.lastCall.args[0], 'all');
     });
 
     it('"open-chosen-any" opens a file in the sending window', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w2);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w2);
 
       electron.ipcMain.emit(
         'open-chosen-any',
@@ -972,7 +972,7 @@ describe('AtomApplication', function() {
     });
 
     it('"open-chosen-any" opens a directory by the standard opening rules', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w1);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w1);
 
       // Open unrecognized directory in empty window
       electron.ipcMain.emit(
@@ -1015,7 +1015,7 @@ describe('AtomApplication', function() {
     });
 
     it('"open-chosen-file" opens a file chooser and opens the chosen file in the sending window', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w0);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w0);
 
       electron.ipcMain.emit(
         'open-chosen-file',
@@ -1030,7 +1030,7 @@ describe('AtomApplication', function() {
     });
 
     it('"open-chosen-folder" opens a directory chooser and opens the chosen directory', async function() {
-      sinon.stub(app, 'atomWindowForEvent', () => w0);
+      sinon.stub(app, 'atomWindowForEvent').callsFake(() => w0);
 
       electron.ipcMain.emit(
         'open-chosen-folder',
@@ -1628,15 +1628,21 @@ class LaunchScenario {
       },
       ...options
     });
-    this.sinon.stub(app, 'createWindow', loadSettings => {
+    this.sinon.stub(app, 'createWindow').callsFake(loadSettings => {
       const newWindow = new StubWindow(this.sinon, loadSettings, options);
       this.windows.add(newWindow);
       return newWindow;
     });
-    this.sinon.stub(app.storageFolder, 'load', () =>
-      Promise.resolve(options.applicationJson || { version: '1', windows: [] })
-    );
-    this.sinon.stub(app.storageFolder, 'store', () => Promise.resolve());
+    this.sinon
+      .stub(app.storageFolder, 'load')
+      .callsFake(() =>
+        Promise.resolve(
+          options.applicationJson || { version: '1', windows: [] }
+        )
+      );
+    this.sinon
+      .stub(app.storageFolder, 'store')
+      .callsFake(() => Promise.resolve());
     this.applications.add(app);
     return app;
   }

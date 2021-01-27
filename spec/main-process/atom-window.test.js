@@ -5,7 +5,7 @@ const fs = require('fs-plus');
 const url = require('url');
 const { EventEmitter } = require('events');
 const temp = require('temp').track();
-const { sandbox } = require('sinon');
+const sandbox = require('sinon').createSandbox();
 const dedent = require('dedent');
 
 const AtomWindow = require('../../src/main-process/atom-window');
@@ -15,7 +15,7 @@ describe('AtomWindow', function() {
   let sinon, app, service;
 
   beforeEach(function() {
-    sinon = sandbox.create();
+    sinon = sandbox;
     app = new StubApplication(sinon);
     service = new StubRecoveryService(sinon);
   });

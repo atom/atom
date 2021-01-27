@@ -18,6 +18,7 @@ module.exports = class Color {
         if (Array.isArray(value)) {
           return null;
         }
+        value = Object.values(value);
         break;
       default:
         return null;
@@ -28,7 +29,7 @@ module.exports = class Color {
     }
 
     try {
-      var parsedColor = new ParsedColor(value);
+      var parsedColor = ParsedColor(value);
     } catch (error) {
       return null;
     }

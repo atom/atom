@@ -20,9 +20,19 @@ steps:
     condition: eq(variables['Agent.OS'], 'Linux')
 
   # Common
+  - pwsh: |
+      if ($env:BUILD_ARCH -eq "x86") {
+        echo "##vso[task.setvariable variable=IsWinX86]true"
+      }
+    displayName: Set "IsWinX86" based on "BUILD_ARCH"
+    # Convert "BUILD_ARCH" to a boolean ("IsWinX86") for the following NodeTool task.
+    # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available in ${{ template expressions }}.
+    # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set "IsWinX86".
+
   - task: NodeTool@0
     inputs:
       versionSpec: 12.16.3
+      force32bit: $(IsWinX86)
     displayName: Install Node.js 12.16.3
 
   - script: npm install --global npm@6.14.8

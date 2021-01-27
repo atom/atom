@@ -70,7 +70,9 @@ class TextMateLanguageMode {
 
   getNonWordCharacters(position) {
     const scope = this.scopeDescriptorForPosition(position);
-    return this.config.get('editor.nonWordCharacters', { scope });
+    const rawValue = this.config.getRawValue('editor.nonWordCharacters');
+    const scopedValue = this.config.get('editor.nonWordCharacters', { scope });
+    return `${scopedValue}${rawValue}`;
   }
 
   /*

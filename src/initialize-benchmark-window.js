@@ -63,7 +63,7 @@ module.exports = async function() {
           ipcHelpers.call('window-method', 'copy');
         }
       },
-      true
+      { capture: true }
     );
 
     const clipboard = new Clipboard();

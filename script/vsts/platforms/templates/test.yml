@@ -10,8 +10,6 @@ steps:
       if ($env:AGENT_OS -eq "Darwin") {
         osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
         caffeinate -s script/test # Run with caffeinate to prevent screen saver
-      } elseif (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
-        node 'script\vsts\windows-run.js' 'script\test.cmd'
       } else {
         script/test
       }
@@ -21,17 +19,14 @@ steps:
       ATOM_JASMINE_REPORTER: list
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
       ATOM_RUN_CORE_TESTS: $(RunCoreTests)
+      ATOM_RUN_CORE_MAIN_TESTS: $(RunCoreMainTests)
+      ATOM_RUN_CORE_RENDER_TESTS: $(RunCoreRendererTests)
       ATOM_RUN_PACKAGE_TESTS: $(RunPackageTests)
     displayName: Run tests
     condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
 
   # Test results
-  - pwsh: |
-      if (($env:AGENT_OS -eq "Windows_NT") -and ($env:BUILD_ARCH -eq "x86")) {
-        node 'script\vsts\windows-run.js' 'script\postprocess-junit-results.cmd' --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
-      } else {
-        script/postprocess-junit-results --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
-      }
+  - pwsh: script/postprocess-junit-results --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
     env:
       TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
     displayName: Post-process test results

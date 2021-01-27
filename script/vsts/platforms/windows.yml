@@ -1,5 +1,6 @@
 jobs:
-  - job: Windows
+  - job: Windows_build
+    displayName: Windows Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
     strategy:
@@ -7,8 +8,10 @@ jobs:
       matrix:
         x64:
           BUILD_ARCH: x64
+          RunCoreMainTests: true
         x86:
           BUILD_ARCH: x86
+          RunCoreMainTests: true
 
     pool:
       vmImage: vs2017-win2016
@@ -28,11 +31,6 @@ jobs:
 
       - template: templates/bootstrap.yml
 
-      - script: node script\vsts\windows-run.js script\lint.cmd
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
-        displayName: Run linter
-
       - template: templates/build.yml
 
       - template: templates/test.yml
@@ -45,8 +43,6 @@ jobs:
             $env:FileID=""
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Set FileID based on the arch
 
       - template: templates/publish.yml
@@ -54,7 +50,7 @@ jobs:
           artifacts:
             - fileName: atom$(FileID)-windows.zip
               fileDir: $(Build.SourcesDirectory)/out
-              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+              condition: and( succeeded(), or( eq(variables['BUILD_ARCH'], 'x64'), ne(variables['Build.Reason'], 'PullRequest') ) )
             - fileName: AtomSetup$(FileID).exe
               fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
@@ -68,3 +64,57 @@ jobs:
             - fileName: RELEASES$(FileID)
               fileDir: $(Build.SourcesDirectory)/out
               condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+
+  - job: Windows_tests
+    displayName: Windows Tests
+    dependsOn: Windows_build
+    timeoutInMinutes: 180
+    strategy:
+      maxParallel: 2
+      matrix:
+        x64_Renderer_Test1:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 1
+          BUILD_ARCH: x64
+          os: windows-2019
+        x64_Renderer_Test2:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 2
+          BUILD_ARCH: x64
+          os: windows-2019
+
+    pool:
+      vmImage: $(os)
+
+    variables:
+      AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: windows
+
+      - template: templates/bootstrap.yml
+
+      # Downloading the build artifacts
+      - pwsh: |
+          if ($env:BUILD_ARCH -eq "x64") {
+            $env:FileID="-x64"
+          } else {
+            $env:FileID=""
+          }
+          echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+        displayName: Set FileID based on the arch
+
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            -  atom$(FileID)-windows.zip
+
+      #  Core renderer tests
+      - template: templates/test.yml

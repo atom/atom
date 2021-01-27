@@ -16,9 +16,6 @@ jobs:
 
       - template: templates/bootstrap.yml
 
-      - script: script/lint
-        displayName: Run linter
-
       - template: templates/build.yml
 
       - template: templates/test.yml

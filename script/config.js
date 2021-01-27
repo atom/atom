@@ -29,6 +29,12 @@ const appName = getAppName(channel);
 const executableName = getExecutableName(channel, appName);
 const channelName = getChannelName(channel);
 
+// Sets the installation jobs to run maximally in parallel if the user has
+// not already configured this. This is applied just by requiring this file.
+if (process.env.npm_config_jobs === undefined) {
+  process.env.npm_config_jobs = 'max';
+}
+
 module.exports = {
   appMetadata,
   apmMetadata,
