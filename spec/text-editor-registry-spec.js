@@ -91,6 +91,17 @@ describe('TextEditorRegistry', function() {
     });
   });
 
+  describe('.getActiveTextEditor', function() {
+    it('gets the currently focused text editor', function() {
+      const disposable = registry.add(editor);
+      var editorElement = editor.getElement();
+      jasmine.attachToDOM(editorElement);
+      editorElement.focus();
+      expect(registry.getActiveTextEditor()).toBe(editor);
+      disposable.dispose();
+    });
+  });
+
   describe('.maintainConfig(editor)', function() {
     it('does not update the editor when config settings change for unrelated scope selectors', async function() {
       await atom.packages.activatePackage('language-javascript');
