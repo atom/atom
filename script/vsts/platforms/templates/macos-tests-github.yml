@@ -1,0 +1,56 @@
+jobs:
+  - job: macOS_tests_github
+    displayName: macOS Tests github
+    dependsOn: macOS_build
+    timeoutInMinutes: 180
+    pool:
+      vmImage: macos-10.15
+    variables:
+      ATOM_RESOURCE_PATH: $(Build.SourcesDirectory)
+      CI: true
+      CI_PROVIDER: VSTS
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
+    steps:
+      - template: ./preparation.yml
+
+      - template: ./cache.yml
+        parameters:
+          OS: macos
+
+      # The artifact caching task does not work on forks, so we need to
+      # bootstrap again for pull requests coming from forked repositories.
+      - template: ./bootstrap.yml
+
+      - template: ./download-unzip.yml
+        parameters:
+          artifacts:
+            - atom-mac.zip
+            - atom-mac-symbols.zip
+
+      - pwsh: |
+          cd $(Build.SourcesDirectory)/node_modules/github
+          $(Build.SourcesDirectory)/apm/node_modules/.bin/apm install
+        displayName: Prepare test dependencies for package
+        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+      - pwsh: |
+          echo "CI env var is set to: $env:CI"
+          echo "MOCHA_TIMOUT env var is set to: $env:MOCHA_TIMEOUT"
+          echo "UNTIL_TIMOUT env var is set to: $env:UNTIL_TIMEOUT"
+
+          # Run tests, retrying up to 6 times if any tests fail
+          for ( $timesTriedToTest = 1; $timesTriedToTest -le 6; $timesTriedToTest++ ) {
+            echo "##[Command]Running tests for the github package `(attempt number $($timesTriedToTest)`)"
+
+            # Run tests
+            $(Build.SourcesDirectory)/out/Atom*.app/Contents/MacOS/Atom* --resource-path $(Build.SourcesDirectory) --test $(Build.SourcesDirectory)/node_modules/github/test
+
+            if ( $LastExitCode -eq 0 ) {
+              # Exit the loop if tests passed (no need to retry if tests passed)
+              break
+            }
+          }
+        errorActionPreference: continue
+        displayName: Run tests
+        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
