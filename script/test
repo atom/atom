@@ -300,6 +300,12 @@ function getPackageTestSuites() {
       );
       if (!packagesToTest.includes(packageName)) continue;
     }
+    if (process.env.ATOM_PACKAGES_TO_SKIP) {
+      const packagesToSkip = process.env.ATOM_PACKAGES_TO_SKIP.split(',').map(
+        pkg => pkg.trim()
+      );
+      if (packagesToSkip.includes(packageName)) continue;
+    }
 
     const repositoryPackagePath = path.join(
       CONFIG.repositoryRootPath,
