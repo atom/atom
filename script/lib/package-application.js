@@ -140,7 +140,7 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
       'folder.ico'
     ].forEach(file =>
       fs.copySync(
-        path.join('resources', 'win', file),
+        path.join(CONFIG.repositoryRootPath, 'resources', 'win', file),
         path.join(bundledResourcesPath, 'cli', file)
       )
     );
