@@ -108,7 +108,10 @@ function spawnTest(
   testName,
   finalize = null
 ) {
-  const cp = childProcess.spawn(executablePath, testArguments, options);
+  const cp = childProcess.spawn(executablePath, testArguments, {
+    shell: true,
+    ...options
+  });
 
   // collect outputs and errors
   let stderrOutput = '';
