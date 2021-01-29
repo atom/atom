@@ -65,8 +65,8 @@ class PaneElement extends HTMLElement {
         this.applicationDelegate.open({ pathsToOpen, here: true });
       }
     };
-    this.addEventListener('focus', handleFocus, true);
-    this.addEventListener('blur', handleBlur, true);
+    this.addEventListener('focus', handleFocus, { capture: true });
+    this.addEventListener('blur', handleBlur, { capture: true });
     this.addEventListener('dragover', handleDragOver);
     this.addEventListener('drop', handleDrop);
   }

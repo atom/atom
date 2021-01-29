@@ -1547,12 +1547,12 @@ module.exports = class Workspace extends Model {
 
   // Essential: Get the active {Pane}'s active item.
   //
-  // Returns an pane item {Object}.
+  // Returns a pane item {Object}.
   getActivePaneItem() {
     return this.getActivePaneContainer().getActivePaneItem();
   }
 
-  // Essential: Get all text editors in the workspace.
+  // Essential: Get all text editors in the workspace, if they are pane items.
   //
   // Returns an {Array} of {TextEditor}s.
   getTextEditors() {

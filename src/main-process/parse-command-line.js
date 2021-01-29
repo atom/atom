@@ -5,7 +5,12 @@ const yargs = require('yargs');
 const { app } = require('electron');
 
 module.exports = function parseCommandLine(processArgs) {
-  const options = yargs(processArgs).wrap(yargs.terminalWidth());
+  // macOS Gatekeeper adds a flag ("-psn_0_[six or seven digits here]") when it intercepts Atom launches.
+  // (This happens for fresh downloads, new installs, or first launches after upgrading).
+  // We don't need this flag, and yargs interprets it as many short flags. So, we filter it out.
+  const filteredArgs = processArgs.filter(arg => !arg.startsWith('-psn_'));
+
+  const options = yargs(filteredArgs).wrap(yargs.terminalWidth());
   const version = app.getVersion();
   options.usage(
     dedent`Atom Editor v${version}
@@ -187,6 +192,11 @@ module.exports = function parseCommandLine(processArgs) {
   let devMode = args['dev'];
 
   for (const path of args._) {
+    if (typeof path !== 'string') {
+      // Sometimes non-strings (such as numbers or boolean true) get into args._
+      // In the next block, .startsWith() only works on strings. So, skip non-string arguments.
+      continue;
+    }
     if (path.startsWith('atom://')) {
       urlsToOpen.push(path);
     } else {

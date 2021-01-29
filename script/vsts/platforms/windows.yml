@@ -43,8 +43,6 @@ jobs:
             $env:FileID=""
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Set FileID based on the arch
 
       - template: templates/publish.yml
@@ -111,8 +109,6 @@ jobs:
             $env:FileID=""
           }
           echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
-        env:
-          BUILD_ARCH: $(BUILD_ARCH)
         displayName: Set FileID based on the arch
 
       - template: templates/download-unzip.yml

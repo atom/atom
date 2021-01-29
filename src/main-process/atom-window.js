@@ -49,7 +49,10 @@ module.exports = class AtomWindow extends EventEmitter {
         // (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
         disableBlinkFeatures: 'Auxclick',
         nodeIntegration: true,
-        webviewTag: true
+        webviewTag: true,
+
+        // node support in threads
+        nodeIntegrationInWorker: true
       },
       simpleFullscreen: this.getSimpleFullscreen()
     };
@@ -211,22 +214,17 @@ module.exports = class AtomWindow extends EventEmitter {
       this.resolveClosedPromise();
     });
 
-    this.browserWindow.on('unresponsive', () => {
+    this.browserWindow.on('unresponsive', async () => {
       if (this.isSpec) return;
-      dialog.showMessageBox(
-        this.browserWindow,
-        {
-          type: 'warning',
-          buttons: ['Force Close', 'Keep Waiting'],
-          cancelId: 1, // Canceling should be the least destructive action
-          message: 'Editor is not responding',
-          detail:
-            'The editor is not responding. Would you like to force close it or just keep waiting?'
-        },
-        response => {
-          if (response === 0) this.browserWindow.destroy();
-        }
-      );
+      const result = await dialog.showMessageBox(this.browserWindow, {
+        type: 'warning',
+        buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
+        message: 'Editor is not responding',
+        detail:
+          'The editor is not responding. Would you like to force close it or just keep waiting?'
+      });
+      if (result.response === 0) this.browserWindow.destroy();
     });
 
     this.browserWindow.webContents.on('crashed', async () => {
@@ -237,24 +235,23 @@ module.exports = class AtomWindow extends EventEmitter {
       }
 
       await this.fileRecoveryService.didCrashWindow(this);
-      dialog.showMessageBox(
-        this.browserWindow,
-        {
-          type: 'warning',
-          buttons: ['Close Window', 'Reload', 'Keep It Open'],
-          cancelId: 2, // Canceling should be the least destructive action
-          message: 'The editor has crashed',
-          detail: 'Please report this issue to https://github.com/atom/atom'
-        },
-        response => {
-          switch (response) {
-            case 0:
-              return this.browserWindow.destroy();
-            case 1:
-              return this.browserWindow.reload();
-          }
-        }
-      );
+
+      const result = await dialog.showMessageBox(this.browserWindow, {
+        type: 'warning',
+        buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
+        message: 'The editor has crashed',
+        detail: 'Please report this issue to https://github.com/atom/atom'
+      });
+
+      switch (result.response) {
+        case 0:
+          this.browserWindow.destroy();
+          break;
+        case 1:
+          this.browserWindow.reload();
+          break;
+      }
     });
 
     this.browserWindow.webContents.on('will-navigate', (event, url) => {

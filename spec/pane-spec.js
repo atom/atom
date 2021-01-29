@@ -399,9 +399,8 @@ describe('Pane', () => {
       const pendingSpy = jasmine.createSpy('onItemDidTerminatePendingState');
       const destroySpy = jasmine.createSpy('onWillDestroyItem');
 
-      await atom.workspace.open('sample.txt', { pending: true }).then(() => {
-        pane = atom.workspace.getActivePane();
-      });
+      await atom.workspace.open('sample.txt', { pending: true });
+      pane = atom.workspace.getActivePane();
 
       pane.onItemDidTerminatePendingState(pendingSpy);
       pane.onWillDestroyItem(destroySpy);
