@@ -1,0 +1,28 @@
+{
+    "name": "test",
+    "version": "1.0.0",
+    "description": "just test",
+    "main": "index.js",
+    "dependencies": {
+      "spell-check": "https://www.atom.io/api/packages/spell-check/versions/0.79.1/tarball",
+      "status-bar": "https://www.atom.io/api/packages/status-bar/versions/2.8.17/tarball",
+      "styleguide": "https://www.atom.io/api/packages/styleguide/versions/1.49.12/tarball",
+      "symbols-view": "https://www.atom.io/api/packages/symbols-view/versions/0.118.5/tarball",
+      "@atom/watcher": "1.3.1",
+      "clear-cut": "^2.0.3",
+      "dedent": "^1.0.0",
+      "devtron": "1.2.6"
+    },
+    "packageDependencies": {
+      "spell-check": "0.79.1",
+      "status-bar": "2.8.17",
+      "styleguide": "1.49.12",
+      "symbols-view": "0.118.5"
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "darangi",
+    "license": "ISC"
+  }
+  

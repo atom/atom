@@ -1,0 +1,79 @@
+.syntax--source.syntax--scala {
+  .syntax--variable {
+    color: @syntax-emphasized-color;
+  }
+
+  .syntax--declaration {
+    color: @syntax-emphasized-color;
+    font-weight: bold;
+  }
+  .syntax--comparison {
+    color: @syntax-emphasized-color;
+  }
+  .syntax--class, .syntax--type {
+    color: @yellow;
+  }
+  .syntax--val {
+    font-weight: normal;
+  }
+  .syntax--variable {
+    font-weight: bold;
+  }
+  .syntax--variable.syntax--parameter {
+    color: @violet;
+    font-weight: normal;
+  }
+  .syntax--control.syntax--flow {
+    color: @syntax-emphasized-color;
+    font-weight: bold;
+  }
+  .syntax--constant.syntax--language {
+    color: @syntax-emphasized-color;
+    font-weight: bold;
+  }
+  .syntax--function.syntax--declaration {
+    color: @violet;
+  }
+  .syntax--modifier.syntax--other {
+    font-weight: bold;
+  }
+  .syntax--package {
+    color: @syntax-emphasized-color;
+  }
+  .syntax--variable.syntax--import {
+    font-weight: normal;
+  }
+
+  .syntax--type {
+    .syntax--bounds, .syntax--class {
+      color: @violet;
+    }
+  }
+
+  .syntax--documentation {
+    :not(.syntax--embedded) {
+      // out of scope ?
+      // https://github.syntax--com/atom/link
+      &.syntax--link.syntax--entity {
+        color: @blue;
+        text-decoration: underline;
+      }
+      .syntax--class, .syntax--parameter {
+        color: @syntax-emphasized-color;
+      }
+      .syntax--description {
+        color: @syntax-comment-color;
+      }
+    }
+  }
+
+  .syntax--embedded {
+    color: darken(@syntax-emphasized-color, 15%);
+
+    // so we dont confused it with normal expressions
+    font-style: italic;
+    .syntax--margin, .syntax--delimiters {
+      font-style: normal;
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "about",
+  "author": "Machisté N. Quintana <mnquintana@users.noreply.github.com>",
+  "main": "./lib/main",
+  "version": "1.9.1",
+  "description": "View useful information about your Atom installation.",
+  "keywords": [],
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "scripts": {
+    "lint": "standard"
+  },
+  "engines": {
+    "atom": ">=1.7 <2.0.0"
+  },
+  "dependencies": {
+    "etch": "0.9.0",
+    "semver": "^5.5.0"
+  },
+  "devDependencies": {
+    "standard": "^11.0.0"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "deserializers": {
+    "AboutView": "deserializeAboutView"
+  },
+  "standard": {
+    "env": [
+      "browser",
+      "node",
+      "atomtest",
+      "jasmine"
+    ],
+    "globals": [
+      "atom"
+    ]
+  }
+}

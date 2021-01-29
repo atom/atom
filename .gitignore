@@ -1,13 +1,15 @@
 *.swp
 *~
 .DS_Store
+.eslintcache
 Thumbs.db
 .project
 .svn
 .nvm-version
+.vscode
+.python-version
 node_modules
-npm-debug.log
-debug.log
+*.log
 /tags
 /atom-shell/
 /out/

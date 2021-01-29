@@ -1,0 +1,21 @@
+parameters:
+  - name: artifacts
+    type: object
+    # artifacts is an array with each element having these properties:
+    # - fileName
+    # - fileDir
+    # - condition
+    # - continueOnError
+
+steps:
+  - ${{ each artifact in parameters.artifacts }}:
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: ${{artifact.fileDir}}/${{artifact.fileName}}
+        ArtifactName: ${{artifact.fileName}}
+        ArtifactType: Container
+      displayName: Upload ${{artifact.fileName}}
+      ${{ if artifact.condition }}:
+        condition: ${{artifact.condition}}
+      ${{ if artifact.continueOnError }}:
+        continueOnError: ${{artifact.continueOnError}}

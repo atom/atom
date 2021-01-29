@@ -12,7 +12,8 @@ FindParentDir = require 'find-parent-dir'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
-clipboard = require '../src/safe-clipboard'
+TreeSitterLanguageMode = require '../src/tree-sitter-language-mode'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -43,10 +44,16 @@ Set.prototype.isEqual = (other) ->
   else
     false
 
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().addEqualityTester (a, b) ->
+  # Match jasmine.any's equality matching logic
+  return a.jasmineMatches(b) if a?.jasmineMatches?
+  return b.jasmineMatches(a) if b?.jasmineMatches?
+
+  # Use underscore's definition of equality for toEqual assertions
+  _.isEqual(a, b)
 
 if process.env.CI
-  jasmine.getEnv().defaultTimeoutInterval = 60000
+  jasmine.getEnv().defaultTimeoutInterval = 120000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
@@ -63,7 +70,7 @@ else
 
 beforeEach ->
   # Do not clobber recent project history
-  spyOn(atom.history, 'saveState').andReturn(Promise.resolve())
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
 
   atom.project.setPaths([specProjectPath])
 
@@ -101,6 +108,7 @@ beforeEach ->
 
   # make tokenization synchronous
   TextMateLanguageMode.prototype.chunkSize = Infinity
+  TreeSitterLanguageMode.prototype.syncTimeoutMicros = Infinity
   spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   # Without this spy, TextEditor.onDidTokenize callbacks would not be called
@@ -111,7 +119,8 @@ beforeEach ->
     new CompositeDisposable(
       @emitter.on("did-tokenize", callback),
       @onDidChangeGrammar =>
-        if @buffer.getLanguageMode().tokenizeInBackground.originalValue
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
           callback()
     )
 
