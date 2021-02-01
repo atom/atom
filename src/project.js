@@ -353,7 +353,7 @@ module.exports = class Project extends Model {
     try {
       return this.rootDirectories.map(rootDirectory => rootDirectory.getPath());
     } catch (e) {
-      console.log(
+      atom.notifications.addError(
         "Please clear Atom's window state with: atom --clear-window-state"
       );
     }
