@@ -1477,29 +1477,6 @@ describe('TextMateLanguageMode', () => {
       ]);
     }));
 
-  describe('.getNonWordCharacters', () => {
-    it('merges the language mode non word characters with the globally set non word characters', () => {
-      config.set('editor.nonWordCharacters', '»');
-
-      const buffer = atom.project.bufferForPathSync('sample.js');
-      const languageMode = new TextMateLanguageMode({
-        buffer,
-        config,
-        grammar: atom.grammars.grammarForScopeName('source.js')
-      });
-
-      const scopedNonWords = config.getRawScopedValue(
-        ['source.js'],
-        'editor.nonWordCharacters'
-      );
-      const globalNonWords = config.get('editor.nonWordCharacters');
-
-      expect(languageMode.getNonWordCharacters([0, 0])).toEqual(
-        `${scopedNonWords}${globalNonWords}`
-      );
-    });
-  });
-
   function simulateFold(ranges) {
     buffer.transact(() => {
       for (const range of ranges.reverse()) {
