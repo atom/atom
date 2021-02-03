@@ -761,14 +761,6 @@ describe('TextEditorComponent', () => {
         '    right = [];'
       );
 
-      await setEditorWidthInCharacters(component, 45);
-      expect(lineNodeForScreenRow(component, 3).textContent).toBe(
-        '    var pivot = items.shift(), current, left '
-      );
-      expect(lineNodeForScreenRow(component, 4).textContent).toBe(
-        '    = [], right = [];'
-      );
-
       const { scrollContainer } = component.refs;
       expect(scrollContainer.clientWidth).toBe(scrollContainer.scrollWidth);
     });
