@@ -190,7 +190,7 @@
     "autocomplete-atom-api": "0.10.7",
     "autocomplete-css": "0.17.5",
     "autocomplete-html": "0.8.8",
-    "autocomplete-plus": "2.42.3",
+    "autocomplete-plus": "2.42.4",
     "autocomplete-snippets": "1.12.1",
     "autoflow": "file:./packages/autoflow",
     "autosave": "0.24.6",
@@ -280,6 +280,9 @@
       "jasmine": true,
       "node": true
     },
-    "globals": ["atom", "snapshotResult"]
+    "globals": [
+      "atom",
+      "snapshotResult"
+    ]
   }
 }
