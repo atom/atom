@@ -464,7 +464,7 @@ module.exports = class AtomWindow extends EventEmitter {
       options
     );
 
-    let promise =  dialog.showSaveDialog(this.browserWindow, options);
+    let promise = dialog.showSaveDialog(this.browserWindow, options);
     if (typeof callback === 'function') {
       promise = promise.then(({ filePath, bookmark }) => {
         callback(filePath, bookmark);
