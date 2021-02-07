@@ -81,6 +81,6 @@ repeat these steps to upgrade to future releases.
 
 ## License
 
-[MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
+[MIT License](https://github.com/atom/atom/blob/master/LICENSE.md)
 
 When using the Atom or other GitHub logos, be sure to follow the [GitHub logo guidelines](https://github.com/logos).
