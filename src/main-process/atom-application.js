@@ -2015,7 +2015,13 @@ module.exports = class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path;
-    dialog.showOpenDialog(parentWindow, openOptions, callback);
+    let promise = dialog.showOpenDialog(parentWindow, openOptions);
+    if (typeof callback === 'function') {
+      promise = promise.then(({ filePaths, bookmarks }) => {
+        callback(filePaths, bookmarks);
+      });
+    }
+    return promise;
   }
 
   async promptForRestart() {
