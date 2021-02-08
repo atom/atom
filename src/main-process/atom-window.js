@@ -464,13 +464,13 @@ module.exports = class AtomWindow extends EventEmitter {
       options
     );
 
+    let promise = dialog.showSaveDialog(this.browserWindow, options);
     if (typeof callback === 'function') {
-      // Async
-      dialog.showSaveDialog(this.browserWindow, options, callback);
-    } else {
-      // Sync
-      return dialog.showSaveDialog(this.browserWindow, options);
+      promise = promise.then(({ filePath, bookmark }) => {
+        callback(filePath, bookmark);
+      });
     }
+    return promise;
   }
 
   toggleDevTools() {
