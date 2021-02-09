@@ -9,7 +9,8 @@ module.exports = function(downloadURL, destinationPath) {
   const response = syncRequest('GET', downloadURL, {
     headers: {
       Accept: 'application/vnd.github.v3.raw',
-      'User-Agent': 'Atom Build'
+      'User-Agent': 'Atom Build',
+      Authorization: `token ${process.env.GITHUB_TOKEN}`
     }
   });
 

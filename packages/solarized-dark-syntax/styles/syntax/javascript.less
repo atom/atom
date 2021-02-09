@@ -6,23 +6,19 @@
   .syntax--support.syntax--class {
     color: @green;
   }
-  
+
   .syntax--entity {
     &.syntax--name.syntax--type {
       color: @yellow;
     }
     &.syntax--name {
       color: @syntax-text-color;
-      
-      &.syntax--function {
-        color: @blue;
-      }
     }
-    
+
     &.syntax--name.syntax--tag {
       color: @blue;
     }
-    
+
     &.syntax--other.syntax--attribute-name {
       color: @yellow;
     }
@@ -40,7 +36,7 @@
     color: @green;
   }
   .syntax--keyword.syntax--control {
-    color: @orange;
+    color: @green;
   }
   .syntax--keyword.syntax--control.syntax--regexp {
     color: @cyan;
@@ -75,7 +71,13 @@
   .syntax--support.syntax--constant {
     color: @syntax-text-color;
   }
-  
+  .syntax--constant.syntax--numeric {
+    color: @syntax-text-color;
+  }
+
+  .syntax--storage {
+    color: @blue;
+  }
   .syntax--storage.syntax--modifier {
     color: @yellow;
   }
@@ -93,7 +95,7 @@
   .syntax--meta.syntax--brace.syntax--curly {
     color: @blue;
   }
-  
+
   .syntax--string.syntax--quoted.syntax--template {
     .syntax--embedded.syntax--source {
       color: @syntax-text-color;
@@ -102,14 +104,14 @@
       }
     }
   }
-  
+
   &.syntax--embedded .syntax--entity.syntax--name.syntax--tag {
     color: @blue;
   }
 
   .syntax--import {
     .syntax--control {
-      color: @orange;
+      color: @yellow;
     }
   }
 }

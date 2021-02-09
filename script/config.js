@@ -31,6 +31,12 @@ const appName = getAppName(channel);
 const executableName = getExecutableName(channel, appName);
 const channelName = getChannelName(channel);
 
+// Sets the installation jobs to run maximally in parallel if the user has
+// not already configured this. This is applied just by requiring this file.
+if (process.env.npm_config_jobs === undefined) {
+  process.env.npm_config_jobs = 'max';
+}
+
 const REPO_OWNER = process.env.REPO_OWNER || 'atom';
 const MAIN_REPO = process.env.MAIN_REPO || 'atom';
 const NIGHTLY_RELEASE_REPO =
@@ -132,9 +138,4 @@ function getNpmBinPath(external = false) {
   return !external && fs.existsSync(localNpmBinPath)
     ? localNpmBinPath
     : npmBinName;
-}
-
-// parallel build in node-gyp
-if (!process.env.JOBS) {
-  process.env.JOBS = 'max';
 }
