@@ -13,12 +13,12 @@ atom-workspace {
   font-family: @font-family;
 
   atom-workspace-axis {
-    contain: @contain_but_layout_paint;
+    contain: @contain_except_layout_paint;
     position: relative;
   }
 
   atom-workspace-axis.horizontal {
-    contain: @contain_but_layout_paint;
+    contain: @contain_except_layout_paint;
     display: flex;
     flex: 1;
     min-width: 0;
@@ -26,7 +26,7 @@ atom-workspace {
   }
 
   atom-workspace-axis.vertical {
-    contain: @contain_but_layout_paint;
+    contain: @contain_except_layout_paint;
     display: flex;
     flex: 1;
     flex-direction: column;
