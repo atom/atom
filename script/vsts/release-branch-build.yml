@@ -4,8 +4,15 @@ trigger:
   - electron-*
 pr: none # no PR triggers
 
+# workaround for https://bit.ly/2CK8itc
+variables:
+  _ATOM_RELEASES_S3_KEY:  $[ variables.ATOM_RELEASES_S3_KEY ]
+  _ATOM_RELEASES_S3_SECRET:  $[ variables.ATOM_RELEASES_S3_SECRET ]
+  _ATOM_RELEASES_S3_BUCKET: $[ variables.ATOM_RELEASES_S3_BUCKET ]
+  _PACKAGE_CLOUD_API_KEY: $[ variables.PACKAGE_CLOUD_API_KEY ]
+
 jobs:
-  # Import "GetReleaseVersion" job definition
+  # GetReleaseVersion
   - template: platforms/templates/get-release-version.yml
 
   # Import lint definition
@@ -35,13 +42,6 @@ jobs:
     steps:
       - template: platforms/templates/preparation.yml
 
-      - script: |
-          cd script/vsts
-          npm install
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-        displayName: npm install
-
       - task: DownloadBuildArtifacts@0
         inputs:
           itemPattern: '**'
@@ -53,10 +53,10 @@ jobs:
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-          PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+          ATOM_RELEASES_S3_KEY: $(_ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_S3_SECRET: $(_ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(_ATOM_RELEASES_S3_BUCKET)
+          PACKAGE_CLOUD_API_KEY: $(_PACKAGE_CLOUD_API_KEY)
         displayName: Create Draft Release
         condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
 
@@ -64,8 +64,8 @@ jobs:
           node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
         env:
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+          ATOM_RELEASES_S3_KEY: $(_ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_S3_SECRET: $(_ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(_ATOM_RELEASES_S3_BUCKET)
         displayName: Upload CI Artifacts to S3
         condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))

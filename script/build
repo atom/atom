@@ -2,12 +2,16 @@
 
 'use strict'
 
+const CONFIG = require('./config')
+
 if (process.argv.includes('--no-bootstrap')) {
   console.log('Skipping bootstrap')
 } else {
   // Bootstrap first to ensure all the dependencies used later in this script
   // are installed.
-  require('./bootstrap')
+  const path = require('path')
+  const childProcess = require('child_process')
+  childProcess.execFileSync(process.execPath, [path.join(CONFIG.scriptRootPath, 'bootstrap')], { env: process.env, cwd: CONFIG.repositoryRootPath, stdio: 'inherit' });
 }
 
 // Required to load CS files in this build script, such as those in `donna`
@@ -52,47 +56,49 @@ const notarizeOnMac = require('./lib/notarize-on-mac')
 const packageApplication = require('./lib/package-application')
 const prebuildLessCache = require('./lib/prebuild-less-cache')
 const testSignOnMac = require('./lib/test-sign-on-mac')
-const transpileBabelPaths = require('./lib/transpile-babel-paths')
-const transpileCoffeeScriptPaths = require('./lib/transpile-coffee-script-paths')
-const transpileCsonPaths = require('./lib/transpile-cson-paths')
-const transpilePegJsPaths = require('./lib/transpile-peg-js-paths')
-const transpilePackagesWithCustomTranspilerPaths = require('./lib/transpile-packages-with-custom-transpiler-paths.js')
 
 process.on('unhandledRejection', function (e) {
   console.error(e.stack || e)
   process.exit(1)
 })
 
-const CONFIG = require('./config')
-
-// Used by the 'github' package for Babel configuration
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
-let binariesPromise = Promise.resolve()
+async function transpile() {
+  const { spawn, Thread, Worker } = require(`${CONFIG.scriptRunnerModulesPath}/threads`)
 
-if (!argv.existingBinaries) {
-  checkChromedriverVersion()
-  cleanOutputDirectory()
-  copyAssets()
-  transpilePackagesWithCustomTranspilerPaths()
-  transpileBabelPaths()
-  transpileCoffeeScriptPaths()
-  transpileCsonPaths()
-  transpilePegJsPaths()
-  generateModuleCache()
-  prebuildLessCache()
-  generateMetadata()
-  generateAPIDocs()
-  if (!argv.generateApiDocs) {
-    binariesPromise = dumpSymbols()
-  }
+  const transpilePackagesWithCustomTranspilerPaths = await spawn(new Worker('./lib/transpile-packages-with-custom-transpiler-paths'))
+  const transpilePackagesWithCustomTranspilerPathsPromise = transpilePackagesWithCustomTranspilerPaths()
+
+  const transpileBabelPaths = await spawn(new Worker('./lib/transpile-babel-paths'))
+  const transpileBabelPathsPromise = transpileBabelPaths()
+
+  const transpileCoffeeScriptPaths = await spawn(new Worker('./lib/transpile-coffee-script-paths'))
+  const transpileCoffeeScriptPathsPromise = transpileCoffeeScriptPaths()
+
+  const transpileCsonPaths = await spawn(new Worker('./lib/transpile-cson-paths'))
+  const transpileCsonPathsPromise = transpileCsonPaths()
+
+  const transpilePegJsPaths = await spawn(new Worker('./lib/transpile-peg-js-paths'))
+  const transpilePegJsPathsPromise = transpilePegJsPaths()
+
+  await transpilePackagesWithCustomTranspilerPathsPromise;
+  await Thread.terminate(transpilePackagesWithCustomTranspilerPaths)
+
+  await transpileBabelPathsPromise;
+  await Thread.terminate(transpileBabelPaths)
+
+  await transpileCoffeeScriptPathsPromise;
+  await Thread.terminate(transpileCoffeeScriptPaths)
+
+  await transpileCsonPathsPromise;
+  await Thread.terminate(transpileCsonPaths)
+
+  await transpilePegJsPathsPromise;
+  await Thread.terminate(transpilePegJsPaths)
 }
 
-if (!argv.generateApiDocs) {
-  binariesPromise
-    .then(packageApplication)
-    .then(packagedAppPath => generateStartupSnapshot(packagedAppPath).then(() => packagedAppPath))
-    .then(async packagedAppPath => {
+async function singAndCreateInstaller(packagedAppPath) {
       switch (process.platform) {
         case 'darwin': {
           if (argv.codeSign) {
@@ -147,7 +153,29 @@ if (!argv.generateApiDocs) {
       }
 
       return Promise.resolve(packagedAppPath)
-    }).then(packagedAppPath => {
+}
+
+
+async function build() {
+
+  if (!argv.existingBinaries) {
+    checkChromedriverVersion()
+    await cleanOutputDirectory()
+    await copyAssets()
+    await transpile()
+    generateModuleCache()
+    prebuildLessCache()
+    generateMetadata()
+    generateAPIDocs()
+    if (!argv.generateApiDocs) {
+      await dumpSymbols()
+    }
+  }
+
+  if (!argv.generateApiDocs) {
+      const packagedAppPath = await packageApplication()
+      await generateStartupSnapshot(packagedAppPath)
+      await singAndCreateInstaller(packagedAppPath)
       if (argv.compressArtifacts) {
         compressArtifacts(packagedAppPath)
       } else {
@@ -159,5 +187,9 @@ if (!argv.generateApiDocs) {
       } else {
         console.log('Skipping installation. Specify the --install option to install Atom'.gray)
       }
-    })
+  }
+
 }
+
+
+build().then(() => {process.exit(0)}).catch((e) =>  {throw e;})
