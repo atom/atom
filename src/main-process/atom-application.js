@@ -802,11 +802,11 @@ module.exports = class AtomApplication extends EventEmitter {
     );
 
     this.disposable.add(
-      ipcHelpers.on(ipcMain, 'resolve-proxy', (event, requestId, url) => {
-        event.sender.session.resolveProxy(url).then(proxy => {
-          if (!event.sender.isDestroyed())
-            event.sender.send('did-resolve-proxy', requestId, proxy);
-        });
+      ipcHelpers.on(ipcMain, 'resolve-proxy', async (event, requestId, url) => {
+        const proxy = await event.sender.session.resolveProxy(url);
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('did-resolve-proxy', requestId, proxy);
+        }
       })
     );
 
