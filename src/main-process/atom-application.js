@@ -249,16 +249,6 @@ module.exports = class AtomApplication extends EventEmitter {
 
     global.atomApplication = this;
 
-    // DEPRECATED: This can be removed at some point (added in 1.13)
-    // It converts `useCustomTitleBar: true` to `titleBar: "custom"`
-    if (
-      process.platform === 'darwin' &&
-      this.config.get('core.useCustomTitleBar')
-    ) {
-      this.config.unset('core.useCustomTitleBar');
-      this.config.set('core.titleBar', 'custom');
-    }
-
     this.applicationMenu = new ApplicationMenu(
       this.version,
       this.autoUpdateManager
