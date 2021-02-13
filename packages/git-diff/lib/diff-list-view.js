@@ -1,7 +1,9 @@
-const SelectListView = require('atom-select-list');
-const { repositoryForPath } = require('./helpers');
+'use babel';
 
-module.exports = class DiffListView {
+import SelectListView from 'atom-select-list';
+import repositoryForPath from './helpers';
+
+export default class DiffListView {
   constructor() {
     this.selectListView = new SelectListView({
       emptyMessage: 'No diffs in file',
@@ -84,4 +86,4 @@ module.exports = class DiffListView {
       this.attach();
     }
   }
-};
+}

@@ -1,9 +1,11 @@
-const GitDiffView = require('./git-diff-view');
-const DiffListView = require('./diff-list-view');
+'use babel';
+
+import GitDiffView from './git-diff-view';
+import DiffListView from './diff-list-view';
 
 let diffListView = null;
 
-module.exports = {
+export default {
   activate() {
     const watchedEditors = new WeakSet();
 

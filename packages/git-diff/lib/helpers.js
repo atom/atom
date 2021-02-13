@@ -1,4 +1,4 @@
-exports.repositoryForPath = function (goalPath) {
+export default function (goalPath) {
   const directories = atom.project.getDirectories();
   const repositories = atom.project.getRepositories();
   for (let i = 0; i < directories.length; i++) {
@@ -8,4 +8,4 @@ exports.repositoryForPath = function (goalPath) {
     }
   }
   return null;
-};
+}

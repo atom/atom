@@ -1,9 +1,11 @@
-const { CompositeDisposable } = require('atom');
-const { repositoryForPath } = require('./helpers');
+'use babel';
+
+import CompositeDisposable from 'atom';
+import repositoryForPath from './helpers';
 
 const MAX_BUFFER_LENGTH_TO_DIFF = 2 * 1024 * 1024;
 
-module.exports = class GitDiffView {
+export default class GitDiffView {
   constructor(editor) {
     this.updateDiffs = this.updateDiffs.bind(this);
     this.editor = editor;
@@ -196,4 +198,4 @@ module.exports = class GitDiffView {
     this.editor.decorateMarker(marker, { type: 'line-number', class: klass });
     this.markers.push(marker);
   }
-};
+}
