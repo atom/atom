@@ -20,6 +20,7 @@ Requires: lsb-core-noarch, libXss.so.1()(64bit) libsecret-1.so.0()(64bit), polki
 mkdir -p "%{buildroot}/<%= installDir %>/share/<%= appFileName %>/"
 cp -r "<%= appName %>"/* "%{buildroot}/<%= installDir %>/share/<%= appFileName %>/"
 mkdir -p "%{buildroot}/<%= installDir %>/bin/"
+%py3_shebang_fix "../share/<%= appFileName %>/resources/app/apm/node_modules/npm/node_modules/node-gyp"  # Todo until node-gyp updates shebang to python3
 ln -sf "../share/<%= appFileName %>/resources/app/apm/node_modules/.bin/apm" "%{buildroot}/<%= installDir %>/bin/<%= apmFileName %>"
 cp atom.sh "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
 chmod 755 "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
