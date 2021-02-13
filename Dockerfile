@@ -24,8 +24,5 @@ RUN apt-get update && \
 # Update npm and dependencies
 RUN npm install -g npm --loglevel error
 
-# Use python2 by default
-RUN npm config set python /usr/bin/python2 -g
-
 ENTRYPOINT ["/usr/bin/env", "sh", "-c"]
 CMD ["bash"]
