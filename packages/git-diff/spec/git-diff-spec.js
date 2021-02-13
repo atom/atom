@@ -1,12 +1,12 @@
 const path = require('path');
 const fs = require('fs-plus');
-const temp = require('temp');
+const temp = require('temp').track();
 
 describe('GitDiff package', () => {
   let editor, editorElement, projectPath;
 
   beforeEach(() => {
-    spyOn(window, 'setImmediate').andCallFake(fn => fn());
+    spyOn(window, 'setImmediate').andCallFake((fn) => fn());
 
     projectPath = temp.mkdirSync('git-diff-spec-');
     const otherPath = temp.mkdirSync('some-other-path-');
