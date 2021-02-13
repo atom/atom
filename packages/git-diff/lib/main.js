@@ -7,7 +7,7 @@ module.exports = {
   activate() {
     const watchedEditors = new WeakSet();
 
-    atom.workspace.observeTextEditors(editor => {
+    atom.workspace.observeTextEditors((editor) => {
       if (watchedEditors.has(editor)) return;
 
       new GitDiffView(editor).start();
@@ -28,5 +28,5 @@ module.exports = {
   deactivate() {
     if (diffListView) diffListView.destroy();
     diffListView = null;
-  }
+  },
 };
