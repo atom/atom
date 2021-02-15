@@ -1,34 +1,52 @@
 'use babel';
 
+import { CompositeDisposable } from 'atom';
 import GitDiffView from './git-diff-view';
 import DiffListView from './diff-list-view';
 
 let diffListView = null;
+let diffViews = null;
+let subscriptions = null;
 
 export default {
-  activate() {
-    const watchedEditors = new WeakSet();
+  activate(state) {
+    subscriptions = new CompositeDisposable();
+    diffViews = new Set();
 
-    atom.workspace.observeTextEditors((editor) => {
-      if (watchedEditors.has(editor)) return;
+    subscriptions.add(
+      atom.workspace.observeTextEditors((editor) => {
+        const editorElm = atom.views.getView(editor);
+        const diffView = new GitDiffView(editor);
 
-      new GitDiffView(editor).start();
-      atom.commands.add(
-        atom.views.getView(editor),
-        'git-diff:toggle-diff-list',
-        () => {
-          if (diffListView == null) diffListView = new DiffListView();
-          diffListView.toggle();
-        }
-      );
+        diffViews.add(diffView);
 
-      watchedEditors.add(editor);
-      editor.onDidDestroy(() => watchedEditors.delete(editor));
-    });
+        let editorSubs;
+        const command = 'git-diff:toggle-diff-list';
+        subscriptions.add(
+          (editorSubs = new CompositeDisposable(
+            atom.commands.add(editorElm, command, () => {
+              if (diffListView == null) diffListView = new DiffListView();
+              diffListView.toggle();
+            }),
+            editor.onDidDestroy(() => {
+              diffView.destroy();
+              diffViews.delete(diffView);
+              editorSubs.dispose();
+              subscriptions.remove(editorSubs);
+            })
+          ))
+        );
+      })
+    );
   },
 
   deactivate() {
-    if (diffListView) diffListView.destroy();
     diffListView = null;
+
+    for (const v of diffViews) v.destroy();
+    diffViews = null;
+
+    subscriptions.dispose();
+    subscriptions = null;
   },
 };
