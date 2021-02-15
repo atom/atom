@@ -5,6 +5,10 @@ import repositoryForPath from './helpers';
 
 const MAX_BUFFER_LENGTH_TO_DIFF = 2 * 1024 * 1024;
 
+/**
+ * @describe Handles per-editor event and repository subscriptions.
+ * @param editor {Atom.TextEditor} - The editor this view will manage.
+ */
 export default class GitDiffView {
   constructor(editor) {
     // These are the only members guaranteed to exist.
@@ -16,7 +20,7 @@ export default class GitDiffView {
     // I know this looks janky but it works. Class methods are available
     // before the constructor is executed. It's a micro-opt above lambdas.
     const subscribeToRepository = this.subscribeToRepository.bind(this);
-    // WARNING: This gets handed to setImmediate, so it must be bound.
+    // WARNING: This gets handed to requestAnimationFrame, so it must be bound.
     this.updateDiffs = this.updateDiffs.bind(this);
 
     subscribeToRepository();
@@ -26,19 +30,49 @@ export default class GitDiffView {
     );
   }
 
+  /**
+   * @describe Handles tear down of destructables and subscriptions.
+   *   Does not handle release of memory. This method should only be called
+   *   just before this object is freed, and should only tear down the main
+   *   object components that are guarunteed to exist at all times.
+   */
   destroy() {
     // This entire object will be free soon, no need to release here.
-    if (this._repoSubs != null) this._repoSubs.dispose();
     this.subscriptions.dispose();
+    this.destroyChildren();
+  }
 
-    if (this._animationId != null) cancelAnimationFrame(this._animationId);
+  /**
+   * @describe Destroys this objects children (non-freeing), it's intended
+   *   to be an ease-of use function for maintaing this object. This method
+   *   should only tear down objects that are selectively allocated upon
+   *   repository discovery.
+   *
+   *   Example: this.diffs only exists when we have a repository.
+   */
+  destroyChildren() {
+    if (this._animationId) cancelAnimationFrame(this._animationId);
 
     if (this.diffs)
       for (const diff of this.diffs) this.markers.get(diff).destroy();
   }
 
+  /**
+   * @describe The memory releasing complement function of `destroyChildren`.
+   *   frees the memory allocated at all child object storage locations
+   *   when there is no repository.
+   */
+  releaseChildren() {
+    this.diffs = null;
+    this._repoSubs = null;
+    this._animationId = null;
+  }
+
   async subscribeToRepository() {
-    if (this._repoSubs != null) this._repoSubs.dispose();
+    if (this._repoSubs != null) {
+      this._repoSubs.dispose();
+      this.subscriptions.remove(this._repoSubs);
+    }
 
     this.repository = await repositoryForPath(this.editor.getPath());
     if (this.repository != null) {
@@ -47,46 +81,44 @@ export default class GitDiffView {
       const subscribeToRepository = this.subscribeToRepository.bind(this);
       const updateIconDecoration = this.updateIconDecoration.bind(this);
       const scheduleUpdate = this.scheduleUpdate.bind(this);
+
       // Every time the repo is changed, the editor needs to be reinitialized.
-      this._repoSubs = new CompositeDisposable(
-        this.repository.onDidDestroy(subscribeToRepository),
-        this.repository.onDidChangeStatuses(scheduleUpdate),
-        this.repository.onDidChangeStatus((changedPath) => {
-          if (changedPath === this.editor.getPath()) scheduleUpdate();
-        }),
-        this.editor.onDidStopChanging(scheduleUpdate),
-        this.editor.onDidChangePath(scheduleUpdate),
-        atom.commands.add(
-          editorElm,
-          'git-diff:move-to-next-diff',
-          this.moveToNextDiff.bind(this)
-        ),
-        atom.commands.add(
-          editorElm,
-          'git-diff:move-to-previous-diff',
-          this.moveToPreviousDiff.bind(this)
-        ),
-        atom.config.onDidChange(
-          'git-diff.showIconsInEditorGutter',
-          updateIconDecoration
-        ),
-        atom.config.onDidChange('editor.showLineNumbers', updateIconDecoration),
-        editorElm.onDidAttach(updateIconDecoration)
+      this.subscriptions.add(
+        (this._repoSubs = new CompositeDisposable(
+          this.repository.onDidDestroy(subscribeToRepository),
+          this.repository.onDidChangeStatuses(scheduleUpdate),
+          this.repository.onDidChangeStatus(changedPath => {
+            if (changedPath === this.editor.getPath()) scheduleUpdate();
+          }),
+          this.editor.onDidStopChanging(scheduleUpdate),
+          this.editor.onDidChangePath(scheduleUpdate),
+          atom.commands.add(
+            editorElm,
+            'git-diff:move-to-next-diff',
+            this.moveToNextDiff.bind(this)
+          ),
+          atom.commands.add(
+            editorElm,
+            'git-diff:move-to-previous-diff',
+            this.moveToPreviousDiff.bind(this)
+          ),
+          atom.config.onDidChange(
+            'git-diff.showIconsInEditorGutter',
+            updateIconDecoration
+          ),
+          atom.config.onDidChange(
+            'editor.showLineNumbers',
+            updateIconDecoration
+          ),
+          editorElm.onDidAttach(updateIconDecoration)
+        ))
       );
 
       updateIconDecoration();
       scheduleUpdate();
     } else {
-      // Do complete teardown and release of old repository related objects.
-      if (this._animationId) cancelAnimationFrame(this._animationId);
-      if (this.diffs) {
-        for (const diff of this.diffs) this.markers.get(diff).destroy();
-        this.diffs = null;
-      }
-      if (this._repoSubs) {
-        this._repoSubs.dispose();
-        this._repoSubs = null;
-      }
+      this.destroyChildren();
+      this.releaseChildren();
     }
   }
 
@@ -167,7 +199,11 @@ export default class GitDiffView {
     this._animationId = requestAnimationFrame(this.updateDiffs);
   }
 
-  // Should only be called when there is a repository
+  /**
+   * @describe Uses text markers in the target editor to visualize
+   *   git modifications, additions, and deletions. The current algorithm
+   *   just redraws the markers each call.
+   */
   updateDiffs() {
     const bufferLength = this.editor.getBuffer().getLength();
     if (bufferLength < MAX_BUFFER_LENGTH_TO_DIFF) {
@@ -208,15 +244,9 @@ export default class GitDiffView {
   }
 
   markRange(startRow, endRow, klass) {
-    const marker = this.editor.markBufferRange(
-      [
-        [startRow, 0],
-        [endRow, 0],
-      ],
-      {
-        invalidate: 'never',
-      }
-    );
+    const marker = this.editor.markBufferRange([[startRow, 0], [endRow, 0]], {
+      invalidate: 'never'
+    });
     this.editor.decorateMarker(marker, { type: 'line-number', class: klass });
     return marker;
   }

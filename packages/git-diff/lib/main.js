@@ -14,7 +14,7 @@ export default {
     diffViews = new Set();
 
     subscriptions.add(
-      atom.workspace.observeTextEditors((editor) => {
+      atom.workspace.observeTextEditors(editor => {
         const editorElm = atom.views.getView(editor);
         const diffView = new GitDiffView(editor);
 
@@ -48,5 +48,5 @@ export default {
 
     subscriptions.dispose();
     subscriptions = null;
-  },
+  }
 };
