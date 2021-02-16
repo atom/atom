@@ -43,7 +43,7 @@ export default {
   deactivate() {
     diffListView = null;
 
-    for (const v of diffViews) v.destroy();
+    for (const diffView of diffViews) diffView.destroy();
     diffViews = null;
 
     subscriptions.dispose();

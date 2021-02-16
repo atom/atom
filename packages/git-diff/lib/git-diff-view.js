@@ -76,7 +76,7 @@ export default class GitDiffView {
 
     this.repository = await repositoryForPath(this.editor.getPath());
     if (this.repository != null) {
-      const editorElm = atom.views.getView(this.editor);
+      const editorElement = atom.views.getView(this.editor);
 
       const subscribeToRepository = this.subscribeToRepository.bind(this);
       const updateIconDecoration = this.updateIconDecoration.bind(this);
@@ -93,12 +93,12 @@ export default class GitDiffView {
           this.editor.onDidStopChanging(scheduleUpdate),
           this.editor.onDidChangePath(scheduleUpdate),
           atom.commands.add(
-            editorElm,
+            editorElement,
             'git-diff:move-to-next-diff',
             this.moveToNextDiff.bind(this)
           ),
           atom.commands.add(
-            editorElm,
+            editorElement,
             'git-diff:move-to-previous-diff',
             this.moveToPreviousDiff.bind(this)
           ),
@@ -110,7 +110,7 @@ export default class GitDiffView {
             'editor.showLineNumbers',
             updateIconDecoration
           ),
-          editorElm.onDidAttach(updateIconDecoration)
+          editorElement.onDidAttach(updateIconDecoration)
         ))
       );
 
@@ -219,8 +219,8 @@ export default class GitDiffView {
       this.diffs = this.repository.getLineDiffs(path, this.editor.getText());
       this.diffs = this.diffs || []; // Sanitize type to array.
 
-      for (let i = 0; i < this.diffs.length; i++) {
-        const { newStart, oldLines, newLines } = this.diffs[i];
+      for (const diff of this.diffs) {
+        const { newStart, oldLines, newLines } = diff;
         const startRow = newStart - 1;
         const endRow = newStart + newLines - 1;
 
@@ -238,7 +238,7 @@ export default class GitDiffView {
           mark = this.markRange(startRow, endRow, 'git-line-modified');
         }
 
-        this.markers.set(this.diffs[i], mark);
+        this.markers.set(diff, mark);
       }
     }
   }
