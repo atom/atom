@@ -68,6 +68,9 @@ export default class GitDiffView {
     this._animationId = null;
   }
 
+  /**
+   * @describe handles all subscriptions based on the repository in focus
+   */
   async subscribeToRepository() {
     if (this._repoSubs != null) {
       this._repoSubs.dispose();
