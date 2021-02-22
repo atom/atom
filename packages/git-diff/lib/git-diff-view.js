@@ -56,12 +56,10 @@ export default class GitDiffView {
    *   Example: this.diffs only exists when we have a repository.
    */
   destroyChildren() {
-    if (this._animationId)
-      cancelAnimationFrame(this._animationId);
+    if (this._animationId) cancelAnimationFrame(this._animationId);
 
     if (this.diffs)
-      for (const diff of this.diffs)
-        this.markers.get(diff).destroy();
+      for (const diff of this.diffs) this.markers.get(diff).destroy();
   }
 
   /**
@@ -102,8 +100,7 @@ export default class GitDiffView {
         this.repository.onDidDestroy(subscribeToRepository),
         this.repository.onDidChangeStatuses(scheduleUpdate),
         this.repository.onDidChangeStatus(changedPath => {
-          if (changedPath === this.editorPath)
-            scheduleUpdate();
+          if (changedPath === this.editorPath) scheduleUpdate();
         }),
         this.editor.onDidStopChanging(scheduleUpdate),
         this.editor.onDidChangePath(() => {
@@ -147,14 +144,12 @@ export default class GitDiffView {
 
     for (const { newStart } of this.diffs) {
       if (newStart > cursorLineNumber) {
-        if (nextDiffLineNumber == null)
-          nextDiffLineNumber = newStart - 1;
+        if (nextDiffLineNumber == null) nextDiffLineNumber = newStart - 1;
 
         nextDiffLineNumber = Math.min(newStart - 1, nextDiffLineNumber);
       }
 
-      if (firstDiffLineNumber == null)
-        firstDiffLineNumber = newStart - 1;
+      if (firstDiffLineNumber == null) firstDiffLineNumber = newStart - 1;
 
       firstDiffLineNumber = Math.min(newStart - 1, firstDiffLineNumber);
     }
@@ -216,8 +211,7 @@ export default class GitDiffView {
   scheduleUpdate() {
     // Use Chromium native requestAnimationFrame because it yields
     // to the browser, is standard and doesn't involve extra JS overhead.
-    if (this._animationId)
-      cancelAnimationFrame(this._animationId);
+    if (this._animationId) cancelAnimationFrame(this._animationId);
 
     this._animationId = requestAnimationFrame(this.updateDiffs);
   }
@@ -231,8 +225,7 @@ export default class GitDiffView {
     if (this.buffer.getLength() < MAX_BUFFER_LENGTH_TO_DIFF) {
       // Before we redraw the diffs, tear down the old markers.
       if (this.diffs)
-        for (const diff of this.diffs)
-          this.markers.get(diff).destroy();
+        for (const diff of this.diffs) this.markers.get(diff).destroy();
 
       this.markers.clear();
 

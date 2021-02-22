@@ -22,8 +22,7 @@ export default {
         const listViewCommand = 'git-diff:toggle-diff-list';
         const editorSubs = new CompositeDisposable(
           atom.commands.add(editorElement, listViewCommand, () => {
-            if (diffListView == null)
-              diffListView = new DiffListView();
+            if (diffListView == null) diffListView = new DiffListView();
 
             diffListView.toggle();
           }),
@@ -43,8 +42,7 @@ export default {
   deactivate() {
     diffListView = null;
 
-    for (const diffView of diffViews)
-      diffView.destroy();
+    for (const diffView of diffViews) diffView.destroy();
 
     diffViews.clear();
 
