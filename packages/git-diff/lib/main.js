@@ -5,37 +5,37 @@ import GitDiffView from './git-diff-view';
 import DiffListView from './diff-list-view';
 
 let diffListView = null;
-let diffViews = null;
+let diffViews = new Set();
 let subscriptions = null;
 
 export default {
   activate(state) {
     subscriptions = new CompositeDisposable();
-    diffViews = new Set();
 
     subscriptions.add(
       atom.workspace.observeTextEditors(editor => {
         const editorElement = atom.views.getView(editor);
-        const diffView = new GitDiffView(editor);
+        const diffView = new GitDiffView(editor, editorElement);
 
         diffViews.add(diffView);
 
-        let editorSubs;
-        const command = 'git-diff:toggle-diff-list';
-        subscriptions.add(
-          (editorSubs = new CompositeDisposable(
-            atom.commands.add(editorElement, command, () => {
-              if (diffListView == null) diffListView = new DiffListView();
-              diffListView.toggle();
-            }),
-            editor.onDidDestroy(() => {
-              diffView.destroy();
-              diffViews.delete(diffView);
-              editorSubs.dispose();
-              subscriptions.remove(editorSubs);
-            })
-          ))
+        const listViewCommand = 'git-diff:toggle-diff-list';
+        const editorSubs = new CompositeDisposable(
+          atom.commands.add(editorElement, listViewCommand, () => {
+            if (diffListView == null)
+              diffListView = new DiffListView();
+
+            diffListView.toggle();
+          }),
+          editor.onDidDestroy(() => {
+            diffView.destroy();
+            diffViews.delete(diffView);
+            editorSubs.dispose();
+            subscriptions.remove(editorSubs);
+          })
         );
+
+        subscriptions.add(editorSubs);
       })
     );
   },
@@ -43,8 +43,10 @@ export default {
   deactivate() {
     diffListView = null;
 
-    for (const diffView of diffViews) diffView.destroy();
-    diffViews = null;
+    for (const diffView of diffViews)
+      diffView.destroy();
+
+    diffViews.clear();
 
     subscriptions.dispose();
     subscriptions = null;

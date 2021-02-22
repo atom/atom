@@ -10,12 +10,17 @@ const MAX_BUFFER_LENGTH_TO_DIFF = 2 * 1024 * 1024;
  * @param editor {Atom.TextEditor} - The editor this view will manage.
  */
 export default class GitDiffView {
-  constructor(editor) {
+  constructor(editor, editorElement) {
     // These are the only members guaranteed to exist.
     this.subscriptions = new CompositeDisposable();
     this.editor = editor;
+    this.editorElement = editorElement;
     this.repository = null;
-    this.markers = new WeakMap();
+    this.markers = new Map();
+
+    // Assign `null` to all possible child vars here so the JS engine doesn't
+    // have to re-evaluate the microcode when we do eventually need them.
+    this.releaseChildren();
 
     // I know this looks janky but it works. Class methods are available
     // before the constructor is executed. It's a micro-opt above lambdas.
@@ -37,9 +42,9 @@ export default class GitDiffView {
    *   object components that are guarunteed to exist at all times.
    */
   destroy() {
-    // This entire object will be free soon, no need to release here.
     this.subscriptions.dispose();
     this.destroyChildren();
+    this.markers.clear();
   }
 
   /**
@@ -51,10 +56,12 @@ export default class GitDiffView {
    *   Example: this.diffs only exists when we have a repository.
    */
   destroyChildren() {
-    if (this._animationId) cancelAnimationFrame(this._animationId);
+    if (this._animationId)
+      cancelAnimationFrame(this._animationId);
 
     if (this.diffs)
-      for (const diff of this.diffs) this.markers.get(diff).destroy();
+      for (const diff of this.diffs)
+        this.markers.get(diff).destroy();
   }
 
   /**
@@ -66,56 +73,64 @@ export default class GitDiffView {
     this.diffs = null;
     this._repoSubs = null;
     this._animationId = null;
+    this.editorPath = null;
+    this.buffer = null;
   }
 
   /**
    * @describe handles all subscriptions based on the repository in focus
    */
   async subscribeToRepository() {
-    if (this._repoSubs != null) {
+    if (this._repoSubs !== null) {
       this._repoSubs.dispose();
       this.subscriptions.remove(this._repoSubs);
     }
 
-    this.repository = await repositoryForPath(this.editor.getPath());
-    if (this.repository != null) {
-      const editorElement = atom.views.getView(this.editor);
+    // Don't cache the path unless we know we need it.
+    let editorPath = this.editor.getPath();
+
+    this.repository = await repositoryForPath(editorPath);
+    if (this.repository !== null) {
+      this.editorPath = editorPath;
+      this.buffer = this.editor.getBuffer();
 
       const subscribeToRepository = this.subscribeToRepository.bind(this);
       const updateIconDecoration = this.updateIconDecoration.bind(this);
       const scheduleUpdate = this.scheduleUpdate.bind(this);
 
-      // Every time the repo is changed, the editor needs to be reinitialized.
-      this.subscriptions.add(
-        (this._repoSubs = new CompositeDisposable(
-          this.repository.onDidDestroy(subscribeToRepository),
-          this.repository.onDidChangeStatuses(scheduleUpdate),
-          this.repository.onDidChangeStatus(changedPath => {
-            if (changedPath === this.editor.getPath()) scheduleUpdate();
-          }),
-          this.editor.onDidStopChanging(scheduleUpdate),
-          this.editor.onDidChangePath(scheduleUpdate),
-          atom.commands.add(
-            editorElement,
-            'git-diff:move-to-next-diff',
-            this.moveToNextDiff.bind(this)
-          ),
-          atom.commands.add(
-            editorElement,
-            'git-diff:move-to-previous-diff',
-            this.moveToPreviousDiff.bind(this)
-          ),
-          atom.config.onDidChange(
-            'git-diff.showIconsInEditorGutter',
-            updateIconDecoration
-          ),
-          atom.config.onDidChange(
-            'editor.showLineNumbers',
-            updateIconDecoration
-          ),
-          editorElement.onDidAttach(updateIconDecoration)
-        ))
+      this._repoSubs = new CompositeDisposable(
+        this.repository.onDidDestroy(subscribeToRepository),
+        this.repository.onDidChangeStatuses(scheduleUpdate),
+        this.repository.onDidChangeStatus(changedPath => {
+          if (changedPath === this.editorPath)
+            scheduleUpdate();
+        }),
+        this.editor.onDidStopChanging(scheduleUpdate),
+        this.editor.onDidChangePath(() => {
+          this.editorPath = this.edtior.getPath();
+          this.buffer = this.editor.getBuffer();
+          scheduleUpdate();
+        }),
+        atom.commands.add(
+          this.editorElement,
+          'git-diff:move-to-next-diff',
+          this.moveToNextDiff.bind(this)
+        ),
+        atom.commands.add(
+          this.editorElement,
+          'git-diff:move-to-previous-diff',
+          this.moveToPreviousDiff.bind(this)
+        ),
+        atom.config.onDidChange(
+          'git-diff.showIconsInEditorGutter',
+          updateIconDecoration
+        ),
+        atom.config.onDidChange('editor.showLineNumbers', updateIconDecoration),
+        this.editorElement.onDidAttach(updateIconDecoration)
       );
+
+      // Every time the repo is changed, the editor needs to be reinitialized.
+      this.subscriptions.add(this._repoSubs);
 
       updateIconDecoration();
       scheduleUpdate();
@@ -132,11 +147,15 @@ export default class GitDiffView {
 
     for (const { newStart } of this.diffs) {
       if (newStart > cursorLineNumber) {
-        if (nextDiffLineNumber == null) nextDiffLineNumber = newStart - 1;
+        if (nextDiffLineNumber == null)
+          nextDiffLineNumber = newStart - 1;
+
         nextDiffLineNumber = Math.min(newStart - 1, nextDiffLineNumber);
       }
 
-      if (firstDiffLineNumber == null) firstDiffLineNumber = newStart - 1;
+      if (firstDiffLineNumber == null)
+        firstDiffLineNumber = newStart - 1;
+
       firstDiffLineNumber = Math.min(newStart - 1, firstDiffLineNumber);
     }
 
@@ -174,8 +193,7 @@ export default class GitDiffView {
   }
 
   updateIconDecoration() {
-    const editorElement = atom.views.getView(this.editor);
-    const gutter = editorElement.querySelector('.gutter');
+    const gutter = this.editorElement.querySelector('.gutter');
     if (gutter) {
       if (
         atom.config.get('editor.showLineNumbers') &&
@@ -189,7 +207,7 @@ export default class GitDiffView {
   }
 
   moveToLineNumber(lineNumber) {
-    if (lineNumber != null) {
+    if (lineNumber !== null) {
       this.editor.setCursorBufferPosition([lineNumber, 0]);
       this.editor.moveToFirstCharacterOfLine();
     }
@@ -198,7 +216,9 @@ export default class GitDiffView {
   scheduleUpdate() {
     // Use Chromium native requestAnimationFrame because it yields
     // to the browser, is standard and doesn't involve extra JS overhead.
-    if (this._animationId) cancelAnimationFrame(this._animationId);
+    if (this._animationId)
+      cancelAnimationFrame(this._animationId);
+
     this._animationId = requestAnimationFrame(this.updateDiffs);
   }
 
@@ -208,18 +228,16 @@ export default class GitDiffView {
    *   just redraws the markers each call.
    */
   updateDiffs() {
-    const bufferLength = this.editor.getBuffer().getLength();
-    if (bufferLength < MAX_BUFFER_LENGTH_TO_DIFF) {
-      const path = this.editor.getPath();
-
+    if (this.buffer.getLength() < MAX_BUFFER_LENGTH_TO_DIFF) {
       // Before we redraw the diffs, tear down the old markers.
       if (this.diffs)
-        for (const diff of this.diffs) this.markers.get(diff).destroy();
+        for (const diff of this.diffs)
+          this.markers.get(diff).destroy();
 
-      // WARNING: Could cause future memory leak if git-utils ever
-      // changes their diff strategy to one that re-uses diffs between
-      // requests. But that's unlikely to happen.
-      this.diffs = this.repository.getLineDiffs(path, this.editor.getText());
+      this.markers.clear();
+
+      const text = this.buffer.getText();
+      this.diffs = this.repository.getLineDiffs(this.editorPath, text);
       this.diffs = this.diffs || []; // Sanitize type to array.
 
       for (const diff of this.diffs) {
