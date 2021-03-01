@@ -19,7 +19,10 @@ const git = (git, repositoryRootPath) => {
   }
   return {
     switchToMaster: async function() {
-      await git.checkout('origin/master');
+      const { current } = await git.branch();
+      if (current !== 'master') {
+        await git.checkout('master');
+      }
     },
     makeBranch: async function(dependency) {
       const newBranch = `${dependency.moduleName}-${dependency.latest}`;
