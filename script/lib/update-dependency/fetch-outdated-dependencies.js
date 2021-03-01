@@ -44,12 +44,14 @@ const apm = async function({ dependencies, packageDependencies }) {
 
 const npm = async function(cwd) {
   try {
-    console.log('Checking npm registry...');
+    console.log('Checking npm registry...', cwd);
 
     const currentState = await npmCheck({
       cwd,
       ignoreDev: true,
       skipUnused: true
+    }).catch(ex => {
+      console.log(ex);
     });
     const outdatedPackages = currentState
       .get('packages')
