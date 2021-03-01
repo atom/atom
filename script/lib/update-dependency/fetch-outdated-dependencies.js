@@ -50,9 +50,8 @@ const npm = async function(cwd) {
       cwd,
       ignoreDev: true,
       skipUnused: true
-    }).catch(ex => {
-      console.log(ex);
     });
+
     const outdatedPackages = currentState
       .get('packages')
       .filter(p => {
