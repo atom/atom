@@ -438,12 +438,15 @@ describe('TextEditorElement', () => {
       const bottom = 13 * editor.getLineHeightInPixels();
       const left = Math.round(3 * editor.getDefaultCharWidth());
       const right = Math.round(11 * editor.getDefaultCharWidth());
-      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({
-        top,
-        left,
-        height: bottom + editor.getLineHeightInPixels() - top,
-        width: right - left
-      });
+
+      const pixelRect = element.pixelRectForScreenRange([[2, 3], [13, 11]]);
+
+      expect(pixelRect.top).toEqual(top);
+      expect(pixelRect.left).toEqual(left);
+      expect(pixelRect.height).toEqual(
+        bottom + editor.getLineHeightInPixels() - top
+      );
+      expect(pixelRect.width).toBeNear(right - left);
     });
   });
 

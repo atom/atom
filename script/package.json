@@ -13,7 +13,7 @@
     "colors": "1.1.2",
     "donna": "1.0.16",
     "electron-chromedriver": "^9.0.0",
-    "electron-link": "^0.4.3",
+    "electron-link": "^0.6.0",
     "electron-mksnapshot": "^9.0.2",
     "electron-packager": "^15.0.0",
     "eslint": "^5.16.0",
