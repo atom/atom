@@ -1,11 +1,10 @@
-exports.repositoryForPath = function(goalPath) {
-  const directories = atom.project.getDirectories();
-  const repositories = atom.project.getRepositories();
-  for (let i = 0; i < directories.length; i++) {
-    const directory = directories[i];
-    if (goalPath === directory.getPath() || directory.contains(goalPath)) {
-      return repositories[i];
-    }
+const { Directory } = require('atom');
+
+async function repositoryForPath(path) {
+  if (path) {
+    return atom.project.repositoryForDirectory(new Directory(path));
   }
   return null;
-};
+}
+
+module.exports = { repositoryForPath };

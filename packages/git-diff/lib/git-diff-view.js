@@ -12,10 +12,10 @@ module.exports = class GitDiffView {
     this.markers = [];
   }
 
-  start() {
+  async start() {
     const editorElement = this.editor.getElement();
 
-    this.subscribeToRepository();
+    await this.subscribeToRepository();
 
     this.subscriptions.add(
       this.editor.onDidStopChanging(this.updateDiffs),
@@ -120,8 +120,8 @@ module.exports = class GitDiffView {
     }
   }
 
-  subscribeToRepository() {
-    this.repository = repositoryForPath(this.editor.getPath());
+  async subscribeToRepository() {
+    this.repository = await repositoryForPath(this.editor.getPath());
     if (this.repository) {
       this.subscriptions.add(
         this.repository.onDidChangeStatuses(() => {
