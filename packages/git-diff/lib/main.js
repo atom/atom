@@ -1,32 +1,52 @@
-const GitDiffView = require('./git-diff-view');
-const DiffListView = require('./diff-list-view');
+'use babel';
+
+import { CompositeDisposable } from 'atom';
+import GitDiffView from './git-diff-view';
+import DiffListView from './diff-list-view';
 
 let diffListView = null;
+let diffViews = new Set();
+let subscriptions = null;
 
-module.exports = {
-  activate() {
-    const watchedEditors = new WeakSet();
+export default {
+  activate(state) {
+    subscriptions = new CompositeDisposable();
 
-    atom.workspace.observeTextEditors(editor => {
-      if (watchedEditors.has(editor)) return;
+    subscriptions.add(
+      atom.workspace.observeTextEditors(editor => {
+        const editorElement = atom.views.getView(editor);
+        const diffView = new GitDiffView(editor, editorElement);
 
-      new GitDiffView(editor).start();
-      atom.commands.add(
-        atom.views.getView(editor),
-        'git-diff:toggle-diff-list',
-        () => {
-          if (diffListView == null) diffListView = new DiffListView();
-          diffListView.toggle();
-        }
-      );
+        diffViews.add(diffView);
 
-      watchedEditors.add(editor);
-      editor.onDidDestroy(() => watchedEditors.delete(editor));
-    });
+        const listViewCommand = 'git-diff:toggle-diff-list';
+        const editorSubs = new CompositeDisposable(
+          atom.commands.add(editorElement, listViewCommand, () => {
+            if (diffListView == null) diffListView = new DiffListView();
+
+            diffListView.toggle();
+          }),
+          editor.onDidDestroy(() => {
+            diffView.destroy();
+            diffViews.delete(diffView);
+            editorSubs.dispose();
+            subscriptions.remove(editorSubs);
+          })
+        );
+
+        subscriptions.add(editorSubs);
+      })
+    );
   },
 
   deactivate() {
-    if (diffListView) diffListView.destroy();
     diffListView = null;
+
+    for (const diffView of diffViews) diffView.destroy();
+
+    diffViews.clear();
+
+    subscriptions.dispose();
+    subscriptions = null;
   }
 };

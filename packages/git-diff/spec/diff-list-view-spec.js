@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs-plus');
-const temp = require('temp');
+const temp = require('temp').track();
 
 describe('git-diff:toggle-diff-list', () => {
   let diffListView, editor;
