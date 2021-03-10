@@ -17,7 +17,7 @@ const runApmInstall = require('../run-apm-install');
 const {
   makeBranch,
   createCommit,
-  switchToMaster,
+  switchToCleanBranch,
   publishBranch,
   deleteBranch
 } = require('./git')(git, repositoryRootPath);
@@ -27,7 +27,7 @@ const fetchOutdatedDependencies = require('./fetch-outdated-dependencies');
 module.exports = async function() {
   try {
     // ensure we are on master
-    await switchToMaster();
+    await switchToCleanBranch();
     const failedBumps = [];
     const successfullBumps = [];
     const outdateDependencies = [
@@ -69,7 +69,7 @@ module.exports = async function() {
         });
       }
 
-      await switchToMaster();
+      await switchToCleanBranch();
     }
     // create PRs here
     for (const { dependency, branch, branchIsRemote } of pendingPRs) {

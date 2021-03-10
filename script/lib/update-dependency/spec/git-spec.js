@@ -4,7 +4,7 @@ const repositoryRootPath = path.resolve('.', 'fixtures', 'dummy');
 const git = simpleGit(repositoryRootPath);
 
 const {
-  switchToMaster,
+  switchToCleanBranch,
   makeBranch,
   publishBranch,
   createCommit,
@@ -23,7 +23,7 @@ describe('GIT', () => {
   const branch = `${dependency.moduleName}-${dependency.latest}`;
 
   beforeEach(async () => {
-    await git.checkout('master');
+    await git.checkout('clean-branch');
   });
 
   it('remotes should include ATOM', async () => {
@@ -31,14 +31,14 @@ describe('GIT', () => {
     expect(remotes.map(({ name }) => name).includes('ATOM')).toBeTruthy();
   });
 
-  it('current branch should be master', async () => {
+  it('current branch should be clean-branch', async () => {
     const testBranchExists = await findBranch('test');
     testBranchExists
       ? await git.checkout('test')
       : await git.checkoutLocalBranch('test');
     expect((await git.branch()).current).toBe('test');
-    await switchToMaster();
-    expect((await git.branch()).current).toBe('master');
+    await switchToCleanBranch();
+    expect((await git.branch()).current).toBe('clean-branch');
     await git.deleteLocalBranch('test', true);
   });
 
@@ -47,7 +47,7 @@ describe('GIT', () => {
     expect(found).toBe(undefined);
     expect(newBranch).toBe(branch);
     expect((await git.branch()).current).toBe(branch);
-    await git.checkout('master');
+    await git.checkout('clean-branch');
     await git.deleteLocalBranch(branch, true);
   });
 
@@ -56,7 +56,7 @@ describe('GIT', () => {
     const { found } = await makeBranch(dependency);
     expect(found).not.toBe(undefined);
     expect((await git.branch()).current).toBe(found);
-    await git.checkout('master');
+    await git.checkout('clean-branch');
     await git.deleteLocalBranch(branch, true);
   });
 
@@ -86,7 +86,7 @@ describe('GIT', () => {
 
   it('should delete an existing branch', async () => {
     await git.checkoutLocalBranch(branch);
-    await git.checkout('master');
+    await git.checkout('clean-branch');
     expect(await findBranch(branch)).not.toBe(undefined);
     await deleteBranch(branch);
     expect(await findBranch(branch)).toBe(undefined);
