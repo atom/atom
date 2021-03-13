@@ -2,11 +2,11 @@
 PaneResizeHandleElement = require './pane-resize-handle-element'
 
 class PaneAxisElement extends HTMLElement
-  attachedCallback: ->
+  connectedCallback: ->
     @subscriptions ?= @subscribeToModel()
     @childAdded({child, index}) for child, index in @model.getChildren()
 
-  detachedCallback: ->
+  disconnectedCallback: ->
     @subscriptions.dispose()
     @subscriptions = null
     @childRemoved({child}) for child in @model.getChildren()
@@ -68,4 +68,5 @@ class PaneAxisElement extends HTMLElement
   hasFocus: ->
     this is document.activeElement or @contains(document.activeElement)
 
-module.exports = PaneAxisElement = document.registerElement 'atom-pane-axis', prototype: PaneAxisElement.prototype
+window.customElements.define 'atom-pane-axis', PaneAxisElement
+module.exports = PaneAxisElement = window.customElements.get 'atom-pane-axis'

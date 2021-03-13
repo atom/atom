@@ -9,7 +9,8 @@ describe('PanelContainerElement', () => {
   class TestPanelContainerItem {}
 
   class TestPanelContainerItemElement_ extends HTMLElement {
-    createdCallback() {
+    constructor()) {
+      super();
       this.classList.add('test-root');
     }
     initialize(model) {
@@ -19,16 +20,16 @@ describe('PanelContainerElement', () => {
     focus() {}
   }
 
-  const TestPanelContainerItemElement = document.registerElement(
+  window.customElements.define(
     'atom-test-container-item-element',
-    { prototype: TestPanelContainerItemElement_.prototype }
+    TestPanelContainerItemElement_
   );
 
   beforeEach(() => {
     jasmineContent = document.body.querySelector('#jasmine-content');
 
     atom.views.addViewProvider(TestPanelContainerItem, model =>
-      new TestPanelContainerItemElement().initialize(model)
+      new window.customElements.get('atom-test-container-item-element').initialize(model)
     );
 
     container = new PanelContainer({

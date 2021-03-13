@@ -13,15 +13,15 @@ class StylesElement extends HTMLElement
   onDidUpdateStyleElement: (callback) ->
     @emitter.on 'did-update-style-element', callback
 
-  createdCallback: ->
+  constructor: ->
     @subscriptions = new CompositeDisposable
     @emitter = new Emitter
     @styleElementClonesByOriginalElement = new WeakMap
 
-  attachedCallback: ->
+  connectedCallback: ->
     @context = @getAttribute('context') ? undefined
 
-  detachedCallback: ->
+  disconnectedCallback: ->
     @subscriptions.dispose()
     @subscriptions = new CompositeDisposable
 
@@ -79,4 +79,5 @@ class StylesElement extends HTMLElement
   styleElementMatchesContext: (styleElement) ->
     not @context? or styleElement.context is @context
 
-module.exports = StylesElement = document.registerElement 'atom-styles', prototype: StylesElement.prototype
+window.customElements.define 'atom-styles', StylesElement
+module.exports = StylesElement = window.customElements.get 'atom-styles'

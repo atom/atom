@@ -219,14 +219,14 @@ describe('TextEditorElement', () => {
 
     describe('when focused while a parent node is being attached to the DOM', () => {
       class ElementThatFocusesChild extends HTMLDivElement {
-        attachedCallback() {
+        connectedCallback() {
           this.firstChild.focus();
         }
       }
 
-      document.registerElement('element-that-focuses-child', {
-        prototype: ElementThatFocusesChild.prototype
-      });
+      window.customElements.define('element-that-focuses-child',
+        ElementThatFocusesChild, { extends: 'div' }
+      );
 
       it('proxies the focus event to the hidden input', () => {
         const element = buildTextEditorElement();
@@ -287,21 +287,21 @@ describe('TextEditorElement', () => {
     it('invokes callbacks when the element is attached and detached', () => {
       const element = buildTextEditorElement({ attach: false });
 
-      const attachedCallback = jasmine.createSpy('attachedCallback');
-      const detachedCallback = jasmine.createSpy('detachedCallback');
+      const connectedCallback = jasmine.createSpy('connectedCallback');
+      const disconnectedCallback = jasmine.createSpy('disconnectedCallback');
 
-      element.onDidAttach(attachedCallback);
-      element.onDidDetach(detachedCallback);
+      element.onDidAttach(connectedCallback);
+      element.onDidDetach(disconnectedCallback);
 
       jasmine.attachToDOM(element);
-      expect(attachedCallback).toHaveBeenCalled();
-      expect(detachedCallback).not.toHaveBeenCalled();
+      expect(connectedCallback).toHaveBeenCalled();
+      expect(disconnectedCallback).not.toHaveBeenCalled();
 
-      attachedCallback.reset();
+      connectedCallback.reset();
       element.remove();
 
-      expect(attachedCallback).not.toHaveBeenCalled();
-      expect(detachedCallback).toHaveBeenCalled();
+      expect(connectedCallback).not.toHaveBeenCalled();
+      expect(disconnectedCallback).toHaveBeenCalled();
     }));
 
   describe('::setUpdatedSynchronously', () => {

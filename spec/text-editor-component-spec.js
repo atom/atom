@@ -18,15 +18,15 @@ const SAMPLE_TEXT = fs.readFileSync(
   'utf8'
 );
 
-document.registerElement('text-editor-component-test-element', {
-  prototype: Object.create(HTMLElement.prototype, {
-    attachedCallback: {
-      value: function() {
-        this.didAttach();
-      }
+window.customElements.define('text-editor-component-test-element',
+  class TextEditorComponentTestElement extends HTMLElement {
+    constructor() {
+      super();
     }
-  })
-});
+    connectedCallback() {
+      this.didAttach();
+    }
+  });
 
 const editors = [];
 let verticalScrollbarWidth, horizontalScrollbarHeight;
@@ -1349,7 +1349,7 @@ describe('TextEditorComponent', () => {
       expect(element.classList.contains('is-focused')).toBe(true);
     });
 
-    it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
+    it('gracefully handles a focus event that occurs prior to the connectedCallback of the element', () => {
       const { component, element } = buildComponent({ attach: false });
       const parent = document.createElement(
         'text-editor-component-test-element'
