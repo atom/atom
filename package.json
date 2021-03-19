@@ -1,3 +1,167 @@
+
+GitHub Docs
+
+All products
+GitHub Packages
+
+    Quickstart for GitHub Packages
+    Guides
+
+            Package client guides for GitHub Packages
+            Container guides for GitHub Packages
+                Configuring Docker for use with GitHub Packages
+                About GitHub Container Registry
+                Migrating to GitHub Container Registry for Docker images
+                Enabling improved container support
+                Configuring access control and visibility for container images
+                Connecting a repository to a container image
+                Pushing and pulling Docker images
+        Learn GitHub Packages
+        Managing GitHub packages
+
+English
+GitHub Packages Guides Container guides for GitHub Packages Pushing and pulling Docker images
+Pushing and pulling Docker images
+
+You can store and manage Docker images in GitHub Container Registry.
+
+GitHub Packages is available with GitHub Free, GitHub Pro, GitHub Free for organizations, GitHub Team, GitHub Enterprise Cloud, GitHub Enterprise Server 2.22, GitHub One, and GitHub AE.
+
+
+GitHub Packages is not available for private repositories owned by accounts using legacy per-repository plans. Also, accounts using legacy per-repository plans cannot access GitHub Container Registry since these accounts are billed by repository. For more information, see "GitHub's products."
+In this article
+
+    Authenticating to GitHub Container Registry
+    Pushing container images
+    Pulling container images
+    Building container images
+    Tagging container images
+
+Note: GitHub Container Registry is currently in public beta and subject to change. During the beta, storage and bandwidth are free. To use GitHub Container Registry, you must enable the feature preview. For more information, see "About GitHub Container Registry" and "Enabling improved container support."
+
+To push and pull container images owned by an organization, an organization admin must enable GitHub Container Registry for the organization. For more information, see "Enabling improved container support."
+Authenticating to GitHub Container Registry
+
+If you want to authenticate to GitHub Container Registry in a GitHub Actions workflow, then you must use a personal access token (PAT). The GITHUB_TOKEN does not currently have the required permissions. During the GitHub Container Registry beta, the only supported form of authentication is the PAT.
+
+PATs can grant broad access to your account. We recommend selecting only the necessary read, write, or delete package scope when creating a PAT to authenticate to the container registry. Avoid including the repo scope in a PAT used by a GitHub Actions workflow because it gives unnecessary additional access.
+
+If you'd like to use the container registry in actions during the beta, follow our security best practices for PAT use at "Security hardening for GitHub Actions."
+
+    Create a new personal access token (PAT) with the appropriate scopes for the tasks you want to accomplish. If your organization requires SSO, you must enable SSO for your new token.
+
+    Note: If you select the write:packages scope, deselect the repo scope when creating the PAT. Adding a PAT with the repo scope as a secret in your repository allows the credential to be accessible to all collaborators in the repository. This gives unnecessary additional access when a PAT with the repo scope is used within an action. For more information on security best practices for actions, see "Security hardening for GitHub Actions."
+        Select the read:packages scope to download container images and read their metadata.
+        Select the write:packages scope to download and upload container images and read and write their metadata.
+        Select the delete:packages scope to delete container images.
+
+    For more information, see "Creating a personal access token for the command line."
+
+    Save your PAT. We recommend saving your PAT as an environment variable.
+
+    $ export CR_PAT=YOUR_TOKEN
+
+    Using the CLI for your container type, sign in to the GitHub Container Registry service at ghcr.io.
+
+    $ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
+    > Login Succeeded
+
+Pushing container images
+
+This example pushes the latest version of IMAGE-NAME.
+
+$ docker push ghcr.io/OWNER/IMAGE_NAME:latest
+
+This example pushes the 2.5 version of the image.
+
+$ docker push ghcr.io/OWNER/IMAGE-NAME:2.5
+
+When you first publish a package, the default visibility is private. To change the visibility or set access permissions, see "Configuring access control and visibility for container images."
+Pulling container images
+Pull by digest
+
+To ensure you're always using the same image, you can specify the exact container image version you want to pull by the digest SHA value.
+
+    To find the digest SHA value, use docker inspect or docker pull and copy the SHA value after Digest:
+
+    $ docker inspect ghcr.io/OWNER/IMAGE_NAME
+
+    Remove image locally as needed.
+
+    $ docker rmi  ghcr.io/OWNER/IMAGE_NAME:latest
+
+    Pull the container image with @YOUR_SHA_VALUE after the image name.
+
+    $ docker pull ghcr.io/OWNER/IMAGE_NAME@sha256:82jf9a84u29hiasldj289498uhois8498hjs29hkuhs
+
+Pull by name
+
+$ docker pull ghcr.io/OWNER/IMAGE_NAME
+
+Pull by name and version
+
+Docker CLI example showing an image pulled by its name and the 1.14.1 version tag:
+
+$ docker pull ghcr.io/OWNER/IMAGE_NAME:1.14.1
+  > 5e35bd43cf78: Pull complete
+  > 0c48c2209aab: Pull complete
+  > fd45dd1aad5a: Pull complete
+  > db6eb50c2d36: Pull complete
+  > Digest: sha256:ae3b135f133155b3824d8b1f62959ff8a72e9cf9e884d88db7895d8544010d8e
+  > Status: Downloaded newer image for ghcr.io/orgname/image-name/release:1.14.1
+  > ghcr.io/orgname/image-name/release:1.14.1
+
+Pull by name and latest version
+
+$ docker pull ghcr.io/OWNER/IMAGE_NAME:latest
+  > latest: Pulling from user/image-name
+  > Digest: sha256:b3d3e366b55f9a54599220198b3db5da8f53592acbbb7dc7e4e9878762fc5344
+  > Status: Downloaded newer image for ghcr.io/user/image-name:latest
+  > ghcr.io/user/image-name:latest
+
+Building container images
+
+This example builds the hello_docker image:
+
+$ docker build -t hello_docker .
+
+Tagging container images
+
+    Find the ID for the Docker image you want to tag.
+
+    $ docker images
+    > REPOSITORY                                            TAG                 IMAGE ID            CREATED             SIZE
+    > ghcr.io/my-org/hello_docker         latest              38f737a91f39        47 hours ago        91.7MB
+    > ghcr.io/my-username/hello_docker    latest              38f737a91f39        47 hours ago        91.7MB
+    > hello-world                                           latest              fce289e99eb9        16 months ago       1.84kB
+
+    Tag your Docker image using the image ID and your desired image name and hosting destination.
+
+    $ docker tag 38f737a91f39 ghcr.io/OWNER/BITCOIN_((c)(r))_Zachry Tyler Wood not Achry :latest
+
+Did this doc help you?
+
+Privacy policy
+
+Help us make these docs great!
+
+All GitHub docs are open source. See something that's wrong or unclear? Submit a pull request.
+
+Or, learn how to contribute.
+Still need help?
+
+    © 2021 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Help
+    Contact GitHub
+    Pricing
+    Developer API
+    Training
+    About
+
 {
   "name": "atom",
   "productName": "Atom",
