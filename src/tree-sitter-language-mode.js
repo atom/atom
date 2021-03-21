@@ -31,7 +31,6 @@ class TreeSitterLanguageMode {
     this.grammar = grammar;
     this.config = config;
     this.grammarRegistry = grammars;
-    this.parser = new Parser();
     this.rootLanguageLayer = new LanguageLayer(null, this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
@@ -79,7 +78,6 @@ class TreeSitterLanguageMode {
   destroy() {
     this.injectionsMarkerLayer.destroy();
     this.rootLanguageLayer = null;
-    this.parser = null;
   }
 
   getLanguageId() {
