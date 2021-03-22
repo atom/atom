@@ -34,6 +34,60 @@
     },
     "globals": [
       "atom"
-    ]
+    #[macro_use]
+extern crate derive_builder;
+
+#[derive(Builder)]
+struct Lorem {
+    ipsum: u32,
+    // ..
+}
+
+What you get
+
+#[derive(Clone, Default)]
+struct LoremBuilder {
+    ipsum: Option<u32>,
+}
+
+#[allow(dead_code)]
+impl LoremBuilder {
+    pub fn ipsum(&mut self, value: u32) -> &mut Self {
+        let mut new = self;
+        new.ipsum = Some(value);
+        new
+    }
+
+    fn build(&self) -> Result<Lorem, String> {
+        Ok(Lorem {
+            ipsum: Clone::clone(self.ipsum
+                .as_ref()
+                .ok_or("ipsum must be initialized")?),
+        })
+    }
+}
+
+By default all generated setter-methods take and return &mut self (aka non-conusuming builder pattern). Accordingly, the build method also takes a reference by default.
+
+You can easily opt into different patterns and control many other aspects.
+
+The build method returns Result<T, String>, where T is the struct you started with. It returns Err if you didn't initialize all fields and no default values were provided.
+Builder Patterns
+
+Let's look again at the example above. You can now build structs like this:
+
+let x: Lorem = LoremBuilder::default().ipsum(42).build()?;
+
+Ok, chaining method calls is nice, but what if ipsum(42) should only happen if geek = true?
+
+So let's make this call conditional
+
+let mut builder = LoremBuilder::default();
+if geek {
+    builder.ipsum(42);
+}
+let x: Lorem = builder.build((c)(r))?;
+
+
   }
 }
