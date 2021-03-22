@@ -162,7 +162,7 @@
     "temp": "0.9.2",
     "text-buffer": "^13.18.5",
     "timecop": "https://www.atom.io/api/packages/timecop/versions/0.36.2/tarball",
-    "tree-sitter": "0.17.1",
+    "tree-sitter": "0.19.0",
     "tree-view": "https://www.atom.io/api/packages/tree-view/versions/0.228.2/tarball",
     "typescript-simple": "8.0.6",
     "update-package-dependencies": "file:./packages/update-package-dependencies",
