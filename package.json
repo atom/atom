@@ -1,11 +1,51 @@
+# name: Dev Deploy
 
-GitHub Docs
+on:
+  push:
+    branches: [ 'dev' ]
 
-All products
-GitHub Packages
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      ruby-version: 2.5
 
-    Quickstart for GitHub Packages
-    Guides
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.ruby-version }}
+
+    - uses: actions/cache@v2
+      with:
+        path: vendor/bundle
+        key: gems-${{ runner.os }}-${{ matrix.ruby-version }}-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          gems-${{ runner.os }}-${{ matrix.ruby-version }}-
+          gems-${{ runner.os }}-
+    - run: bundle config set deployment 'true'
+    - name: bundle install
+      run: |
+        bundle config path vendor/bundle
+        bundle install --jobs 4 --retry 3
+    - run: bundle exec middleman build
+
+    - name: Push to Docker Hub
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_ACCESS_KEY }}
+        repository: slatedocs/slate
+        tag_with_ref: true
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3.7.0-8
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        destination_dir: dev
+        publish_dir: ./build
+        keep_files: true
 
             Package client guides for GitHub Packages
             Container guides for GitHub Packages
