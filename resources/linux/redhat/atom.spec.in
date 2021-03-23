@@ -8,9 +8,9 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 %ifarch i386 i486 i586 i686
-Requires: git-core, glib2 | kde-cli-tools | xdg-utils, lsb-core-noarch, libcurl.so.3 | libcurl.so.4, libgcrypt, libnotify, libnss3.so, libxcb-dri3.so.0, libxkbfile.so.1, libX11-xcb.so.6, libXss.so.1, libXtst.so.6, libsecret-1.so.0, polkit
+Requires: git-core, glib2 or kde-cli-tools or xdg-utils, lsb-core-noarch, libcurl.so.3 or libcurl.so.4, libgcrypt, libnotify, libnss3.so, libxcb-dri3.so.0, libxkbfile.so.1, libX11-xcb.so.6, libXss.so.1, libXtst.so.6, libsecret-1.so.0, polkit
 %else
-Requires: git-core, glib2 | kde-cli-tools | xdg-utils, lsb-core-noarch, libcurl.so.3()(64bit) | libcurl.so.4()(64bit), libgcrypt, libnotify, libnss3.so()(64bit), libxcb-dri3.so.0()(64bit), libxkbfile.so.1()(64bit), libX11-xcb.so.6()(64bit), libXss.so.1()(64bit), libXtst.so.6()(64bit), libsecret-1.so.0()(64bit), polkit
+Requires: git-core, glib2 or kde-cli-tools or xdg-utils, lsb-core-noarch, libcurl.so.3()(64bit) or libcurl.so.4()(64bit), libgcrypt, libnotify, libnss3.so()(64bit), libxcb-dri3.so.0()(64bit), libxkbfile.so.1()(64bit), libX11-xcb.so.6()(64bit), libXss.so.1()(64bit), libXtst.so.6()(64bit), libsecret-1.so.0()(64bit), polkit
 %endif
 
 # Disable Fedora's shebang mangling script,
