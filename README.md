@@ -76,8 +76,9 @@ repeat these steps to upgrade to future releases.
 
 ## Discussion
 
-* Discuss Atom on our [forums](https://discuss.atom.io/)
+* Discuss Atom on our [forums](https://discuss.atom.io/) or on [GitHub Discussions](https://github.com/atom/atom/discussions)
 * Chat about Atom on our Slack team -- [instructions for joining](https://discuss.atom.io/t/join-us-on-slack/16638?source_topic_id=25406)
+
 
 ## License
 
