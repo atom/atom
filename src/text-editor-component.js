@@ -4389,7 +4389,9 @@ class LinesTileComponent {
             oldScreenLineIndex++;
           }
         } else {
-          const oldScreenLineComponent = this.lineComponents[lineComponentIndex];
+          const oldScreenLineComponent = this.lineComponents[
+            lineComponentIndex
+          ];
           // eslint-disable-next-line no-redeclare
           var newScreenLineComponent = new LineComponent({
             screenLine: newScreenLines[newScreenLineIndex],
