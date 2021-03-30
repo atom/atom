@@ -16,9 +16,6 @@ export default class WelcomeView {
         );
       }
     });
-
-    // See https://jsfiddle.net/reactjs/69z2wepo/
-    this.didChangeShowOnStartup = this.didChangeShowOnStartup.bind(this)
   }
 
   didChangeShowOnStartup() {
