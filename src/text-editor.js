@@ -4475,7 +4475,7 @@ module.exports = class TextEditor {
   //
   // * `grammar` {Grammar}
   setGrammar(grammar) {
-    console.warn('setGrammar is deprecated.')
+    Grim.deprecate('setGrammar is deprecated.')
 
     const buffer = this.getBuffer();
     buffer.setLanguageMode(
