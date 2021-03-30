@@ -265,7 +265,7 @@ function buildPlatformKeymapsMetadata() {
         keymapPath,
         path.extname(keymapPath)
       );
-      if (invalidPlatforms.includes(keymapPlatform)) {
+      if (!invalidPlatforms.includes(keymapPlatform)) {
         keymaps[path.basename(keymapPath)] = CSON.readFileSync(keymapPath);
       }
     }
