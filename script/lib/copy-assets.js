@@ -19,11 +19,9 @@ module.exports = function() {
     path.join(CONFIG.repositoryRootPath, 'static'),
     path.join(CONFIG.repositoryRootPath, 'src'),
     path.join(CONFIG.repositoryRootPath, 'vendor'),
-    ...(
-      glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {
-        ignore: path.join('**', '*-spec.*')
-      })
-    )
+    ...glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {
+      ignore: path.join('**', '*-spec.*')
+    })
   ];
   for (const srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {
