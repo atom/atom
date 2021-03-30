@@ -1880,7 +1880,7 @@ module.exports = class TextEditor {
 
         // if the current selection start row matches the next selections' end row - make them one selection
         while (
-          selection.start.row === selections?.[0].end.row
+          selection.start.row === selections[0]?.end.row
         ) {
           selectionsToMove.push(selections[0]);
           selection.start.row = selections[0].start.row;
