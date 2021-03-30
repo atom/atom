@@ -10,8 +10,8 @@ module.exports = function(aPath) {
   }
 
   const sepIndex = aPath.indexOf(path.sep);
-  const [user, rest] = 
-    sepIndex === -1 
+  const [user, rest] =
+    sepIndex === -1
       ? [aPath.substring(1), '']
       : [aPath.substring(1, sepIndex), aPath.substring(sepIndex)];
   const home =
@@ -20,7 +20,7 @@ module.exports = function(aPath) {
       : (() => {
           const passwd = passwdUser.sync(user);
           if (passwd === undefined) {
-            throw new Error(
+            throw new ReferenceError(
               `Failed to expand the tilde in ${aPath} - user "${user}" does not exist`
             );
           }
