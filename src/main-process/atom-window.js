@@ -9,7 +9,6 @@ const getAppName = require('../get-app-name');
 const path = require('path');
 const url = require('url');
 const { EventEmitter } = require('events');
-const { compose } = require('@hyurl/structured-clone');
 const StartupTime = require('../startup-time');
 
 const ICON_PATH = path.resolve(__dirname, '..', '..', 'resources', 'atom.png');
@@ -375,7 +374,7 @@ module.exports = class AtomWindow extends EventEmitter {
   sendCommandToBrowserWindow(command, ...args) {
     const action =
       args[0] && args[0].contextCommand ? 'context-command' : 'command';
-    this.browserWindow.webContents.send(action, command, compose(...args));
+    this.browserWindow.webContents.send(action, command, ...args);
   }
 
   getDimensions() {
