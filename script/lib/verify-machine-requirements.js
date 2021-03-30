@@ -154,6 +154,9 @@ function verifyPython() {
     verifyBinary(
       path.join(process.env.SystemDrive || 'C:', 'Python27', 'python.exe')
     );
+    verifyBinary(
+      path.join(process.env.SystemDrive || 'C:', 'Python37', 'python.exe')
+    );
   }
 
   if (usablePythonWasFound) {
