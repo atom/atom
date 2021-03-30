@@ -24,7 +24,7 @@ function merge(menu, item, itemSpecificity = Infinity) {
 
   const matchingItem = menu[matchingItemIndex];
   if (item.submenu != null) {
-    for (let submenuItem of item.submenu) {
+    for (const submenuItem of item.submenu) {
       merge(matchingItem.submenu, submenuItem, itemSpecificity);
     }
   } else if (
@@ -43,7 +43,7 @@ function unmerge(menu, item) {
 
   const matchingItem = menu[matchingItemIndex];
   if (item.submenu != null) {
-    for (let submenuItem of item.submenu) {
+    for (const submenuItem of item.submenu) {
       unmerge(matchingItem.submenu, submenuItem);
     }
   }

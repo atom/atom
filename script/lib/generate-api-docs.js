@@ -38,7 +38,7 @@ module.exports = function() {
 
 function getAPIDocsForDependencies() {
   const classes = {};
-  for (let apiJSONPath of glob.sync(
+  for (const apiJSONPath of glob.sync(
     `${CONFIG.repositoryRootPath}/node_modules/*/api.json`
   )) {
     Object.assign(classes, require(apiJSONPath).classes);
@@ -48,7 +48,7 @@ function getAPIDocsForDependencies() {
 
 function sortObjectByKey(object) {
   const sortedObject = {};
-  for (let keyName of Object.keys(object).sort()) {
+  for (const keyName of Object.keys(object).sort()) {
     sortedObject[keyName] = object[keyName];
   }
   return sortedObject;

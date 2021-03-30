@@ -43,6 +43,7 @@ module.exports = class ApplicationMenu {
 
   // Register a BrowserWindow with this application menu.
   addWindow(window) {
+    // Use ??= when it's supported
     if (this.lastFocusedWindow == null) this.lastFocusedWindow = window;
 
     const focusHandler = () => {
@@ -67,9 +68,9 @@ module.exports = class ApplicationMenu {
   //
   // Returns an Array of native menu items.
   flattenMenuItems(menu) {
-    const object = menu.items || {};
+    const object = menu.items ?? {}; // Not sure that changing from || to ?? is safe
     let items = [];
-    for (let index in object) {
+    for (const index in object) {
       const item = object[index];
       items.push(item);
       if (item.submenu)
@@ -85,7 +86,7 @@ module.exports = class ApplicationMenu {
   // Returns an Array of native menu items.
   flattenMenuTemplate(template) {
     let items = [];
-    for (let item of template) {
+    for (const item of template) {
       items.push(item);
       if (item.submenu)
         items = items.concat(this.flattenMenuTemplate(item.submenu));
@@ -98,8 +99,8 @@ module.exports = class ApplicationMenu {
   // enable - If true enables all window specific items, if false disables all
   //          window specific items.
   enableWindowSpecificItems(enable) {
-    for (let item of this.flattenMenuItems(this.menu)) {
-      if (item.metadata && item.metadata.windowSpecific) item.enabled = enable;
+    for (const item of this.flattenMenuItems(this.menu)) {
+      if (item?.metadata?.windowSpecific) item.enabled = enable;
     }
   }
 
@@ -220,6 +221,7 @@ module.exports = class ApplicationMenu {
   // Returns a complete menu configuration object for atom-shell's menu API.
   translateTemplate(template, keystrokesByCommand) {
     template.forEach(item => {
+      // Use ??= when it's supported
       if (item.metadata == null) item.metadata = {};
       if (item.command) {
         const keystrokes = keystrokesByCommand[item.command];

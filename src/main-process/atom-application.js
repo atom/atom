@@ -315,8 +315,8 @@ module.exports = class AtomApplication extends EventEmitter {
     } else if (options.newWindow) {
       shouldReopenPreviousWindows = false;
     } else if (
-      (options.pathsToOpen && options.pathsToOpen.length > 0) ||
-      (options.urlsToOpen && options.urlsToOpen.length > 0)
+      (options?.pathsToOpen.length > 0) ||
+      (options?.urlsToOpen.length > 0)
     ) {
       optionsForWindowsToOpen.push(options);
       shouldReopenPreviousWindows =
@@ -393,8 +393,8 @@ module.exports = class AtomApplication extends EventEmitter {
         env
       });
     } else if (
-      (pathsToOpen && pathsToOpen.length > 0) ||
-      (foldersToOpen && foldersToOpen.length > 0)
+      (pathsToOpen?.length > 0) ||
+      (foldersToOpen?.length > 0)
     ) {
       return this.openPaths({
         pathsToOpen,
@@ -409,7 +409,7 @@ module.exports = class AtomApplication extends EventEmitter {
         addToLastWindow,
         env
       });
-    } else if (urlsToOpen && urlsToOpen.length > 0) {
+    } else if (urlsToOpen?.length > 0) {
       return Promise.all(
         urlsToOpen.map(urlToOpen =>
           this.openUrl({ urlToOpen, devMode, safeMode, env })
@@ -695,7 +695,7 @@ module.exports = class AtomApplication extends EventEmitter {
     );
 
     this.configFile.onDidChange(settings => {
-      for (let window of this.getAllWindows()) {
+      for (const window of this.getAllWindows()) {
         window.didChangeUserSettings(settings);
       }
       this.config.resetUserSettings(settings);
@@ -756,9 +756,7 @@ module.exports = class AtomApplication extends EventEmitter {
     // See: https://www.electronjs.org/docs/api/app#event-window-all-closed
     this.disposable.add(
       ipcHelpers.on(app, 'window-all-closed', () => {
-        if (this.applicationMenu != null) {
-          this.applicationMenu.enableWindowSpecificItems(false);
-        }
+        this.applicationMenu?.enableWindowSpecificItems(false);
         // Don't quit when the last window is closed on macOS.
         if (process.platform !== 'darwin') {
           app.quit();
@@ -811,7 +809,7 @@ module.exports = class AtomApplication extends EventEmitter {
 
     this.disposable.add(
       ipcHelpers.on(ipcMain, 'did-change-history-manager', event => {
-        for (let atomWindow of this.getAllWindows()) {
+        for (const atomWindow of this.getAllWindows()) {
           const { webContents } = atomWindow.browserWindow;
           if (webContents !== event.sender)
             webContents.send('did-change-history-manager');
@@ -832,7 +830,7 @@ module.exports = class AtomApplication extends EventEmitter {
             options.window = this.atomWindowForEvent(event);
           }
 
-          if (options.pathsToOpen && options.pathsToOpen.length > 0) {
+          if (options.pathsToOpen?.length > 0) {
             this.openPaths(options);
           } else {
             this.addWindow(this.createWindow(options));
@@ -1194,7 +1192,7 @@ module.exports = class AtomApplication extends EventEmitter {
       darwin: 22,
       win32: 26
     };
-    return offsetByPlatform[process.platform] || 0;
+    return offsetByPlatform[process.platform] ?? 0;
   }
 
   // Get the dimensions for opening a new window by cascading as appropriate to
@@ -1330,11 +1328,9 @@ module.exports = class AtomApplication extends EventEmitter {
       // No window specified, no existing window found, and addition to the last window requested. Find the last
       // focused window that matches the requested dev and safe modes.
       if (!existingWindow && addToLastWindow) {
-        existingWindow = this.getLastFocusedWindow(win => {
-          return (
-            !win.isSpec && win.devMode === devMode && win.safeMode === safeMode
-          );
-        });
+        existingWindow = this.getLastFocusedWindow(
+          win => !win.isSpec && win.devMode === devMode && win.safeMode === safeMode
+        );
       }
 
       // Fall back to the last focused window that has no project roots.
@@ -1350,13 +1346,9 @@ module.exports = class AtomApplication extends EventEmitter {
           location => !location.isDirectory
         );
         if (noDirectories) {
-          existingWindow = this.getLastFocusedWindow(win => {
-            return (
-              !win.isSpec &&
-              win.devMode === devMode &&
-              win.safeMode === safeMode
-            );
-          });
+          existingWindow = this.getLastFocusedWindow(
+            win => !win.isSpec && win.devMode === devMode && win.safeMode === safeMode
+          );
         }
       }
     }
@@ -1432,7 +1424,7 @@ module.exports = class AtomApplication extends EventEmitter {
 
   // Kill all processes associated with opened windows.
   killAllProcesses() {
-    for (let window of this.waitSessionsByWindow.keys()) {
+    for (const window of this.waitSessionsByWindow.keys()) {
       this.killProcessesForWindow(window);
     }
   }
@@ -1468,7 +1460,7 @@ module.exports = class AtomApplication extends EventEmitter {
       if (error.code !== 'ESRCH') {
         console.log(
           `Killing process ${pid} failed: ${
-            error.code != null ? error.code : error.message
+            error.code ?? error.message
           }`
         );
       }
@@ -1728,7 +1720,7 @@ module.exports = class AtomApplication extends EventEmitter {
 
     const testPaths = [];
     if (pathsToOpen != null) {
-      for (let pathToOpen of pathsToOpen) {
+      for (const pathToOpen of pathsToOpen) {
         testPaths.push(path.resolve(executedFrom, fs.normalize(pathToOpen)));
       }
     }
@@ -1742,6 +1734,8 @@ module.exports = class AtomApplication extends EventEmitter {
     const testRunnerPath = this.resolveTestRunnerPath(testPaths[0]);
     const devMode = true;
     const isSpec = true;
+
+    // Use ??= when it's supported
     if (safeMode == null) {
       safeMode = false;
     }
@@ -1794,7 +1788,7 @@ module.exports = class AtomApplication extends EventEmitter {
 
     const benchmarkPaths = [];
     if (pathsToOpen != null) {
-      for (let pathToOpen of pathsToOpen) {
+      for (const pathToOpen of pathsToOpen) {
         benchmarkPaths.push(
           path.resolve(executedFrom, fs.normalize(pathToOpen))
         );
@@ -1825,24 +1819,26 @@ module.exports = class AtomApplication extends EventEmitter {
   }
 
   resolveTestRunnerPath(testPath) {
-    let packageRoot;
+    // Use ??= when it's supported
     if (FindParentDir == null) {
       FindParentDir = require('find-parent-dir');
     }
+    
+    let packageRoot;
 
     if ((packageRoot = FindParentDir.sync(testPath, 'package.json'))) {
       const packageMetadata = require(path.join(packageRoot, 'package.json'));
       if (packageMetadata.atomTestRunner) {
-        let testRunnerPath;
+        // Use ??= when it's supported
         if (Resolve == null) {
           Resolve = require('resolve');
         }
-        if (
-          (testRunnerPath = Resolve.sync(packageMetadata.atomTestRunner, {
-            basedir: packageRoot,
-            extensions: Object.keys(require.extensions)
-          }))
-        ) {
+        
+        let testRunnerPath = Resolve.sync(packageMetadata.atomTestRunner, {
+          basedir: packageRoot,
+          extensions: Object.keys(require.extensions)
+        })
+        if (testRunnerPath) {
           return testRunnerPath;
         } else {
           process.stderr.write(
@@ -2095,6 +2091,7 @@ class WindowStack {
   }
 
   getLastFocusedWindow(predicate) {
+    // Use ??= when it's supported
     if (predicate == null) {
       predicate = win => true;
     }

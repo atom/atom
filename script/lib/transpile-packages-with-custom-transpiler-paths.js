@@ -17,7 +17,7 @@ module.exports = function() {
       CONFIG.intermediateAppPath
     }`
   );
-  for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
+  for (const packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     const rootPackagePath = path.join(
       CONFIG.repositoryRootPath,
       'node_modules',
@@ -56,7 +56,7 @@ module.exports = function() {
         metadata,
         metadata.atomTranspilers
       );
-      for (let config of metadata.atomTranspilers) {
+      for (const config of metadata.atomTranspilers) {
         const pathsToCompile = glob.sync(
           path.join(intermediatePackagePath, config.glob),
           { nodir: true }

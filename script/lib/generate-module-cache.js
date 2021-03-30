@@ -17,8 +17,9 @@ module.exports = function() {
   const newMetadata = JSON.parse(
     fs.readFileSync(path.join(CONFIG.intermediateAppPath, 'package.json'))
   );
-  for (let folder of newMetadata._atomModuleCache.folders) {
-    if (folder.paths.indexOf('') !== -1) {
+  for (const folder of newMetadata._atomModuleCache.folders) {
+    // A folder better not be NaN
+    if (folder.paths.includes('')) {
       folder.paths = [
         '',
         'exports',

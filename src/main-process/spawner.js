@@ -33,12 +33,13 @@ exports.spawn = function(command, args, callback) {
       error = new Error(`Command failed: ${signal != null ? signal : code}`);
     }
 
+    // Use ??= when it's supported
     if (error) {
       if (error.code == null) error.code = code;
       if (error.stdout == null) error.stdout = stdout;
     }
 
-    callback && callback(error, stdout);
+    callback?.(error, stdout);
   });
 
   // This is necessary if using Powershell 2 on Windows 7 to get the events to raise

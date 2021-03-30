@@ -18,14 +18,14 @@ module.exports = function() {
     path.join(CONFIG.repositoryRootPath, 'package.json'),
     path.join(CONFIG.repositoryRootPath, 'static'),
     path.join(CONFIG.repositoryRootPath, 'src'),
-    path.join(CONFIG.repositoryRootPath, 'vendor')
+    path.join(CONFIG.repositoryRootPath, 'vendor'),
+    ...(
+      glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {
+        ignore: path.join('**', '*-spec.*')
+      })
+    )
   ];
-  srcPaths = srcPaths.concat(
-    glob.sync(path.join(CONFIG.repositoryRootPath, 'spec', '*.*'), {
-      ignore: path.join('**', '*-spec.*')
-    })
-  );
-  for (let srcPath of srcPaths) {
+  for (const srcPath of srcPaths) {
     fs.copySync(srcPath, computeDestinationPath(srcPath), {
       filter: includePathInPackagedApp
     });

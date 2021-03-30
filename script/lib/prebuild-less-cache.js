@@ -61,8 +61,8 @@ module.exports = function() {
   CONFIG.snapshotAuxiliaryData.importedFilePathsByRelativeImportPath = {};
   // Warm cache for every combination of the default UI and syntax themes,
   // because themes assign variables which may be used in any style sheet.
-  for (let uiTheme of uiThemes) {
-    for (let syntaxTheme of syntaxThemes) {
+  for (const uiTheme of uiThemes) {
+    for (const syntaxTheme of syntaxThemes) {
       // Build a LessCache instance with import paths based on the current theme combination
       const lessCache = new LessCache({
         cacheDir: cacheDirPath,
@@ -119,15 +119,15 @@ module.exports = function() {
       }
 
       // Cache all styles in static; don't append variable imports
-      for (let lessFilePath of glob.sync(
+      for (const lessFilePath of glob.sync(
         path.join(CONFIG.intermediateAppPath, 'static', '**', '*.less')
       )) {
         cacheCompiledCSS(lessCache, lessFilePath, false);
       }
 
       // Cache styles for all bundled non-theme packages
-      for (let nonThemePackage of nonThemePackages) {
-        for (let lessFilePath of glob.sync(
+      for (const nonThemePackage of nonThemePackages) {
+        for (const lessFilePath of glob.sync(
           path.join(
             CONFIG.intermediateAppPath,
             'node_modules',
@@ -148,7 +148,7 @@ module.exports = function() {
         'index.less'
       );
       cacheCompiledCSS(lessCache, uiThemeMainPath, true);
-      for (let lessFilePath of glob.sync(
+      for (const lessFilePath of glob.sync(
         path.join(
           CONFIG.intermediateAppPath,
           'node_modules',
@@ -173,7 +173,7 @@ module.exports = function() {
         'index.less'
       );
       cacheCompiledCSS(lessCache, syntaxThemeMainPath, true);
-      for (let lessFilePath of glob.sync(
+      for (const lessFilePath of glob.sync(
         path.join(
           CONFIG.intermediateAppPath,
           'node_modules',
@@ -192,7 +192,7 @@ module.exports = function() {
     }
   }
 
-  for (let lessFilePath of glob.sync(
+  for (const lessFilePath of glob.sync(
     path.join(
       CONFIG.intermediateAppPath,
       'node_modules',

@@ -382,6 +382,7 @@ const schemaEnforcers = {};
 //
 class Config {
   static addSchemaEnforcer(typeName, enforcerFunction) {
+    // Use ??= when it's supported
     if (schemaEnforcers[typeName] == null) {
       schemaEnforcers[typeName] = [];
     }
@@ -404,12 +405,12 @@ class Config {
     if (!Array.isArray(types)) {
       types = [types];
     }
-    for (let type of types) {
+    for (const type of types) {
       try {
         const enforcerFunctions = schemaEnforcers[type].concat(
           schemaEnforcers['*']
         );
-        for (let enforcer of enforcerFunctions) {
+        for (const enforcer of enforcerFunctions) {
           // At some point in one's life, one must call upon an enforcer.
           value = enforcer.call(this, keyPath, value, schema);
         }
@@ -516,7 +517,7 @@ class Config {
     } else {
       return this.observeKeyPath(
         keyPath,
-        options != null ? options : {},
+        options ?? {},
         callback
       );
     }
@@ -631,7 +632,7 @@ class Config {
 
     if (scope != null) {
       const value = this.getRawScopedValue(scope, keyPath, options);
-      return value != null ? value : this.getRawValue(keyPath, options);
+      return value ?? this.getRawValue(keyPath, options);
     } else {
       return this.getRawValue(keyPath, options);
     }
@@ -670,7 +671,7 @@ class Config {
               legacyScopeDescriptor.getScopeChain(),
               keyPath,
               options
-            ) || []
+            ) ?? []
           )
         );
       }
@@ -740,7 +741,7 @@ class Config {
     const scopeSelector =
       options.scopeSelector !== '*' ? options.scopeSelector : undefined;
     let source = options.source;
-    const shouldSave = options.save != null ? options.save : true;
+    const shouldSave = options.save ?? true;
 
     if (source && !scopeSelector && source !== this.projectFile) {
       throw new Error(
@@ -781,7 +782,7 @@ class Config {
       this.pendingOperations.push(() => this.unset(keyPath, options));
     }
 
-    let { scopeSelector, source } = options != null ? options : {};
+    let { scopeSelector, source } = options ?? {};
     if (source == null) {
       source = this.mainSource;
     }
@@ -855,7 +856,7 @@ class Config {
   getSchema(keyPath) {
     const keys = splitKeyPath(keyPath);
     let { schema } = this;
-    for (let key of keys) {
+    for (const key of keys) {
       let childSchema;
       if (schema.type === 'object') {
         childSchema =
@@ -945,7 +946,7 @@ class Config {
 
   pushAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = arrayValue.push(value);
     this.set(keyPath, arrayValue);
     return result;
@@ -953,7 +954,7 @@ class Config {
 
   unshiftAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = arrayValue.unshift(value);
     this.set(keyPath, arrayValue);
     return result;
@@ -961,7 +962,7 @@ class Config {
 
   removeAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = _.remove(arrayValue, value);
     this.set(keyPath, arrayValue);
     return result;
@@ -982,7 +983,8 @@ class Config {
 
     let rootSchema = this.schema;
     if (keyPath) {
-      for (let key of splitKeyPath(keyPath)) {
+      // Use ??= when it's supported
+      for (const key of splitKeyPath(keyPath)) {
         rootSchema.type = 'object';
         if (rootSchema.properties == null) {
           rootSchema.properties = {};
@@ -1046,7 +1048,7 @@ class Config {
         this.set(key, value, { save: false, source });
       }
       if (this.pendingOperations.length) {
-        for (let op of this.pendingOperations) {
+        for (const op of this.pendingOperations) {
           op();
         }
         this.pendingOperations = [];
@@ -1093,7 +1095,7 @@ class Config {
     }
 
     let defaultValue;
-    if (!options.sources || options.sources.length === 0) {
+    if (options.sources?.length === 0) {
       defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath);
     }
 
@@ -1166,7 +1168,7 @@ class Config {
       const keys = splitKeyPath(keyPath);
       this.transact(() => {
         const result = [];
-        for (let key in defaults) {
+        for (const key in defaults) {
           const childValue = defaults[key];
           if (!defaults.hasOwnProperty(key)) {
             continue;
@@ -1185,7 +1187,8 @@ class Config {
         console.warn(
           `'${keyPath}' could not set the default. Attempted default: ${JSON.stringify(
             defaults
-          )}; Schema: ${JSON.stringify(this.getSchema(keyPath))}`
+          )}; Schema: ${JSON.stringify(this.getSchema(keyPath))}`,
+          e
         );
       }
     }
@@ -1203,19 +1206,15 @@ class Config {
     }
   }
 
-  deepDefaults(target) {
+  deepDefaults(target, ...args) {
     let result = target;
-    let i = 0;
-    while (++i < arguments.length) {
-      const object = arguments[i];
+    for (const object of args) {
       if (isPlainObject(result) && isPlainObject(object)) {
-        for (let key of Object.keys(object)) {
+        for (const key of Object.keys(object)) {
           result[key] = this.deepDefaults(result[key], object[key]);
         }
-      } else {
-        if (result == null) {
-          result = this.deepClone(object);
-        }
+      } else if (result == null) {
+        result = this.deepClone(object);
       }
     }
     return result;
@@ -1268,13 +1267,11 @@ class Config {
       return schema.default;
     } else if (
       schema.type === 'object' &&
-      schema.properties != null &&
       isPlainObject(schema.properties)
     ) {
       const defaults = {};
-      const properties = schema.properties || {};
-      for (let key in properties) {
-        const value = properties[key];
+      for (let key in schema.properties) {
+        const value = schema.properties[key];
         defaults[key] = this.extractDefaultsFromSchema(value);
       }
       return defaults;
@@ -1282,18 +1279,16 @@ class Config {
   }
 
   makeValueConformToSchema(keyPath, value, options) {
-    if (options != null ? options.suppressException : undefined) {
+    if (options?.suppressException) {
       try {
         return this.makeValueConformToSchema(keyPath, value);
       } catch (e) {
         return undefined;
       }
     } else {
-      let schema;
-      if ((schema = this.getSchema(keyPath)) == null) {
-        if (schema === false) {
-          throw new Error(`Illegal key path ${keyPath}`);
-        }
+      let schema = this.getSchema(keyPath)
+      if (schema === null) {
+        throw new Error(`Illegal key path ${keyPath}`);
       }
       return this.constructor.executeSchemaEnforcers(keyPath, value, schema);
     }
@@ -1302,6 +1297,7 @@ class Config {
   // When the schema is changed / added, there may be values set in the config
   // that do not conform to the schema. This will reset make them conform.
   resetSettingsForSchemaChange(source) {
+    // Use ??= when it's supported
     if (source == null) {
       source = this.mainSource;
     }
@@ -1313,7 +1309,9 @@ class Config {
         source
       );
       this.scopedSettingsStore.removePropertiesForSource(source);
-      for (let scopeSelector in selectorsAndSettings) {
+
+      // possible bug: Why is settings immediately redefined here??
+      for (const scopeSelector in selectorsAndSettings) {
         let settings = selectorsAndSettings[scopeSelector];
         settings = this.makeValueConformToSchema(null, settings, {
           suppressException: true
@@ -1345,7 +1343,7 @@ class Config {
   }
 
   resetScopedSettings(newScopedSettings, options = {}) {
-    const source = options.source == null ? this.mainSource : options.source;
+    const source = options.source ?? this.mainSource;
     const priority = this.priorityForSource(source);
     this.scopedSettingsStore.removePropertiesForSource(source);
 
@@ -1392,7 +1390,8 @@ class Config {
     const legacyScopeDescriptor = this.getLegacyScopeDescriptorForNewScopeDescriptor(
       scopeDescriptor
     );
-    if (result != null) {
+
+    if (result !== undefined) {
       return result;
     } else if (legacyScopeDescriptor) {
       return this.scopedSettingsStore.getPropertyValue(
@@ -1454,15 +1453,31 @@ Config.addSchemaEnforcers({
 
   number: {
     coerce(keyPath, value, schema) {
-      value = parseFloat(value);
-      if (isNaN(value) || !isFinite(value)) {
+      const fromFloat = parseFloat(value);
+      const fromNumber = Number(value);
+      if (Number.isNaN(fromFloat) || !Number.isFinite(fromFloat)) {
         throw new Error(
           `Validation failed at ${keyPath}, ${JSON.stringify(
             value
           )} cannot be coerced into a number`
         );
       }
-      return value;
+
+      if (Number.isNaN(fromNumber)) {
+        console.warn(
+          `Validation warning at ${keyPath}, Number(${value}) gets NaN\n` +
+          `The previous code uses parseFloat(${value}) instead`
+        )
+      } else if (fromNumber !== fromFloat) {
+        // Number.isFinite(fromNumber) already checked by
+        // Number.isFinite(fromFloat)
+        console.warn(
+          `Validation warning at ${keyPath}, Number(${value}) === ${fromNumber}\n` +
+          `The previous code uses parseFloat(${value}) === ${fromFloat} instead. ` +
+          `So yeah, binary, octal, and hex literals are not supported.`
+        )
+      }
+      return fromFloat;
     }
   },
 
@@ -1517,6 +1532,7 @@ Config.addSchemaEnforcers({
     }
   },
 
+  // Really should be named `nullish`
   null: {
     // null sort of isnt supported. It will just unset in this case
     coerce(keyPath, value, schema) {
@@ -1537,7 +1553,7 @@ Config.addSchemaEnforcers({
         throw new Error(
           `Validation failed at ${keyPath}, ${JSON.stringify(
             value
-          )} must be an object`
+          )} must be a plain object (not array or function or string object)`
         );
       }
       if (schema.properties == null) {
@@ -1556,10 +1572,7 @@ Config.addSchemaEnforcers({
       const newValue = {};
       for (let prop in value) {
         const propValue = value[prop];
-        const childSchema =
-          schema.properties[prop] != null
-            ? schema.properties[prop]
-            : defaultChildSchema;
+        const childSchema = schema.properties[prop] ?? defaultChildSchema;
         if (childSchema != null) {
           try {
             newValue[prop] = this.executeSchemaEnforcers(
@@ -1613,7 +1626,7 @@ Config.addSchemaEnforcers({
   color: {
     coerce(keyPath, value, schema) {
       const color = Color.parse(value);
-      if (color == null) {
+      if (color === null) {
         throw new Error(
           `Validation failed at ${keyPath}, ${JSON.stringify(
             value
@@ -1629,10 +1642,10 @@ Config.addSchemaEnforcers({
       if (typeof value !== 'number') {
         return value;
       }
-      if (schema.minimum != null && typeof schema.minimum === 'number') {
+      if (typeof schema.minimum === 'number') {
         value = Math.max(value, schema.minimum);
       }
-      if (schema.maximum != null && typeof schema.maximum === 'number') {
+      if (typeof schema.maximum === 'number') {
         value = Math.min(value, schema.maximum);
       }
       return value;
@@ -1687,7 +1700,7 @@ let sortObject = value => {
     return value;
   }
   const result = {};
-  for (let key of Object.keys(value).sort()) {
+  for (const key of Object.keys(value).sort()) {
     result[key] = sortObject(value[key]);
   }
   return result;
@@ -1700,6 +1713,7 @@ const withoutEmptyObjects = object => {
       const value = object[key];
       const newValue = withoutEmptyObjects(value);
       if (newValue != null) {
+        // Use ??= when it's supported
         if (resultObject == null) {
           resultObject = {};
         }

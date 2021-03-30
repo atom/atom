@@ -36,6 +36,8 @@ console.log(
   } release assets (channel = ${releaseChannel})\n`.green
 );
 
+// deepcode says "uh oh, you're sending data to an endpoint without rate limiting" which seems quite silly
+// but still important
 function getMacZip(req, res) {
   console.log(`Received request for atom-mac.zip, sending it`);
   res.sendFile(path.join(buildPath, 'atom-mac.zip'));
@@ -73,10 +75,10 @@ function getReleasesFile(fileName) {
       `Received request for ${fileName}, version: ${req.query.version}`
     );
     if (req.query.version) {
-      const versionMatch = (req.query.version || '').match(
+      const versionMatch = req.query.version.match(
         /-(beta|nightly)\d+$/
       );
-      const versionChannel = (versionMatch && versionMatch[1]) || 'stable';
+      const versionChannel = (versionMatch?.[1]) || 'stable'; // use `??` maybe?
       if (releaseChannel !== versionChannel) {
         console.log(
           `Atom requested an update for version ${

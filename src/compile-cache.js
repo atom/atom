@@ -150,7 +150,7 @@ exports.install = function(resourcesPath, nodeRequire) {
     // Most of this logic is the same as the default implementation in the
     // source-map-support module, but we've overridden it to read the javascript
     // code from our cache directory.
-    retrieveSourceMap: function(filePath) {
+    retrieveSourceMap(filePath) {
       if (filePath === '<embedded>') {
         return { map: snapshotSourceMapConsumer };
       }
@@ -224,11 +224,11 @@ exports.install = function(resourcesPath, nodeRequire) {
   Error.stackTraceLimit = 30;
 
   Object.defineProperty(Error, 'prepareStackTrace', {
-    get: function() {
+    get() {
       return prepareStackTraceWithRawStackAssignment;
     },
 
-    set: function(newValue) {
+    set(newValue) {
       prepareStackTrace = newValue;
       process.nextTick(function() {
         prepareStackTrace = prepareStackTraceWithSourceMapping;

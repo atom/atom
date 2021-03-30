@@ -24,12 +24,14 @@ module.exports = function() {
             '\n\n' +
             'This application bundles the following third-party packages in accordance\n' +
             'with the following licenses:\n\n';
-          for (let packageName of Object.keys(packagesLicenses).sort()) {
+          for (const packageName of Object.keys(packagesLicenses).sort()) {
             const packageLicense = packagesLicenses[packageName];
             text +=
-              '-------------------------------------------------------------------------\n\n';
-            text += `Package: ${packageName}\n`;
-            text += `License: ${packageLicense.license}\n`;
+              '-------------------------------------------------------------------------\n\n' +
+              `Package: ${packageName}\n` +
+              `License: ${packageLicense.license}\n`;
+
+            // Could possibly use the `in` operator
             if (packageLicense.source) {
               text += `License Source: ${packageLicense.source}\n`;
             }

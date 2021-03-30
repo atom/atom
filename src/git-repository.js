@@ -60,6 +60,9 @@ module.exports = class GitRepository {
   //   * `refreshOnWindowFocus` A {Boolean}, `true` to refresh the index and
   //     statuses when the window is focused.
   //
+  //   * `project` An unexplained optional property that this code uses
+  //   * `config` An unexplained optional property that this code uses
+  //
   // Returns a {GitRepository} instance or `null` if the repository could not be opened.
   static open(path, options) {
     if (!path) {
@@ -77,14 +80,14 @@ module.exports = class GitRepository {
     this.emitter = new Emitter();
     this.subscriptions = new CompositeDisposable();
     this.repo = GitUtils.open(path);
-    if (this.repo == null) {
+    if (this.repo === null) {
       throw new Error(`No Git repository found searching path: ${path}`);
     }
 
     this.statusRefreshCount = 0;
     this.statuses = {};
     this.upstream = { ahead: 0, behind: 0 };
-    for (let submodulePath in this.repo.submodules) {
+    for (const submodulePath in this.repo.submodules) {
       const submoduleRepo = this.repo.submodules[submodulePath];
       submoduleRepo.upstream = { ahead: 0, behind: 0 };
     }
@@ -92,7 +95,7 @@ module.exports = class GitRepository {
     this.project = options.project;
     this.config = options.config;
 
-    if (options.refreshOnWindowFocus || options.refreshOnWindowFocus == null) {
+    if (options.refreshOnWindowFocus ?? true) {
       const onWindowFocus = () => {
         this.refreshIndex();
         this.refreshStatus();
@@ -135,7 +138,7 @@ module.exports = class GitRepository {
 
   // Public: Returns a {Boolean} indicating if this repository has been destroyed.
   isDestroyed() {
-    return this.repo == null;
+    return this.repo === null;
   }
 
   // Public: Invoke the given callback when this GitRepository's destroy() method
@@ -193,10 +196,10 @@ module.exports = class GitRepository {
 
   // Public: Returns the {String} path of the repository.
   getPath() {
-    if (this.path == null) {
-      this.path = fs.absolute(this.getRepo().getPath());
-    }
-    return this.path;
+    // Use ??= when it's supported
+    return this.path ?? (
+      this.path = fs.absolute(this.getRepo().getPath())
+    );
   }
 
   // Public: Returns the {String} working directory path of the repository.
@@ -207,12 +210,12 @@ module.exports = class GitRepository {
   // Public: Returns true if at the root, false if in a subfolder of the
   // repository.
   isProjectAtRoot() {
-    if (this.projectAtRoot == null) {
+    // Use ??= when it's supported
+    return this.projectAtRoot ?? (
       this.projectAtRoot =
         this.project &&
-        this.project.relativize(this.getWorkingDirectory()) === '';
-    }
-    return this.projectAtRoot;
+        this.project.relativize(this.getWorkingDirectory()) === ''
+    );
   }
 
   // Public: Makes a path relative to the repository's working directory.
@@ -560,7 +563,6 @@ module.exports = class GitRepository {
     const repo = this.getRepo();
 
     const relativeProjectPaths =
-      this.project &&
       this.project
         .getPaths()
         .map(projectPath => this.relativize(projectPath))

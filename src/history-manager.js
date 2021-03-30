@@ -68,7 +68,7 @@ class HistoryManager {
       project = new HistoryProject(paths);
       this.projects.push(project);
     }
-    project.lastOpened = lastOpened || new Date();
+    project.lastOpened = lastOpened ?? new Date();
     this.projects.sort((a, b) => b.lastOpened - a.lastOpened);
 
     await this.saveState();

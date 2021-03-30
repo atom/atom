@@ -208,10 +208,10 @@ Atom Core and all packages can be developed locally. For instructions on how to 
 
 The process described here has several goals:
 
-- Maintain Atom's quality
-- Fix problems that are important to users
-- Engage the community in working toward the best possible Atom
-- Enable a sustainable system for Atom's maintainers to review contributions
+* Maintain Atom's quality
+* Fix problems that are important to users
+* Engage the community in working toward the best possible Atom
+* Enable a sustainable system for Atom's maintainers to review contributions
 
 Please follow these steps to have your contribution considered by the maintainers:
 
@@ -307,9 +307,9 @@ All JavaScript code is linted with [Prettier](https://prettier.io/).
 
 ### Specs Styleguide
 
-- Include thoughtfully-worded, well-structured [Jasmine](https://jasmine.github.io/) specs in the `./spec` folder.
-- Treat `describe` as a noun or situation.
-- Treat `it` as a statement about state or how an operation changes state.
+* Include thoughtfully-worded, well-structured [Jasmine](https://jasmine.github.io/) specs in the `./spec` folder.
+* Treat `describe` as a noun or situation.
+* Treat `it` as a statement about state or how an operation changes state.
 
 #### Example
 

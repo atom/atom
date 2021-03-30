@@ -33,7 +33,7 @@ module.exports = class BufferedNodeProcess extends BufferedProcess {
   //   * `exit` The callback {Function} which receives a single argument
   //            containing the exit status (optional).
   constructor({ command, args, options = {}, stdout, stderr, exit }) {
-    options.env = options.env || Object.create(process.env);
+    options.env = options.env ?? Object.create(process.env);
     options.env.ELECTRON_RUN_AS_NODE = 1;
     options.env.ELECTRON_NO_ATTACH_CONSOLE = 1;
 

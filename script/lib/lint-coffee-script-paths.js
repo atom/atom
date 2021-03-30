@@ -21,13 +21,13 @@ module.exports = function() {
         CONFIG.repositoryRootPath,
         'coffeelint.json'
       ));
-      for (let file of files) {
+      for (const file of files) {
         const lintErrors = coffeelint.lint(
           file.content,
           lintConfiguration,
           false
         );
-        for (let error of lintErrors) {
+        for (const error of lintErrors) {
           errors.push({
             path: file.path,
             lineNumber: error.lineNumber,

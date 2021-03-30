@@ -38,11 +38,9 @@ module.exports = class Package {
     this.metadata =
       params.metadata || this.packageManager.loadPackageMetadata(this.path);
     this.bundledPackage =
-      params.bundledPackage != null
-        ? params.bundledPackage
-        : this.packageManager.isBundledPackagePath(this.path);
+      params.bundledPackage ?? this.packageManager.isBundledPackagePath(this.path);
     this.name =
-      (this.metadata && this.metadata.name) ||
+      (this?.metadata?.name) ||
       params.name ||
       path.basename(this.path);
     this.reset();
@@ -417,12 +415,11 @@ module.exports = class Package {
   }
 
   activateServices() {
-    let methodName, version, versions;
-    for (var name in this.metadata.providedServices) {
-      ({ versions } = this.metadata.providedServices[name]);
+    for (const name in this.metadata.providedServices) {
+      const { versions } = this.metadata.providedServices[name];
       const servicesByVersion = {};
-      for (version in versions) {
-        methodName = versions[version];
+      for (const version in versions) {
+        const methodName = versions[version];
         if (typeof this.mainModule[methodName] === 'function') {
           servicesByVersion[version] = this.mainModule[methodName]();
         }
@@ -432,10 +429,10 @@ module.exports = class Package {
       );
     }
 
-    for (name in this.metadata.consumedServices) {
-      ({ versions } = this.metadata.consumedServices[name]);
-      for (version in versions) {
-        methodName = versions[version];
+    for (const name in this.metadata.consumedServices) {
+      const { versions } = this.metadata.consumedServices[name];
+      for (const version in versions) {
+        const methodName = versions[version];
         if (typeof this.mainModule[methodName] === 'function') {
           this.activationDisposables.add(
             this.packageManager.serviceHub.consume(

@@ -32,7 +32,7 @@ module.exports = class AtomWindow extends EventEmitter {
     this.devMode = settings.devMode;
     this.resourcePath = settings.resourcePath;
 
-    const locationsToOpen = settings.locationsToOpen || [];
+    const locationsToOpen = settings.locationsToOpen || []; // Not sure if using ?? is safe
 
     this.loadedPromise = new Promise(resolve => {
       this.resolveLoadedPromise = resolve;
@@ -100,6 +100,8 @@ module.exports = class AtomWindow extends EventEmitter {
     this.loadSettings.appName = getAppName();
     this.loadSettings.resourcePath = this.resourcePath;
     this.loadSettings.atomHome = process.env.ATOM_HOME;
+
+    // Use ??= when it's supported
     if (this.loadSettings.devMode == null) this.loadSettings.devMode = false;
     if (this.loadSettings.safeMode == null) this.loadSettings.safeMode = false;
     if (this.loadSettings.clearWindowState == null)

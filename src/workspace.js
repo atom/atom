@@ -2187,7 +2187,6 @@ module.exports = class Workspace extends Model {
   // Returns a {Promise}.
   replace(regex, replacementText, filePaths, iterator) {
     return new Promise((resolve, reject) => {
-      let buffer;
       const openPaths = this.project
         .getBuffers()
         .map(buffer => buffer.getPath());
@@ -2228,7 +2227,7 @@ module.exports = class Workspace extends Model {
         });
       }
 
-      for (buffer of this.project.getBuffers()) {
+      for (const buffer of this.project.getBuffers()) {
         if (!filePaths.includes(buffer.getPath())) {
           continue;
         }

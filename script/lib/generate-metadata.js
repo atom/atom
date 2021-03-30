@@ -56,6 +56,7 @@ module.exports = function() {
   );
 };
 
+// Could possibly use the `in` operator in some places
 function buildBundledPackagesMetadata() {
   const packages = {};
   for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
@@ -80,8 +81,7 @@ function buildBundledPackagesMetadata() {
       true
     );
     if (
-      packageMetadata.repository &&
-      packageMetadata.repository.url &&
+      packageMetadata?.repository?.url &&
       packageMetadata.repository.type === 'git'
     ) {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(
@@ -97,10 +97,7 @@ function buildBundledPackagesMetadata() {
     delete packageMetadata['readmeFilename'];
 
     const packageModuleCache = packageMetadata._atomModuleCache || {};
-    if (
-      packageModuleCache.extensions &&
-      packageModuleCache.extensions['.json']
-    ) {
+    if (packageModuleCache?.extensions?.['.json']) {
       const index = packageModuleCache.extensions['.json'].indexOf(
         'package.json'
       );
@@ -139,7 +136,7 @@ function buildBundledPackagesMetadata() {
 
     const packageKeymapsPath = path.join(packagePath, 'keymaps');
     if (fs.existsSync(packageKeymapsPath)) {
-      for (let packageKeymapName of fs.readdirSync(packageKeymapsPath)) {
+      for (const packageKeymapName of fs.readdirSync(packageKeymapsPath)) {
         const packageKeymapPath = path.join(
           packageKeymapsPath,
           packageKeymapName
@@ -161,7 +158,7 @@ function buildBundledPackagesMetadata() {
 
     const packageMenusPath = path.join(packagePath, 'menus');
     if (fs.existsSync(packageMenusPath)) {
-      for (let packageMenuName of fs.readdirSync(packageMenusPath)) {
+      for (const packageMenuName of fs.readdirSync(packageMenusPath)) {
         const packageMenuPath = path.join(packageMenusPath, packageMenuName);
         if (
           packageMenuPath.endsWith('.cson') ||
@@ -179,7 +176,7 @@ function buildBundledPackagesMetadata() {
     }
 
     const packageGrammarsPath = path.join(packagePath, 'grammars');
-    for (let packageGrammarPath of fs.listSync(packageGrammarsPath, [
+    for (const packageGrammarPath of fs.listSync(packageGrammarsPath, [
       'json',
       'cson'
     ])) {
@@ -191,7 +188,7 @@ function buildBundledPackagesMetadata() {
     }
 
     const packageSettingsPath = path.join(packagePath, 'settings');
-    for (let packageSettingPath of fs.listSync(packageSettingsPath, [
+    for (const packageSettingPath of fs.listSync(packageSettingsPath, [
       'json',
       'cson'
     ])) {
@@ -227,7 +224,7 @@ function buildBundledPackagesMetadata() {
 
     packages[packageMetadata.name] = packageNewMetadata;
     if (packageModuleCache.extensions) {
-      for (let extension of Object.keys(packageModuleCache.extensions)) {
+      for (const extension of Object.keys(packageModuleCache.extensions)) {
         const paths = packageModuleCache.extensions[extension];
         if (paths.length === 0) {
           delete packageModuleCache.extensions[extension];
@@ -261,14 +258,14 @@ function buildPlatformKeymapsMetadata() {
   ].filter(p => p !== process.platform);
   const keymapsPath = path.join(CONFIG.repositoryRootPath, 'keymaps');
   const keymaps = {};
-  for (let keymapName of fs.readdirSync(keymapsPath)) {
+  for (const keymapName of fs.readdirSync(keymapsPath)) {
     const keymapPath = path.join(keymapsPath, keymapName);
     if (keymapPath.endsWith('.cson') || keymapPath.endsWith('.json')) {
       const keymapPlatform = path.basename(
         keymapPath,
         path.extname(keymapPath)
       );
-      if (invalidPlatforms.indexOf(keymapPlatform) === -1) {
+      if (invalidPlatforms.includes(keymapPlatform)) {
         keymaps[path.basename(keymapPath)] = CSON.readFileSync(keymapPath);
       }
     }
@@ -277,7 +274,7 @@ function buildPlatformKeymapsMetadata() {
 }
 
 function checkDeprecatedPackagesMetadata() {
-  for (let packageName of Object.keys(deprecatedPackagesMetadata)) {
+  for (const packageName of Object.keys(deprecatedPackagesMetadata)) {
     const packageMetadata = deprecatedPackagesMetadata[packageName];
     if (
       packageMetadata.version &&

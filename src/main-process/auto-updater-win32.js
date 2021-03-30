@@ -29,7 +29,7 @@ class AutoUpdater extends EventEmitter {
           .split('\n')
           .pop();
         const data = JSON.parse(json);
-        const releasesToApply = data && data.releasesToApply;
+        const releasesToApply = data?.releasesToApply;
         if (releasesToApply.pop) update = releasesToApply.pop();
       } catch (error) {
         error.stdout = stdout;

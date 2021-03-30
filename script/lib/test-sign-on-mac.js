@@ -1,6 +1,7 @@
 const spawnSync = require('./spawn-sync');
 
 module.exports = function(packagedAppPath) {
+  /** @type {Buffer | string} - Don't know what that certMatch declaration is on about. */
   const result = spawnSync('security', [
     'find-certificate',
     '-c',

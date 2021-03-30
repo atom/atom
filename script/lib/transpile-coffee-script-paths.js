@@ -11,7 +11,7 @@ module.exports = function() {
   console.log(
     `Transpiling CoffeeScript paths in ${CONFIG.intermediateAppPath}`
   );
-  for (let path of getPathsToTranspile()) {
+  for (const path of getPathsToTranspile()) {
     transpileCoffeeScriptPath(path);
   }
 };
@@ -28,7 +28,7 @@ function getPathsToTranspile() {
       nodir: true
     })
   );
-  for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
+  for (const packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(
       glob.sync(
         path.join(

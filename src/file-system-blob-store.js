@@ -114,13 +114,13 @@ module.exports = class FileSystemBlobStore {
       currentBufferStart += buffer.length;
     }
 
-    for (let key of this.inMemoryBlobs.keys()) {
+    for (const key of this.inMemoryBlobs.keys()) {
       if (this.usedKeys.has(key)) {
         dump(key, this.getFromMemory.bind(this));
       }
     }
 
-    for (let key of Object.keys(this.storedBlobMap)) {
+    for (const key of Object.keys(this.storedBlobMap)) {
       if (!blobMap[key] && this.usedKeys.has(key)) {
         dump(key, this.getFromStorage.bind(this));
       }

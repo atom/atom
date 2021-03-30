@@ -97,9 +97,9 @@ function verifyPython() {
       } catch {}
 
       if (stdout) {
-        if (stdout.indexOf('+') !== -1)
+        if (stdout.includes('+'))
           stdout = stdout.toString().replace(/\+/g, '');
-        if (stdout.indexOf('rc') !== -1)
+        if (stdout.includes('rc'))
           stdout = stdout.toString().replace(/rc(.*)$/gi, '');
         fullVersion = stdout.toString().trim();
       }
@@ -153,9 +153,6 @@ function verifyPython() {
     verifyBinary('py.exe', '-2');
     verifyBinary(
       path.join(process.env.SystemDrive || 'C:', 'Python27', 'python.exe')
-    );
-    verifyBinary(
-      path.join(process.env.SystemDrive || 'C:', 'Python37', 'python.exe')
     );
   }
 

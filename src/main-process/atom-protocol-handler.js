@@ -41,7 +41,7 @@ module.exports = class AtomProtocolHandler {
       }
 
       if (!filePath) {
-        for (let loadPath of this.loadPaths) {
+        for (const loadPath of this.loadPaths) {
           filePath = path.join(loadPath, relativePath);
           const stat = fs.statSyncNoException(filePath);
           if (stat && stat.isFile()) break;

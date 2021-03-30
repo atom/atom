@@ -132,7 +132,7 @@ module.exports = class CommandRegistry {
       const commands = commandName;
       throwOnInvalidSelector = listener;
       const disposable = new CompositeDisposable();
-      for (commandName in commands) {
+      for (const commandName in commands) {
         listener = commands[commandName];
         disposable.add(
           this.add(target, commandName, listener, throwOnInvalidSelector)
@@ -142,7 +142,7 @@ module.exports = class CommandRegistry {
     }
 
     if (listener == null) {
-      throw new Error('Cannot register a command with a null listener.');
+      throw new TypeError('Cannot register a command with a nullish listener.');
     }
 
     // type Listener = ((e: CustomEvent) => void) | {
@@ -170,6 +170,7 @@ module.exports = class CommandRegistry {
   }
 
   addSelectorBasedListener(selector, commandName, listener) {
+    // Use ??= when it's supported
     if (this.selectorBasedListenersByCommandName[commandName] == null) {
       this.selectorBasedListenersByCommandName[commandName] = [];
     }
@@ -197,6 +198,7 @@ module.exports = class CommandRegistry {
   }
 
   addInlineListener(element, commandName, listener) {
+    // Use ??= when it's supported
     if (this.inlineListenersByCommandName[commandName] == null) {
       this.inlineListenersByCommandName[commandName] = new WeakMap();
     }
@@ -271,7 +273,7 @@ module.exports = class CommandRegistry {
       if (currentTarget === window) {
         break;
       }
-      currentTarget = currentTarget.parentNode || window;
+      currentTarget = currentTarget.parentNode ?? window;
     }
 
     return commands;
@@ -379,12 +381,9 @@ module.exports = class CommandRegistry {
     this.emitter.emit('will-dispatch', dispatchedEvent);
 
     while (true) {
-      const commandInlineListeners = this.inlineListenersByCommandName[
-        event.type
-      ]
+      let listeners = this.inlineListenersByCommandName[event.type]
         ? this.inlineListenersByCommandName[event.type].get(currentTarget)
-        : null;
-      let listeners = commandInlineListeners || [];
+        : [];
       if (currentTarget.webkitMatchesSelector != null) {
         const selectorBasedListeners = (
           this.selectorBasedListenersByCommandName[event.type] || []
@@ -420,7 +419,7 @@ module.exports = class CommandRegistry {
   }
 
   commandRegistered(commandName) {
-    if (this.rootNode != null && !this.registeredCommands[commandName]) {
+    if (this.rootNode !== null && !this.registeredCommands[commandName]) {
       this.rootNode.addEventListener(commandName, this.handleCommandEvent, {
         capture: true
       });

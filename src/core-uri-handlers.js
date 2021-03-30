@@ -3,7 +3,7 @@ const fs = require('fs-plus');
 // Converts a query string parameter for a line or column number
 // to a zero-based line or column number for the Atom API.
 function getLineColNumber(numStr) {
-  const num = parseInt(numStr || 0, 10);
+  const num = parseInt(numStr ?? 0, 10);
   return Math.max(num - 1, 0);
 }
 
@@ -45,11 +45,6 @@ module.exports = {
   },
 
   windowPredicate(parsed) {
-    const config = ROUTER[parsed.pathname];
-    if (config && config.getWindowPredicate) {
-      return config.getWindowPredicate(parsed);
-    } else {
-      return () => true;
-    }
+    return ROUTER[parsed.pathname]?.getWindowPredicate?.(parsed) ?? () => true;
   }
 };

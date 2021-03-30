@@ -21,7 +21,7 @@ module.exports = function() {
     path.join(os.tmpdir(), 'atom-cached-atom-shells')
   ];
 
-  for (let path of cachePaths) {
+  for (const path of cachePaths) {
     console.log(`Cleaning ${path}`);
     fs.removeSync(path);
   }

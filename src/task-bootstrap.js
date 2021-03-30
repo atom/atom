@@ -5,17 +5,17 @@ const CompileCache = require('./compile-cache');
 CompileCache.setCacheDirectory(compileCachePath);
 CompileCache.install(`${process.resourcesPath}`, require);
 
-const setupGlobals = function() {
+const setupGlobals = function (...args) {
   global.attachEvent = function() {};
   const console = {
     warn() {
-      return global.emit('task:warn', ...arguments);
+      return global.emit('task:warn', ...args);
     },
     log() {
-      return global.emit('task:log', ...arguments);
+      return global.emit('task:log', ...args);
     },
     error() {
-      return global.emit('task:error', ...arguments);
+      return global.emit('task:error', ...args);
     },
     trace() {}
   };

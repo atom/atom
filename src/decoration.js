@@ -222,8 +222,8 @@ module.exports = class Decoration {
     return true;
   }
 
-  flash(klass, duration) {
-    if (duration == null) {
+  flash(klass, duration = 500) {
+    if (duration === null) {
       duration = 500;
     }
     this.properties.flashRequested = true;

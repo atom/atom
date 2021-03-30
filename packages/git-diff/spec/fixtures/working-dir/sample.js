@@ -1,18 +1,16 @@
 module.exports.quicksort = function () {
-  var sort = function (items) {
+  function sort (items) {
     if (items.length <= 1) return items
-    var pivot = items.shift()
-    var current
-    var left = []
-    var right = []
+    const pivot = items.pop()
+    let current
+    const left = []
+    const right = []
 
     while (items.length > 0) {
-      current = items.shift()
+      current = items.pop()
       current < pivot ? left.push(current) : right.push(current)
     }
-    return sort(left)
-      .concat(pivot)
-      .concat(sort(right))
+    return sort(left).concat(pivot, sort(right))
   }
 
   return sort(Array.apply(this, arguments))

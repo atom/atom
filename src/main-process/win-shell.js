@@ -28,7 +28,7 @@ class ShellOption {
       hive: 'HKCU',
       key: `${this.key}\\${this.parts[0].key}`
     }).get(this.parts[0].name, (err, val) =>
-      callback(err == null && val != null && val.value === this.parts[0].value)
+      callback(err ?? (val != null && val.value === this.parts[0].value))
     );
   }
 

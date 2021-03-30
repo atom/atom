@@ -98,7 +98,7 @@ const addCommandsToPath = callback => {
       const pathSegments = pathEnv
         .split(/;+/)
         .filter(pathSegment => pathSegment);
-      if (pathSegments.indexOf(binFolder) === -1) {
+      if (!pathSegments.includes(binFolder)) {
         addBinToPath(pathSegments, callback);
       } else {
         callback();
@@ -174,7 +174,7 @@ exports.restartAtom = () => {
   let args;
   const atomCmdName = execName.replace('.exe', '.cmd');
 
-  if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
+  if (global?.atomApplication?.lastFocusedWindow) {
     const { projectPath } = global.atomApplication.lastFocusedWindow;
     if (projectPath) args = [projectPath];
   }

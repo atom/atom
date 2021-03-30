@@ -9,6 +9,7 @@ module.exports = function(packagePath, ci, stdioOptions) {
   // Set resource path so that apm can load metadata related to Atom.
   installEnv.ATOM_RESOURCE_PATH = CONFIG.repositoryRootPath;
 
+  // Nullish coalescing here?
   childProcess.execFileSync(CONFIG.getApmBinPath(), [ci ? 'ci' : 'install'], {
     env: installEnv,
     cwd: packagePath,

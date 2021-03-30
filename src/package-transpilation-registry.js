@@ -126,6 +126,7 @@ class PackageTranspilationRegistry {
     spec._transpilerSource = transpilerSource;
     const transpiler = this.getTranspiler(spec);
 
+    // Note: sha1 is insecure
     let hash = crypto
       .createHash('sha1')
       .update(JSON.stringify(spec.options || {}))

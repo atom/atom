@@ -63,7 +63,7 @@ module.exports = class DeserializerManager {
     const deserializer = this.get(state);
     if (deserializer) {
       let stateVersion =
-        (typeof state.get === 'function' && state.get('version')) ||
+        state.get?.('version') ??
         state.version;
 
       if (
@@ -87,7 +87,7 @@ module.exports = class DeserializerManager {
     }
 
     let stateDeserializer =
-      (typeof state.get === 'function' && state.get('deserializer')) ||
+      state.get?.('deserializer') ??
       state.deserializer;
 
     return this.deserializers[stateDeserializer];

@@ -9,10 +9,9 @@ module.exports = class Gutter {
   constructor(gutterContainer, options) {
     this.gutterContainer = gutterContainer;
     this.name = options && options.name;
-    this.priority =
-      options && options.priority != null ? options.priority : DefaultPriority;
-    this.visible = options && options.visible != null ? options.visible : true;
-    this.type = options && options.type != null ? options.type : 'decorated';
+    this.priority = options && options.priority ?? DefaultPriority;
+    this.visible = options && options.visible ?? true;
+    this.type = options && options.type ?? 'decorated';
     this.labelFn = options && options.labelFn;
     this.className = options && options.class;
 

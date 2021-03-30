@@ -13,6 +13,7 @@ const TEXT = REPEATED_TEXT.repeat(
   Math.ceil((SIZES_IN_KB[SIZES_IN_KB.length - 1] * 1024) / REPEATED_TEXT.length)
 );
 
+// Variable 'test' isn't used
 module.exports = async ({ test }) => {
   const data = [];
 
@@ -24,7 +25,7 @@ module.exports = async ({ test }) => {
 
   console.log(atom.getLoadSettings().resourcePath);
 
-  for (let pane of atom.workspace.getPanes()) {
+  for (const pane of atom.workspace.getPanes()) {
     pane.destroy();
   }
 

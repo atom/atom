@@ -133,7 +133,7 @@ class PaneAxis extends Model {
 
     const needTotal = this.children.length;
     // set every child's flex scale by the ratio
-    for (child of this.children) {
+    for (const child of this.children) {
       child.setFlexScale((needTotal * child.getFlexScale()) / total);
     }
   }

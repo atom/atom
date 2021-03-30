@@ -162,7 +162,7 @@ export default class Reporter {
       if (error.metadata == null) {
         error.metadata = {};
       }
-      for (let key in error.privateMetadata) {
+      for (const key in error.privateMetadata) {
         let value = error.privateMetadata[key];
         error.metadata[key] = value;
       }
@@ -172,7 +172,8 @@ export default class Reporter {
     const name = error.privateMetadataRequestName;
     if (name != null) {
       if (localStorage.getItem(`private-metadata-request:${name}`)) {
-        return reportWithoutPrivateMetadata(error);
+        // Equivalent to (reportWithoutPrivateMetadata(), return undefined)
+        return reportWithoutPrivateMetadata();
       } else {
         localStorage.setItem(`private-metadata-request:${name}`, true);
       }

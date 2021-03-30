@@ -203,7 +203,7 @@ module.exports = class BufferedProcess {
       output += data;
     });
     wmicProcess.stdout.on('close', () => {
-      for (let pid of output.split(/\s+/)) {
+      for (const pid of output.split(/\s+/)) {
         if (!/^\d{1,10}$/.test(pid)) continue;
         pid = parseInt(pid, 10);
 

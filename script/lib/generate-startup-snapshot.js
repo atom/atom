@@ -321,7 +321,7 @@ module.exports = function(packagedAppPath) {
     }
 
     const snapshotBinaries = ['v8_context_snapshot.bin', 'snapshot_blob.bin'];
-    for (let snapshotBinary of snapshotBinaries) {
+    for (const snapshotBinary of snapshotBinaries) {
       const destinationPath = path.join(
         startupBlobDestinationPath,
         snapshotBinary
@@ -331,7 +331,7 @@ module.exports = function(packagedAppPath) {
         fs.unlinkSync(destinationPath);
       } catch (err) {
         // Doesn't matter if the file doesn't exist already
-        if (!err.code || err.code !== 'ENOENT') {
+        if (err.code !== 'ENOENT') {
           throw err;
         }
       }

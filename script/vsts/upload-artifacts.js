@@ -108,6 +108,7 @@ async function uploadArtifacts() {
     console.log(`\nGenerating new release notes for ${releaseVersion}`);
     let newReleaseNotes = '';
     if (isNightlyRelease) {
+      // NOTE: generateForNightly only takes 3 parameters despite what the code shows
       newReleaseNotes = await releaseNotes.generateForNightly(
         releaseVersion,
         process.env.GITHUB_TOKEN,

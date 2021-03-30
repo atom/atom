@@ -19,7 +19,7 @@ const apm = async function({ dependencies, packageDependencies }) {
 
     const packages = await Promise.all(promises);
     const outdatedPackages = [];
-    packages.map(dependency => {
+    for (const dependency of packages) {
       if (dependency.hasOwnProperty('name')) {
         const latestVersion = dependency.releases.latest;
         const installed = packageDependencies[dependency.name];
@@ -32,7 +32,7 @@ const apm = async function({ dependencies, packageDependencies }) {
           });
         }
       }
-    });
+    };
 
     console.log(`${outdatedPackages.length} outdated package(s) found`);
 

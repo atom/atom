@@ -10,8 +10,10 @@ module.exports = function(aPath) {
   }
 
   const sepIndex = aPath.indexOf(path.sep);
-  const user = sepIndex < 0 ? aPath.substring(1) : aPath.substring(1, sepIndex);
-  const rest = sepIndex < 0 ? '' : aPath.substring(sepIndex);
+  const [user, rest] = 
+    sepIndex === -1 
+      ? [aPath.substring(1), '']
+      : [aPath.substring(1, sepIndex), aPath.substring(sepIndex)];
   const home =
     user === ''
       ? os.homedir()

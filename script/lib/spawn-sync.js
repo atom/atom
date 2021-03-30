@@ -6,8 +6,8 @@
 
 const childProcess = require('child_process');
 
-module.exports = function() {
-  const result = childProcess.spawnSync.apply(childProcess, arguments);
+module.exports = function (...args) {
+  const result = childProcess.spawnSync(...args);
   if (result.error) {
     throw result.error;
   } else if (result.status !== 0) {

@@ -9,14 +9,14 @@ const CONFIG = require('../config');
 
 module.exports = function() {
   console.log(`Transpiling PEG.js paths in ${CONFIG.intermediateAppPath}`);
-  for (let path of getPathsToTranspile()) {
+  for (const path of getPathsToTranspile()) {
     transpilePegJsPath(path);
   }
 };
 
 function getPathsToTranspile() {
   let paths = [];
-  for (let packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
+  for (const packageName of Object.keys(CONFIG.appMetadata.packageDependencies)) {
     paths = paths.concat(
       glob.sync(
         path.join(

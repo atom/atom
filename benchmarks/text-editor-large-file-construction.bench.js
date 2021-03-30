@@ -8,6 +8,7 @@ const TEXT = LINE_TEXT.repeat(
   Math.ceil((MAX_SIZE_IN_KB * 1024) / LINE_TEXT.length)
 );
 
+// Variable 'test' isn't used
 module.exports = async ({ test }) => {
   const data = [];
 
@@ -16,7 +17,7 @@ module.exports = async ({ test }) => {
   atom.packages.loadPackages();
   await atom.packages.activate();
 
-  for (let pane of atom.workspace.getPanes()) {
+  for (const pane of atom.workspace.getPanes()) {
     pane.destroy();
   }
 

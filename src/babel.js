@@ -1,13 +1,14 @@
 'use strict';
 
-var crypto = require('crypto');
-var path = require('path');
-var defaultOptions = require('../static/babelrc.json');
+let crypto = require('crypto');
+let path = require('path');
+let defaultOptions = require('../static/babelrc.json');
 
-var babel = null;
-var babelVersionDirectory = null;
+let babel = null;
+let babelVersion = null;
+let babelVersionDirectory = null;
 
-var PREFIXES = [
+const PREFIXES = [
   '/** @babel */',
   '"use babel"',
   "'use babel'",
@@ -15,23 +16,18 @@ var PREFIXES = [
   '// @flow'
 ];
 
-var PREFIX_LENGTH = Math.max.apply(
-  Math,
-  PREFIXES.map(function(prefix) {
-    return prefix.length;
-  })
-);
+const PREFIX_LENGTH = Math.max(...PREFIXES.map(prefix => prefix.length));
 
 exports.shouldCompile = function(sourceCode) {
-  var start = sourceCode.substr(0, PREFIX_LENGTH);
+  let start = sourceCode.substr(0, PREFIX_LENGTH);
   return PREFIXES.some(function(prefix) {
     return start.indexOf(prefix) === 0;
   });
 };
 
 exports.getCachePath = function(sourceCode) {
-  if (babelVersionDirectory == null) {
-    var babelVersion = require('babel-core/package.json').version;
+  if (babelVersionDirectory === null) {
+    babelVersion = require('babel-core/package.json').version;
     babelVersionDirectory = path.join(
       'js',
       'babel',
@@ -62,7 +58,7 @@ exports.compile = function(sourceCode, filePath) {
   }
 
   var options = { filename: filePath };
-  for (var key in defaultOptions) {
+  for (const key in defaultOptions) {
     options[key] = defaultOptions[key];
   }
   return babel.transform(sourceCode, options).code;

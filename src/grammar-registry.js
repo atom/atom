@@ -60,8 +60,9 @@ module.exports = class GrammarRegistry {
     return { languageOverridesByBufferId };
   }
 
+  // possible todo: Rename parameter
   deserialize(params) {
-    for (const bufferId in params.languageOverridesByBufferId || {}) {
+    for (const bufferId in params.languageOverridesByBufferId ?? {}) {
       this.languageOverridesByBufferId.set(
         bufferId,
         params.languageOverridesByBufferId[bufferId]
@@ -158,7 +159,7 @@ module.exports = class GrammarRegistry {
   assignGrammar(buffer, grammar) {
     if (!grammar) return false;
     if (buffer.getBuffer) buffer = buffer.getBuffer();
-    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName || null);
+    this.languageOverridesByBufferId.set(buffer.id, grammar.scopeName ?? null);
     this.grammarScoresByBuffer.set(buffer, null);
     if (grammar !== buffer.getLanguageMode().grammar) {
       buffer.setLanguageMode(
@@ -319,7 +320,7 @@ module.exports = class GrammarRegistry {
     if (contents && grammar.firstLineRegex) {
       let escaped = false;
       let numberOfNewlinesInRegex = 0;
-      for (let character of grammar.firstLineRegex.source) {
+      for (const character of grammar.firstLineRegex.source) {
         switch (character) {
           case '\\':
             escaped = !escaped;
@@ -624,7 +625,7 @@ module.exports = class GrammarRegistry {
   // Returns a non-empty {Array} of {Grammar} instances.
   getGrammars(params) {
     let tmGrammars = this.textmateRegistry.getGrammars();
-    if (!(params && params.includeTreeSitter)) return tmGrammars;
+    if (!(params?.includeTreeSitter)) return tmGrammars;
 
     const tsGrammars = Object.values(this.treeSitterGrammarsById).filter(
       g => g.scopeName

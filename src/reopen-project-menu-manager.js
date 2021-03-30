@@ -150,7 +150,7 @@ module.exports = class ReopenProjectMenuManager {
         {
           label: 'Reopen Project',
           submenu: projects.map((project, index) => ({
-            label: this.createLabel(project),
+            label: ReopenProjectMenuManager.createLabel(project),
             command: 'application:reopen-project',
             commandDetail: { index: index, paths: project.paths }
           }))
@@ -162,7 +162,7 @@ module.exports = class ReopenProjectMenuManager {
   static createLabel(project) {
     return project.paths.length === 1
       ? project.paths[0]
-      : project.paths.map(this.betterBaseName).join(', ');
+      : project.paths.map(ReopenProjectMenuManager.betterBaseName).join(', ');
   }
 
   static betterBaseName(directory) {

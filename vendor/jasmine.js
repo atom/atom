@@ -3,6 +3,7 @@
 // + var isCommonJS = typeof exports == "object";
 //
 // Modified method jasmine.WaitsForBlock.prototype.execute
+// Note: This file is also very outdated
 
 var isCommonJS = typeof exports == "object";
 
@@ -76,8 +77,8 @@ jasmine.getGlobal = function() {
 jasmine.bindOriginal_ = function(base, name) {
   var original = base[name];
   if (original.apply) {
-    return function() {
-      return original.apply(base, arguments);
+    return function (...args) {
+      return original.apply(base, args);
     };
   } else {
     // IE support
@@ -408,15 +409,14 @@ jasmine.Spy.prototype.reset = function() {
 
 jasmine.createSpy = function(name) {
 
-  var spyObj = function() {
+  var spyObj = function (...args) {
     spyObj.wasCalled = true;
     spyObj.callCount++;
-    var args = jasmine.util.argsToArray(arguments);
     spyObj.mostRecentCall.object = this;
     spyObj.mostRecentCall.args = args;
     spyObj.argsForCall.push(args);
-    spyObj.calls.push({object: this, args: args});
-    return spyObj.plan.apply(this, arguments);
+    spyObj.calls.push({object: this, args});
+    return spyObj.plan.apply(this, args);
   };
 
   var spy = new jasmine.Spy(name);
@@ -463,9 +463,9 @@ jasmine.createSpyObj = function(baseName, methodNames) {
  *
  * Be careful not to leave calls to <code>jasmine.log</code> in production code.
  */
-jasmine.log = function() {
+jasmine.log = function(...args) {
   var spec = jasmine.getEnv().currentSpec;
-  spec.log.apply(spec, arguments);
+  spec.log.apply(spec, ...args);
 };
 
 /**
@@ -740,8 +740,8 @@ jasmine.Env = function() {
   this.equalityTesters_ = [];
 
   // wrap matchers
-  this.matchersClass = function() {
-    jasmine.Matchers.apply(this, arguments);
+  this.matchersClass = function(...args) {
+    jasmine.Matchers.apply(this, args);
   };
   jasmine.util.inherit(this.matchersClass, jasmine.Matchers);
 
@@ -917,17 +917,17 @@ jasmine.Env.prototype.compareObjects_ = function(a, b, mismatchKeys, mismatchVal
     return obj !== null && obj[keyName] !== jasmine.undefined;
   };
 
-  for (var property in b) {
+  for (const property in b) {
     if (!hasKey(a, property) && hasKey(b, property)) {
       mismatchKeys.push("expected has key '" + property + "', but missing from actual.");
     }
   }
-  for (property in a) {
+  for (const property in a) {
     if (!hasKey(b, property) && hasKey(a, property)) {
       mismatchKeys.push("expected missing key '" + property + "', but present in actual.");
     }
   }
-  for (property in b) {
+  for (const property in b) {
     if (property == '__Jasmine_been_here_before__') continue;
     if (!this.equals_(a[property], b[property], mismatchKeys, mismatchValues)) {
       mismatchValues.push("'" + property + "' was '" + (b[property] ? jasmine.util.htmlEscape(b[property].toString()) : b[property]) + "' in expected, but was '" + (a[property] ? jasmine.util.htmlEscape(a[property].toString()) : a[property]) + "' in actual.");
@@ -1186,7 +1186,7 @@ jasmine.Matchers = function(env, actual, spec, opt_isNot) {
   this.env = env;
   this.actual = actual;
   this.spec = spec;
-  this.isNot = opt_isNot || false;
+  this.isNot = opt_isNot ?? false;
   this.reportWasCalled_ = false;
 };
 

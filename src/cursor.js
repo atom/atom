@@ -186,7 +186,7 @@ module.exports = class Cursor extends Model {
     const range = [[row, column], [row, Infinity]];
     const text = this.editor.getTextInBufferRange(range);
     return (
-      text.search((options && options.wordRegex) || this.wordRegExp()) === 0
+      text.search((options?.wordRegex) || this.wordRegExp()) === 0
     );
   }
 
@@ -615,7 +615,7 @@ module.exports = class Cursor extends Model {
       scanRange
     );
 
-    for (let range of ranges) {
+    for (const range of ranges) {
       if (position.isLessThan(range.start) && !allowNext) break;
       if (position.isLessThan(range.end)) return Point.fromObject(range.end);
     }
@@ -731,7 +731,9 @@ module.exports = class Cursor extends Model {
   wordRegExp(options) {
     const nonWordCharacters = _.escapeRegExp(this.getNonWordCharacters());
     let source = `^[\t ]*$|[^\\s${nonWordCharacters}]+`;
-    if (!options || options.includeNonWordCharacters !== false) {
+
+    // (undefined !== false) === true, see default
+    if (options?.includeNonWordCharacters !== false) {
       source += `|${`[${nonWordCharacters}]+`}`;
     }
     return new RegExp(source, 'g');
@@ -778,10 +780,7 @@ module.exports = class Cursor extends Model {
     this.clearSelection({ autoscroll: false });
     fn();
     this.goalColumn = null;
-    const autoscroll =
-      options && options.autoscroll != null
-        ? options.autoscroll
-        : this.isLastCursor();
+    const autoscroll = options.autoscroll ?? this.isLastCursor();
     if (autoscroll) this.autoscroll();
   }
 

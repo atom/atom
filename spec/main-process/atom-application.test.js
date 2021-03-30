@@ -1279,6 +1279,7 @@ class StubWindow extends EventEmitter {
     }
   }
 
+  /** @returns {undefined} */
   openPath(pathToOpen, initialLine, initialColumn) {
     return this.openLocations([{ pathToOpen, initialLine, initialColumn }]);
   }

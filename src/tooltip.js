@@ -675,8 +675,7 @@ Tooltip.prototype.recalculatePosition = function() {
   this.applyPlacement(calculatedOffset, placement);
 };
 
-function extend() {
-  var args = Array.prototype.slice.apply(arguments);
+function extend(...args) {
   var target = args.shift();
   var source = args.shift();
   while (source) {

@@ -60,11 +60,11 @@ class AtomEnvironment {
   */
 
   constructor(params = {}) {
-    this.id = params.id != null ? params.id : nextId++;
+    this.id = params.id ?? nextId++;
 
     // Public: A {Clipboard} instance
     this.clipboard = params.clipboard;
-    this.updateProcessEnv = params.updateProcessEnv || updateProcessEnv;
+    this.updateProcessEnv = params.updateProcessEnv ?? updateProcessEnv;
     this.enablePersistence = params.enablePersistence;
     this.applicationDelegate = params.applicationDelegate;
 
@@ -527,6 +527,8 @@ class AtomEnvironment {
 
   /*
   Section: Atom Details
+  
+  TODO: Use ??= when it's supported
   */
 
   // Public: Returns a {Boolean} that is `true` if the current window is in development mode.
@@ -749,14 +751,10 @@ class AtomEnvironment {
   async displayWindow() {
     await this.restoreWindowDimensions();
     const steps = [this.restoreWindowBackground(), this.show(), this.focus()];
-    if (this.windowDimensions && this.windowDimensions.fullScreen) {
+    if (this.windowDimensions?.fullScreen) {
       steps.push(this.setFullScreen(true));
     }
-    if (
-      this.windowDimensions &&
-      this.windowDimensions.maximized &&
-      process.platform !== 'darwin'
-    ) {
+    if (this.windowDimensions?.maximized && process.platform !== 'darwin') {
       steps.push(this.maximize());
     }
     await Promise.all(steps);
@@ -888,7 +886,7 @@ class AtomEnvironment {
     const updateProcessEnvPromise = this.updateProcessEnvAndTriggerHooks();
 
     const loadStatePromise = this.loadState().then(async state => {
-      this.windowDimensions = state && state.windowDimensions;
+      this.windowDimensions = state?.windowDimensions;
       if (!this.getLoadSettings().headless) {
         StartupTime.addMarker(
           'window:environment:start-editor-window:display-window'
@@ -955,37 +953,30 @@ class AtomEnvironment {
       await this.deserialize(state);
       this.deserializeTimings.atom = Date.now() - startTime;
 
-      if (
-        process.platform === 'darwin' &&
-        this.config.get('core.titleBar') === 'custom'
-      ) {
-        this.workspace.addHeaderPanel({
-          item: new TitleBar({
-            workspace: this.workspace,
-            themes: this.themes,
-            applicationDelegate: this.applicationDelegate
-          })
-        });
-        this.document.body.classList.add('custom-title-bar');
-      }
-      if (
-        process.platform === 'darwin' &&
-        this.config.get('core.titleBar') === 'custom-inset'
-      ) {
-        this.workspace.addHeaderPanel({
-          item: new TitleBar({
-            workspace: this.workspace,
-            themes: this.themes,
-            applicationDelegate: this.applicationDelegate
-          })
-        });
-        this.document.body.classList.add('custom-inset-title-bar');
-      }
-      if (
-        process.platform === 'darwin' &&
-        this.config.get('core.titleBar') === 'hidden'
-      ) {
-        this.document.body.classList.add('hidden-title-bar');
+      if (process.platform === 'darwin') {
+        if (this.config.get('core.titleBar') === 'custom') {
+          this.workspace.addHeaderPanel({
+            item: new TitleBar({
+              workspace: this.workspace,
+              themes: this.themes,
+              applicationDelegate: this.applicationDelegate
+            })
+          });
+          this.document.body.classList.add('custom-title-bar');
+        }
+        if (this.config.get('core.titleBar') === 'custom-inset') {
+          this.workspace.addHeaderPanel({
+            item: new TitleBar({
+              workspace: this.workspace,
+              themes: this.themes,
+              applicationDelegate: this.applicationDelegate
+            })
+          });
+          this.document.body.classList.add('custom-inset-title-bar');
+        }
+        if (this.config.get('core.titleBar') === 'hidden') {
+          this.document.body.classList.add('hidden-title-bar');
+        }
       }
 
       this.document.body.appendChild(this.workspace.getElement());
@@ -994,7 +985,7 @@ class AtomEnvironment {
       let previousProjectPaths = this.project.getPaths();
       this.disposables.add(
         this.project.onDidChangePaths(newPaths => {
-          for (let path of previousProjectPaths) {
+          for (const path of previousProjectPaths) {
             if (
               this.pathsWithWaitSessions.has(path) &&
               !newPaths.includes(path)
@@ -1317,7 +1308,7 @@ class AtomEnvironment {
   addProjectFolder() {
     return new Promise(resolve => {
       this.pickFolder(selectedPaths => {
-        this.addToProject(selectedPaths || []).then(resolve);
+        this.addToProject(selectedPaths ?? []).then(resolve);
       });
     });
   }
@@ -1338,8 +1329,8 @@ class AtomEnvironment {
   ) {
     const center = this.workspace.getCenter();
     const windowIsUnused = () => {
-      for (let container of this.workspace.getPaneContainers()) {
-        for (let item of container.getPaneItems()) {
+      for (const container of this.workspace.getPaneContainers()) {
+        for (const item of container.getPaneItems()) {
           if (item instanceof TextEditor) {
             if (item.getPath() || item.isModified()) return false;
           } else {
@@ -1381,7 +1372,7 @@ class AtomEnvironment {
             });
             resolveDiscardStatePromise(Promise.resolve(null));
           } else if (response === 1) {
-            for (let selectedPath of projectPaths) {
+            for (const selectedPath of projectPaths) {
               this.project.addPath(selectedPath);
             }
             resolveDiscardStatePromise(
@@ -1397,7 +1388,7 @@ class AtomEnvironment {
 
   restoreStateIntoThisEnvironment(state) {
     state.fullScreen = this.isFullScreen();
-    for (let pane of this.workspace.getPanes()) {
+    for (const pane of this.workspace.getPanes()) {
       pane.destroy();
     }
     return this.deserialize(state);
@@ -1501,7 +1492,7 @@ or use Pane::saveItemAs for programmatic saving.`);
   }
 
   getStateKey(paths) {
-    if (paths && paths.length > 0) {
+    if (paths?.length > 0) {
       const sha1 = crypto
         .createHash('sha1')
         .update(
@@ -1681,7 +1672,7 @@ or use Pane::saveItemAs for programmatic saving.`);
         );
         restoredState = true;
       } else {
-        for (let folder of foldersToAddToProject) {
+        for (const folder of foldersToAddToProject) {
           this.project.addPath(folder);
         }
       }

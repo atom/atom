@@ -16,7 +16,7 @@ module.exports = class GutterContainer {
     // Create a copy, because `Gutter::destroy` removes the gutter from
     // GutterContainer's @gutters.
     const guttersToDestroy = this.gutters.slice(0);
-    for (let gutter of guttersToDestroy) {
+    for (const gutter of guttersToDestroy) {
       if (gutter.name !== 'line-number') {
         gutter.destroy();
       }
@@ -25,8 +25,7 @@ module.exports = class GutterContainer {
     this.emitter.dispose();
   }
 
-  addGutter(options) {
-    options = options || {};
+  addGutter(options = {}) {
     const gutterName = options.name;
     if (gutterName === null) {
       throw new Error('A name is required to create a gutter.');

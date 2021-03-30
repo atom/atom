@@ -5,12 +5,12 @@ module.exports = function listen(element, eventName, selector, handler) {
     if (selector) {
       var currentTarget = event.target;
       while (currentTarget) {
-        if (currentTarget.matches && currentTarget.matches(selector)) {
+        if (currentTarget?.matches(selector)) {
           handler({
             type: event.type,
             currentTarget: currentTarget,
             target: event.target,
-            preventDefault: function() {
+            preventDefault() {
               event.preventDefault();
             },
             originalEvent: event
@@ -24,7 +24,7 @@ module.exports = function listen(element, eventName, selector, handler) {
         type: event.type,
         currentTarget: event.currentTarget,
         target: event.target,
-        preventDefault: function() {
+        preventDefault() {
           event.preventDefault();
         },
         originalEvent: event

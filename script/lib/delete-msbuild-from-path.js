@@ -9,9 +9,7 @@ module.exports = function() {
     .filter(function(p) {
       if (fs.existsSync(path.join(p, 'msbuild.exe'))) {
         console.log(
-          'Excluding "' +
-            p +
-            '" from PATH to avoid msbuild.exe mismatch that causes errors during module installation'
+          `Excluding "${p}" from PATH to avoid msbuild.exe mismatch that causes errors during module installation`
         );
         return false;
       } else {

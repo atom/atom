@@ -141,7 +141,7 @@ module.exports = class TextEditor {
       );
     }
 
-    this.id = params.id != null ? params.id : nextId++;
+    this.id = params.id ?? nextId++;
     if (this.id >= nextId) {
       // Ensure that new editors get unique ids:
       nextId = this.id + 1;
@@ -150,49 +150,34 @@ module.exports = class TextEditor {
     this.initialScrollLeftColumn = params.initialScrollLeftColumn;
     this.decorationManager = params.decorationManager;
     this.selectionsMarkerLayer = params.selectionsMarkerLayer;
-    this.mini = params.mini != null ? params.mini : false;
-    this.keyboardInputEnabled =
-      params.keyboardInputEnabled != null ? params.keyboardInputEnabled : true;
-    this.readOnly = params.readOnly != null ? params.readOnly : false;
+    this.mini = params.mini ?? false;
+    this.keyboardInputEnabled = params.keyboardInputEnabled ?? true;
+    this.readOnly = params.readOnly ?? false;
     this.placeholderText = params.placeholderText;
     this.showLineNumbers = params.showLineNumbers;
     this.assert = params.assert || (condition => condition);
-    this.showInvisibles =
-      params.showInvisibles != null ? params.showInvisibles : true;
+    this.showInvisibles = params.showInvisibles ?? true;
     this.autoHeight = params.autoHeight;
     this.autoWidth = params.autoWidth;
-    this.scrollPastEnd =
-      params.scrollPastEnd != null ? params.scrollPastEnd : false;
-    this.scrollSensitivity =
-      params.scrollSensitivity != null ? params.scrollSensitivity : 40;
+    this.scrollPastEnd = params.scrollPastEnd ?? false;
+    this.scrollSensitivity = params.scrollSensitivity ?? 40;
     this.editorWidthInChars = params.editorWidthInChars;
     this.invisibles = params.invisibles;
     this.showIndentGuide = params.showIndentGuide;
     this.softWrapped = params.softWrapped;
     this.softWrapAtPreferredLineLength = params.softWrapAtPreferredLineLength;
-    this.preferredLineLength = params.preferredLineLength;
-    this.showCursorOnSelection =
-      params.showCursorOnSelection != null
-        ? params.showCursorOnSelection
-        : true;
     this.maxScreenLineLength = params.maxScreenLineLength;
-    this.softTabs = params.softTabs != null ? params.softTabs : true;
-    this.autoIndent = params.autoIndent != null ? params.autoIndent : true;
-    this.autoIndentOnPaste =
-      params.autoIndentOnPaste != null ? params.autoIndentOnPaste : true;
-    this.undoGroupingInterval =
-      params.undoGroupingInterval != null ? params.undoGroupingInterval : 300;
-    this.softWrapped = params.softWrapped != null ? params.softWrapped : false;
-    this.softWrapAtPreferredLineLength =
-      params.softWrapAtPreferredLineLength != null
-        ? params.softWrapAtPreferredLineLength
-        : false;
-    this.preferredLineLength =
-      params.preferredLineLength != null ? params.preferredLineLength : 80;
-    this.maxScreenLineLength =
-      params.maxScreenLineLength != null ? params.maxScreenLineLength : 500;
-    this.showLineNumbers =
-      params.showLineNumbers != null ? params.showLineNumbers : true;
+    this.preferredLineLength = params.preferredLineLength;
+    this.showCursorOnSelection = params.showCursorOnSelection ?? true;
+    this.softTabs = params.softTabs ?? true;
+    this.autoIndent = params.autoIndent ?? true;
+    this.autoIndentOnPaste = params.autoIndentOnPaste ?? true;
+    this.undoGroupingInterval = params.undoGroupingInterval ?? 300;
+    this.softWrapped = params.softWrapped ?? false;
+    this.softWrapAtPreferredLineLength = params.softWrapAtPreferredLineLength ?? false;
+    this.preferredLineLength = params.preferredLineLength ?? 80;
+    this.maxScreenLineLength = params.maxScreenLineLength ?? 500;
+    this.showLineNumbers = params.showLineNumbers ?? true;
     const { tabLength = 2 } = params;
 
     this.alive = true;
@@ -245,16 +230,12 @@ module.exports = class TextEditor {
         invisibles: this.getInvisibles(),
         softWrapColumn: this.getSoftWrapColumn(),
         showIndentGuides: this.doesShowIndentGuide(),
-        atomicSoftTabs:
-          params.atomicSoftTabs != null ? params.atomicSoftTabs : true,
+        atomicSoftTabs: params.atomicSoftTabs ?? true,
         tabLength,
         ratioForCharacter: this.ratioForCharacter.bind(this),
         isWrapBoundary,
         foldCharacter: ZERO_WIDTH_NBSP,
-        softWrapHangingIndent:
-          params.softWrapHangingIndentLength != null
-            ? params.softWrapHangingIndentLength
-            : 0
+        softWrapHangingIndent: params.softWrapHangingIndentLength ?? 0
       };
 
       this.displayLayer = this.buffer.getDisplayLayer(params.displayLayerId);
@@ -392,7 +373,7 @@ module.exports = class TextEditor {
   update(params) {
     const displayLayerParams = {};
 
-    for (let param of Object.keys(params)) {
+    for (const param of Object.keys(params)) {
       const value = params[param];
 
       switch (param) {
@@ -630,16 +611,14 @@ module.exports = class TextEditor {
       displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
       displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
       if (this.mini) {
-        for (let decoration of this.cursorLineDecorations) {
+        for (const decoration of this.cursorLineDecorations) {
           decoration.destroy();
         }
         this.cursorLineDecorations = null;
       } else {
         this.decorateCursorLine();
       }
-      if (this.component != null) {
-        this.component.scheduleUpdate();
-      }
+      this.component?.scheduleUpdate();
     }
     if (finish) this.finishUpdate(displayLayerParams);
   }
@@ -647,9 +626,7 @@ module.exports = class TextEditor {
   updateReadOnly(value, finish) {
     if (value !== this.readOnly) {
       this.readOnly = value;
-      if (this.component != null) {
-        this.component.scheduleUpdate();
-      }
+      this.component?.scheduleUpdate();
     }
     if (finish) this.finishUpdate();
   }
@@ -657,9 +634,7 @@ module.exports = class TextEditor {
   updateKeyboardInputEnabled(value, finish) {
     if (value !== this.keyboardInputEnabled) {
       this.keyboardInputEnabled = value;
-      if (this.component != null) {
-        this.component.scheduleUpdate();
-      }
+      this.component?.scheduleUpdate();
     }
     if (finish) this.finishUpdate();
   }
@@ -698,9 +673,7 @@ module.exports = class TextEditor {
   updateShowLineNumbers(value, finish) {
     if (value !== this.showLineNumbers) {
       this.showLineNumbers = value;
-      if (this.component != null) {
-        this.component.scheduleUpdate();
-      }
+      this.component?.scheduleUpdate();
     }
     if (finish) this.finishUpdate();
   }
@@ -866,10 +839,8 @@ module.exports = class TextEditor {
       this.selectionsMarkerLayer.onDidCreateMarker(this.addSelection.bind(this))
     );
     return this.disposables.add(
-      this.selectionsMarkerLayer.onDidUpdate(() =>
-        this.component != null
-          ? this.component.didUpdateSelections()
-          : undefined
+      this.selectionsMarkerLayer.onDidUpdate(
+        () => this?.component.didUpdateSelections()
       )
     );
   }
@@ -879,7 +850,7 @@ module.exports = class TextEditor {
     this.alive = false;
     this.disposables.dispose();
     this.displayLayer.destroy();
-    for (let selection of this.selections.slice()) {
+    for (const selection of this.selections.slice()) {
       selection.destroy();
     }
     this.buffer.release();
@@ -1376,7 +1347,7 @@ module.exports = class TextEditor {
   //
   // Returns a {String}.
   getTitle() {
-    return this.getFileName() || 'untitled';
+    return this.getFileName() ?? 'untitled';
   }
 
   // Essential: Get unique title for display in other parts of the UI, such as
@@ -1652,7 +1623,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Range}.
   bufferRangeForBufferRow(row, options) {
-    return this.buffer.rangeForRow(row, options && options.includeNewline);
+    return this.buffer.rangeForRow(row, options?.includeNewline);
   }
 
   // Get the text in the given {Range}.
@@ -1732,16 +1703,20 @@ module.exports = class TextEditor {
     }
 
     const groupingInterval = options.groupUndo ? this.undoGroupingInterval : 0;
+
+    // Use ??= when it's supported
     if (options.autoIndentNewline == null)
       options.autoIndentNewline = this.shouldAutoIndent();
     if (options.autoDecreaseIndent == null)
       options.autoDecreaseIndent = this.shouldAutoIndent();
+
     const result = this.mutateSelectedText(selection => {
       const range = selection.insertText(text, options);
       const didInsertEvent = { text, range };
       this.emitter.emit('did-insert-text', didInsertEvent);
       return range;
     }, groupingInterval);
+
     if (groupLastChanges) this.buffer.groupLastChanges();
     return result;
   }
@@ -1820,8 +1795,7 @@ module.exports = class TextEditor {
         const selectionsToMove = [selection];
 
         while (
-          selection.end.row ===
-          (selections[0] != null ? selections[0].start.row : undefined)
+          selection.end.row === selections?.[0].start.row
         ) {
           selectionsToMove.push(selections[0]);
           selection.end.row = selections[0].end.row;
@@ -1866,7 +1840,7 @@ module.exports = class TextEditor {
         this.buffer.insert([precedingRow, 0], lines);
 
         // Restore folds that existed before the lines were moved
-        for (let rangeToRefold of rangesToRefold) {
+        for (const rangeToRefold of rangesToRefold) {
           this.displayLayer.foldBufferRange(rangeToRefold);
         }
 
@@ -1906,8 +1880,7 @@ module.exports = class TextEditor {
 
         // if the current selection start row matches the next selections' end row - make them one selection
         while (
-          selection.start.row ===
-          (selections[0] != null ? selections[0].end.row : undefined)
+          selection.start.row === selections?.[0].end.row
         ) {
           selectionsToMove.push(selections[0]);
           selection.start.row = selections[0].start.row;
@@ -1956,7 +1929,7 @@ module.exports = class TextEditor {
         this.buffer.delete(linesRange);
 
         // Restore folds that existed before the lines were moved
-        for (let rangeToRefold of rangesToRefold) {
+        for (const rangeToRefold of rangesToRefold) {
           this.displayLayer.foldBufferRange(rangeToRefold);
         }
 
@@ -1990,7 +1963,7 @@ module.exports = class TextEditor {
 
     if (noSelectionAtStartOfLine) {
       this.transact(() => {
-        for (let selection of selections) {
+        for (const selection of selections) {
           const charToLeftOfSelection = new Range(
             selection.start.translate(translationDelta),
             selection.start
@@ -2027,7 +2000,7 @@ module.exports = class TextEditor {
 
     if (noSelectionAtEndOfLine) {
       this.transact(() => {
-        for (let selection of selections) {
+        for (const selection of selections) {
           const charToRightOfSelection = new Range(
             selection.end,
             selection.end.translate(translationDelta)
@@ -2116,7 +2089,7 @@ module.exports = class TextEditor {
   replaceSelectedText(options, fn) {
     this.mutateSelectedText(selection => {
       selection.getBufferRange();
-      if (options && options.selectWordIfEmpty && selection.isEmpty()) {
+      if (options?.selectWordIfEmpty && selection.isEmpty()) {
         selection.selectWord();
       }
       const text = selection.getText();
@@ -2516,13 +2489,13 @@ module.exports = class TextEditor {
   //
   // Returns a {Point}.
   screenPositionForBufferPosition(bufferPosition, options) {
-    if (options && options.clip) {
+    if (options?.clip) {
       Grim.deprecate(
         'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
       );
       if (options.clipDirection) options.clipDirection = options.clip;
     }
-    if (options && options.wrapAtSoftNewlines != null) {
+    if (options?.wrapAtSoftNewlines != null) {
       Grim.deprecate(
         "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -2531,7 +2504,7 @@ module.exports = class TextEditor {
           ? 'forward'
           : 'backward';
     }
-    if (options && options.wrapBeyondNewlines != null) {
+    if (options?.wrapBeyondNewlines != null) {
       Grim.deprecate(
         "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -2553,13 +2526,13 @@ module.exports = class TextEditor {
   //
   // Returns a {Point}.
   bufferPositionForScreenPosition(screenPosition, options) {
-    if (options && options.clip) {
+    if (options?.clip) {
       Grim.deprecate(
         'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
       );
       if (options.clipDirection) options.clipDirection = options.clip;
     }
-    if (options && options.wrapAtSoftNewlines != null) {
+    if (options?.wrapAtSoftNewlines != null) {
       Grim.deprecate(
         "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -2568,7 +2541,7 @@ module.exports = class TextEditor {
           ? 'forward'
           : 'backward';
     }
-    if (options && options.wrapBeyondNewlines != null) {
+    if (options?.wrapBeyondNewlines != null) {
       Grim.deprecate(
         "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -2667,13 +2640,13 @@ module.exports = class TextEditor {
   //
   // Returns a {Point}.
   clipScreenPosition(screenPosition, options) {
-    if (options && options.clip) {
+    if (options?.clip) {
       Grim.deprecate(
         'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
       );
       if (options.clipDirection) options.clipDirection = options.clip;
     }
-    if (options && options.wrapAtSoftNewlines != null) {
+    if (options?.wrapAtSoftNewlines != null) {
       Grim.deprecate(
         "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -2682,7 +2655,7 @@ module.exports = class TextEditor {
           ? 'forward'
           : 'backward';
     }
-    if (options && options.wrapBeyondNewlines != null) {
+    if (options?.wrapBeyondNewlines != null) {
       Grim.deprecate(
         "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -3145,7 +3118,7 @@ module.exports = class TextEditor {
   // Returns the first matched {Cursor} or undefined
   getCursorAtScreenPosition(position) {
     const selection = this.getSelectionAtScreenPosition(position);
-    if (selection && selection.getHeadScreenPosition().isEqual(position)) {
+    if (selection?.getHeadScreenPosition().isEqual(position)) {
       return selection.cursor;
     }
   }
@@ -3174,13 +3147,13 @@ module.exports = class TextEditor {
   //   * `autoscroll` Determines whether the editor scrolls to the new cursor's
   //     position. Defaults to true.
   setCursorScreenPosition(position, options) {
-    if (options && options.clip) {
+    if (options?.clip) {
       Grim.deprecate(
         'The `clip` parameter has been deprecated and will be removed soon. Please, use `clipDirection` instead.'
       );
       if (options.clipDirection) options.clipDirection = options.clip;
     }
-    if (options && options.wrapAtSoftNewlines != null) {
+    if (options?.wrapAtSoftNewlines != null) {
       Grim.deprecate(
         "The `wrapAtSoftNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -3189,7 +3162,7 @@ module.exports = class TextEditor {
           ? 'forward'
           : 'backward';
     }
-    if (options && options.wrapBeyondNewlines != null) {
+    if (options?.wrapBeyondNewlines != null) {
       Grim.deprecate(
         "The `wrapBeyondNewlines` parameter has been deprecated and will be removed soon. Please, use `clipDirection: 'forward'` instead."
       );
@@ -3392,7 +3365,7 @@ module.exports = class TextEditor {
 
   cursorsForScreenRowRange(startScreenRow, endScreenRow) {
     const cursors = [];
-    for (let marker of this.selectionsMarkerLayer.findMarkers({
+    for (const marker of this.selectionsMarkerLayer.findMarkers({
       intersectsScreenRowRange: [startScreenRow, endScreenRow]
     })) {
       const cursor = this.cursorsByMarkerId.get(marker.id);
@@ -3492,7 +3465,7 @@ module.exports = class TextEditor {
       throw new Error('Passed an empty array to setSelectedBufferRanges');
 
     const selections = this.getSelections();
-    for (let selection of selections.slice(bufferRanges.length)) {
+    for (const selection of selections.slice(bufferRanges.length)) {
       selection.destroy();
     }
 
@@ -3589,7 +3562,7 @@ module.exports = class TextEditor {
     }
     this.selectionsMarkerLayer.markBufferRange(bufferRange, {
       invalidate: 'never',
-      reversed: options.reversed != null ? options.reversed : false
+      reversed: options.reversed ?? false
     });
     if (options.autoscroll !== false) this.getLastSelection().autoscroll();
     return this.getLastSelection();
@@ -3634,7 +3607,7 @@ module.exports = class TextEditor {
   selectToScreenPosition(position, options) {
     const lastSelection = this.getLastSelection();
     lastSelection.selectToScreenPosition(position, options);
-    if (!options || !options.suppressSelectionMerge) {
+    if (!options?.suppressSelectionMerge) {
       return this.mergeIntersectingSelections({
         reversed: lastSelection.isReversed()
       });
@@ -3984,7 +3957,7 @@ module.exports = class TextEditor {
   }
 
   finalizeSelections() {
-    for (let selection of this.getSelections()) {
+    for (const selection of this.getSelections()) {
       selection.finalize();
     }
   }
@@ -4070,7 +4043,7 @@ module.exports = class TextEditor {
     this.mergeIntersectingSelections({ preserveFolds: options.preserveFolds });
 
     if (selection.destroyed) {
-      for (selection of this.getSelections()) {
+      for (const selection of this.getSelections()) {
         if (selection.intersectsBufferRange(selectionBufferRange))
           return selection;
       }
@@ -4101,7 +4074,7 @@ module.exports = class TextEditor {
   consolidateSelections() {
     const selections = this.getSelections();
     if (selections.length > 1) {
-      for (let selection of selections.slice(1, selections.length)) {
+      for (const selection of selections.slice(1, selections.length)) {
         selection.destroy();
       }
       selections[0].autoscroll({ center: true });
@@ -4241,8 +4214,8 @@ module.exports = class TextEditor {
   // and whose values are 1-character {Strings}s that are displayed in place of
   // those invisible characters
   getInvisibles() {
-    if (!this.mini && this.showInvisibles && this.invisibles != null) {
-      return this.invisibles;
+    if (!this.mini && this.showInvisibles) {
+      return this.invisibles ?? {};
     } else {
       return {};
     }
@@ -4459,6 +4432,8 @@ module.exports = class TextEditor {
   //   * `bypassReadOnly` (optional) {Boolean} Must be `true` to modify a read-only editor.
   indent(options = {}) {
     if (!this.ensureWritable('indent', options)) return;
+
+    // TODO: Use ??= when it's supported
     if (options.autoIndent == null)
       options.autoIndent = this.shouldAutoIndent();
     this.mutateSelectedText(selection => selection.indent(options));
@@ -4489,7 +4464,7 @@ module.exports = class TextEditor {
   getGrammar() {
     const languageMode = this.buffer.getLanguageMode();
     return (
-      (languageMode.getGrammar && languageMode.getGrammar()) || NullGrammar
+      (languageMode?.getGrammar()) ?? NullGrammar
     );
   }
 
@@ -4500,6 +4475,8 @@ module.exports = class TextEditor {
   //
   // * `grammar` {Grammar}
   setGrammar(grammar) {
+    console.warn('setGrammar is deprecated.')
+
     const buffer = this.getBuffer();
     buffer.setLanguageMode(
       atom.grammars.languageModeForGrammarAndBuffer(grammar, buffer)
@@ -4617,7 +4594,7 @@ module.exports = class TextEditor {
   // Essential: For each selection, copy the selected text.
   copySelectedText() {
     let maintainClipboard = false;
-    for (let selection of this.getSelectionsOrderedByBufferPosition()) {
+    for (const selection of this.getSelectionsOrderedByBufferPosition()) {
       if (selection.isEmpty()) {
         const previousRange = selection.getBufferRange();
         selection.selectLine();
@@ -4633,7 +4610,7 @@ module.exports = class TextEditor {
   // Private: For each selection, only copy highlighted text.
   copyOnlySelectedText() {
     let maintainClipboard = false;
-    for (let selection of this.getSelectionsOrderedByBufferPosition()) {
+    for (const selection of this.getSelectionsOrderedByBufferPosition()) {
       if (!selection.isEmpty()) {
         selection.copy(maintainClipboard, false);
         maintainClipboard = true;
@@ -4679,25 +4656,19 @@ module.exports = class TextEditor {
     if (!metadata) metadata = {};
     if (options.autoIndent == null)
       options.autoIndent = this.shouldAutoIndentOnPaste();
+      // TODO: Use ??= when it's supported
 
     this.mutateSelectedText((selection, index) => {
       let fullLine, indentBasis, text;
-      if (
-        metadata.selections &&
-        metadata.selections.length === this.getSelections().length
-      ) {
+      if (metadata.selections?.length === this.getSelections().length) {
         ({ text, indentBasis, fullLine } = metadata.selections[index]);
       } else {
         ({ indentBasis, fullLine } = metadata);
         text = clipboardText;
       }
 
-      if (
-        indentBasis != null &&
-        (text.includes('\n') ||
-          !selection.cursor.hasPrecedingCharactersOnLine())
-      ) {
-        options.indentBasis = indentBasis;
+      if (text.includes('\n') || !selection.cursor.hasPrecedingCharactersOnLine()) {
+        options.indentBasis = indentBasis ?? null;
       } else {
         options.indentBasis = null;
       }
@@ -4824,7 +4795,7 @@ module.exports = class TextEditor {
 
   // Extended: For each selection, fold the rows it intersects.
   foldSelectedLines() {
-    for (let selection of this.selections) {
+    for (const selection of this.selections) {
       selection.fold();
     }
   }
@@ -4836,7 +4807,7 @@ module.exports = class TextEditor {
       languageMode.getFoldableRanges &&
       languageMode.getFoldableRanges(this.getTabLength());
     this.displayLayer.destroyAllFolds();
-    for (let range of foldableRanges || []) {
+    for (const range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range);
     }
   }
@@ -4857,7 +4828,7 @@ module.exports = class TextEditor {
       languageMode.getFoldableRangesAtIndentLevel &&
       languageMode.getFoldableRangesAtIndentLevel(level, this.getTabLength());
     this.displayLayer.destroyAllFolds();
-    for (let range of foldableRanges || []) {
+    for (const range of foldableRanges || []) {
       this.displayLayer.foldBufferRange(range);
     }
   }
@@ -4871,9 +4842,7 @@ module.exports = class TextEditor {
   // Returns a {Boolean}.
   isFoldableAtBufferRow(bufferRow) {
     const languageMode = this.buffer.getLanguageMode();
-    return (
-      languageMode.isFoldableAtRow && languageMode.isFoldableAtRow(bufferRow)
-    );
+    return languageMode?.isFoldableAtRow(bufferRow);
   }
 
   // Extended: Determine whether the given row in screen coordinates is foldable.
@@ -5185,7 +5154,7 @@ module.exports = class TextEditor {
     const languageMode = this.buffer.getLanguageMode();
     return (
       (languageMode.getNonWordCharacters &&
-        languageMode.getNonWordCharacters(position || Point(0, 0))) ||
+        languageMode.getNonWordCharacters(position ?? Point(0, 0))) ||
       DEFAULT_NON_WORD_CHARACTERS
     );
   }
@@ -5331,19 +5300,10 @@ module.exports = class TextEditor {
 
   setDefaultCharWidth(
     defaultCharWidth,
-    doubleWidthCharWidth,
-    halfWidthCharWidth,
-    koreanCharWidth
+    doubleWidthCharWidth = defaultCharWidth,
+    halfWidthCharWidth = defaultCharWidth,
+    koreanCharWidth = defaultCharWidth
   ) {
-    if (doubleWidthCharWidth == null) {
-      doubleWidthCharWidth = defaultCharWidth;
-    }
-    if (halfWidthCharWidth == null) {
-      halfWidthCharWidth = defaultCharWidth;
-    }
-    if (koreanCharWidth == null) {
-      koreanCharWidth = defaultCharWidth;
-    }
     if (
       defaultCharWidth !== this.defaultCharWidth ||
       (doubleWidthCharWidth !== this.doubleWidthCharWidth &&
@@ -5378,11 +5338,11 @@ module.exports = class TextEditor {
   }
 
   getAutoHeight() {
-    return this.autoHeight != null ? this.autoHeight : true;
+    return this.autoHeight ?? true;
   }
 
   getAutoWidth() {
-    return this.autoWidth != null ? this.autoWidth : false;
+    return this.autoWidth ?? false;
   }
 
   setWidth(width) {

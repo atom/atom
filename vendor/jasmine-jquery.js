@@ -1,4 +1,6 @@
 'use strict'
+console.warn('\njasmine-jquery was last updated in May 28, 2017' +
+             '\nThe last commit to this file was on Sep 9, 2015')
 
 jasmine.JQuery = function() {}
 
@@ -19,7 +21,7 @@ jasmine.JQuery.elementToString = function(element) {
 jasmine.JQuery.matchersClass = {}
 
 var jQueryMatchers = {
-  toHaveClass: function(className) {
+  toHaveClass(className) {
     if (this.actual instanceof HTMLElement) {
       return this.actual.classList.contains(className)
     } else {
@@ -27,7 +29,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeVisible: function() {
+  toBeVisible() {
     if (this.actual instanceof HTMLElement) {
       return this.actual.offsetWidth !== 0 || this.actual.offsetHeight !== 0
     } else {
@@ -35,7 +37,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeHidden: function() {
+  toBeHidden() {
     if (this.actual instanceof HTMLElement) {
       return this.actual.offsetWidth === 0 && this.actual.offsetHeight === 0
     } else {
@@ -43,7 +45,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeSelected: function() {
+  toBeSelected() {
     if (this.actual instanceof HTMLElement) {
       return this.actual.selected
     } else {
@@ -51,7 +53,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeChecked: function() {
+  toBeChecked() {
     if (this.actual instanceof HTMLElement) {
       return this.actual.checked
     } else {
@@ -59,7 +61,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeEmpty: function() {
+  toBeEmpty() {
     if (this.actual instanceof HTMLElement) {
       return this.actual.innerHTML === ''
     } else {
@@ -67,7 +69,7 @@ var jQueryMatchers = {
     }
   },
 
-  toExist: function() {
+  toExist() {
     if (this.actual instanceof HTMLElement) {
       return true
     } else if (this.actual) {
@@ -77,7 +79,7 @@ var jQueryMatchers = {
     }
   },
 
-  toHaveAttr: function(attributeName, expectedAttributeValue) {
+  toHaveAttr(attributeName, expectedAttributeValue) {
     var actualAttributeValue
     if (this.actual instanceof HTMLElement) {
       actualAttributeValue = this.actual.getAttribute(attributeName)
@@ -88,7 +90,7 @@ var jQueryMatchers = {
     return hasProperty(actualAttributeValue, expectedAttributeValue)
   },
 
-  toHaveId: function(id) {
+  toHaveId(id) {
     if (this.actual instanceof HTMLElement) {
       return this.actual.getAttribute('id') == id
     } else {
@@ -96,7 +98,7 @@ var jQueryMatchers = {
     }
   },
 
-  toHaveHtml: function(html) {
+  toHaveHtml(html) {
     var actualHTML
     if (this.actual instanceof HTMLElement) {
       actualHTML = this.actual.innerHTML
@@ -107,7 +109,7 @@ var jQueryMatchers = {
     return actualHTML == jasmine.JQuery.browserTagCaseIndependentHtml(html)
   },
 
-  toHaveText: function(text) {
+  toHaveText(text) {
     var actualText
     if (this.actual instanceof HTMLElement) {
       actualText = this.actual.textContent
@@ -122,7 +124,7 @@ var jQueryMatchers = {
     }
   },
 
-  toHaveValue: function(value) {
+  toHaveValue(value) {
     if (this.actual instanceof HTMLElement) {
       return this.actual.value == value
     } else {
@@ -130,7 +132,7 @@ var jQueryMatchers = {
     }
   },
 
-  toHaveData: function(key, expectedValue) {
+  toHaveData(key, expectedValue) {
     if (this.actual instanceof HTMLElement) {
       var camelCaseKey
       for (var part of key.split('-')) {
@@ -146,7 +148,7 @@ var jQueryMatchers = {
     }
   },
 
-  toMatchSelector: function(selector) {
+  toMatchSelector(selector) {
     if (this.actual instanceof HTMLElement) {
       return this.actual.matches(selector)
     } else {
@@ -154,7 +156,7 @@ var jQueryMatchers = {
     }
   },
 
-  toContain: function(contained) {
+  toContain(contained) {
     if (this.actual instanceof HTMLElement) {
       if (typeof contained === 'string') {
         return this.actual.querySelector(contained)
@@ -166,7 +168,7 @@ var jQueryMatchers = {
     }
   },
 
-  toBeDisabled: function(selector){
+  toBeDisabled(selector){
     if (this.actual instanceof HTMLElement) {
       return this.actual.disabled
     } else {
@@ -175,13 +177,13 @@ var jQueryMatchers = {
   },
 
   // tests the existence of a specific event binding
-  toHandle: function(eventName) {
+  toHandle(eventName) {
     var events = this.actual.data("events")
     return events && events[eventName].length > 0
   },
 
   // tests the existence of a specific event binding + handler
-  toHandleWith: function(eventName, eventHandler) {
+  toHandleWith(eventName, eventHandler) {
     var stack = this.actual.data("events")[eventName]
     var i
     for (i = 0; i < stack.length; i++) {
@@ -218,10 +220,10 @@ var bindMatcher = function(methodName) {
   }
 }
 
-for(var methodName in jQueryMatchers) {
+for (var methodName in jQueryMatchers) {
   bindMatcher(methodName)
 }
 
-beforeEach(function() {
+beforeEach(() => {
   this.addMatchers(jasmine.JQuery.matchersClass)
 })
