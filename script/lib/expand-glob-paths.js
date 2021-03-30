@@ -3,7 +3,9 @@
 const glob = require('glob');
 
 module.exports = function(globPaths) {
-  return Promise.all(globPaths.map(g => expandGlobPath(g))).then(paths => paths.flat());
+  return Promise.all(globPaths.map(g => expandGlobPath(g))).then(
+    paths => paths.flat()
+  );
 };
 
 function expandGlobPath(globPath) {
