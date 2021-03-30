@@ -531,7 +531,7 @@ module.exports = class PackageManager {
     ) => {
       for (const packageName of packageNames) {
         if (!disabledPackageNames.has(packageName)) {
-          var pack = this.getLoadedPackage(packageName);
+          const pack = this.getLoadedPackage(packageName);
           if (pack != null) {
             action(pack);
           }

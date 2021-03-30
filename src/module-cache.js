@@ -73,7 +73,7 @@ function loadDependencies(modulePath, rootPath, rootMetadata, moduleCache) {
 
     const childMetadata = JSON.parse(fs.readFileSync(childMetadataPath));
     if (childMetadata && childMetadata.version) {
-      var mainPath;
+      let mainPath;
       try {
         mainPath = require.resolve(childPath);
       } catch (error) {
