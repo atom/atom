@@ -611,7 +611,7 @@ module.exports = class Cursor extends Model {
       : new Range(position, new Point(position.row, Infinity));
 
     const ranges = this.editor.buffer.findAllInRangeSync(
-      options.wordRegex || this.wordRegExp(options),
+      options.wordRegex ?? this.wordRegExp(options),
       scanRange
     );
 
@@ -639,7 +639,7 @@ module.exports = class Cursor extends Model {
 
     let beginningOfNextWordPosition;
     this.editor.scanInBufferRange(
-      options.wordRegex || this.wordRegExp(),
+      options.wordRegex ?? this.wordRegExp(),
       scanRange,
       ({ range, stop }) => {
         beginningOfNextWordPosition = range.start;
@@ -780,7 +780,7 @@ module.exports = class Cursor extends Model {
     this.clearSelection({ autoscroll: false });
     fn();
     this.goalColumn = null;
-    const autoscroll = options.autoscroll ?? this.isLastCursor();
+    const autoscroll = options?.autoscroll ?? this.isLastCursor();
     if (autoscroll) this.autoscroll();
   }
 

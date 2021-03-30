@@ -196,10 +196,7 @@ module.exports = class GitRepository {
 
   // Public: Returns the {String} path of the repository.
   getPath() {
-    // Use ??= when it's supported
-    return this.path ?? (
-      this.path = fs.absolute(this.getRepo().getPath())
-    );
+    return (this.path ??= fs.absolute(this.getRepo().getPath()));
   }
 
   // Public: Returns the {String} working directory path of the repository.
@@ -210,12 +207,7 @@ module.exports = class GitRepository {
   // Public: Returns true if at the root, false if in a subfolder of the
   // repository.
   isProjectAtRoot() {
-    // Use ??= when it's supported
-    return this.projectAtRoot ?? (
-      this.projectAtRoot =
-        this.project &&
-        this.project.relativize(this.getWorkingDirectory()) === ''
-    );
+    return (this.projectAtRoot ??= this?.project?.relativize(this.getWorkingDirectory()) === '');
   }
 
   // Public: Makes a path relative to the repository's working directory.
@@ -564,7 +556,7 @@ module.exports = class GitRepository {
 
     const relativeProjectPaths =
       this.project
-        .getPaths()
+        ?.getPaths()
         .map(projectPath => this.relativize(projectPath))
         .filter(
           projectPath => projectPath.length > 0 && !path.isAbsolute(projectPath)
