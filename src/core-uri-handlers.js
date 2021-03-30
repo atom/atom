@@ -45,6 +45,6 @@ module.exports = {
   },
 
   windowPredicate(parsed) {
-    return ROUTER[parsed.pathname]?.getWindowPredicate?.(parsed) ?? () => true;
+    return ROUTER[parsed.pathname]?.getWindowPredicate?.(parsed) ?? (() => true);
   }
 };
