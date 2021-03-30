@@ -1,11 +1,11 @@
-'use strict'
-console.warn('\njasmine-jquery was last updated in May 28, 2017' +
-             '\nThe last commit to this file was on Sep 9, 2015')
+'use strict';
+// jasmine-jquery was last updated in May 28, 2017
+// The last commit to this file was on Sep 9, 2015
 
 jasmine.JQuery = function() {}
 
 jasmine.JQuery.browserTagCaseIndependentHtml = function(html) {
-  var div = document.createElement('div')
+  let div = document.createElement('div')
   div.innerHTML = html
   return div.innerHTML
 }
@@ -20,7 +20,7 @@ jasmine.JQuery.elementToString = function(element) {
 
 jasmine.JQuery.matchersClass = {}
 
-var jQueryMatchers = {
+const jQueryMatchers = {
   toHaveClass(className) {
     if (this.actual instanceof HTMLElement) {
       return this.actual.classList.contains(className)
@@ -80,7 +80,7 @@ var jQueryMatchers = {
   },
 
   toHaveAttr(attributeName, expectedAttributeValue) {
-    var actualAttributeValue
+    let actualAttributeValue
     if (this.actual instanceof HTMLElement) {
       actualAttributeValue = this.actual.getAttribute(attributeName)
     } else {
@@ -99,7 +99,7 @@ var jQueryMatchers = {
   },
 
   toHaveHtml(html) {
-    var actualHTML
+    let actualHTML
     if (this.actual instanceof HTMLElement) {
       actualHTML = this.actual.innerHTML
     } else {
@@ -110,14 +110,14 @@ var jQueryMatchers = {
   },
 
   toHaveText(text) {
-    var actualText
+    let actualText
     if (this.actual instanceof HTMLElement) {
       actualText = this.actual.textContent
     } else {
       actualText = this.actual.text()
     }
 
-    if (text && typeof text.test === 'function') {
+    if (typeof text?.test === 'function') {
       return text.test(actualText)
     } else {
       return actualText == text
@@ -134,8 +134,8 @@ var jQueryMatchers = {
 
   toHaveData(key, expectedValue) {
     if (this.actual instanceof HTMLElement) {
-      var camelCaseKey
-      for (var part of key.split('-')) {
+      let camelCaseKey
+      for (const part of key.split('-')) {
         if (camelCaseKey) {
           camelCaseKey += part[0].toUpperCase() + part.substring(1)
         } else {
@@ -178,49 +178,43 @@ var jQueryMatchers = {
 
   // tests the existence of a specific event binding
   toHandle(eventName) {
-    var events = this.actual.data("events")
+    let events = this.actual.data("events")
     return events && events[eventName].length > 0
   },
 
   // tests the existence of a specific event binding + handler
   toHandleWith(eventName, eventHandler) {
-    var stack = this.actual.data("events")[eventName]
-    var i
-    for (i = 0; i < stack.length; i++) {
-      if (stack[i].handler == eventHandler) {
-        return true
-      }
-    }
-    return false
+    let stack = this.actual.data("events")[eventName]
+    return stack.some(event => event.handler == eventHandler)
   }
 }
 
-var hasProperty = function(actualValue, expectedValue) {
+const hasProperty = function(actualValue, expectedValue) {
   if (expectedValue === undefined) {
     return actualValue !== undefined
   }
   return actualValue == expectedValue
 }
 
-var bindMatcher = function(methodName) {
-  var builtInMatcher = jasmine.Matchers.prototype[methodName]
+const bindMatcher = function(methodName) {
+  let builtInMatcher = jasmine.Matchers.prototype[methodName]
 
-  jasmine.JQuery.matchersClass[methodName] = function() {
-    if (this.actual && this.actual.jquery || this.actual instanceof HTMLElement) {
-      var result = jQueryMatchers[methodName].apply(this, arguments)
+  jasmine.JQuery.matchersClass[methodName] = function (...args) {
+    if (this?.actual?.jquery || this.actual instanceof HTMLElement) {
+      let result = jQueryMatchers[methodName].apply(this, args)
       this.actual = jasmine.JQuery.elementToString(this.actual)
       return result
     }
 
     if (builtInMatcher) {
-      return builtInMatcher.apply(this, arguments)
+      return builtInMatcher.apply(this, args)
     }
 
     return false
   }
 }
 
-for (var methodName in jQueryMatchers) {
+for (const methodName in jQueryMatchers) {
   bindMatcher(methodName)
 }
 
