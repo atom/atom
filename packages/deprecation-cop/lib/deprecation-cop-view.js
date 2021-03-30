@@ -137,7 +137,7 @@ export default class DeprecationCopView {
                   <span className="text-warning icon icon-alert" />
                   <div
                     className="list-item deprecation-message"
-                    dangerouslySetInnerHTML={marked(deprecation.getMessage())}
+                    innerHTML={marked(deprecation.getMessage())}
                   />
                   {this.renderIssueURLIfNeeded(
                     packageName,
