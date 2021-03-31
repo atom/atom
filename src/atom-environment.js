@@ -1300,6 +1300,7 @@ class AtomEnvironment {
   }
 
   setRepresentedFilename(filename) {
+    // eslint-disable-next-line no-unused-expressions
     this.applicationDelegate.setWindowRepresentedFilename?.(filename);
   }
 
@@ -1402,8 +1403,7 @@ or use Pane::saveItemAs for programmatic saving.`);
   async saveState(options, storageKey) {
     if (this.enablePersistence && this.project) {
       const state = this.serialize(options);
-      if (!storageKey)
-        storageKey = this.getStateKey(this.project?.getPaths());
+      if (!storageKey) storageKey = this.getStateKey(this.project?.getPaths());
       if (storageKey) {
         await this.stateStore.save(storageKey, state);
       } else {
