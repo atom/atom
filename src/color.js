@@ -110,7 +110,7 @@ module.exports = class Color {
       color = Color.parse(color);
     }
 
-    if (color == null) {
+    if (color === null) {
       return false;
     }
 
