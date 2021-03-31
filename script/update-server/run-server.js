@@ -76,7 +76,7 @@ function getReleasesFile(fileName) {
       const versionMatch = (req.query.version || '').match(
         /-(beta|nightly)\d+$/
       );
-      const versionChannel = (versionMatch && versionMatch[1]) || 'stable';
+      const versionChannel = versionMatch?.[1] ?? 'stable';
       if (releaseChannel !== versionChannel) {
         console.log(
           `Atom requested an update for version ${
