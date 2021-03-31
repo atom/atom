@@ -80,8 +80,7 @@ function buildBundledPackagesMetadata() {
       true
     );
     if (
-      packageMetadata.repository &&
-      packageMetadata.repository.url &&
+      packageMetadata?.repository?.url &&
       packageMetadata.repository.type === 'git'
     ) {
       packageMetadata.repository.url = packageMetadata.repository.url.replace(
@@ -97,10 +96,7 @@ function buildBundledPackagesMetadata() {
     delete packageMetadata['readmeFilename'];
 
     const packageModuleCache = packageMetadata._atomModuleCache || {};
-    if (
-      packageModuleCache.extensions &&
-      packageModuleCache.extensions['.json']
-    ) {
+    if (packageModuleCache.extensions?.['.json']) {
       const index = packageModuleCache.extensions['.json'].indexOf(
         'package.json'
       );
