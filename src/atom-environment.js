@@ -60,7 +60,7 @@ class AtomEnvironment {
   */
 
   constructor(params = {}) {
-    this.id = params.id != null ? params.id : nextId++;
+    this.id = params.id ?? nextId++;
 
     // Public: A {Clipboard} instance
     this.clipboard = params.clipboard;
@@ -531,27 +531,26 @@ class AtomEnvironment {
 
   // Public: Returns a {Boolean} that is `true` if the current window is in development mode.
   inDevMode() {
-    if (this.devMode == null) this.devMode = this.getLoadSettings().devMode;
+    this.devMode ??= this.getLoadSettings().devMode;
     return this.devMode;
   }
 
   // Public: Returns a {Boolean} that is `true` if the current window is in safe mode.
   inSafeMode() {
-    if (this.safeMode == null) this.safeMode = this.getLoadSettings().safeMode;
+    this.safeMode ??= this.getLoadSettings().safeMode;
     return this.safeMode;
   }
 
   // Public: Returns a {Boolean} that is `true` if the current window is running specs.
   inSpecMode() {
-    if (this.specMode == null) this.specMode = this.getLoadSettings().isSpec;
+    this.specMode ??= this.getLoadSettings().isSpec;
     return this.specMode;
   }
 
   // Returns a {Boolean} indicating whether this the first time the window's been
   // loaded.
   isFirstLoad() {
-    if (this.firstLoad == null)
-      this.firstLoad = this.getLoadSettings().firstLoad;
+    this.firstLoad ??= this.getLoadSettings().firstLoad;
     return this.firstLoad;
   }
 
@@ -559,7 +558,7 @@ class AtomEnvironment {
   //
   // Returns the app name {String}.
   getAppName() {
-    if (this.appName == null) this.appName = this.getLoadSettings().appName;
+    this.appName ??= this.getLoadSettings().appName;
     return this.appName;
   }
 
@@ -567,8 +566,7 @@ class AtomEnvironment {
   //
   // Returns the version text {String}.
   getVersion() {
-    if (this.appVersion == null)
-      this.appVersion = this.getLoadSettings().appVersion;
+    this.appVersion ??= this.getLoadSettings().appVersion;
     return this.appVersion;
   }
 
@@ -583,7 +581,7 @@ class AtomEnvironment {
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
   isReleasedVersion() {
-    return this.getReleaseChannel().match(/stable|beta|nightly/) != null;
+    return this.getReleaseChannel().match(/stable|beta|nightly/) !== null;
   }
 
   // Public: Get the time taken to completely load the current window.
@@ -749,14 +747,10 @@ class AtomEnvironment {
   async displayWindow() {
     await this.restoreWindowDimensions();
     const steps = [this.restoreWindowBackground(), this.show(), this.focus()];
-    if (this.windowDimensions && this.windowDimensions.fullScreen) {
+    if (this?.windowDimensions?.fullScreen) {
       steps.push(this.setFullScreen(true));
     }
-    if (
-      this.windowDimensions &&
-      this.windowDimensions.maximized &&
-      process.platform !== 'darwin'
-    ) {
+    if (this?.windowDimensions?.maximized && process.platform !== 'darwin') {
       steps.push(this.maximize());
     }
     await Promise.all(steps);
@@ -1306,12 +1300,7 @@ class AtomEnvironment {
   }
 
   setRepresentedFilename(filename) {
-    if (
-      typeof this.applicationDelegate.setWindowRepresentedFilename ===
-      'function'
-    ) {
-      this.applicationDelegate.setWindowRepresentedFilename(filename);
-    }
+    this.applicationDelegate.setWindowRepresentedFilename?.(filename);
   }
 
   addProjectFolder() {
@@ -1414,7 +1403,7 @@ or use Pane::saveItemAs for programmatic saving.`);
     if (this.enablePersistence && this.project) {
       const state = this.serialize(options);
       if (!storageKey)
-        storageKey = this.getStateKey(this.project && this.project.getPaths());
+        storageKey = this.getStateKey(this.project?.getPaths());
       if (storageKey) {
         await this.stateStore.save(storageKey, state);
       } else {
@@ -1501,7 +1490,7 @@ or use Pane::saveItemAs for programmatic saving.`);
   }
 
   getStateKey(paths) {
-    if (paths && paths.length > 0) {
+    if (paths?.length > 0) {
       const sha1 = crypto
         .createHash('sha1')
         .update(
@@ -1599,8 +1588,7 @@ or use Pane::saveItemAs for programmatic saving.`);
   }
 
   async openLocations(locations) {
-    const needsProjectPaths =
-      this.project && this.project.getPaths().length === 0;
+    const needsProjectPaths = this.project?.getPaths().length === 0;
     const foldersToAddToProject = new Set();
     const fileLocationsToOpen = [];
     const missingFolders = [];
