@@ -30,7 +30,7 @@ exports.shouldCompile = function(sourceCode) {
 };
 
 exports.getCachePath = function(sourceCode) {
-  if (babelVersionDirectory == null) {
+  if (babelVersionDirectory === null) {
     var babelVersion = require('babel-core/package.json').version;
     babelVersionDirectory = path.join(
       'js',
