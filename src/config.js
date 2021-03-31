@@ -512,11 +512,7 @@ class Config {
     if (scopeDescriptor != null) {
       return this.observeScopedKeyPath(scopeDescriptor, keyPath, callback);
     } else {
-      return this.observeKeyPath(
-        keyPath,
-        options ?? {},
-        callback
-      );
+      return this.observeKeyPath(keyPath, options ?? {}, callback);
     }
   }
 
