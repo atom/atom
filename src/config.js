@@ -382,9 +382,7 @@ const schemaEnforcers = {};
 //
 class Config {
   static addSchemaEnforcer(typeName, enforcerFunction) {
-    if (schemaEnforcers[typeName] == null) {
-      schemaEnforcers[typeName] = [];
-    }
+    schemaEnforcers[typeName] ??= [];
     return schemaEnforcers[typeName].push(enforcerFunction);
   }
 
@@ -516,7 +514,7 @@ class Config {
     } else {
       return this.observeKeyPath(
         keyPath,
-        options != null ? options : {},
+        options ?? {},
         callback
       );
     }
@@ -631,7 +629,7 @@ class Config {
 
     if (scope != null) {
       const value = this.getRawScopedValue(scope, keyPath, options);
-      return value != null ? value : this.getRawValue(keyPath, options);
+      return value ?? this.getRawValue(keyPath, options);
     } else {
       return this.getRawValue(keyPath, options);
     }
@@ -740,7 +738,7 @@ class Config {
     const scopeSelector =
       options.scopeSelector !== '*' ? options.scopeSelector : undefined;
     let source = options.source;
-    const shouldSave = options.save != null ? options.save : true;
+    const shouldSave = options.save ?? true;
 
     if (source && !scopeSelector && source !== this.projectFile) {
       throw new Error(
@@ -781,10 +779,8 @@ class Config {
       this.pendingOperations.push(() => this.unset(keyPath, options));
     }
 
-    let { scopeSelector, source } = options != null ? options : {};
-    if (source == null) {
-      source = this.mainSource;
-    }
+    let { scopeSelector, source } = options ?? {};
+    source ??= this.mainSource;
 
     if (scopeSelector != null) {
       if (keyPath != null) {
@@ -945,7 +941,7 @@ class Config {
 
   pushAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = arrayValue.push(value);
     this.set(keyPath, arrayValue);
     return result;
@@ -953,7 +949,7 @@ class Config {
 
   unshiftAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = arrayValue.unshift(value);
     this.set(keyPath, arrayValue);
     return result;
@@ -961,7 +957,7 @@ class Config {
 
   removeAtKeyPath(keyPath, value) {
     const left = this.get(keyPath);
-    const arrayValue = left == null ? [] : left;
+    const arrayValue = left ?? [];
     const result = _.remove(arrayValue, value);
     this.set(keyPath, arrayValue);
     return result;
@@ -984,13 +980,9 @@ class Config {
     if (keyPath) {
       for (let key of splitKeyPath(keyPath)) {
         rootSchema.type = 'object';
-        if (rootSchema.properties == null) {
-          rootSchema.properties = {};
-        }
+        rootSchema.properties ??= {};
         const { properties } = rootSchema;
-        if (properties[key] == null) {
-          properties[key] = {};
-        }
+        properties[key] ??= {};
         rootSchema = properties[key];
       }
     }
@@ -1081,10 +1073,7 @@ class Config {
 
   getRawValue(keyPath, options = {}) {
     let value;
-    if (
-      !options.excludeSources ||
-      !options.excludeSources.includes(this.mainSource)
-    ) {
+    if (options.excludeSources?.includes(this.mainSource)) {
       value = getValueAtKeyPath(this.settings, keyPath);
       if (this.projectFile != null) {
         const projectValue = getValueAtKeyPath(this.projectSettings, keyPath);
@@ -1093,7 +1082,7 @@ class Config {
     }
 
     let defaultValue;
-    if (!options.sources || options.sources.length === 0) {
+    if (options.sources?.length === 0) {
       defaultValue = getValueAtKeyPath(this.defaultSettings, keyPath);
     }
 
@@ -1282,7 +1271,7 @@ class Config {
   }
 
   makeValueConformToSchema(keyPath, value, options) {
-    if (options != null ? options.suppressException : undefined) {
+    if (options?.suppressException) {
       try {
         return this.makeValueConformToSchema(keyPath, value);
       } catch (e) {
@@ -1302,9 +1291,7 @@ class Config {
   // When the schema is changed / added, there may be values set in the config
   // that do not conform to the schema. This will reset make them conform.
   resetSettingsForSchemaChange(source) {
-    if (source == null) {
-      source = this.mainSource;
-    }
+    source ??= this.mainSource;
     return this.transact(() => {
       this.settings = this.makeValueConformToSchema(null, this.settings, {
         suppressException: true
@@ -1345,7 +1332,7 @@ class Config {
   }
 
   resetScopedSettings(newScopedSettings, options = {}) {
-    const source = options.source == null ? this.mainSource : options.source;
+    const source = options.source ?? this.mainSource;
     const priority = this.priorityForSource(source);
     this.scopedSettingsStore.removePropertiesForSource(source);
 
@@ -1556,10 +1543,7 @@ Config.addSchemaEnforcers({
       const newValue = {};
       for (let prop in value) {
         const propValue = value[prop];
-        const childSchema =
-          schema.properties[prop] != null
-            ? schema.properties[prop]
-            : defaultChildSchema;
+        const childSchema = schema.properties[prop] ?? defaultChildSchema;
         if (childSchema != null) {
           try {
             newValue[prop] = this.executeSchemaEnforcers(
@@ -1613,7 +1597,7 @@ Config.addSchemaEnforcers({
   color: {
     coerce(keyPath, value, schema) {
       const color = Color.parse(value);
-      if (color == null) {
+      if (color === null) {
         throw new Error(
           `Validation failed at ${keyPath}, ${JSON.stringify(
             value
@@ -1700,9 +1684,7 @@ const withoutEmptyObjects = object => {
       const value = object[key];
       const newValue = withoutEmptyObjects(value);
       if (newValue != null) {
-        if (resultObject == null) {
-          resultObject = {};
-        }
+        resultObject ??= {};
         resultObject[key] = newValue;
       }
     }
