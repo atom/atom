@@ -1300,8 +1300,12 @@ class AtomEnvironment {
   }
 
   setRepresentedFilename(filename) {
-    // eslint-disable-next-line no-unused-expressions
-    this.applicationDelegate.setWindowRepresentedFilename?.(filename);
+    if (
+      typeof this.applicationDelegate.setWindowRepresentedFilename ===
+      'function'
+    ) {
+      this.applicationDelegate.setWindowRepresentedFilename(filename);
+    }
   }
 
   addProjectFolder() {
