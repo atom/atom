@@ -1,5 +1,5 @@
 class PaneResizeHandleElement extends HTMLElement
-  constructor: ->
+  createdCallback: ->
     @resizePane = @resizePane.bind(this)
     @resizeStopped = @resizeStopped.bind(this)
     @subscribeToDOMEvents()
@@ -8,7 +8,7 @@ class PaneResizeHandleElement extends HTMLElement
     @addEventListener 'dblclick', @resizeToFitContent.bind(this)
     @addEventListener 'mousedown', @resizeStarted.bind(this)
 
-  connectedCallback: ->
+  attachedCallback: ->
     # For some reason Chromium 58 is firing the attached callback after the
     # element has been detached, so we ignore the callback when a parent element
     # can't be found.
@@ -16,7 +16,7 @@ class PaneResizeHandleElement extends HTMLElement
       @isHorizontal = @parentElement.classList.contains("horizontal")
       @classList.add if @isHorizontal then 'horizontal' else 'vertical'
 
-  disconnectedCallback: ->
+  detachedCallback: ->
     @resizeStopped()
 
   resizeToFitContent: ->
@@ -76,5 +76,5 @@ class PaneResizeHandleElement extends HTMLElement
       bottomHeight = totalHeight - topHeight
       @setFlexGrow(topHeight, bottomHeight)
 
-window.customElements.define 'atom-pane-resize-handle', PaneResizeHandleElement
-module.exports = PaneResizeHandleElement = window.customElements.get 'atom-pane-resize-handle'
+module.exports = PaneResizeHandleElement =
+document.registerElement 'atom-pane-resize-handle', prototype: PaneResizeHandleElement.prototype
