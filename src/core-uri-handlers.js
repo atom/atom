@@ -37,19 +37,13 @@ const ROUTER = {
 module.exports = {
   create(atomEnv) {
     return function coreURIHandler(parsed) {
-      const config = ROUTER[parsed.pathname];
-      if (config) {
-        config.handler(atomEnv, parsed);
-      }
+      ROUTER?.[parsed.pathname].handler(atomEnv, parsed);
     };
   },
 
   windowPredicate(parsed) {
-    const config = ROUTER[parsed.pathname];
-    if (config && config.getWindowPredicate) {
-      return config.getWindowPredicate(parsed);
-    } else {
-      return () => true;
-    }
+    return ROUTER?.[parsed.pathname].getWindowPredicate(parsed) ?? (
+      () => true
+    );
   }
 };
