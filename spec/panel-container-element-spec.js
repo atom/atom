@@ -9,7 +9,7 @@ describe('PanelContainerElement', () => {
   class TestPanelContainerItem {}
 
   class TestPanelContainerItemElement_ extends HTMLElement {
-    constructor()) {
+    constructor() {
       super();
       this.classList.add('test-root');
     }
