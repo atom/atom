@@ -185,9 +185,7 @@ module.exports = class Cursor extends Model {
     const { row, column } = this.getBufferPosition();
     const range = [[row, column], [row, Infinity]];
     const text = this.editor.getTextInBufferRange(range);
-    return (
-      text.search(options?.wordRegex || this.wordRegExp()) === 0
-    );
+    return text.search(options?.wordRegex || this.wordRegExp()) === 0;
   }
 
   // Public: Returns the indentation level of the current line.
