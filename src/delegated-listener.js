@@ -5,7 +5,7 @@ module.exports = function listen(element, eventName, selector, handler) {
     if (selector) {
       var currentTarget = event.target;
       while (currentTarget) {
-        if (currentTarget.matches && currentTarget.matches(selector)) {
+        if (currentTarget?.matches(selector)) {
           handler({
             type: event.type,
             currentTarget: currentTarget,
