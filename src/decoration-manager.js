@@ -210,10 +210,7 @@ module.exports = class DecorationManager {
       if (marker.destroyStackTrace != null) {
         error.metadata.destroyStackTrace = marker.destroyStackTrace;
       }
-      if (
-        marker.bufferMarker != null &&
-        marker.bufferMarker.destroyStackTrace != null
-      ) {
+      if (marker?.bufferMarker.destroyStackTrace != null) {
         error.metadata.destroyStackTrace =
           marker.bufferMarker.destroyStackTrace;
       }
@@ -270,7 +267,7 @@ module.exports = class DecorationManager {
   didDestroyMarkerDecoration(decoration) {
     const { marker } = decoration;
     const decorations = this.decorationsByMarker.get(marker);
-    if (decorations && decorations.has(decoration)) {
+    if (decorations?.has(decoration)) {
       decorations.delete(decoration);
       if (decorations.size === 0) this.decorationsByMarker.delete(marker);
       this.overlayDecorations.delete(decoration);
@@ -284,7 +281,7 @@ module.exports = class DecorationManager {
     const { markerLayer } = decoration;
     const decorations = this.layerDecorationsByMarkerLayer.get(markerLayer);
 
-    if (decorations && decorations.has(decoration)) {
+    if (decorations?.has(decoration)) {
       decorations.delete(decoration);
       if (decorations.size === 0) {
         this.layerDecorationsByMarkerLayer.delete(markerLayer);
