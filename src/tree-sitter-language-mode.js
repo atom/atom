@@ -145,7 +145,7 @@ class TreeSitterLanguageMode {
   */
 
   buildHighlightIterator() {
-    if (!this.rootLanguageLayer) return new NullLanguageModeHighlightIterator();
+    if (!this.rootLanguageLayer) return new NullHighlightIterator();
     return new HighlightIterator(this);
   }
 
@@ -651,7 +651,7 @@ class LanguageLayer {
     if (this.tree) {
       return new LayerHighlightIterator(this, this.tree.walk());
     } else {
-      return new NullLayerHighlightIterator();
+      return new NullHighlightIterator();
     }
   }
 
@@ -1337,26 +1337,7 @@ class NodeCursorAdaptor {
   }
 }
 
-class NullLanguageModeHighlightIterator {
-  seek() {
-    return [];
-  }
-  compare() {
-    return 1;
-  }
-  moveToSuccessor() {}
-  getPosition() {
-    return Point.INFINITY;
-  }
-  getOpenScopeIds() {
-    return [];
-  }
-  getCloseScopeIds() {
-    return [];
-  }
-}
-
-class NullLayerHighlightIterator {
+class NullHighlightIterator {
   seek() {
     return null;
   }
