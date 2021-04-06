@@ -19,6 +19,7 @@ const git = (git, repositoryRootPath) => {
   }
 
   async function createOrCheckoutBranch(newBranch) {
+    await git.fetch();
     const { branches } = await git.branch();
     const found = Object.keys(branches).find(
       branch => branch.indexOf(newBranch) > -1
