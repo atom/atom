@@ -6,6 +6,7 @@ const glob = require('glob');
 const path = require('path');
 
 const CONFIG = require('../config');
+const { REPO_OWNER, MAIN_REPO } = CONFIG;
 
 module.exports = packagedAppPath => {
   const archSuffix = process.arch === 'ia32' ? '' : '-' + process.arch;
@@ -17,7 +18,7 @@ module.exports = packagedAppPath => {
     exe: CONFIG.executableName,
     appDirectory: packagedAppPath,
     authors: 'GitHub Inc.',
-    iconUrl: `https://raw.githubusercontent.com/atom/atom/master/resources/app-icons/${
+    iconUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${MAIN_REPO}/master/resources/app-icons/${
       CONFIG.channel
     }/atom.ico`,
     loadingGif: path.join(

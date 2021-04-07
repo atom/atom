@@ -1,3 +1,5 @@
+const { REPO_OWNER, MAIN_REPO } = require('../../config');
+
 const git = (git, repositoryRootPath) => {
   const path = require('path');
   const packageJsonFilePath = path.join(repositoryRootPath, 'package.json');
@@ -10,7 +12,9 @@ const git = (git, repositoryRootPath) => {
       if (!err && !remotes.map(({ name }) => name).includes('ATOM')) {
         git.addRemote(
           'ATOM',
-          `https://atom:${process.env.AUTH_TOKEN}@github.com/atom/atom.git/`
+          `https://atom:${
+            process.env.AUTH_TOKEN
+          }@github.com/${REPO_OWNER}/${MAIN_REPO}.git/`
         );
       }
     });

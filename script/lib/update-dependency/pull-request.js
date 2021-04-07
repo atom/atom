@@ -1,4 +1,5 @@
 const { request } = require('@octokit/request');
+const { REPO_OWNER, MAIN_REPO } = require('../../config');
 
 const requestWithAuth = request.defaults({
   baseUrl: 'https://api.github.com',
@@ -6,8 +7,8 @@ const requestWithAuth = request.defaults({
     'user-agent': 'atom',
     authorization: `token ${process.env.AUTH_TOKEN}`
   },
-  owner: 'atom',
-  repo: 'atom'
+  owner: REPO_OWNER,
+  repo: MAIN_REPO
 });
 
 module.exports = {
@@ -28,7 +29,7 @@ module.exports = {
   },
   findPR: async ({ moduleName, latest }, branch) => {
     return requestWithAuth('GET /search/issues', {
-      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch}`
+      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:${REPO_OWNER}/${MAIN_REPO} head:${branch}`
     });
   },
   findOpenPRs: async () => {
