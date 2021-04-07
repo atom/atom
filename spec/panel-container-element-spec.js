@@ -29,7 +29,7 @@ describe('PanelContainerElement', () => {
     jasmineContent = document.body.querySelector('#jasmine-content');
 
     atom.views.addViewProvider(TestPanelContainerItem, model =>
-      new window.customElements.get('atom-test-container-item-element').initialize(model)
+      document.createElement('atom-test-container-item-element').initialize(model)
     );
 
     container = new PanelContainer({
