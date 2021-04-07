@@ -20,9 +20,6 @@ const SAMPLE_TEXT = fs.readFileSync(
 
 window.customElements.define('text-editor-component-test-element',
   class TextEditorComponentTestElement extends HTMLElement {
-    constructor() {
-      super();
-    }
     connectedCallback() {
       this.didAttach();
     }
