@@ -1,7 +1,9 @@
-const SelectListView = require('atom-select-list');
-const { repositoryForPath } = require('./helpers');
+'use babel';
 
-module.exports = class DiffListView {
+import SelectListView from 'atom-select-list';
+import repositoryForPath from './helpers';
+
+export default class DiffListView {
   constructor() {
     this.selectListView = new SelectListView({
       emptyMessage: 'No diffs in file',
@@ -71,7 +73,7 @@ module.exports = class DiffListView {
       this.cancel();
     } else if (editor) {
       this.editor = editor;
-      const repository = repositoryForPath(this.editor.getPath());
+      const repository = await repositoryForPath(this.editor.getPath());
       let diffs = repository
         ? repository.getLineDiffs(this.editor.getPath(), this.editor.getText())
         : [];
@@ -86,4 +88,4 @@ module.exports = class DiffListView {
       this.attach();
     }
   }
-};
+}

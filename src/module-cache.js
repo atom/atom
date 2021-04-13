@@ -281,25 +281,6 @@ function registerBuiltins(devMode) {
   if (cache.builtins.atom == null) {
     cache.builtins.atom = path.join(cache.resourcePath, 'exports', 'atom.js');
   }
-
-  const electronAsarRoot = path.join(process.resourcesPath, 'electron.asar');
-
-  const commonRoot = path.join(electronAsarRoot, 'common', 'api');
-  const commonBuiltins = ['clipboard', 'shell'];
-  for (const builtin of commonBuiltins) {
-    cache.builtins[builtin] = path.join(commonRoot, `${builtin}.js`);
-  }
-
-  const rendererRoot = path.join(electronAsarRoot, 'renderer', 'api');
-  const rendererBuiltins = [
-    'crash-reporter',
-    'ipc-renderer',
-    'remote',
-    'screen'
-  ];
-  for (const builtin of rendererBuiltins) {
-    cache.builtins[builtin] = path.join(rendererRoot, `${builtin}.js`);
-  }
 }
 
 exports.create = function(modulePath) {

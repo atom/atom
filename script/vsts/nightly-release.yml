@@ -1,14 +1,11 @@
 jobs:
-  - job: GetReleaseVersion
-    steps:
-      # This has to be done separately because VSTS inexplicably
-      # exits the script block after `npm install` completes.
-      - script: |
-          cd script\vsts
-          npm install
-        displayName: npm install
-      - script: node script\vsts\get-release-version.js --nightly
-        name: Version
+  # Import "GetReleaseVersion" job definition, with the "NightlyFlag" parameter set
+  - template: platforms/templates/get-release-version.yml
+    parameters:
+      NightlyFlag: --nightly
+
+  # Import lint definition
+  - template: lint.yml
 
   # Import OS-specific build definitions
   - template: platforms/windows.yml
@@ -18,11 +15,12 @@ jobs:
 
   - job: Release
     pool:
-      vmImage: vs2017-win2016
+      vmImage: 'ubuntu-latest'
 
     dependsOn:
       - GetReleaseVersion
-      - Windows
+      - Lint
+      - Windows_tests
       - Linux
       - macOS_tests
 
@@ -30,15 +28,10 @@ jobs:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: platforms/templates/preparation.yml
 
-       #This has to be done separately because VSTS inexplicably
-       #exits the script block after `npm install` completes.
       - script: |
-          cd script\vsts
+          cd script/vsts
           npm install
         displayName: npm install
 
@@ -49,7 +42,7 @@ jobs:
         displayName: Download Release Artifacts
 
       - script: |
-          node $(Build.SourcesDirectory)\script\vsts\upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom"
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom"
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
@@ -63,27 +56,18 @@ jobs:
     timeoutInMinutes: 180
 
     pool:
-      vmImage: macos-10.14
+      vmImage: macos-10.15
 
     steps:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: platforms/templates/preparation.yml
 
-      - script: npm install --global npm@6.12.1
-        displayName: Update npm
+      - template: platforms/templates/bootstrap.yml
 
-      - script: | 
-          script/bootstrap
-        displayName: Bootstrap
-      
-      - script: | 
+      - script: |
           cd script/lib
           npm install
         displayName: npm install
-
-      - script: | 
+      - script: |
           cd script/lib/update-dependency
           node index.js
         displayName: Bump depedencies

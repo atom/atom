@@ -1,14 +1,17 @@
 jobs:
-  - job: Windows
+  - job: Windows_build
+    displayName: Windows Build
     dependsOn: GetReleaseVersion
     timeoutInMinutes: 180
     strategy:
       maxParallel: 2
       matrix:
         x64:
-          buildArch: x64
+          BUILD_ARCH: x64
+          RunCoreMainTests: true
         x86:
-          buildArch: x86
+          BUILD_ARCH: x86
+          RunCoreMainTests: true
 
     pool:
       vmImage: vs2017-win2016
@@ -20,241 +23,98 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
     steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '2.7'
+      - template: templates/preparation.yml
 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: 12.13.1
-        displayName: Install Node.js 12.13.1
+      - template: templates/cache.yml
+        parameters:
+          OS: windows
 
-      - script: |
-          ECHO Installing npm-windows-upgrade
-          npm install --global --production npm-windows-upgrade
-        displayName: Install npm-windows-upgrade
+      - template: templates/bootstrap.yml
 
-      - script: |
-          ECHO Upgrading npm
-          npm-windows-upgrade --no-spinner --no-prompt --npm-version 6.12.1
-        displayName: Install npm 6.12.1
+      - template: templates/build.yml
 
-      - script: |
-          npm install --global --production windows-build-tools@4.0
-        displayName: Install windows build tools
+      - template: templates/test.yml
 
-      - script: |
-          cd script\vsts
-          npm install
-        displayName: Install Windows build dependencies
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x64)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
+      - pwsh: |
+          if ($env:BUILD_ARCH -eq "x64") {
+            $env:FileID="-x64"
+          } else {
+            $env:FileID=""
+          }
+          echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+        displayName: Set FileID based on the arch
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.RestoreCacheV1.RestoreCache@1
-        displayName: Restore node_modules cache (x86)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom$(FileID)-windows.zip
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and( succeeded(), or( eq(variables['BUILD_ARCH'], 'x64'), ne(variables['Build.Reason'], 'PullRequest') ) )
+            - fileName: AtomSetup$(FileID).exe
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+            - fileName: $(AppName)$(FileID)-$(ReleaseVersion)-full.nupkg
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+            - fileName: $(AppName)$(FileID)-$(ReleaseVersion)-delta.nupkg
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
+              continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
+            - fileName: RELEASES$(FileID)
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'))
 
-      - script: |
-          node script\vsts\windows-run.js script\bootstrap.cmd
-        env:
-          BUILD_ARCH: $(buildArch)
-          CI: true
-          CI_PROVIDER: VSTS
-          NPM_BIN_PATH: "C:\\hostedtoolcache\\windows\\node\\12.13.1\\x64\\npm.cmd"
-          npm_config_build_from_source: true
-        displayName: Bootstrap build environment
-        condition: ne(variables['CacheRestored'], 'true')
+  - job: Windows_tests
+    displayName: Windows Tests
+    dependsOn: Windows_build
+    timeoutInMinutes: 180
+    strategy:
+      maxParallel: 2
+      matrix:
+        x64_Renderer_Test1:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 1
+          BUILD_ARCH: x64
+          os: windows-2019
+        x64_Renderer_Test2:
+          RunCoreMainTests: false
+          RunCoreRendererTests: 2
+          BUILD_ARCH: x64
+          os: windows-2019
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x64)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x64-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x64')
+    pool:
+      vmImage: $(os)
 
-      - task: 1ESLighthouseEng.PipelineArtifactCaching.SaveCacheV1.SaveCache@1
-        displayName: Save node_modules cache (x86)
-        inputs:
-          keyfile: 'package.json, script/vsts/platforms/windows.yml, **/package-lock.json, !**/node_modules/**/package-lock.json, !**/.*/**/package-lock.json, script/vsts/x86-cache-key'
-          targetfolder: '**/node_modules, !**/node_modules/**/node_modules'
-          vstsFeed: 'bae1bc26-220d-43c7-a955-4de039370de2'
-        condition: eq(variables['buildArch'], 'x86')
+    variables:
+      AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
 
-      - script: node script\vsts\windows-run.js script\lint.cmd
-        env:
-          BUILD_ARCH: $(buildArch)
-        displayName: Run linter
+    steps:
+      - template: templates/preparation.yml
 
-      - script: |
-          IF NOT EXIST C:\tmp MKDIR C:\tmp
-          SET SQUIRREL_TEMP=C:\tmp
-          IF [%IS_RELEASE_BRANCH%]==[true] (
-            ECHO Creating production artifacts for release branch %BUILD_SOURCEBRANCHNAME%
-            node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts --create-windows-installer
-          ) ELSE (
-            IF [%IS_SIGNED_ZIP_BRANCH%]==[true] (
-              ECHO Creating signed CI artifacts for branch %BUILD_SOURCEBRANCHNAME%
-              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --code-sign --compress-artifacts
-            ) ELSE (
-              ECHO Pull request build, no code signing will be performed
-              node script\vsts\windows-run.js script\build.cmd --no-bootstrap --compress-artifacts
-            )
-          )
-        env:
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
-          BUILD_ARCH: $(buildArch)
-          ATOM_RELEASE_VERSION: $(ReleaseVersion)
-          ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_WIN_CODE_SIGNING_CERT_DOWNLOAD_URL)
-          ATOM_WIN_CODE_SIGNING_CERT_PASSWORD: $(ATOM_WIN_CODE_SIGNING_CERT_PASSWORD)
-          IS_RELEASE_BRANCH: $(IsReleaseBranch)
-          IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
-          npm_config_build_from_source: true
-        displayName: Build Atom
+      - template: templates/cache.yml
+        parameters:
+          OS: windows
 
-      - script: node script\vsts\windows-run.js script\test.cmd
-        env:
-          CI: true
-          CI_PROVIDER: VSTS
-          ATOM_JASMINE_REPORTER: list
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
-          BUILD_ARCH: $(buildArch)
-        displayName: Run tests
-        condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+      - template: templates/bootstrap.yml
 
-      - script: >
-          node script\vsts\windows-run.js script\postprocess-junit-results.cmd
-          --search-folder %TEST_JUNIT_XML_ROOT% --test-results-files "**/*.xml"
-        env:
-          TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)\junit
-        displayName: Post-process test results
-        condition: ne(variables['Atom.SkipTests'], 'true')
+      # Downloading the build artifacts
+      - pwsh: |
+          if ($env:BUILD_ARCH -eq "x64") {
+            $env:FileID="-x64"
+          } else {
+            $env:FileID=""
+          }
+          echo "##vso[task.setvariable variable=FileID]$env:FileID" # Azure syntax
+        displayName: Set FileID based on the arch
 
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: JUnit
-          searchFolder: $(Common.TestResultsDirectory)\junit
-          testResultsFiles: '**/*.xml'
-          mergeTestResults: true
-          testRunTitle: Windows $(buildArch)
-        condition: ne(variables['Atom.SkipTests'], 'true')
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            -  atom$(FileID)-windows.zip
 
-      - script: |
-          IF NOT EXIST "%ARTIFACT_STAGING_DIR%\crash-reports" MKDIR "%ARTIFACT_STAGING_DIR%\crash-reports"
-          IF EXIST "%Temp%\Atom Crashes" (
-            FOR %%a in ("%Temp%\Atom Crashes\*.dmp") DO XCOPY "%%a" "%ARTIFACT_STAGING_DIR%\crash-reports" /I
-          )
-        displayName: Stage crash reports
-        condition: failed()
-        env:
-          ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
-          ArtifactName: crash-reports
-        displayName: Publish crash reports on non-release branch
-        condition: and(failed(), eq(variables['ATOM_RELEASES_S3_KEY'], ''))
-
-      - script: >
-          node $(Build.SourcesDirectory)\script\vsts\upload-crash-reports.js --crash-report-path "%ARTIFACT_STAGING_DIR%\crash-reports" --s3-path "vsts-artifacts/%BUILD_ID%/"
-        env:
-          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
-          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
-          ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
-          BUILD_ID: $(Build.BuildId)
-        displayName: Upload crash reports to S3 on release branch
-        condition: and(failed(), ne(variables['ATOM_RELEASES_S3_KEY'], ''))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-x64-windows.zip
-          ArtifactName: atom-x64-windows.zip
-          ArtifactType: Container
-        displayName: Upload atom-x64-windows.zip
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x64'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup-x64.exe
-          ArtifactName: AtomSetup-x64.exe
-          ArtifactType: Container
-        displayName: Upload AtomSetup-x64.exe
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-x64-$(ReleaseVersion)-full.nupkg
-          ArtifactName: $(AppName)-x64-$(ReleaseVersion)-full.nupkg
-          ArtifactType: Container
-        displayName: Upload $(AppName)-x64-$(ReleaseVersion)-full.nupkg
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-x64-$(ReleaseVersion)-delta.nupkg
-          ArtifactName: $(AppName)-x64-$(ReleaseVersion)-delta.nupkg
-          ArtifactType: Container
-        displayName: Upload $(AppName)-x64-$(ReleaseVersion)-delta.nupkg
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
-        continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES-x64
-          ArtifactName: RELEASES-x64
-          ArtifactType: Container
-        displayName: Upload RELEASES-x64
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x64'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/atom-windows.zip
-          ArtifactName: atom-windows.zip
-          ArtifactType: Container
-        displayName: Upload atom-windows.zip
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'), eq(variables['buildArch'], 'x86'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/AtomSetup.exe
-          ArtifactName: AtomSetup.exe
-          ArtifactType: Container
-        displayName: Upload AtomSetup.exe
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-$(ReleaseVersion)-full.nupkg
-          ArtifactName: $(AppName)-$(ReleaseVersion)-full.nupkg
-          ArtifactType: Container
-        displayName: Upload $(AppName)-$(ReleaseVersion)-full.nupkg
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/$(AppName)-$(ReleaseVersion)-delta.nupkg
-          ArtifactName: $(AppName)-$(ReleaseVersion)-delta.nupkg
-          ArtifactType: Container
-        displayName: Upload $(AppName)-$(ReleaseVersion)-delta.nupkg
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
-        continueOnError: true # Nightly builds don't produce delta packages yet, so don't fail the build
-
-      - task: PublishBuildArtifacts@1
-        inputs:
-          PathtoPublish: $(Build.SourcesDirectory)/out/RELEASES
-          ArtifactName: RELEASES
-          ArtifactType: Container
-        displayName: Upload RELEASES
-        condition: and(succeeded(), eq(variables['IsReleaseBranch'], 'true'), eq(variables['buildArch'], 'x86'))
+      #  Core renderer tests
+      - template: templates/test.yml

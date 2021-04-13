@@ -5,7 +5,12 @@ const yargs = require('yargs');
 const { app } = require('electron');
 
 module.exports = function parseCommandLine(processArgs) {
-  const options = yargs(processArgs).wrap(yargs.terminalWidth());
+  // macOS Gatekeeper adds a flag ("-psn_0_[six or seven digits here]") when it intercepts Atom launches.
+  // (This happens for fresh downloads, new installs, or first launches after upgrading).
+  // We don't need this flag, and yargs interprets it as many short flags. So, we filter it out.
+  const filteredArgs = processArgs.filter(arg => !arg.startsWith('-psn_'));
+
+  const options = yargs(filteredArgs).wrap(yargs.terminalWidth());
   const version = app.getVersion();
   options.usage(
     dedent`Atom Editor v${version}
@@ -59,7 +64,7 @@ module.exports = function parseCommandLine(processArgs) {
   options
     .alias('l', 'log-file')
     .string('l')
-    .describe('l', 'Log all output to file.');
+    .describe('l', 'Log all output to file when running tests.');
   options
     .alias('n', 'new-window')
     .boolean('n')
@@ -113,10 +118,6 @@ module.exports = function parseCommandLine(processArgs) {
       'When in test mode, waits until the specified time (in minutes) and kills the process (exit code: 130).'
     );
   options
-    .alias('v', 'version')
-    .boolean('v')
-    .describe('v', 'Print the version information.');
-  options
     .alias('w', 'wait')
     .boolean('w')
     .describe('w', 'Wait for window to be closed before returning.');
@@ -149,16 +150,6 @@ module.exports = function parseCommandLine(processArgs) {
 
   if (args.help) {
     process.stdout.write(options.help());
-    process.exit(0);
-  }
-
-  if (args.version) {
-    process.stdout.write(
-      `Atom    : ${app.getVersion()}\n` +
-        `Electron: ${process.versions.electron}\n` +
-        `Chrome  : ${process.versions.chrome}\n` +
-        `Node    : ${process.versions.node}\n`
-    );
     process.exit(0);
   }
 
@@ -201,6 +192,11 @@ module.exports = function parseCommandLine(processArgs) {
   let devMode = args['dev'];
 
   for (const path of args._) {
+    if (typeof path !== 'string') {
+      // Sometimes non-strings (such as numbers or boolean true) get into args._
+      // In the next block, .startsWith() only works on strings. So, skip non-string arguments.
+      continue;
+    }
     if (path.startsWith('atom://')) {
       urlsToOpen.push(path);
     } else {

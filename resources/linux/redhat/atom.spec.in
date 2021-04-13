@@ -8,10 +8,15 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 %ifarch i386 i486 i586 i686
-Requires: lsb-core-noarch, libXss.so.1 libsecret-1.so.0, polkit
+Requires: lsb-core-noarch, libxkbfile.so.1, libXss.so.1, libsecret-1.so.0, polkit
 %else
-Requires: lsb-core-noarch, libXss.so.1()(64bit) libsecret-1.so.0()(64bit), polkit
+Requires: lsb-core-noarch, libxkbfile.so.1()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), polkit
 %endif
+
+# Disable Fedora's shebang mangling script,
+# which errors out on any file with versionless `python` in its shebang
+# See: https://github.com/atom/atom/issues/21937
+%undefine __brp_mangle_shebangs
 
 %description
 <%= description %>

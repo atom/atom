@@ -10,7 +10,7 @@ if (process.argv.includes('--no-bootstrap')) {
   require('./bootstrap')
 }
 
-// Needed so we can require src/module-cache.coffee during generateModuleCache
+// Required to load CS files in this build script, such as those in `donna`
 require('coffee-script/register')
 require('colors')
 
@@ -64,6 +64,8 @@ process.on('unhandledRejection', function (e) {
 })
 
 const CONFIG = require('./config')
+
+// Used by the 'github' package for Babel configuration
 process.env.ELECTRON_VERSION = CONFIG.appMetadata.electronVersion
 
 let binariesPromise = Promise.resolve()

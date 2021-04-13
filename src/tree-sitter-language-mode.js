@@ -32,7 +32,7 @@ class TreeSitterLanguageMode {
     this.config = config;
     this.grammarRegistry = grammars;
     this.parser = new Parser();
-    this.rootLanguageLayer = new LanguageLayer(this, grammar, 0);
+    this.rootLanguageLayer = new LanguageLayer(null, this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
     if (syncTimeoutMicros != null) {
@@ -145,7 +145,7 @@ class TreeSitterLanguageMode {
   */
 
   buildHighlightIterator() {
-    if (!this.rootLanguageLayer) return new NullHighlightIterator();
+    if (!this.rootLanguageLayer) return new NullLanguageModeHighlightIterator();
     return new HighlightIterator(this);
   }
 
@@ -637,7 +637,8 @@ class TreeSitterLanguageMode {
 }
 
 class LanguageLayer {
-  constructor(languageMode, grammar, depth) {
+  constructor(marker, languageMode, grammar, depth) {
+    this.marker = marker;
     this.languageMode = languageMode;
     this.grammar = grammar;
     this.tree = null;
@@ -650,7 +651,7 @@ class LanguageLayer {
     if (this.tree) {
       return new LayerHighlightIterator(this, this.tree.walk());
     } else {
-      return new NullHighlightIterator();
+      return new NullLayerHighlightIterator();
     }
   }
 
@@ -687,10 +688,12 @@ class LanguageLayer {
   }
 
   destroy() {
+    this.tree = null;
+    this.destroyed = true;
+    this.marker.destroy();
     for (const marker of this.languageMode.injectionsMarkerLayer.getMarkers()) {
       if (marker.parentLanguageLayer === this) {
         marker.languageLayer.destroy();
-        marker.destroy();
       }
     }
   }
@@ -726,8 +729,9 @@ class LanguageLayer {
     if (nodeRangeSet) {
       includedRanges = nodeRangeSet.getRanges(this.languageMode.buffer);
       if (includedRanges.length === 0) {
-        this.tree = null;
-        this.destroyed = true;
+        const range = this.marker.getRange();
+        this.destroy();
+        this.languageMode.emitRangeUpdate(range);
         return;
       }
     }
@@ -883,6 +887,7 @@ class LanguageLayer {
             injectionRange
           );
           marker.languageLayer = new LanguageLayer(
+            marker,
             this.languageMode,
             grammar,
             this.depth + 1
@@ -904,9 +909,8 @@ class LanguageLayer {
 
     for (const marker of existingInjectionMarkers) {
       if (!markersToUpdate.has(marker)) {
-        marker.languageLayer.destroy();
         this.languageMode.emitRangeUpdate(marker.getRange());
-        marker.destroy();
+        marker.languageLayer.destroy();
       }
     }
 
@@ -1292,7 +1296,13 @@ class LayerHighlightIterator {
       this.treeCursor.nodeIsNamed
     );
     const scopeName = applyLeafRules(value, this.treeCursor);
-    if (scopeName) {
+    const node = this.treeCursor.currentNode;
+    if (!node.childCount) {
+      return this.languageLayer.languageMode.grammar.idForScope(
+        scopeName,
+        node.text
+      );
+    } else if (scopeName) {
       return this.languageLayer.languageMode.grammar.idForScope(scopeName);
     }
   }
@@ -1327,9 +1337,28 @@ class NodeCursorAdaptor {
   }
 }
 
-class NullHighlightIterator {
+class NullLanguageModeHighlightIterator {
   seek() {
     return [];
+  }
+  compare() {
+    return 1;
+  }
+  moveToSuccessor() {}
+  getPosition() {
+    return Point.INFINITY;
+  }
+  getOpenScopeIds() {
+    return [];
+  }
+  getCloseScopeIds() {
+    return [];
+  }
+}
+
+class NullLayerHighlightIterator {
+  seek() {
+    return null;
   }
   compare() {
     return 1;

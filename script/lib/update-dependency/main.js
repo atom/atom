@@ -1,26 +1,39 @@
 /* eslint-disable camelcase */
+const simpleGit = require('simple-git');
+const path = require('path');
+
+const { repositoryRootPath } = require('../../config');
+const packageJSON = require(path.join(repositoryRootPath, 'package.json'));
+const git = simpleGit(repositoryRootPath);
+const {
+  createPR,
+  findPR,
+  addLabel,
+  findOpenPRs,
+  checkCIstatus,
+  mergePR
+} = require('./pull-request');
+const runApmInstall = require('../run-apm-install');
 const {
   makeBranch,
   createCommit,
-  switchToMaster,
+  switchToCleanBranch,
   publishBranch,
   deleteBranch
-} = require('./git');
-const {
-  updatePackageJson,
-  fetchOutdatedDependencies,
-  sleep
-} = require('./util');
-const { createPR, findPR, addLabel } = require('./pull-request');
-const runApmInstall = require('../run-apm-install');
-const { repositoryRootPath } = require('../../config');
+} = require('./git')(git, repositoryRootPath);
+const { updatePackageJson, sleep } = require('./util')(repositoryRootPath);
+const fetchOutdatedDependencies = require('./fetch-outdated-dependencies');
+
 module.exports = async function() {
   try {
     // ensure we are on master
-    await switchToMaster();
+    await switchToCleanBranch();
     const failedBumps = [];
     const successfullBumps = [];
-    const outdateDependencies = await fetchOutdatedDependencies();
+    const outdateDependencies = [
+      ...(await fetchOutdatedDependencies.npm(repositoryRootPath)),
+      ...(await fetchOutdatedDependencies.apm(packageJSON))
+    ];
     const totalDependencies = outdateDependencies.length;
     const pendingPRs = [];
     for (const dependency of outdateDependencies) {
@@ -56,7 +69,7 @@ module.exports = async function() {
         });
       }
 
-      await switchToMaster();
+      await switchToCleanBranch();
     }
     // create PRs here
     for (const { dependency, branch, branchIsRemote } of pendingPRs) {
@@ -87,5 +100,23 @@ module.exports = async function() {
     console.table(failedBumps);
   } catch (ex) {
     console.log(ex.message);
+  }
+
+  // merge previous bumps that passed CI requirements
+  try {
+    const {
+      data: { items }
+    } = await findOpenPRs();
+    for (const { title } of items) {
+      const ref = title.replace('⬆️ ', '').replace('@', '-');
+      const {
+        data: { state }
+      } = await checkCIstatus({ ref });
+      if (state === 'success') {
+        await mergePR({ ref });
+      }
+    }
+  } catch (ex) {
+    console.log(ex);
   }
 };

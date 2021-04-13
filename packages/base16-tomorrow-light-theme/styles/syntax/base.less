@@ -1,0 +1,293 @@
+/*
+   This defines styling rules for syntax classes.
+
+   See the naming conventions for a list of syntax classes:
+   https://flight-manual.atom.io/hacking-atom/sections/syntax-naming-conventions
+
+   When styling rules conflict:
+   - The last rule overrides previous rules.
+   - The rule with most classes and pseudo-classes overrides the last rule.
+*/
+
+// if for return
+.syntax--keyword {
+  color: @purple;
+
+  // global let def class
+  &.syntax--storage {
+    color: @purple;
+  }
+
+  // int char float
+  &.syntax--type {
+    color: @yellow;
+  }
+
+  // and del not
+  &.syntax--operator {
+    color: @purple;
+  }
+
+  // super
+  &.syntax--function {
+    color: @red;
+  }
+
+  // this self
+  &.syntax--variable {
+    color: @red;
+  }
+
+  // = + && | << ?
+  &.syntax--symbolic {
+    color: @syntax-text-color;
+  }
+}
+
+// identifier
+.syntax--entity {
+  color: @syntax-text-color;
+
+  // self cls iota
+  &.syntax--support {
+    color: @red;
+  }
+
+  // @entity.decorator
+  &.syntax--decorator:last-child {
+    color: @blue;
+  }
+
+  // label:
+  &.syntax--label {
+    text-decoration: underline;
+  }
+
+  // function method
+  &.syntax--function {
+    color: @blue;
+
+    // len print
+    &.syntax--support {
+      color: @cyan;
+    }
+  }
+
+  // add
+  &.syntax--operator {
+    color: @blue;
+
+    // %>% <=>
+    &.syntax--symbolic {
+      color: @syntax-text-color;
+    }
+  }
+
+  // String Class int rune list
+  &.syntax--type {
+    color: @yellow;
+  }
+
+  // div span
+  &.syntax--tag {
+    color: @red;
+  }
+
+  // href src alt
+  &.syntax--attribute {
+    color: @orange;
+  }
+}
+
+// () [] {} => @
+.syntax--punctuation {
+  color: @syntax-text-color;
+
+  // { } ~~~
+  &.syntax--embedded {
+    color: @brown;
+  }
+}
+
+// "string"
+.syntax--string {
+  color: @green;
+
+  // :immutable
+  &.syntax--immutable {
+    color: @green;
+  }
+
+  // {placeholder} %().2f
+  &.syntax--part {
+    color: @cyan;
+  }
+
+  // ${ }
+  &.syntax--interpolation {
+    color: @brown;
+  }
+
+  // /^reg[ex]?p/
+  &.syntax--regexp {
+    color: @green;
+
+    // ^ $ \b ? + i
+    &.syntax--language {
+      color: @purple;
+    }
+
+    // <variable> \1
+    &.syntax--variable {
+      color: @blue;
+    }
+
+    // ( ) [^ ] (?= ) | r" /
+    &.syntax--punctuation {
+      color: @brown;
+    }
+  }
+}
+
+// literal 4 1.3 true nil
+.syntax--constant {
+  color: @orange;
+
+  // &lt; 'a'
+  &.syntax--character {
+    color: @green;
+
+    // \" \' \g \.
+    &.syntax--escape {
+      color: @green;
+    }
+
+    // \u2661 \n \t \W .
+    &.syntax--code {
+      color: @cyan;
+    }
+  }
+}
+
+// text
+.syntax--text {
+  color: @syntax-text-color;
+}
+
+// __formatted__
+.syntax--markup {
+
+  // # Heading
+  &.syntax--heading {
+    color: @red;
+  }
+
+  // 1. * -
+  &.syntax--list.syntax--punctuation {
+    color: @red;
+  }
+
+  // **bold**
+  &.syntax--bold {
+    color: @orange;
+    font-weight: bold;
+  }
+
+  // *italic*
+  &.syntax--italic {
+    color: @purple;
+    font-style: italic;
+  }
+
+  // `raw`
+  &.syntax--raw {
+    color: @green;
+  }
+
+  // url.com (path)
+  &.syntax--link {
+    color: @blue;
+  }
+
+  // [alt] ![alt]
+  &.syntax--alt {
+    color: @cyan;
+  }
+
+  // {++ inserted ++}
+  &.syntax--inserted {
+    color: @green;
+
+    .syntax--punctuation {
+      color: @green;
+    }
+  }
+
+  // {== highlighted ==}
+  &.syntax--inserted {
+    color: @green;
+
+    .syntax--punctuation {
+      color: @green;
+    }
+  }
+
+  // {-- deleted --}
+  &.syntax--deleted {
+    color: @red;
+
+    .syntax--punctuation {
+      color: @red;
+    }
+  }
+
+  // {~~ from~>to ~~}
+  &.syntax--changed {
+    color: @purple;
+
+    .syntax--punctuation {
+      color: @purple;
+    }
+  }
+
+  // {>> commented <<}
+  &.syntax--commented {
+    color: @gray;
+
+    .syntax--punctuation {
+      color: @gray;
+    }
+  }
+}
+
+// /* comment */
+.syntax--comment {
+  color: @gray;
+
+  // @param TODO NOTE
+  &.syntax--caption {
+    color: lighten(@gray, 3);
+    font-weight: bold;
+  }
+
+  // variable function type
+  &.syntax--term {
+    color: lighten(@gray, 7);
+  }
+
+  // { } / .
+  &.syntax--punctuation {
+    color: @gray;
+    font-weight: normal;
+  }
+}
+
+// 0invalid
+.syntax--invalid:not(.syntax--punctuation) {
+
+  // §illegal
+  &.syntax--illegal {
+    background-color: @red;
+    color: @syntax-background-color;
+  }
+}

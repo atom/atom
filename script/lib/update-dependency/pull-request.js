@@ -28,7 +28,23 @@ module.exports = {
   },
   findPR: async ({ moduleName, latest }, branch) => {
     return requestWithAuth('GET /search/issues', {
-      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch} state:open`
+      q: `${moduleName} type:pr ${moduleName}@${latest} in:title repo:atom/atom head:${branch}`
+    });
+  },
+  findOpenPRs: async () => {
+    return requestWithAuth('GET /search/issues', {
+      q: 'type:pr repo:atom/atom state:open label:"depency ⬆️"'
+    });
+  },
+  checkCIstatus: async ({ ref }) => {
+    return requestWithAuth('GET /repos/:owner/:repo/commits/:ref/status', {
+      ref
+    });
+  },
+  mergePR: async ({ ref }) => {
+    return requestWithAuth('POST /repos/{owner}/{repo}/merges', {
+      base: 'master',
+      head: ref
     });
   },
   addLabel: async pullRequestNumber => {

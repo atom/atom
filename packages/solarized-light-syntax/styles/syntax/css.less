@@ -1,63 +1,128 @@
 .syntax--source.syntax--css {
 
-  .syntax--punctuation {
-    &.syntax--separator,
-    &.syntax--terminator {
+  // @media and or
+  .syntax--keyword {
+    color: @green;
+
+    // + = *=
+    &.syntax--symbolic {
       color: @syntax-text-color;
     }
-    &.syntax--property-list.syntax--begin,
-    &.syntax--property-list.syntax--end {
-      color: @red;
-    }
-    &.syntax--section.syntax--function {
-      color: @cyan;
+
+    // !important
+    &.syntax--important {
+      color: @green;
     }
   }
 
-  .syntax--entity.syntax--name {
-    color: @green;
-  }
-  .syntax--attribute-name.syntax--class,
-  .syntax--id {
-    color: @blue;
-  }
-  .syntax--pseudo-element,
-  .syntax--pseudo-class {
-    color: @orange;
-  }
+  .syntax--entity {
 
-  .syntax--property-value {
-    color: @cyan;
-  }
-  .syntax--constant.syntax--numeric {
-    color: @cyan;
-    .syntax--unit {
+    // function()
+    &.syntax--function {
       color: @cyan;
+
+      // url rgb
+      &.syntax--support {
+        color: @blue;
+      }
+    }
+
+    // #id .class
+    &.syntax--selector {
+      color: @magenta;
+
+      // div span
+      &.syntax--tag {
+        color: @blue;
+      }
+
+      // :pseudo-class ::pseudo-element
+      &.syntax--pseudo-class,
+      &.syntax--pseudo-element {
+        color: @yellow;
+      }
+    }
+
+    // href src alt
+    &.syntax--attribute {
+      color: @yellow;
+    }
+
+    // property: constant
+    &.syntax--property {
+      color: @syntax-subtle-color;
+
+      // height position border
+      &.syntax--support {
+        color: @syntax-text-color;
+      }
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: @syntax-text-color;
+    }
+
+    // @keyframes keyframe
+    &.syntax--keyframe {
+      color: @syntax-text-color;
     }
   }
-  .syntax--rgb-value {
+
+  // property: constant
+  .syntax--constant {
     color: @cyan;
-  }
-  .syntax--support.syntax--constant {
-    color: @cyan;
+
+    // tv tty
     &.syntax--media {
-      color: @red;
+      color: @yellow;
+
+      // print screen
+      &.syntax--support {
+        color: @yellow;
+      }
+    }
+
+    // from to 50%
+    &.syntax--offset {
+      color: @syntax-text-color;
+
+      // %
+      &.syntax--unit {
+        color: @syntax-text-color;
+      }
     }
   }
 
-  .syntax--keyword.syntax--important {
-    color: @red;
-  }
+  .syntax--punctuation {
 
-}
+    &.syntax--selector {
 
+      // *
+      &.syntax--wildcard {
+        color: @blue;
+      }
 
-// Less/Sass should have their own files,
-// but for just a single override, here should be fine too
+      // #
+      &.syntax--id {
+        color: @magenta;
+      }
 
-.syntax--source.syntax--less,
-.syntax--source.syntax--scss {
-  .syntax--keyword.syntax--unit {
-    color: @cyan;
+      // .
+      &.syntax--class {
+        color: @magenta;
+      }
+
+      // : ::
+      &.syntax--pseudo-class,
+      &.syntax--pseudo-element {
+        color: @yellow;
+      }
+    }
+
+    // ()
+    &.syntax--arguments {
+      color: @syntax-text-color;
+    }
   }
 }

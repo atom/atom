@@ -363,7 +363,6 @@ module.exports = class Workspace extends Model {
       })
     };
 
-    this.originalFontSize = null;
     this.openers = [];
     this.destroyedItemURIs = [];
     if (this.element) {
@@ -374,7 +373,9 @@ module.exports = class Workspace extends Model {
   }
 
   initialize() {
-    this.originalFontSize = this.config.get('editor.fontSize');
+    // we set originalFontSize to avoid breaking packages that might have relied on it
+    this.originalFontSize = this.config.get('defaultFontSize');
+
     this.project.onDidChangePaths(this.updateWindowTitle);
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
@@ -1546,12 +1547,12 @@ module.exports = class Workspace extends Model {
 
   // Essential: Get the active {Pane}'s active item.
   //
-  // Returns an pane item {Object}.
+  // Returns a pane item {Object}.
   getActivePaneItem() {
     return this.getActivePaneContainer().getActivePaneItem();
   }
 
-  // Essential: Get all text editors in the workspace.
+  // Essential: Get all text editors in the workspace, if they are pane items.
   //
   // Returns an {Array} of {TextEditor}s.
   getTextEditors() {
@@ -1744,11 +1745,12 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  // Restore to the window's original editor font size.
+  // Restore to the window's default editor font size.
   resetFontSize() {
-    if (this.originalFontSize) {
-      this.config.set('editor.fontSize', this.originalFontSize);
-    }
+    this.config.set(
+      'editor.fontSize',
+      this.config.get('editor.defaultFontSize')
+    );
   }
 
   // Removes the item's uri from the list of potential items to reopen.

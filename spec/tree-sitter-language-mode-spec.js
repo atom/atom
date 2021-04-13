@@ -73,6 +73,58 @@ describe('TreeSitterLanguageMode', () => {
       ]);
     });
 
+    it('provides the grammar with the text of leaf nodes only', async () => {
+      const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
+        parser: 'tree-sitter-javascript',
+        scopes: {
+          program: 'source',
+          'call_expression > identifier': 'function',
+          property_identifier: 'property',
+          'call_expression > member_expression > property_identifier': 'method'
+        }
+      });
+      const original = grammar.idForScope.bind(grammar);
+      let tokens = [];
+      grammar.idForScope = function(scope, text) {
+        if (text && tokens[tokens.length - 1] !== text) {
+          tokens.push(text);
+        }
+        return original(scope, text);
+      };
+
+      buffer.setText('aa.bbb = cc(d.eee());');
+
+      const languageMode = new TreeSitterLanguageMode({ buffer, grammar });
+      buffer.setLanguageMode(languageMode);
+
+      expectTokensToEqual(editor, [
+        [
+          { text: 'aa.', scopes: ['source'] },
+          { text: 'bbb', scopes: ['source', 'property'] },
+          { text: ' = ', scopes: ['source'] },
+          { text: 'cc', scopes: ['source', 'function'] },
+          { text: '(d.', scopes: ['source'] },
+          { text: 'eee', scopes: ['source', 'method'] },
+          { text: '());', scopes: ['source'] }
+        ]
+      ]);
+
+      expect(tokens).toEqual([
+        'aa',
+        '.',
+        'bbb',
+        '=',
+        'cc',
+        '(',
+        'd',
+        '.',
+        'eee',
+        '(',
+        ')',
+        ';'
+      ]);
+    });
+
     it('can start or end multiple scopes at the same position', async () => {
       const grammar = new TreeSitterGrammar(atom.grammars, jsGrammarPath, {
         parser: 'tree-sitter-javascript',
@@ -775,6 +827,63 @@ describe('TreeSitterLanguageMode', () => {
             { text: '</', scopes: ['html'] },
             { text: 'body', scopes: ['html', 'tag'] },
             { text: '>', scopes: ['html'] }
+          ]
+        ]);
+      });
+
+      it('handles injections that are empty', async () => {
+        atom.grammars.addGrammar(jsGrammar);
+        atom.grammars.addGrammar(htmlGrammar);
+        buffer.setText('text = html');
+
+        const languageMode = new TreeSitterLanguageMode({
+          buffer,
+          grammar: jsGrammar,
+          grammars: atom.grammars
+        });
+        buffer.setLanguageMode(languageMode);
+
+        expectTokensToEqual(editor, [[{ text: 'text = html', scopes: [] }]]);
+
+        buffer.append(' ``;');
+        expectTokensToEqual(editor, [
+          [
+            { text: 'text = ', scopes: [] },
+            { text: 'html', scopes: ['function'] },
+            { text: ' ', scopes: [] },
+            { text: '``', scopes: ['string'] },
+            { text: ';', scopes: [] }
+          ]
+        ]);
+
+        buffer.insert(
+          { row: 0, column: buffer.getText().lastIndexOf('`') },
+          '<div>'
+        );
+        await nextHighlightingUpdate(languageMode);
+        expectTokensToEqual(editor, [
+          [
+            { text: 'text = ', scopes: [] },
+            { text: 'html', scopes: ['function'] },
+            { text: ' ', scopes: [] },
+            { text: '`', scopes: ['string'] },
+            { text: '<', scopes: ['string', 'html'] },
+            { text: 'div', scopes: ['string', 'html', 'tag'] },
+            { text: '>', scopes: ['string', 'html'] },
+            { text: '`', scopes: ['string'] },
+            { text: ';', scopes: [] }
+          ]
+        ]);
+
+        buffer.undo();
+        await nextHighlightingUpdate(languageMode);
+        expectTokensToEqual(editor, [
+          [
+            { text: 'text = ', scopes: [] },
+            { text: 'html', scopes: ['function'] },
+            { text: ' ', scopes: [] },
+            { text: '``', scopes: ['string'] },
+            { text: ';', scopes: [] }
           ]
         ]);
       });
