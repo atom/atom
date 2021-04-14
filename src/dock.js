@@ -748,10 +748,7 @@ module.exports = class Dock {
 
   // Destroy (close) the active pane.
   destroyActivePane() {
-    const activePane = this.getActivePane();
-    if (activePane != null) {
-      activePane.destroy();
-    }
+    this.getActivePane()?.destroy();
   }
 };
 
