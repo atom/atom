@@ -1,0 +1,40 @@
+
+// GitHub.com styles
+
+// These are the GitHub Flavored Markdown styles also found on github.com.
+// They can be anabled in the markdown-preview settings by turning on "Use GitHub.com styles".
+
+
+@import (reference) "../assets/primer-markdown";
+
+.markdown-preview[data-use-github-style] {
+
+  // Includes GitHub.com styles from `../assets/primer-markdown.less`.
+  // Source: https://github.com/primer/primer/tree/master/modules/primer-markdown
+  .markdown-body();
+
+
+  // The styles below override/complement the GitHub.com styles
+  // It's needed because some markup or global styles are different
+  padding: 30px;
+  font-size: 16px;
+  color: #333;
+  background-color: #fff;
+  overflow: scroll;
+
+  a {
+    color: #337ab7;
+  }
+
+  code {
+    color: inherit;
+  }
+
+  atom-text-editor {
+    padding: .8em 1em;
+    margin-bottom: 1em;
+    font-size: .85em;
+    border-radius: 4px;
+    overflow: auto;
+  }
+}

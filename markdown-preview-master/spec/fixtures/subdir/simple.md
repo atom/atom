@@ -1,0 +1,5 @@
+*italic*
+
+**bold**
+
+encoding → issue

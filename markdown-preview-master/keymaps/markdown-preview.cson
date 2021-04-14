@@ -1,0 +1,18 @@
+'atom-text-editor':
+  'ctrl-shift-m': 'markdown-preview:toggle'
+
+'.platform-darwin .markdown-preview':
+  'cmd-a': 'markdown-preview:select-all'
+  'cmd-+': 'markdown-preview:zoom-in'
+  'cmd-=': 'markdown-preview:zoom-in'
+  'cmd--': 'markdown-preview:zoom-out'
+  'cmd-_': 'markdown-preview:zoom-out'
+  'cmd-0': 'markdown-preview:reset-zoom'
+
+'.platform-win32 .markdown-preview, .platform-linux .markdown-preview':
+  'ctrl-a': 'markdown-preview:select-all'
+  'ctrl-+': 'markdown-preview:zoom-in'
+  'ctrl-=': 'markdown-preview:zoom-in'
+  'ctrl--': 'markdown-preview:zoom-out'
+  'ctrl-_': 'markdown-preview:zoom-out'
+  'ctrl-0': 'markdown-preview:reset-zoom'

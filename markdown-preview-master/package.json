@@ -1,0 +1,79 @@
+{
+  "name": "markdown-preview",
+  "version": "0.160.2",
+  "main": "./lib/main",
+  "description": "Open a rendered version of the Markdown in the current editor with `ctrl-shift-m`.",
+  "repository": "https://github.com/atom/markdown-preview",
+  "license": "MIT",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "dompurify": "^2.0.7",
+    "emoji-images": "^0.1.1",
+    "fs-plus": "^3.0.0",
+    "marked": "^0.7.0",
+    "underscore-plus": "^1.0.0",
+    "yaml-front-matter": "^4.0.0"
+  },
+  "devDependencies": {
+    "coffeelint": "^1.9.7",
+    "standard": "^10.0.3",
+    "temp": "^0.8.1"
+  },
+  "deserializers": {
+    "MarkdownPreviewView": "createMarkdownPreviewView"
+  },
+  "configSchema": {
+    "breakOnSingleNewline": {
+      "type": "boolean",
+      "default": false,
+      "description": "In Markdown, a single newline character doesn't cause a line break in the generated HTML. In GitHub Flavored Markdown, that is not true. Enable this config option to insert line breaks in rendered HTML for single newlines in Markdown source."
+    },
+    "liveUpdate": {
+      "type": "boolean",
+      "default": true,
+      "description": "Re-render the preview as the contents of the source changes, without requiring the source buffer to be saved. If disabled, the preview is re-rendered only when the buffer is saved to disk."
+    },
+    "openPreviewInSplitPane": {
+      "type": "boolean",
+      "default": true,
+      "description": "Open the preview in a split pane. If disabled, the preview is opened in a new tab in the same pane."
+    },
+    "allowUnsafeProtocols": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allow HTML attributes to use protocols normally considered unsafe such as `file://` and absolute paths on Windows."
+    },
+    "grammars": {
+      "type": "array",
+      "default": [
+        "source.gfm",
+        "source.litcoffee",
+        "text.html.basic",
+        "text.md",
+        "text.plain",
+        "text.plain.null-grammar"
+      ],
+      "description": "List of scopes for languages for which previewing is enabled. See [this README](https://github.com/atom/spell-check#spell-check-package-) for more information on finding the correct scope for a specific language."
+    },
+    "useGitHubStyle": {
+      "title": "Use GitHub.com style",
+      "type": "boolean",
+      "default": false,
+      "description": "Use the same CSS styles for preview as the ones used on GitHub.com."
+    }
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
+  }
+}

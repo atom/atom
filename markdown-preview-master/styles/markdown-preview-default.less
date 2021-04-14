@@ -1,0 +1,156 @@
+
+// Default Markdown Preview styles
+
+// These are the default Markdown Preview styles.
+// They use the syntax-variables to adapt to the color scheme of syntax themes.
+
+
+@import "syntax-variables";
+
+.markdown-preview:not([data-use-github-style]) {
+
+  @fg: @syntax-text-color;
+  @bg: @syntax-background-color;
+
+  @fg-accent: @syntax-cursor-color;
+  @fg-strong: contrast(@bg, darken(@fg, 32%), lighten(@fg, 32%));
+  @fg-subtle: contrast(@fg, lighten(@fg, 16%), darken(@fg, 16%));
+
+  @border: contrast(@bg, lighten(@bg, 16%), darken(@bg, 16%));
+
+  @margin: 1.5em;
+
+
+  padding: 2em;
+  font-size: 1.2em;
+  color: @fg;
+  background-color: @bg;
+  overflow: auto;
+
+  & > :first-child {
+    margin-top: 0;
+  }
+
+
+  // Headings --------------------
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.2;
+    margin-top: @margin;
+    margin-bottom: @margin/3;
+    color: @fg-strong;
+  }
+
+  h1 { font-size: 2.4em; font-weight: 300; }
+  h2 { font-size: 1.8em; font-weight: 400; }
+  h3 { font-size: 1.5em; font-weight: 500; }
+  h4 { font-size: 1.2em; font-weight: 600; }
+  h5 { font-size: 1.1em; font-weight: 600; }
+  h6 { font-size: 1.0em; font-weight: 600; }
+
+
+  // Emphasis --------------------
+
+  strong {
+    color: @fg-strong;
+  }
+
+  del {
+    color: @fg-subtle;
+  }
+
+
+  // Link --------------------
+
+  a,
+  a code {
+    color: @fg-accent;
+  }
+
+
+  // Images --------------------
+
+  img {
+    max-width: 100%;
+  }
+
+
+  // Paragraph --------------------
+
+  & > p {
+    margin-top: 0;
+    margin-bottom: @margin;
+  }
+
+
+  // List --------------------
+
+  & > ul,
+  & > ol {
+    margin-bottom: @margin;
+  }
+
+
+  // Blockquotes --------------------
+
+  blockquote {
+    margin: @margin 0;
+    font-size: inherit;
+    color: @fg-subtle;
+    border-color: @border;
+    border-width: 4px;
+  }
+
+
+  // HR --------------------
+
+  hr {
+    margin: @margin*2 0;
+    border-top: 2px dashed @border;
+    background: none;
+  }
+
+
+  // Table --------------------
+
+  table {
+    margin: @margin 0;
+  }
+
+  th {
+    color: @fg-strong;
+  }
+
+  th,
+  td {
+    padding: .66em 1em;
+    border: 1px solid @border;
+  }
+
+
+  // Code --------------------
+
+  code {
+    color: @fg-strong;
+    background-color: contrast(@syntax-background-color, lighten(@syntax-background-color, 8%), darken(@syntax-background-color, 6%));
+  }
+
+  atom-text-editor {
+    margin: @margin 0;
+    padding: 1em;
+    font-size: .92em;
+    border-radius: 3px;
+    background-color: contrast(@syntax-background-color, lighten(@syntax-background-color, 4%), darken(@syntax-background-color, 4%));
+  }
+
+
+  // KBD --------------------
+
+  kbd {
+    color: @fg-strong;
+    border: 1px solid @border;
+    border-bottom: 2px solid darken(@border, 6%);
+    background-color: contrast(@syntax-background-color, lighten(@syntax-background-color, 8%), darken(@syntax-background-color, 6%));
+  }
+
+}

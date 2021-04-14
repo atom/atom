@@ -1,0 +1,448 @@
+// All of our block level items should have the same margin
+@margin: 16px;
+
+// This is styling for generic markdownized text. Anything you put in a
+// container with .markdown-body on it should render generally well. It also
+// includes some GitHub Flavored Markdown specific styling (like @mentions)
+.markdown-body {
+  overflow: hidden;
+  font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+
+  > *:first-child {
+    margin-top: 0 !important;
+  }
+
+  > *:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  // Anchors like <a name="examples">. These sometimes end up wrapped around
+  // text when users mistakenly forget to close the tag or use self-closing tag
+  // syntax. We don't want them to appear like links.
+  // FIXME: a:not(:link):not(:visited) would be a little clearer here (and
+  // possibly faster to match), but it breaks styling of <a href> elements due
+  // to https://bugs.webkit.org/show_bug.cgi?id=142737.
+  a:not([href]) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  // Link Colors
+  .absent {
+    color: #c00;
+  }
+
+  .anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    padding-right: 6px;
+    padding-left: 30px;
+    margin-left: -30px;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    position: relative;
+    margin-top: 1em;
+    margin-bottom: @margin;
+    font-weight: bold;
+    line-height: 1.4;
+
+    .octicon-link {
+      display: none;
+      color: #000;
+      vertical-align: middle;
+    }
+
+    &:hover .anchor {
+      padding-left: 8px;
+      margin-left: -30px;
+      text-decoration: none;
+
+      .octicon-link {
+        display: inline-block;
+      }
+    }
+
+    tt,
+    code {
+      font-size: inherit;
+    }
+  }
+
+  h1 {
+    padding-bottom: 0.3em;
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+
+    .anchor {
+      line-height: 1;
+    }
+  }
+
+  h2 {
+    padding-bottom: 0.3em;
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+
+    .anchor {
+      line-height: 1;
+    }
+  }
+
+  h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+
+    .anchor {
+      line-height: 1.2;
+    }
+  }
+
+  h4 {
+    font-size: 1.25em;
+
+    .anchor {
+      line-height: 1.2;
+    }
+  }
+
+  h5 {
+    font-size: 1em;
+
+    .anchor {
+      line-height: 1.1;
+    }
+  }
+
+  h6 {
+    font-size: 1em;
+    color: #777;
+
+    .anchor {
+      line-height: 1.1;
+    }
+  }
+
+  p,
+  blockquote,
+  ul, ol, dl,
+  table,
+  pre {
+    margin-top: 0;
+    margin-bottom: @margin;
+  }
+
+  hr {
+    height: 4px;
+    padding: 0;
+    margin: @margin 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+  }
+
+  // Lists, Blockquotes & Such
+  ul,
+  ol {
+    padding-left: 2em;
+
+    &.no-list {
+      padding: 0;
+      list-style-type: none;
+    }
+  }
+
+  // Did someone complain about list spacing? Encourage them
+  // to create the spacing with their markdown formatting.
+  // List behavior should be controled by the markup, not the css.
+  //
+  // For lists with padding between items, use blank
+  // lines between items. This will generate paragraphs with
+  // padding to space things out.
+  //
+  // - item
+  //
+  // - item
+  //
+  // - item
+  //
+  // For list without padding, don't use blank lines.
+  //
+  // - item
+  // - item
+  // - item
+  //
+  // Modifying the css to emulate these behaviors merely brakes
+  // one case in the process of solving another. Don't change
+  // this unless it's really really a bug.
+  ul ul,
+  ul ol,
+  ol ol,
+  ol ul {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  li > p {
+    margin-top: @margin;
+  }
+
+  dl {
+    padding: 0;
+  }
+
+  dl dt {
+    padding: 0;
+    margin-top: @margin;
+    font-size: 1em;
+    font-style: italic;
+    font-weight: bold;
+  }
+
+  dl dd {
+    padding: 0 @margin;
+    margin-bottom: @margin;
+  }
+
+  blockquote {
+    padding: 0 15px;
+    color: #777;
+    border-left: 4px solid #ddd;
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // Tables
+  table {
+    display: block;
+    width: 100%;
+    overflow: auto;
+    word-break: normal;
+    word-break: keep-all; // For Firefox to horizontally scroll wider tables.
+
+    th {
+      font-weight: bold;
+    }
+
+    th, td {
+      padding: 6px 13px;
+      border: 1px solid #ddd;
+    }
+
+    tr {
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+
+      &:nth-child(2n) {
+        background-color: #f8f8f8;
+      }
+    }
+  }
+
+  // Images & Stuff
+  img {
+    max-width: 100%;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  .emoji {
+    max-width: none;
+  }
+
+  // Gollum Image Tags
+
+  // Framed
+  span.frame {
+    display: block;
+    overflow: hidden;
+
+    & > span {
+      display: block;
+      float: left;
+      width: auto;
+      padding: 7px;
+      margin: 13px 0 0;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+
+    span img {
+      display: block;
+      float: left;
+    }
+
+    span span {
+      display: block;
+      padding: 5px 0 0;
+      clear: both;
+      color: #333;
+    }
+  }
+
+  span.align-center {
+    display: block;
+    overflow: hidden;
+    clear: both;
+
+    & > span {
+      display: block;
+      margin: 13px auto 0;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    span img {
+      margin: 0 auto;
+      text-align: center;
+    }
+  }
+
+  span.align-right {
+    display: block;
+    overflow: hidden;
+    clear: both;
+
+    & > span {
+      display: block;
+      margin: 13px 0 0;
+      overflow: hidden;
+      text-align: right;
+    }
+
+    span img {
+      margin: 0;
+      text-align: right;
+    }
+  }
+
+  span.float-left {
+    display: block;
+    float: left;
+    margin-right: 13px;
+    overflow: hidden;
+
+    span {
+      margin: 13px 0 0;
+    }
+  }
+
+  span.float-right {
+    display: block;
+    float: right;
+    margin-left: 13px;
+    overflow: hidden;
+
+    & > span {
+      display: block;
+      margin: 13px auto 0;
+      overflow: hidden;
+      text-align: right;
+    }
+  }
+
+  // Inline code snippets
+  code,
+  tt {
+    padding: 0;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(0,0,0,0.04);
+    border-radius: 3px; // don't add padding, gives scrollbars
+
+    &:before,
+    &:after {
+      letter-spacing: -0.2em; // this creates padding
+      content: "\00a0";
+    }
+
+    br { display: none; }
+  }
+
+  del code { text-decoration: inherit; }
+
+  // Code tags within code blocks (<pre>s)
+  pre > code {
+    padding: 0;
+    margin: 0;
+    font-size: 100%;
+    word-break: normal;
+    white-space: pre;
+    background: transparent;
+    border: 0;
+  }
+
+  .highlight {
+    margin-bottom: @margin;
+  }
+
+  .highlight pre,
+  pre {
+    padding: @margin;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border-radius: 3px;
+  }
+
+  .highlight pre {
+    margin-bottom: 0;
+    word-break: normal;
+  }
+
+  pre {
+    word-wrap: normal;
+  }
+
+  pre code,
+  pre tt {
+    display: inline;
+    max-width: initial;
+    padding: 0;
+    margin: 0;
+    overflow: initial;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0;
+
+    &:before,
+    &:after {
+      content: normal;
+    }
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 3px 5px;
+    font-size: 11px;
+    line-height: 10px;
+    color: #555;
+    vertical-align: middle;
+    background-color: #fcfcfc;
+    border: solid 1px #ccc;
+    border-bottom-color: #bbb;
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 0 #bbb;
+  }
+}
