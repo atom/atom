@@ -37,7 +37,6 @@ const ROUTER = {
 module.exports = {
   create(atomEnv) {
     return function coreURIHandler(parsed) {
-      // eslint-disable-next-line no-unused-expressions
       ROUTER?.[parsed.pathname].handler(atomEnv, parsed);
     };
   },
