@@ -16,7 +16,6 @@ module.exports = class ContextMenu {
       if (item.command) {
         if (!item.commandDetail) item.commandDetail = {};
         item.commandDetail.contextCommand = true;
-        item.commandDetail.atomWindow = this.atomWindow;
         item.click = () => {
           global.atomApplication.sendCommandToWindow(
             item.command,
