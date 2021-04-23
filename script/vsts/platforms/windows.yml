@@ -19,8 +19,8 @@ jobs:
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      IsReleaseBranch: false
+      IsSignedZipBranch: true
 
     steps:
       - template: templates/preparation.yml
@@ -89,8 +89,8 @@ jobs:
     variables:
       AppName: $[ dependencies.GetReleaseVersion.outputs['Version.AppName'] ]
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      IsReleaseBranch: false
+      IsSignedZipBranch: true
 
     steps:
       - template: templates/preparation.yml

@@ -2,6 +2,7 @@ trigger:
   - master
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
+  - migrate-to-azure-storage
 pr: none # no PR triggers
 
 jobs:
@@ -29,8 +30,8 @@ jobs:
 
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      IsReleaseBranch: false
+      IsSignedZipBranch: true
 
     steps:
       - template: platforms/templates/preparation.yml
