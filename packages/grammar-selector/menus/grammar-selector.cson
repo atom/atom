@@ -11,3 +11,4 @@
     'label': 'Change Grammar'
     'command': 'grammar-selector:show'
   ]
+['show invisibles']
