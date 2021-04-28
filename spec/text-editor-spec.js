@@ -2826,7 +2826,7 @@ describe('TextEditor', () => {
 
       describe('when there is a single selection', () => {
         describe('when the selection spans a single line', () => {
-          describe('when there is no fold in the preceeding row', () =>
+          describe('when there is no fold in the preceding row', () =>
             it('moves the line to the preceding row', () => {
               expect(editor.lineTextForBufferRow(2)).toBe(
                 '    if (items.length <= 1) return items;'
@@ -3049,8 +3049,8 @@ describe('TextEditor', () => {
           });
         });
 
-        describe('when the preceeding row is a folded row', () => {
-          it('moves the lines spanned by the selection to the preceeding row, but preserves the folded code', () => {
+        describe('when the preceding row is a folded row', () => {
+          it('moves the lines spanned by the selection to the preceding row, but preserves the folded code', () => {
             expect(editor.lineTextForBufferRow(8)).toBe(
               '    return sort(left).concat(pivot).concat(sort(right));'
             );
@@ -3583,7 +3583,7 @@ describe('TextEditor', () => {
         });
 
         describe('when the last line of selection does not end with a valid line ending', () => {
-          it('appends line ending to last line and moves the lines spanned by the selection to the preceeding row', () => {
+          it('appends line ending to last line and moves the lines spanned by the selection to the preceding row', () => {
             expect(editor.lineTextForBufferRow(9)).toBe('  };');
             expect(editor.lineTextForBufferRow(10)).toBe('');
             expect(editor.lineTextForBufferRow(11)).toBe(
