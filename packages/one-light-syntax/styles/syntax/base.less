@@ -1,0 +1,312 @@
+/*
+   This defines styling rules for syntax classes.
+
+   See the naming conventions for a list of syntax classes:
+   https://flight-manual.atom.io/hacking-atom/sections/syntax-naming-conventions
+
+   When styling rules conflict:
+   - The last rule overrides previous rules.
+   - The rule with most classes and pseudo-classes overrides the last rule.
+*/
+
+// if for return global let
+.syntax--keyword {
+  color: @hue-3;
+
+  // int char float
+  &.syntax--type {
+    color: @hue-1;
+  }
+
+  // and or new del
+  &.syntax--operator {
+    color: @hue-3;
+  }
+
+  // super
+  &.syntax--function {
+    color: @hue-5;
+  }
+
+  // this self
+  &.syntax--variable {
+    color: @hue-5;
+  }
+
+  // = + && | << ?
+  &.syntax--symbolic {
+    color: @mono-1;
+  }
+}
+
+// identifier
+.syntax--entity {
+  color: @mono-1;
+
+  // function(parameter)
+  &.syntax--parameter {
+    color: @mono-1;
+  }
+
+  // self cls iota
+  &.syntax--support {
+    color: @hue-5;
+  }
+
+  // @entity.decorator
+  &.syntax--decorator:last-child {
+    color: @hue-2;
+  }
+
+  // label:
+  &.syntax--label {
+    text-decoration: underline;
+  }
+
+  // function method
+  &.syntax--function {
+    color: @hue-2;
+  }
+
+  // add
+  &.syntax--operator {
+    color: @hue-2;
+
+    // %>% <=>
+    &.syntax--symbolic {
+      color: @mono-1;
+    }
+  }
+
+  // String Class int rune list
+  &.syntax--type {
+    color: @hue-1;
+  }
+
+  // div span
+  &.syntax--tag {
+    color: @hue-5;
+  }
+
+  // href src alt
+  &.syntax--attribute {
+    color: @hue-6;
+  }
+}
+
+// () [] {} => @
+.syntax--punctuation {
+  color: @mono-1;
+
+  // . -> :: []
+  &.syntax--accessor {
+    color: @mono-1;
+  }
+}
+
+// "string"
+.syntax--string {
+  color: @hue-4;
+
+  // :immutable
+  &.syntax--immutable {
+    color: @hue-4;
+  }
+
+  // {placeholder} %().2f
+  &.syntax--part {
+    color: @hue-1;
+  }
+
+  // ${ }
+  &.syntax--interpolation {
+    color: @mono-1;
+  }
+
+  // /^reg[ex]?p/
+  &.syntax--regexp {
+    color: @hue-4;
+
+    // ^ $ \b ? + i
+    &.syntax--language {
+      color: @hue-3;
+    }
+
+    // <variable> \1
+    &.syntax--variable {
+      color: @hue-2;
+    }
+
+    // ( ) [^ ] (?= ) |
+    &.syntax--punctuation {
+      color: @hue-3;
+    }
+  }
+}
+
+// literal 4 1.3 true nil
+.syntax--constant {
+  color: @hue-6;
+
+  // &lt; 'a'
+  &.syntax--character {
+    color: @hue-4;
+
+    // \" \' \g \.
+    &.syntax--escape {
+      color: @hue-4;
+    }
+
+    // \u2661 \n \t \W .
+    &.syntax--code {
+      color: @hue-1;
+    }
+  }
+}
+
+// text
+.syntax--text {
+  color: @mono-1;
+}
+
+// __formatted__
+.syntax--markup {
+
+  // # Heading
+  &.syntax--heading {
+    color: @hue-5;
+  }
+
+  // 1. * -
+  &.syntax--list.syntax--punctuation {
+    color: @hue-5;
+  }
+
+  // > quote
+  &.syntax--quote {
+    color: @mono-3;
+    font-style: italic;
+  }
+
+  // **bold**
+  &.syntax--bold {
+    color: @hue-6;
+    font-weight: bold;
+  }
+
+  // *italic*
+  &.syntax--italic {
+    color: @hue-3;
+    font-style: italic;
+  }
+
+  // __underline__
+  &.syntax--underline {
+    color: @hue-1;
+    text-decoration: underline;
+  }
+
+  // ~~strike~~
+  &.syntax--strike {
+    color: @hue-5;
+  }
+
+  // `raw`
+  &.syntax--raw {
+    color: @hue-4;
+  }
+
+  // url.com (path)
+  &.syntax--link {
+    color: @hue-1;
+  }
+
+  // [alt] ![alt]
+  &.syntax--alt {
+    color: @hue-2;
+  }
+
+  // {++ inserted ++}
+  &.syntax--inserted {
+    color: @hue-4;
+
+    .syntax--punctuation {
+      color: @hue-4;
+    }
+  }
+
+  // {== highlighted ==}
+  &.syntax--highlighted {
+    color: @hue-4;
+
+    .syntax--punctuation {
+      color: @hue-4;
+    }
+  }
+
+  // {-- deleted --}
+  &.syntax--deleted {
+    color: @hue-5;
+
+    .syntax--punctuation {
+      color: @hue-5;
+    }
+  }
+
+  // {~~ from~>to ~~}
+  &.syntax--changed {
+    color: @hue-3;
+
+    .syntax--punctuation {
+      color: @hue-3;
+    }
+  }
+
+  // {>> commented <<}
+  &.syntax--commented {
+    color: @mono-3;
+
+    .syntax--punctuation {
+      color: @mono-3;
+    }
+  }
+}
+
+// /* comment */
+.syntax--comment {
+  color: @mono-3;
+  font-style: italic;
+
+  // @param TODO NOTE
+  &.syntax--caption {
+    color: lighten(@mono-3, 6);
+    font-weight: bold;
+  }
+
+  // variable function type
+  &.syntax--term {
+    color: lighten(@mono-3, 9);
+  }
+
+  // { } / .
+  &.syntax--punctuation {
+    color: @mono-3;
+    font-weight: normal;
+  }
+}
+
+// 0invalid
+.syntax--invalid:not(.syntax--punctuation) {
+
+  // §illegal
+  &.syntax--illegal {
+    color: @syntax-illegal-fg !important;
+    background-color: @syntax-illegal-bg !important;
+  }
+
+  // obsolete()
+  &.syntax--deprecated {
+    color: @syntax-deprecated-fg !important;
+    background-color: @syntax-deprecated-bg !important;
+  }
+}

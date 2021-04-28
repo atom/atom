@@ -83,13 +83,12 @@ module.exports = class FileRecoveryService {
                 recoveryFile.recoveryPath
               }".`;
             console.log(detail);
-            dialog.showMessageBox(
-              window,
-              { type: 'info', buttons: ['OK'], message, detail },
-              () => {
-                /* noop callback to get async behavior */
-              }
-            );
+            dialog.showMessageBox(window, {
+              type: 'info',
+              buttons: ['OK'],
+              message,
+              detail
+            });
           })
           .then(() => {
             for (let window of this.windowsByRecoveryFile.get(recoveryFile)) {

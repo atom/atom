@@ -17,27 +17,33 @@ const git = (git, repositoryRootPath) => {
   } catch (ex) {
     console.log(ex.message);
   }
+
+  async function createOrCheckoutBranch(newBranch) {
+    await git.fetch();
+    const { branches } = await git.branch();
+    const found = Object.keys(branches).find(
+      branch => branch.indexOf(newBranch) > -1
+    );
+    found
+      ? await git.checkout(found)
+      : await git.checkoutLocalBranch(newBranch);
+
+    return { found, newBranch };
+  }
+
   return {
-    switchToMaster: async function() {
+    switchToCleanBranch: async function() {
+      const cleanBranch = 'clean-branch';
       const { current } = await git.branch();
-      if (current !== 'master') {
-        await git.checkout('master');
-      }
+      if (current !== cleanBranch) createOrCheckoutBranch(cleanBranch);
     },
     makeBranch: async function(dependency) {
       const newBranch = `${dependency.moduleName}-${dependency.latest}`;
-      const { branches } = await git.branch();
       const { files } = await git.status();
       if (files.length > 0) {
         await git.reset('hard');
       }
-      const found = Object.keys(branches).find(
-        branch => branch.indexOf(newBranch) > -1
-      );
-      found
-        ? await git.checkout(found)
-        : await git.checkoutLocalBranch(newBranch);
-      return { found, newBranch };
+      return createOrCheckoutBranch(newBranch);
     },
     createCommit: async function({ moduleName, latest }) {
       try {

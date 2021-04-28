@@ -40,7 +40,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
     path.join('get-parameter-names', 'node_modules', '.bin', 'testla')
   ),
   escapeRegExp(path.join('jasmine-reporters', 'ext')),
-  escapeRegExp(path.join('node_modules', 'nan')),
+  escapeRegExp(path.join('node_modules', 'nan')) + '\\b',
   escapeRegExp(path.join('node_modules', 'native-mate')),
   escapeRegExp(path.join('build', 'binding.Makefile')),
   escapeRegExp(path.join('build', 'config.gypi')),
@@ -81,6 +81,14 @@ const EXCLUDE_REGEXPS_SOURCES = [
     escapeRegExp(path.sep) +
     '_*te?sts?_*' +
     escapeRegExp(path.sep),
+
+  'node_modules' +
+    escapeRegExp(path.sep) +
+    '.*' +
+    escapeRegExp(path.sep) +
+    'tests?' +
+    escapeRegExp(path.sep),
+
   'node_modules' +
     escapeRegExp(path.sep) +
     '.*' +
@@ -89,7 +97,29 @@ const EXCLUDE_REGEXPS_SOURCES = [
     escapeRegExp(path.sep),
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.d\\.ts$',
   'node_modules' + escapeRegExp(path.sep) + '.*' + '\\.js\\.map$',
-  '.*' + escapeRegExp(path.sep) + 'test.*\\.html$'
+  '.*' + escapeRegExp(path.sep) + 'test.*\\.html$',
+
+  // specific spec folders hand-picked
+  'node_modules' +
+    escapeRegExp(path.sep) +
+    '(oniguruma|dev-live-reload|deprecation-cop|one-dark-ui|incompatible-packages|git-diff|line-ending-selector|link|grammar-selector|json-schema-traverse|exception-reporting|one-light-ui|autoflow|about|go-to-line|sylvester|apparatus)' +
+    escapeRegExp(path.sep) +
+    'spec' +
+    escapeRegExp(path.sep),
+
+  // babel-core spec
+  'node_modules' +
+    escapeRegExp(path.sep) +
+    'babel-core' +
+    escapeRegExp(path.sep) +
+    'lib' +
+    escapeRegExp(path.sep) +
+    'transformation' +
+    escapeRegExp(path.sep) +
+    'transforers' +
+    escapeRegExp(path.sep) +
+    'spec' +
+    escapeRegExp(path.sep)
 ];
 
 // Ignore spec directories in all bundled packages

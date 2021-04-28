@@ -262,6 +262,14 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected path '#{actualPath}' to be equal to '#{expectedPath}'."
       actualPath is expectedPath
 
+    toBeNear: (expected, acceptedError = 1, actual) ->
+      return (typeof expected is 'number') and (typeof acceptedError is 'number') and (typeof @actual is 'number') and (expected - acceptedError <= @actual) and (@actual <= expected + acceptedError)
+
+    toHaveNearPixels: (expected, acceptedError = 1, actual) ->
+      expectedNumber =  parseFloat(expected)
+      actualNumber =  parseFloat(@actual)
+      return (typeof expected is 'string') and (typeof acceptedError is 'number') and (typeof @actual is 'string') and (expected.indexOf('px') >= 1) and (@actual.indexOf('px') >= 1) and (expectedNumber - acceptedError <= actualNumber) and (actualNumber <= expectedNumber + acceptedError)
+
 window.waitsForPromise = (args...) ->
   label = null
   if args.length > 1

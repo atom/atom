@@ -447,6 +447,14 @@ const configSchema = {
         maximum: 100,
         description: 'Height in pixels of editor text.'
       },
+      defaultFontSize: {
+        type: 'integer',
+        default: 14,
+        minimum: 1,
+        maximum: 100,
+        description:
+          'Default height in pixels of the editor text. Useful when resetting font size'
+      },
       lineHeight: {
         type: ['string', 'number'],
         default: 1.5,
@@ -649,6 +657,14 @@ if (process.platform === 'darwin') {
     default: false,
     description:
       'Use pre-Lion fullscreen on macOS. This does not create a new desktop space for the atom on fullscreen mode.'
+  };
+}
+
+if (process.platform === 'linux') {
+  configSchema.editor.properties.selectionClipboard = {
+    type: 'boolean',
+    default: true,
+    description: 'Enable pasting on middle mouse button click'
   };
 }
 

@@ -1,7 +1,7 @@
 const path = require('path');
 const http = require('http');
 const temp = require('temp').track();
-const remote = require('remote');
+const { remote } = require('electron');
 const { once } = require('underscore-plus');
 const { spawn } = require('child_process');
 const webdriverio = require('../../../script/node_modules/webdriverio');
@@ -53,16 +53,6 @@ const chromeDriverDown = done => {
 };
 
 const buildAtomClient = async (args, env) => {
-  // Since ChromeDriver v2.41, ChromeDriver will only connect if, either we precise a port
-  // for remote debugging, either the embedder (ie electron) made sure to pass `USER_DATA_DIR`
-  // to the remote debugging server.
-  // So, for now, we'll just use a random port (we don't care about its value since we're not
-  // connecting through it).
-  // (inspired by https://github.com/electron/spectron/pull/361/commits/737db138bd8a6daaf80f9c2bff710ce4a5fff39b).
-  // TodoElectronIssue: Remove the whole remote-debugging-port param once we upgrade
-  // to Electron v5, since this was fixes there (see electron/electron#17800).
-  const randomPort = Math.floor(Math.random() * (9999 - 9000) + 9000);
-
   const userDataDir = temp.mkdirSync('atom-user-data-dir');
   const client = await webdriverio.remote({
     host: 'localhost',
@@ -79,8 +69,7 @@ const buildAtomClient = async (args, env) => {
             .join(' ')}`,
           'dev',
           'safe',
-          `user-data-dir=${userDataDir}`,
-          `remote-debugging-port=${randomPort}`
+          `user-data-dir=${userDataDir}`
         ]
       }
     }
