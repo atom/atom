@@ -40,11 +40,6 @@ steps:
       versionSpec: '3.8'
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
-  - script: |
-      npm install --global --production windows-build-tools@4.0
-    displayName: Install windows build tools
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
   - pwsh: |
       cd script/vsts
       npm install

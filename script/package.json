@@ -2,9 +2,9 @@
   "name": "atom-build-scripts",
   "description": "Atom build scripts",
   "dependencies": {
-    "7zip-bin": "^4.0.2",
     "@atom/electron-winstaller": "0.0.1",
     "@octokit/request": "^5.4.5",
+    "7zip-bin": "^4.0.2",
     "async": "2.0.1",
     "babel-core": "5.8.38",
     "babel-eslint": "^10.0.1",
