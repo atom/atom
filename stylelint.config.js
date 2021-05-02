@@ -8,7 +8,7 @@ module.exports = {
     'max-empty-lines': null, // TODO: enable?
     'selector-type-no-unknown': null,
     'function-comma-space-after': null, // TODO: enable?
-    'font-family-no-missing-generic-family-keyword': null, // needed for octicons (no sensible fallback)
+    'font-family-no-missing-generic-family-keyword': null, // needed for Actions (no sensible fallback)
     'block-opening-brace-space-before': null,
     'block-closing-brace-empty-line-before': null,
     'declaration-colon-space-after': null,
