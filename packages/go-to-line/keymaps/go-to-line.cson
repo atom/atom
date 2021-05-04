@@ -1,0 +1,15 @@
+'.platform-darwin, .platform-win32, .platform-linux':
+  'ctrl-g': 'go-to-line:toggle'
+
+'.go-to-line atom-text-editor[mini]':
+  'enter': 'core:confirm',
+  'escape': 'core:cancel'
+
+'.platform-darwin .go-to-line atom-text-editor[mini]':
+  'cmd-w': 'core:cancel'
+
+'.platform-win32 .go-to-line atom-text-editor[mini]':
+  'ctrl-w': 'core:cancel'
+
+'.platform-linux .go-to-line atom-text-editor[mini]':
+  'ctrl-w': 'core:cancel'

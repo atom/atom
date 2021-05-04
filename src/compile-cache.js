@@ -1,132 +1,148 @@
-'use strict'
+'use strict';
 
 // For now, we're not using babel or ES6 features like `let` and `const` in
 // this file, because `apm` requires this file directly in order to pre-warm
 // Atom's compile-cache when installing or updating packages, using an older
 // version of node.js
 
-var path = require('path')
-var fs = require('fs-plus')
-var sourceMapSupport = require('@atom/source-map-support')
+var path = require('path');
+var fs = require('fs-plus');
+var sourceMapSupport = require('@atom/source-map-support');
 
-var PackageTranspilationRegistry = require('./package-transpilation-registry')
-var CSON = null
+var PackageTranspilationRegistry = require('./package-transpilation-registry');
+var CSON = null;
 
-var packageTranspilationRegistry = new PackageTranspilationRegistry()
+var packageTranspilationRegistry = new PackageTranspilationRegistry();
 
 var COMPILERS = {
   '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
   '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
   '.tsx': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
-  '.coffee': packageTranspilationRegistry.wrapTranspiler(require('./coffee-script'))
-}
+  '.coffee': packageTranspilationRegistry.wrapTranspiler(
+    require('./coffee-script')
+  )
+};
 
-exports.addTranspilerConfigForPath = function (packagePath, packageName, packageMeta, config) {
-  packagePath = fs.realpathSync(packagePath)
-  packageTranspilationRegistry.addTranspilerConfigForPath(packagePath, packageName, packageMeta, config)
-}
+exports.addTranspilerConfigForPath = function(
+  packagePath,
+  packageName,
+  packageMeta,
+  config
+) {
+  packagePath = fs.realpathSync(packagePath);
+  packageTranspilationRegistry.addTranspilerConfigForPath(
+    packagePath,
+    packageName,
+    packageMeta,
+    config
+  );
+};
 
-exports.removeTranspilerConfigForPath = function (packagePath) {
-  packagePath = fs.realpathSync(packagePath)
-  packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath)
-}
+exports.removeTranspilerConfigForPath = function(packagePath) {
+  packagePath = fs.realpathSync(packagePath);
+  packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath);
+};
 
-var cacheStats = {}
-var cacheDirectory = null
+var cacheStats = {};
+var cacheDirectory = null;
 
-exports.setAtomHomeDirectory = function (atomHome) {
-  var cacheDir = path.join(atomHome, 'compile-cache')
-  if (process.env.USER === 'root' && process.env.SUDO_USER && process.env.SUDO_USER !== process.env.USER) {
-    cacheDir = path.join(cacheDir, 'root')
+exports.setAtomHomeDirectory = function(atomHome) {
+  var cacheDir = path.join(atomHome, 'compile-cache');
+  if (
+    process.env.USER === 'root' &&
+    process.env.SUDO_USER &&
+    process.env.SUDO_USER !== process.env.USER
+  ) {
+    cacheDir = path.join(cacheDir, 'root');
   }
-  this.setCacheDirectory(cacheDir)
-}
+  this.setCacheDirectory(cacheDir);
+};
 
-exports.setCacheDirectory = function (directory) {
-  cacheDirectory = directory
-}
+exports.setCacheDirectory = function(directory) {
+  cacheDirectory = directory;
+};
 
-exports.getCacheDirectory = function () {
-  return cacheDirectory
-}
+exports.getCacheDirectory = function() {
+  return cacheDirectory;
+};
 
-exports.addPathToCache = function (filePath, atomHome) {
-  this.setAtomHomeDirectory(atomHome)
-  var extension = path.extname(filePath)
+exports.addPathToCache = function(filePath, atomHome) {
+  this.setAtomHomeDirectory(atomHome);
+  var extension = path.extname(filePath);
 
   if (extension === '.cson') {
     if (!CSON) {
-      CSON = require('season')
-      CSON.setCacheDir(this.getCacheDirectory())
+      CSON = require('season');
+      CSON.setCacheDir(this.getCacheDirectory());
     }
-    return CSON.readFileSync(filePath)
+    return CSON.readFileSync(filePath);
   } else {
-    var compiler = COMPILERS[extension]
+    var compiler = COMPILERS[extension];
     if (compiler) {
-      return compileFileAtPath(compiler, filePath, extension)
+      return compileFileAtPath(compiler, filePath, extension);
     }
   }
-}
+};
 
-exports.getCacheStats = function () {
-  return cacheStats
-}
+exports.getCacheStats = function() {
+  return cacheStats;
+};
 
-exports.resetCacheStats = function () {
-  Object.keys(COMPILERS).forEach(function (extension) {
+exports.resetCacheStats = function() {
+  Object.keys(COMPILERS).forEach(function(extension) {
     cacheStats[extension] = {
       hits: 0,
       misses: 0
-    }
-  })
-}
+    };
+  });
+};
 
-function compileFileAtPath (compiler, filePath, extension) {
-  var sourceCode = fs.readFileSync(filePath, 'utf8')
+function compileFileAtPath(compiler, filePath, extension) {
+  var sourceCode = fs.readFileSync(filePath, 'utf8');
   if (compiler.shouldCompile(sourceCode, filePath)) {
-    var cachePath = compiler.getCachePath(sourceCode, filePath)
-    var compiledCode = readCachedJavaScript(cachePath)
+    var cachePath = compiler.getCachePath(sourceCode, filePath);
+    var compiledCode = readCachedJavaScript(cachePath);
     if (compiledCode != null) {
-      cacheStats[extension].hits++
+      cacheStats[extension].hits++;
     } else {
-      cacheStats[extension].misses++
-      compiledCode = compiler.compile(sourceCode, filePath)
-      writeCachedJavaScript(cachePath, compiledCode)
+      cacheStats[extension].misses++;
+      compiledCode = compiler.compile(sourceCode, filePath);
+      writeCachedJavaScript(cachePath, compiledCode);
     }
-    return compiledCode
+    return compiledCode;
   }
-  return sourceCode
+  return sourceCode;
 }
 
-function readCachedJavaScript (relativeCachePath) {
-  var cachePath = path.join(cacheDirectory, relativeCachePath)
+function readCachedJavaScript(relativeCachePath) {
+  var cachePath = path.join(cacheDirectory, relativeCachePath);
   if (fs.isFileSync(cachePath)) {
     try {
-      return fs.readFileSync(cachePath, 'utf8')
+      return fs.readFileSync(cachePath, 'utf8');
     } catch (error) {}
   }
-  return null
+  return null;
 }
 
-function writeCachedJavaScript (relativeCachePath, code) {
-  var cachePath = path.join(cacheDirectory, relativeCachePath)
-  fs.writeFileSync(cachePath, code, 'utf8')
+function writeCachedJavaScript(relativeCachePath, code) {
+  var cachePath = path.join(cacheDirectory, relativeCachePath);
+  fs.writeFileSync(cachePath, code, 'utf8');
 }
 
-var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
+var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/gm;
 
-exports.install = function (resourcesPath, nodeRequire) {
+exports.install = function(resourcesPath, nodeRequire) {
   const snapshotSourceMapConsumer = {
-    originalPositionFor ({line, column}) {
-      const {relativePath, row} = snapshotResult.translateSnapshotRow(line)
+    originalPositionFor({ line, column }) {
+      const { relativePath, row } = snapshotResult.translateSnapshotRow(line);
       return {
         column,
         line: row,
         source: path.join(resourcesPath, 'app', 'static', relativePath),
         name: null
-      }
+      };
     }
-  }
+  };
 
   sourceMapSupport.install({
     handleUncaughtExceptions: false,
@@ -134,109 +150,113 @@ exports.install = function (resourcesPath, nodeRequire) {
     // Most of this logic is the same as the default implementation in the
     // source-map-support module, but we've overridden it to read the javascript
     // code from our cache directory.
-    retrieveSourceMap: function (filePath) {
+    retrieveSourceMap: function(filePath) {
       if (filePath === '<embedded>') {
-        return {map: snapshotSourceMapConsumer}
+        return { map: snapshotSourceMapConsumer };
       }
 
       if (!cacheDirectory || !fs.isFileSync(filePath)) {
-        return null
+        return null;
       }
 
       try {
-        var sourceCode = fs.readFileSync(filePath, 'utf8')
+        var sourceCode = fs.readFileSync(filePath, 'utf8');
       } catch (error) {
-        console.warn('Error reading source file', error.stack)
-        return null
+        console.warn('Error reading source file', error.stack);
+        return null;
       }
 
-      var compiler = COMPILERS[path.extname(filePath)]
-      if (!compiler) compiler = COMPILERS['.js']
+      var compiler = COMPILERS[path.extname(filePath)];
+      if (!compiler) compiler = COMPILERS['.js'];
 
       try {
-        var fileData = readCachedJavaScript(compiler.getCachePath(sourceCode, filePath))
+        var fileData = readCachedJavaScript(
+          compiler.getCachePath(sourceCode, filePath)
+        );
       } catch (error) {
-        console.warn('Error reading compiled file', error.stack)
-        return null
+        console.warn('Error reading compiled file', error.stack);
+        return null;
       }
 
       if (fileData == null) {
-        return null
+        return null;
       }
 
-      var match, lastMatch
-      INLINE_SOURCE_MAP_REGEXP.lastIndex = 0
+      var match, lastMatch;
+      INLINE_SOURCE_MAP_REGEXP.lastIndex = 0;
       while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
-        lastMatch = match
+        lastMatch = match;
       }
       if (lastMatch == null) {
-        return null
+        return null;
       }
 
-      var sourceMappingURL = lastMatch[1]
-      var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1)
+      var sourceMappingURL = lastMatch[1];
+      var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
 
       try {
-        var sourceMap = JSON.parse(new Buffer(rawData, 'base64'))
+        var sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
       } catch (error) {
-        console.warn('Error parsing source map', error.stack)
-        return null
+        console.warn('Error parsing source map', error.stack);
+        return null;
       }
 
       return {
         map: sourceMap,
         url: null
-      }
+      };
     }
-  })
+  });
 
-  var prepareStackTraceWithSourceMapping = Error.prepareStackTrace
-  var prepareStackTrace = prepareStackTraceWithSourceMapping
+  var prepareStackTraceWithSourceMapping = Error.prepareStackTrace;
+  var prepareStackTrace = prepareStackTraceWithSourceMapping;
 
-  function prepareStackTraceWithRawStackAssignment (error, frames) {
-    if (error.rawStack) { // avoid infinite recursion
-      return prepareStackTraceWithSourceMapping(error, frames)
+  function prepareStackTraceWithRawStackAssignment(error, frames) {
+    if (error.rawStack) {
+      // avoid infinite recursion
+      return prepareStackTraceWithSourceMapping(error, frames);
     } else {
-      error.rawStack = frames
-      return prepareStackTrace(error, frames)
+      error.rawStack = frames;
+      return prepareStackTrace(error, frames);
     }
   }
 
-  Error.stackTraceLimit = 30
+  Error.stackTraceLimit = 30;
 
   Object.defineProperty(Error, 'prepareStackTrace', {
-    get: function () {
-      return prepareStackTraceWithRawStackAssignment
+    get: function() {
+      return prepareStackTraceWithRawStackAssignment;
     },
 
-    set: function (newValue) {
-      prepareStackTrace = newValue
-      process.nextTick(function () {
-        prepareStackTrace = prepareStackTraceWithSourceMapping
-      })
+    set: function(newValue) {
+      prepareStackTrace = newValue;
+      process.nextTick(function() {
+        prepareStackTrace = prepareStackTraceWithSourceMapping;
+      });
     }
-  })
+  });
 
-  Error.prototype.getRawStack = function () { // eslint-disable-line no-extend-native
+  // eslint-disable-next-line no-extend-native
+  Error.prototype.getRawStack = function() {
     // Access this.stack to ensure prepareStackTrace has been run on this error
     // because it assigns this.rawStack as a side-effect
-    this.stack
-    return this.rawStack
-  }
+    this.stack; // eslint-disable-line no-unused-expressions
+    return this.rawStack;
+  };
 
-  Object.keys(COMPILERS).forEach(function (extension) {
-    var compiler = COMPILERS[extension]
+  Object.keys(COMPILERS).forEach(function(extension) {
+    var compiler = COMPILERS[extension];
 
     Object.defineProperty(nodeRequire.extensions, extension, {
       enumerable: true,
       writable: false,
-      value: function (module, filePath) {
-        var code = compileFileAtPath(compiler, filePath, extension)
-        return module._compile(code, filePath)
+      value: function(module, filePath) {
+        var code = compileFileAtPath(compiler, filePath, extension);
+        return module._compile(code, filePath);
       }
-    })
-  })
-}
+    });
+  });
+};
 
-exports.supportedExtensions = Object.keys(COMPILERS)
-exports.resetCacheStats()
+exports.supportedExtensions = Object.keys(COMPILERS);
+exports.resetCacheStats();

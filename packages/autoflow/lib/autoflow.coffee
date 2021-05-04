@@ -51,14 +51,40 @@ module.exports =
       tabLengthInSpaces = ''
 
     for block in paragraphBlocks
+      blockLines = block.split('\n')
+
+      # For LaTeX tags surrounding the text, we simply ignore them, and
+      # reproduce them verbatim in the wrapped text.
+      beginningLinesToIgnore = []
+      endingLinesToIgnore = []
+      latexTagRegex = /^\s*\\\w+(\[.*\])?\{\w+\}(\[.*\])?\s*$/g    # e.g. \begin{verbatim}
+      latexTagStartRegex = /^\s*\\\w+\s*\{\s*$/g                   # e.g. \item{
+      latexTagEndRegex = /^\s*\}\s*$/g                             # e.g. }
+      while blockLines.length > 0 and (
+            blockLines[0].match(latexTagRegex) or
+            blockLines[0].match(latexTagStartRegex))
+        beginningLinesToIgnore.push(blockLines[0])
+        blockLines.shift()
+      while blockLines.length > 0 and (
+            blockLines[blockLines.length - 1].match(latexTagRegex) or
+            blockLines[blockLines.length - 1].match(latexTagEndRegex))
+        endingLinesToIgnore.unshift(blockLines[blockLines.length - 1])
+        blockLines.pop()
+
+      # The paragraph might be a LaTeX section with no text, only tags:
+      # \documentclass{article}
+      # In that case, we have nothing to reflow.
+      # Push the tags verbatim and continue to the next paragraph.
+      unless blockLines.length > 0
+        paragraphs.push(block)
+        continue
 
       # TODO: this could be more language specific. Use the actual comment char.
       # Remember that `-` has to be the last character in the character class.
-      linePrefix = block.match(/^\s*(\/\/|\/\*|;;|#'|\|\|\||--|[#%*>-])?\s*/g)[0]
+      linePrefix = blockLines[0].match(/^\s*(\/\/|\/\*|;;|#'|\|\|\||--|[#%*>-])?\s*/g)[0]
       linePrefixTabExpanded = linePrefix
       if tabLengthInSpaces
         linePrefixTabExpanded = linePrefix.replace(/\t/g, tabLengthInSpaces)
-      blockLines = block.split('\n')
 
       if linePrefix
         escapedLinePrefix = _.escapeRegExp(linePrefix)
@@ -93,9 +119,10 @@ module.exports =
         currentLineLength += segment.length
       lines.push(linePrefix + currentLine.join(''))
 
-      paragraphs.push(lines.join('\n').replace(/\s+\n/g, '\n'))
+      wrappedLines = beginningLinesToIgnore.concat(lines.concat(endingLinesToIgnore))
+      paragraphs.push(wrappedLines.join('\n').replace(/\s+\n/g, '\n'))
 
-    leadingVerticalSpace + paragraphs.join('\n\n') + trailingVerticalSpace
+    return leadingVerticalSpace + paragraphs.join('\n\n') + trailingVerticalSpace
 
   getTabLength: (editor) ->
     atom.config.get('editor.tabLength', scope: editor.getRootScopeDescriptor()) ? 2

@@ -14,7 +14,7 @@
     "atom": "*"
   },
   "dependencies": {
-    "underscore-plus": "^1.6.6"
+    "underscore-plus": "^1.7.0"
   },
   "devDependencies": {
     "coffeelint": "^1.9.7"

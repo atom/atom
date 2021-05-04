@@ -1,0 +1,47 @@
+{
+  "name": "welcome",
+  "version": "0.36.9",
+  "description": "Welcome users to Atom with useful information",
+  "main": "./lib/main",
+  "atomTestRunner": "atom-mocha-test-runner",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "scripts": {
+    "lint": "standard",
+    "test": "atom --test test/*.test.js"
+  },
+  "consumedServices": {
+    "metrics-reporter": {
+      "versions": {
+        "^1.1.0": "consumeReporter"
+      }
+    }
+  },
+  "configSchema": {
+    "showOnStartup": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show welcome panes with useful information when opening a new Atom window."
+    }
+  },
+  "deserializers": {
+    "WelcomeView": "createWelcomeView",
+    "GuideView": "createGuideView",
+    "ConsentView": "createConsentView"
+  },
+  "dependencies": {
+    "etch": "0.9.0"
+  },
+  "devDependencies": {
+    "atom-mocha-test-runner": "^1.0.0",
+    "standard": "^8.6.0"
+  },
+  "standard": {
+    "globals": [
+      "atom"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "package-with-activation-commands-and-deserializers",
+  "version": "1.0.0",
+  "main": "./index",
+  "activationCommands": {
+    "atom-workspace": [
+      "activation-command-2"
+    ]
+  },
+  "deserializers": {
+    "Deserializer1": "deserializeMethod1",
+    "Deserializer2": "deserializeMethod2"
+  }
+}

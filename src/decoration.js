@@ -1,16 +1,24 @@
-const {Emitter} = require('event-kit')
+const { Emitter } = require('event-kit');
 
-let idCounter = 0
-const nextId = () => idCounter++
+let idCounter = 0;
+const nextId = () => idCounter++;
 
-// Applies changes to a decorationsParam {Object} to make it possible to
-// differentiate decorations on custom gutters versus the line-number gutter.
-const translateDecorationParamsOldToNew = function (decorationParams) {
-  if (decorationParams.type === 'line-number') {
-    decorationParams.gutterName = 'line-number'
+const normalizeDecorationProperties = function(decoration, decorationParams) {
+  decorationParams.id = decoration.id;
+
+  if (
+    decorationParams.type === 'line-number' &&
+    decorationParams.gutterName == null
+  ) {
+    decorationParams.gutterName = 'line-number';
   }
-  return decorationParams
-}
+
+  if (decorationParams.order == null) {
+    decorationParams.order = Infinity;
+  }
+
+  return decorationParams;
+};
 
 // Essential: Represents a decoration that follows a {DisplayMarker}. A decoration is
 // basically a visual representation of a marker. It allows you to add CSS
@@ -34,8 +42,7 @@ const translateDecorationParamsOldToNew = function (decorationParams) {
 //
 // You should only use {Decoration::destroy} when you still need or do not own
 // the marker.
-module.exports =
-class Decoration {
+module.exports = class Decoration {
   // Private: Check if the `decorationProperties.type` matches `type`
   //
   // * `decorationProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
@@ -46,23 +53,26 @@ class Decoration {
   // Returns {Boolean}
   // Note: 'line-number' is a special subtype of the 'gutter' type. I.e., a
   // 'line-number' is a 'gutter', but a 'gutter' is not a 'line-number'.
-  static isType (decorationProperties, type) {
+  static isType(decorationProperties, type) {
     // 'line-number' is a special case of 'gutter'.
     if (Array.isArray(decorationProperties.type)) {
       if (decorationProperties.type.includes(type)) {
-        return true
+        return true;
       }
 
-      if (type === 'gutter' && decorationProperties.type.includes('line-number')) {
-        return true
+      if (
+        type === 'gutter' &&
+        decorationProperties.type.includes('line-number')
+      ) {
+        return true;
       }
 
-      return false
+      return false;
     } else {
       if (type === 'gutter') {
-        return ['gutter', 'line-number'].includes(decorationProperties.type)
+        return ['gutter', 'line-number'].includes(decorationProperties.type);
       } else {
-        return type === decorationProperties.type
+        return type === decorationProperties.type;
       }
     }
   }
@@ -71,31 +81,37 @@ class Decoration {
   Section: Construction and Destruction
   */
 
-  constructor (marker, decorationManager, properties) {
-    this.marker = marker
-    this.decorationManager = decorationManager
-    this.emitter = new Emitter()
-    this.id = nextId()
-    this.setProperties(properties)
-    this.destroyed = false
-    this.markerDestroyDisposable = this.marker.onDidDestroy(() => this.destroy())
+  constructor(marker, decorationManager, properties) {
+    this.marker = marker;
+    this.decorationManager = decorationManager;
+    this.emitter = new Emitter();
+    this.id = nextId();
+    this.setProperties(properties);
+    this.destroyed = false;
+    this.markerDestroyDisposable = this.marker.onDidDestroy(() =>
+      this.destroy()
+    );
   }
 
   // Essential: Destroy this marker decoration.
   //
   // You can also destroy the marker if you own it, which will destroy this
   // decoration.
-  destroy () {
-    if (this.destroyed) { return }
-    this.markerDestroyDisposable.dispose()
-    this.markerDestroyDisposable = null
-    this.destroyed = true
-    this.decorationManager.didDestroyMarkerDecoration(this)
-    this.emitter.emit('did-destroy')
-    return this.emitter.dispose()
+  destroy() {
+    if (this.destroyed) {
+      return;
+    }
+    this.markerDestroyDisposable.dispose();
+    this.markerDestroyDisposable = null;
+    this.destroyed = true;
+    this.decorationManager.didDestroyMarkerDecoration(this);
+    this.emitter.emit('did-destroy');
+    return this.emitter.dispose();
   }
 
-  isDestroyed () { return this.destroyed }
+  isDestroyed() {
+    return this.destroyed;
+  }
 
   /*
   Section: Event Subscription
@@ -109,8 +125,8 @@ class Decoration {
   //     * `newProperties` {Object} the new parameters the decoration now has
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidChangeProperties (callback) {
-    return this.emitter.on('did-change-properties', callback)
+  onDidChangeProperties(callback) {
+    return this.emitter.on('did-change-properties', callback);
   }
 
   // Essential: Invoke the given callback when the {Decoration} is destroyed
@@ -118,8 +134,8 @@ class Decoration {
   // * `callback` {Function}
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidDestroy (callback) {
-    return this.emitter.once('did-destroy', callback)
+  onDidDestroy(callback) {
+    return this.emitter.once('did-destroy', callback);
   }
 
   /*
@@ -127,10 +143,14 @@ class Decoration {
   */
 
   // Essential: An id unique across all {Decoration} objects
-  getId () { return this.id }
+  getId() {
+    return this.id;
+  }
 
   // Essential: Returns the marker associated with this {Decoration}
-  getMarker () { return this.marker }
+  getMarker() {
+    return this.marker;
+  }
 
   // Public: Check if this decoration is of type `type`
   //
@@ -139,8 +159,8 @@ class Decoration {
   //   type matches any in the array.
   //
   // Returns {Boolean}
-  isType (type) {
-    return Decoration.isType(this.properties, type)
+  isType(type) {
+    return Decoration.isType(this.properties, type);
   }
 
   /*
@@ -148,8 +168,8 @@ class Decoration {
   */
 
   // Essential: Returns the {Decoration}'s properties.
-  getProperties () {
-    return this.properties
+  getProperties() {
+    return this.properties;
   }
 
   // Essential: Update the marker with new Properties. Allows you to change the decoration's class.
@@ -161,44 +181,55 @@ class Decoration {
   // ```
   //
   // * `newProperties` {Object} eg. `{type: 'line-number', class: 'my-new-class'}`
-  setProperties (newProperties) {
-    if (this.destroyed) { return }
-    const oldProperties = this.properties
-    this.properties = translateDecorationParamsOldToNew(newProperties)
-    if (newProperties.type != null) {
-      this.decorationManager.decorationDidChangeType(this)
+  setProperties(newProperties) {
+    if (this.destroyed) {
+      return;
     }
-    this.decorationManager.emitDidUpdateDecorations()
-    return this.emitter.emit('did-change-properties', {oldProperties, newProperties})
+    const oldProperties = this.properties;
+    this.properties = normalizeDecorationProperties(this, newProperties);
+    if (newProperties.type != null) {
+      this.decorationManager.decorationDidChangeType(this);
+    }
+    this.decorationManager.emitDidUpdateDecorations();
+    return this.emitter.emit('did-change-properties', {
+      oldProperties,
+      newProperties
+    });
   }
 
   /*
   Section: Utility
   */
 
-  inspect () {
-    return `<Decoration ${this.id}>`
+  inspect() {
+    return `<Decoration ${this.id}>`;
   }
 
   /*
   Section: Private methods
   */
 
-  matchesPattern (decorationPattern) {
-    if (decorationPattern == null) { return false }
-    for (let key in decorationPattern) {
-      const value = decorationPattern[key]
-      if (this.properties[key] !== value) { return false }
+  matchesPattern(decorationPattern) {
+    if (decorationPattern == null) {
+      return false;
     }
-    return true
+    for (let key in decorationPattern) {
+      const value = decorationPattern[key];
+      if (this.properties[key] !== value) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  flash (klass, duration) {
-    if (duration == null) { duration = 500 }
-    this.properties.flashRequested = true
-    this.properties.flashClass = klass
-    this.properties.flashDuration = duration
-    this.decorationManager.emitDidUpdateDecorations()
-    return this.emitter.emit('did-flash')
+  flash(klass, duration) {
+    if (duration == null) {
+      duration = 500;
+    }
+    this.properties.flashRequested = true;
+    this.properties.flashClass = klass;
+    this.properties.flashDuration = duration;
+    this.decorationManager.emitDidUpdateDecorations();
+    return this.emitter.emit('did-flash');
   }
-}
+};

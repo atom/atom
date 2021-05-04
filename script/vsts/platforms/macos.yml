@@ -1,76 +1,82 @@
 jobs:
-- job: macOS
-  dependsOn: GetReleaseVersion
-  timeoutInMinutes: 180
+  - job: macOS_build
+    displayName: macOS Build
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180
 
-  variables:
-    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-    IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
-    IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
-  pool:
-    vmImage: macos-10.13
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      RunCoreMainTests: true
+    pool:
+      vmImage: macos-10.15
 
-  steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: 8.9.3
-    displayName: Install Node.js 8.9.3
+    steps:
+      - template: templates/preparation.yml
 
-  - script: npm install --global npm@6.2.0
-    displayName: Update npm
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
 
-  - script: |
-      if [ $IS_RELEASE_BRANCH == "true" ] || [ $IS_SIGNED_ZIP_BRANCH == "true" ]; then
-        script/build --code-sign --compress-artifacts
-      else
-        script/build --compress-artifacts
-      fi
-    displayName: Build Atom
-    env:
-      IS_RELEASE_BRANCH: $(IsReleaseBranch)
-      IS_SIGNED_ZIP_BRANCH: $(IsSignedZipBranch)
-      ATOM_RELEASE_VERSION: $(ReleaseVersion)
-      ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL: $(ATOM_MAC_CODE_SIGNING_CERT_DOWNLOAD_URL)
-      ATOM_MAC_CODE_SIGNING_CERT_PASSWORD: $(ATOM_MAC_CODE_SIGNING_CERT_PASSWORD)
-      ATOM_MAC_CODE_SIGNING_KEYCHAIN: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN)
-      ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD: $(ATOM_MAC_CODE_SIGNING_KEYCHAIN_PASSWORD)
+      - template: templates/bootstrap.yml
 
-  - script: script/lint
-    displayName: Run linter
+      - template: templates/build.yml
 
-  - script: |
-      osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
-      caffeinate -s script/test # Run with caffeinate to prevent screen saver
-    env:
-      CI: true
-      CI_PROVIDER: VSTS
-    displayName: Run tests
-    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+      # core main tests
+      - template: templates/test.yml
 
-  - script: |
-      cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
-    displayName: Stage Artifacts
+      - script: |
+          cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+        displayName: Stage Artifacts
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac.zip
-      ArtifactName: atom-mac.zip
-      ArtifactType: Container
-    displayName: Upload atom-mac.zip
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom-mac.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-mac-symbols.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-api.json
+              fileDir: $(Build.SourcesDirectory)/docs/output
+              condition: succeeded()
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/atom-mac-symbols.zip
-      ArtifactName: atom-mac-symbols.zip
-      ArtifactType: Container
-    displayName: Upload atom-mac-symbols.zip
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  - job: macOS_tests
+    displayName: macOS Tests
+    dependsOn: macOS_build
+    timeoutInMinutes: 180
+    pool:
+      vmImage: macos-10.15
+    strategy:
+      maxParallel: 3
+      matrix:
+        renderer:
+          RunCoreRendererTests: true
+          RunPackageTests: false
+        packages-1:
+          RunCoreTests: false
+          RunPackageTests: 1
+        packages-2:
+          RunCoreTests: false
+          RunPackageTests: 2
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/docs/output/atom-api.json
-      ArtifactName: atom-api.json
-      ArtifactType: Container
-    displayName: Upload atom-api.json
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
+
+      # The artifact caching task does not work on forks, so we need to
+      # bootstrap again for pull requests coming from forked repositories.
+      - template: templates/bootstrap.yml
+
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            - atom-mac.zip
+            - atom-mac-symbols.zip
+
+      - template: templates/test.yml

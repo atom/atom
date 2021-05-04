@@ -1,0 +1,83 @@
+@import "ui-variables";
+
+//
+// Modals
+// --------------------------------------------------
+
+.overlay, // deprecated .overlay
+atom-panel.modal {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 50%;
+  width: 500px;
+  margin-left: -250px;
+  z-index: 9999;
+  box-sizing: border-box;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+
+  color: @text-color;
+  background-color: @overlay-background-color;
+
+  padding: 10px;
+
+  // shrink modals when window gets narrow
+  @media (max-width: 500px) {
+    & {
+      width: 100%;
+      left: 0;
+      margin-left: 0;
+    }
+  }
+
+  h1 {
+    margin-top: 0;
+    color: @text-color-highlight;
+    font-size: 1.6em;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 1.3em;
+  }
+
+  atom-text-editor[mini] {
+    margin-bottom: 10px;
+  }
+
+  .message {
+    padding-top: 5px;
+    font-size: 11px;
+  }
+
+  &.mini {
+    width: 200px;
+    margin-left: -100px;
+    font-size: 12px;
+  }
+}
+
+
+// Deprecated: overlay, from-top, from-bottom, floating
+// --------------------------------------------------
+// TODO: Remove these!
+
+.overlay.from-top {
+  top: 0;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.overlay.from-bottom {
+  bottom: 0;
+  border-bottom: none;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.overlay.floating {
+  left: auto;
+}
