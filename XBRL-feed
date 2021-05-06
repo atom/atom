@@ -1,0 +1,86 @@
+
+<feed xmlns:string="http://symphony-cms.com/functions" xmlns="http://www.w3.org/2005/Atom" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:reg="http://xbrl.org/2008/registry" xmlns:cfcn="http://xbrl.org/2008/conformance/function">
+
+<title>XBRL Specification Development Releases</title>
+
+<subtitle/>
+ <link href="http://specifications.xbrl.org//releases-for-review.xml" rel="self"/>
+  <link href="http://specifications.xbrl.org/"/>
+   <id>http://specification.xbrl.org/atom/releases-for-review.xml</id>
+    <updated>2021-05-06T10:57:35.858+01:00</updated>
+<entry>
+<title>Formula 1.0 - 28th April 2021</title>
+
+<link href="http://specifications.xbrl.org/work-product-index-formula-formula-1.0.html"/>
+
+<updated>2021-04-28T00:00:00.00Z</updated>
+
+<author>
+<name>XBRL International Inc.</name>
+</author>
+
+<id>http://specifications.xbrl.org//release/formula-1.0/2021-04-28</id>
+
+<content type="html"> <ul> <li>Assertion Severity 2.0 - Public Working Draft </li> <li>Assertion Severity Requirements - Requirements </li> </ul> </content>
+</entry>
+
+<entry>
+<title>Open Information Model 1.0 - 16th February 2021</title>
+
+<link href="http://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html"/>
+<updated>2021-02-16T00:00:00.00Z</updated>
+
+<author>
+<name>XBRL International Inc.</name>
+</author>
+
+<id>http://specifications.xbrl.org//release/open-information-model/2021-02-16</id>
+
+<content type="html"> <ul> <li>Open Information Model - Candidate Recommendation </li> <li>xBRL-XML: mapping from Open Information Model - Candidate Recommendation </li> </ul> </content>
+</entry>
+
+<entry>
+<title>Open Information Model 1.0 - 3rd February 2021</title>
+
+<link href="http://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html"/>
+<updated>2021-02-03T00:00:00.00Z</updated>
+
+<author>
+<name>XBRL International Inc.</name>
+</author>
+
+<id>http://specifications.xbrl.org//release/open-information-model/2021-02-03</id>
+
+<content type="html"> <ul> <li>Open Information Model (Common) - Candidate Recommendation </li> <li>xBRL-CSV Design - design</li> <li>xBRL-CSV Requirements - Requirements </li> <li>xBRL-CSV: CSV representation of XBRL data - Candidate Recommendation </li> <li>xBRL-JSON Design - design</li> <li>xBRL-JSON: JSON representation of XBRL data - Candidate Recommendation </li> </ul> </content>
+</entry>
+
+<entry>
+<title>Report Packages 1.0 - 9th December 2020</title>
+
+<link href="http://specifications.xbrl.org/work-product-index-taxonomy-packages-report-packages-1.0.html"/>
+<updated>2020-12-09T00:00:00.00Z</updated>
+
+<author>
+<name>XBRL International Inc.</name>
+</author>
+
+<id>http://specifications.xbrl.org//release/report-packages-1.0/2020-12-09</id>
+
+<content type="html"> <ul> <li>Requirements - Requirements </li> <li>Specification - Public Working Draft </li> </ul> </content>
+</entry>
+
+<entry>
+<title>Filing Indicators 1.0 - 9th December 2020</title>
+
+<link href="http://specifications.xbrl.org/work-product-index-open-information-model-filing-indicators.html"/>
+<updated>2020-12-09T00:00:00.00Z</updated>
+
+<author>
+<name>XBRL International Inc.</name>
+</author>
+
+<id>http://specifications.xbrl.org//release/filing-indicators/2020-12-09</id>
+
+<content type="html"> <ul> <li>Filing Indicators - Proposed Recommendation </li> </ul> </content>
+</entry>
+</feed>
