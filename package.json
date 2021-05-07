@@ -167,7 +167,7 @@
     "update-package-dependencies": "file:./packages/update-package-dependencies",
     "vscode-ripgrep": "1.9.0",
     "welcome": "file:packages/welcome",
-    "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.7/tarball",
+    "whitespace": "https://www.atom.io/api/packages/whitespace/versions/0.37.8/tarball",
     "winreg": "^1.2.1",
     "wrap-guide": "https://www.atom.io/api/packages/wrap-guide/versions/0.41.0/tarball",
     "yargs": "16.1.0"
@@ -230,7 +230,7 @@
     "tree-view": "0.228.3",
     "update-package-dependencies": "file:./packages/update-package-dependencies",
     "welcome": "file:./packages/welcome",
-    "whitespace": "0.37.7",
+    "whitespace": "0.37.8",
     "wrap-guide": "0.41.0",
     "language-c": "0.60.19",
     "language-clojure": "0.22.8",
