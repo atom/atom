@@ -1,0 +1,19 @@
+name: Swift
+
+on:
+  push:
+    branches: [ github/BigGuy573/atom/atom-doc-update-template ]
+  pull_request:
+    branches: [ github/BigGuy573/atom/atom-doc-update-template ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: swift build -v
+    - name: Run tests
+      run: swift test -v
