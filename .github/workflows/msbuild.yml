@@ -1,4 +1,4 @@
-name: MSBuild
+name: .github/workflows/msbuild.yml 
 
 on: [push]
 
