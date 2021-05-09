@@ -1,6 +1,3 @@
-
-<feed xmlns:string="http://symphony-cms.com/functions" xmlns="http://www.w3.org/2005/Atom" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:reg="http://xbrl.org/2008/registry" xmlns:cfcn="http://xbrl.org/2008/conformance/function">
-
 <title>XBRL Specification Development Releases</title>
 
 <subtitle/>
