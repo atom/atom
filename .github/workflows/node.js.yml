@@ -1,0 +1,232 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
+- name: Setup Node.js environment
+  uses: actions/setup-node@v2.1.5
+  with:
+    # Set always-auth in npmrc
+    always-auth: # optional, default is false
+    # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
+    node-version: # optional
+    # Target architecture for Node to use. Examples: x86, x64. Will use system architecture by default.
+    architecture: # optional
+    # Set this option if you want the action to check for the latest available version that satisfies the version spec
+    check-latest: # optional
+    # Optional registry to set up for auth. Will set the registry in a project level .npmrc and .yarnrc file, and set up auth to read in from env.NODE_AUTH_TOKEN
+    registry-url: # optional
+    # Optional scope for authenticating against scoped registries
+    scope: # optional
+    # Used to pull node distributions from node-versions.  Since there's a default, this is typically not supplied by the user.
+    token: # optional, default is ${{ github.token }}
+    # Deprecated. Use node-version instead. Will not be supported after October 1, 2019
+    version: # optional
+    - name: Close Stale Issues
+  uses: actions/stale@v3.0.18
+  with:
+    # Token for the repository. Can be passed in using `{{ secrets.GITHUB_TOKEN }}`.
+    repo-token: # optional, default is ${{ github.token }}
+    # The message to post on the issue when tagging it. If none provided, will not mark issues stale.
+    stale-issue-message: # optional
+    # The message to post on the pull request when tagging it. If none provided, will not mark pull requests stale.
+    stale-pr-message: # optional
+    # The message to post on the issue when closing it. If none provided, will not comment when closing an issue.
+    close-issue-message: # optional
+    # The message to post on the pull request when closing it. If none provided, will not comment when closing a pull requests.
+    close-pr-message: # optional
+    # The number of days old an issue or a pull request can be before marking it stale. Set to -1 to never mark issues or pull requests as stale automatically.
+    days-before-stale: # optional, default is 60
+    # The number of days old an issue can be before marking it stale. Set to -1 to never mark issues as stale automatically. Override "days-before-stale" option regarding only the issues.
+    days-before-issue-stale: # optional
+    # The number of days old a pull request can be before marking it stale. Set to -1 to never mark pull requests as stale automatically. Override "days-before-stale" option regarding only the pull requests.
+    days-before-pr-stale: # optional
+    # The number of days to wait to close an issue or a pull request after it being marked stale. Set to -1 to never close stale issues or pull requests.
+    days-before-close: # optional, default is 7
+    # The number of days to wait to close an issue after it being marked stale. Set to -1 to never close stale issues. Override "days-before-close" option regarding only the issues.
+    days-before-issue-close: # optional
+    # The number of days to wait to close a pull request after it being marked stale. Set to -1 to never close stale pull requests. Override "days-before-close" option regarding only the pull requests.
+    days-before-pr-close: # optional
+    # The label to apply when an issue is stale.
+    stale-issue-label: # optional, default is Stale
+    # The label to apply when an issue is closed.
+    close-issue-label: # optional
+    # The labels that mean an issue is exempt from being marked stale. Separate multiple labels with commas (eg. "label1,label2").
+    exempt-issue-labels: # optional, default is 
+    # The label to apply when a pull request is stale.
+    stale-pr-label: # optional, default is Stale
+    # The label to apply when a pull request is closed.
+    close-pr-label: # optional
+    # The labels that mean a pull request is exempt from being marked as stale. Separate multiple labels with commas (eg. "label1,label2").
+    exempt-pr-labels: # optional, default is 
+    # The milestones that mean an issue or a pull request is exempt from being marked as stale. Separate multiple milestones with commas (eg. "milestone1,milestone2").
+    exempt-milestones: # optional, default is 
+    # The milestones that mean an issue is exempt from being marked as stale. Separate multiple milestones with commas (eg. "milestone1,milestone2"). Override "exempt-milestones" option regarding only the issues.
+    exempt-issue-milestones: # optional, default is 
+    # The milestones that mean a pull request is exempt from being marked as stale. Separate multiple milestones with commas (eg. "milestone1,milestone2"). Override "exempt-milestones" option regarding only the pull requests.
+    exempt-pr-milestones: # optional, default is 
+    # Exempt all issues and pull requests with milestones from being marked as stale. Default to false.
+    exempt-all-milestones: # optional, default is false
+    # Exempt all issues with milestones from being marked as stale. Override "exempt-all-milestones" option regarding only the issues.
+    exempt-all-issue-milestones: # optional, default is 
+    # Exempt all pull requests with milestones from being marked as stale. Override "exempt-all-milestones" option regarding only the pull requests.
+    exempt-all-pr-milestones: # optional, default is 
+    # Only issues or pull requests with all of these labels are checked if stale. Defaults to `` (disabled) and can be a comma-separated list of labels.
+    only-labels: # optional, default is 
+    # Only issues or pull requests with at least one of these labels are checked if stale. Defaults to `` (disabled) and can be a comma-separated list of labels.
+    any-of-labels: # optional, default is 
+    # Only issues with all of these labels are checked if stale. Defaults to `[]` (disabled) and can be a comma-separated list of labels. Override "only-labels" option regarding only the issues.
+    only-issue-labels: # optional, default is 
+    # Only pull requests with all of these labels are checked if stale. Defaults to `[]` (disabled) and can be a comma-separated list of labels. Override "only-labels" option regarding only the pull requests.
+    only-pr-labels: # optional, default is 
+    # The maximum number of operations per run, used to control rate limiting (GitHub API CRUD related).
+    operations-per-run: # optional, default is 30
+    # Remove stale labels from issues when they are updated or commented on.
+    remove-stale-when-updated: # optional, default is true
+    # Run the processor in debug mode without actually performing any operations on live issues.
+    debug-only: # optional, default is false
+    # The order to get issues or pull requests. Defaults to false, which is descending.
+    ascending: # optional, default is false
+    # Skip adding stale message when marking a pull request as stale.
+    skip-stale-pr-message: # optional, default is false
+    # Skip adding stale message when marking an issue as stale.
+    skip-stale-issue-message: # optional, default is false
+    # Delete the git branch after closing a stale pull request.
+    delete-branch: # optional, default is false
+    # The date used to skip the stale action on issue/pull request created before it (ISO 8601 or RFC 2822).
+    start-date: # optional, default is 
+    # The assignees which exempt an issue or a pull request from being marked as stale. Separate multiple assignees with commas (eg. "user1,user2").
+    exempt-assignees: # optional, default is 
+    # The assignees which exempt an issue from being marked as stale. Separate multiple assignees with commas (eg. "user1,user2"). Override "exempt-assignees" option regarding only the issues.
+    exempt-issue-assignees: # optional, default is 
+    # The assignees which exempt a pull request from being marked as stale. Separate multiple assignees with commas (eg. "user1,user2"). Override "exempt-assignees" option regarding only the pull requests.
+    exempt-pr-assignees: # optional, default is 
+    # Exempt all issues and pull requests with assignees from being marked as stale. Default to false.
+    exempt-all-assignees: # optional, default is false
+    # Exempt all issues with assignees from being marked as stale. Override "exempt-all-assignees" option regarding only the issues.
+    exempt-all-issue-assignees: # optional, default is 
+    # Exempt all pull requests with assignees from being marked as stale. Override "exempt-all-assignees" option regarding only the pull requests.
+    exempt-all-pr-assignees: # optional, default is 
+    # Display some statistics at the end regarding the stale workflow (only when the logs are enabled).
+    enable-statistics: # optional, default is true
+    - name: Download a Build Artifact
+  uses: actions/download-artifact@v2.0.9
+  with:
+    # Artifact name
+    name: # optional
+    # Destination path
+    path: # optional
+    - name: Setup .NET Core SDK
+  uses: actions/setup-dotnet@v1.8.0
+  with:
+    # Optional SDK version to use. If not provided, will install global.json version when available. Examples: 2.2.104, 3.1, 3.1.x
+    dotnet-version: # optional
+    # Optional package source for which to set up authentication. Will consult any existing NuGet.config in the root of the repo and provide a temporary NuGet.config using the NUGET_AUTH_TOKEN environment variable as a ClearTextPassword
+    source-url: # optional
+    # Optional OWNER for using packages from GitHub Package Registry organizations/users other than the current repository's owner. Only used if a GPR URL is also provided in source-url
+    owner: # optional
+    # Optional NuGet.config location, if your NuGet.config isn't located in the root of the repo.
+    config-file: # optional
+    # Whether prerelease versions should be matched with non-exact versions (for example 5.0.0-preview.6 being matched by 5, 5.0, 5.x or 5.0.x). Defaults to false if not provided.
+    include-prerelease: # optional
+    - name: First interaction
+  uses: actions/first-interaction@v1.1.0
+  with:
+    # Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}
+    repo-token: 
+    # Comment to post on an individual's first issue
+    issue-message: # optional
+    # Comment to post on an individual's first pull request
+    pr-message: # optional
+    - name: Docker Setup Buildx
+  # You may pin to the exact commit or the version.
+  # uses: docker/setup-buildx-action@0d135e0c2fc0dba0729c1a47ecfcf5a3c7f8579e
+  uses: docker/setup-buildx-action@v1.3.0
+  with:
+    # Buildx version. (eg. v0.3.0)
+    version: # optional
+    # Sets the builder driver to be used
+    driver: # optional, default is docker-container
+    # List of additional driver-specific options. (eg. image=moby/buildkit:master)
+    driver-opts: # optional
+    # Flags for buildkitd daemon
+    buildkitd-flags: # optional, default is --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+    # Sets up docker build command as an alias to docker buildx
+    install: # optional, default is false
+    # Switch to this builder instance
+    use: # optional, default is true
+    # Optional address for docker socket or context from `docker context ls`
+    endpoint: # optional
+    # BuildKit config file
+    config: # optional
+    - name: Set up gcloud Cloud SDK environment
+  # You may pin to the exact commit or the version.
+  # uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+  uses: google-github-actions/setup-gcloud@v0.2.0
+  with:
+    # Version of the gcloud SDK to install. If unspecified or set to "latest",
+the latest available gcloud SDK version for the target platform will be
+installed. Example: "290.0.1".
+    version: # optional, default is latest
+    # Service account email address to use for authentication. This is required
+for legacy .p12 keys but can be omitted for .json keys. This is usually of
+the format <name>@<project-id>.iam.gserviceaccount.com.
+    service_account_email: # optional
+    # Service account key to use for authentication. This should be the JSON
+formatted private key which can be exported from the Cloud Console. The
+value can be raw or base64-encoded.
+    service_account_key: # optional
+    # ID of the Google Cloud project. If provided, this will configure gcloud to
+use this project ID by default for commands. Individual commands can still
+override the project using the --project flag which takes precedence.
+    project_id: # optional
+    # Export the provided credentials as Google Default Application Credentials.
+This will make the credentials available to later steps via the
+GOOGLE_APPLICATION_CREDENTIALS environment variable. Future steps that
+consume Default Application Credentials will automatically detect and use
+these credentials.
+    export_default_credentials: # optional
+    - name: Deploy to Cloudflare Workers with Wrangler
+  # You may pin to the exact commit or the version.
+  # uses: cloudflare/wrangler-action@21f14faa062c33c938e3f37c30d52021bed521cb
+  uses: cloudflare/wrangler-action@1.2.0
+  with:
+    # (Legacy) Your Cloudflare API Key
+    apiKey: # optional
+    # Your Cloudflare API Token
+    apiToken: # optional
+    # (Legacy) Your Cloudflare Email
+    email: # optional
+    # The environment you'd like to publish your Workers project to - must be defined in wrangler.toml
+    environment: # optional
+    # The relative path which Wrangler commands should be run from
+    workingDirectory: # optional
+    # The version of Wrangler you'd like to use to publish your Workers project
+    wranglerVersion: # optional
+    # A new line deliminated string of environment variable names that should be configured as Worker secrets
+    secrets: # optional
