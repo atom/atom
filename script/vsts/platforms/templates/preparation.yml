@@ -7,7 +7,7 @@ steps:
       sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git libsecret-1-dev libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev software-properties-common
       # rpm needs to be at least 4.14, in xenial it is too old
       sudo apt-add-repository -y 'deb http://azure.archive.ubuntu.com/ubuntu/ bionic main universe'
-      sudo apt update
+      sudo apt-get update
       sudo apt-get install -y rpm
       # clang 9 is included in the image
       clang -v
