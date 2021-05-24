@@ -4588,8 +4588,10 @@ module.exports = class TextEditor {
   // * `bufferPosition` A {Point} or {Array} of [row, column]
   //
   // Returns a {Range}.
-  bufferRangeForScopeAtPosition (scopeSelector, bufferPosition) {
-    return this.buffer.getLanguageMode().bufferRangeForScopeAtPosition(scopeSelector, bufferPosition)
+  bufferRangeForScopeAtPosition(scopeSelector, bufferPosition) {
+    return this.buffer
+      .getLanguageMode()
+      .bufferRangeForScopeAtPosition(scopeSelector, bufferPosition);
   }
 
   // Extended: Determine if the given row is entirely a comment
