@@ -104,7 +104,7 @@ module.exports = class GrammarStatusView {
         this.element.style.display = '';
 
         this.tooltip = atom.tooltips.add(this.element, {
-          title: `File uses the ${grammarName} grammar`
+          title: `File uses the ${grammarName} syntax`
         });
       } else {
         this.element.style.display = 'none';
