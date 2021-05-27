@@ -208,6 +208,7 @@ Atom Core and all packages can be developed locally. For instructions on how to 
 
 The process described here has several goals:
 
+
 - Maintain Atom's quality
 - Fix problems that are important to users
 - Engage the community in working toward the best possible Atom
@@ -224,7 +225,7 @@ While the prerequisites above must be satisfied prior to having your pull reques
 ## Styleguides
 
 ### Git Commit Messages
-
+* Que pasa si cambio esto
 * Use the present tense ("Add feature" not "Added feature")
 * Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
 * Limit the first line to 72 characters or less
