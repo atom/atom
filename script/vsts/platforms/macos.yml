@@ -6,8 +6,8 @@ jobs:
 
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-      IsReleaseBranch: false
-      IsSignedZipBranch: true
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
       RunCoreMainTests: true
     pool:
       vmImage: macos-10.15

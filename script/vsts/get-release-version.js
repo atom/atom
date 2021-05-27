@@ -76,7 +76,6 @@ async function getReleaseVersion() {
     !isReleaseBranch &&
     (process.env.IS_SIGNED_ZIP_BRANCH ||
       buildBranch.startsWith('electron-') ||
-      buildBranch.startsWith('migrate-') ||
       (buildBranch === 'master' &&
         !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER));
   const SHOULD_SIGN = process.env.SHOULD_SIGN;
