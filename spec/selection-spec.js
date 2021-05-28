@@ -154,6 +154,20 @@ describe('Selection', () => {
       });
       expect(buffer.lineForRow(6)).toBe('    bar');
     });
+
+    it('does not indent when indentation autoIndentOnPaste is false', () => {
+      editor.setText('one\r\n  two');
+      editor.setSelectedBufferRange([[0, 3], [Infinity, Infinity]]);
+      editor.copySelectedText();
+      editor.setCursorBufferPosition([1, 6]);
+      editor.pasteText({ autoIndent: false });
+
+      const nextLine = editor.lineTextForBufferRow(2);
+      const prevLine = editor.lineTextForBufferRow(1);
+
+      expect(nextLine.length).toBe(prevLine.length);
+      expect(editor.lineTextForBufferRow(2)).toBe('  two');
+    });
   });
 
   describe('.fold()', () => {

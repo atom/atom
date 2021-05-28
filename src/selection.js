@@ -516,7 +516,8 @@ module.exports = class Selection {
 
     if (
       options.indentBasis != null &&
-      !options.preserveTrailingLineIndentation
+      !options.preserveTrailingLineIndentation &&
+      options.autoIndent
     ) {
       indentAdjustment =
         this.editor.indentLevelForLine(precedingText) - options.indentBasis;
