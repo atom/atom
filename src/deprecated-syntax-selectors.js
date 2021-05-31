@@ -1036,6 +1036,7 @@ module.exports = new Set([
   'conditional-directive',
   'conditional-short',
   'conditionals',
+  'csharp',
   'conditions',
   'conf',
   'config',
