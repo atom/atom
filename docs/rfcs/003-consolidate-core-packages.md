@@ -115,12 +115,9 @@ Using this criteria, all 91 packages have been evaluated and categorized to dete
 | **[autoflow]** | 17 | 4 | 0 | 4/17/18 |
 | **[autosave]** | 13 | 0 | 0 | 9/16/17 |
 | **[background-tips]** | 3 | 2 | 0 | 2/17/18 |
-| **[base16-tomorrow-dark-theme]** | 5 | 0 | 0 | 1/10/17 |
-| **[base16-tomorrow-light-theme]** | 1 | 0 | 0 | 1/10/17 |
 | **[bookmarks]** | 19 | 4 | 0 | 12/10/17 |
 | **[bracket-matcher]** | 74 | 8 | 0 | 3/20/18 |
 | **[command-palette]** | 18 | 6 | 0 | 2/27/18 |
-| **[dalek]** | 2 | 0 | 0 | 2/28/18 |
 | **[deprecation-cop]** | 5 | 0 | 0 | 9/7/17 |
 | **[dev-live-reload]** | 4 | 0 | 0 | 11/14/17 |
 | **[encoding-selector]** | 11 | 2 | 0 | 4/19/18 |
@@ -163,10 +160,6 @@ Using this criteria, all 91 packages have been evaluated and categorized to dete
 | **[link]** | 0 | 1 | 0 | 11/14/17 |
 | **[metrics]** | 1 | 2 | 0 | 7/5/18 |
 | **[notifications]** | 29 | 8 | 0 | 3/22/18 |
-| **[one-dark-syntax]** | 4 | 0 | 0 | 5/27/18 |
-| **[one-dark-ui]** | 13 | 1 | 0 | 5/1/18 |
-| **[one-light-syntax]** | 2 | 1 | 0 | 5/27/18 |
-| **[one-light-ui]** | 2 | 0 | 0 | 5/1/18 |
 | **[open-on-github]** | 8 | 3 | 0 | 11/21/17 |
 | **[package-generator]** | 10 | 2 | 0 | 11/16/17 |
 | **[status-bar]** | 25 | 3 | 0 | 11/6/17 |
@@ -249,10 +242,10 @@ One alternative approach would be to break this core Atom functionality out of p
 
 [about]: https://github.com/atom/about
 [archive-view]: https://github.com/atom/archive-view
-[theme-with-syntax-variables]: https://github.com/atom/theme-with-syntax-variables
-[theme-with-ui-variables]:ui-variables
-[main-syntax]: h
-[main-ui]: https://github.com/atom/main-ui
+[theme-with-syntax-variables]
+[theme-with-ui-variables]
+[main-syntax]:
+[main-ui]:
 [autocomplete-atom-api]: https://github.com/atom/autocomplete-atom-api
 [autocomplete-css]: https://github.com/atom/autocomplete-css
 [autocomplete-html]: https://github.com/atom/autocomplete-html
@@ -261,8 +254,7 @@ One alternative approach would be to break this core Atom functionality out of p
 [autoflow]: https://github.com/atom/autoflow
 [autosave]: https://github.com/atom/autosave
 [background-tips]: https://github.com/atom/background-tips
-[base16-tomorrow-dark-theme]: https://github.com/atom/base16-tomorrow-dark-theme
-[base16-tomorrow-light-theme]: https://github.com/atom/base16-tomorrow-light-theme
+
 [bookmarks]: https://github.com/atom/bookmarks
 [bracket-matcher]: https://github.com/atom/bracket-matcher
 [command-palette]: https://github.com/atom/command-palette
@@ -318,16 +310,12 @@ One alternative approach would be to break this core Atom functionality out of p
 [markdown-preview]: https://github.com/atom/markdown-preview
 [metrics]: https://github.com/atom/metrics
 [notifications]: https://github.com/atom/notifications
-[one-dark-syntax]: https://github.com/atom/one-dark-syntax
-[one-dark-ui]: https://github.com/atom/one-dark-ui
-[one-light-syntax]: https://github.com/atom/one-light-syntax
-[one-light-ui]: https://github.com/atom/one-light-ui
+
+
 [open-on-github]: https://github.com/atom/open-on-github
 [package-generator]: https://github.com/atom/package-generator
 [settings-view]: https://github.com/atom/settings-view
 [snippets]: https://github.com/atom/snippets
-[solarized-dark-syntax]: https://github.com/atom/solarized-dark-syntax
-[solarized-light-syntax]: https://github.com/atom/solarized-light-syntax
 [spell-check]: https://github.com/atom/spell-check
 [status-bar]: https://github.com/atom/status-bar
 [styleguide]: https://github.com/atom/styleguide
