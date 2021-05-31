@@ -258,7 +258,6 @@ One alternative approach would be to break this core Atom functionality out of p
 [bookmarks]: https://github.com/atom/bookmarks
 [bracket-matcher]: https://github.com/atom/bracket-matcher
 [command-palette]: https://github.com/atom/command-palette
-[dalek]: https://github.com/atom/dalek
 [deprecation-cop]: https://github.com/atom/deprecation-cop
 [dev-live-reload]: https://github.com/atom/dev-live-reload
 [encoding-selector]: https://github.com/atom/encoding-selector
