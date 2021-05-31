@@ -128,9 +128,7 @@ Using this criteria, all 91 packages have been evaluated and categorized to dete
 | **[image-view]** | 4 | 4 | 0 | 7/9/18 |
 | **[incompatible-packages]** | 1 | 0 | 0 | 4/25/17 |
 | **[keybinding-resolver]** | 11 | 3 | 0 | 7/6/18 |
-| **[language-clojure]** | 13 | 3 | 0 | 1/26/18 |
 | **[language-coffee-script]** | 9 | 2 | 0 | 11/1/17 |
-| **[language-csharp]** | 1 | 1 | 0 | 4/27/18 |
 | **[language-css]** | 6 | 7 | 0 | 6/11/18 |
 | **[language-gfm]** | 52 | 9 | 0 | 6/15/18 |
 | **[language-git]** | 4 | 2 | 0 | 4/18/17 |
@@ -272,9 +270,7 @@ One alternative approach would be to break this core Atom functionality out of p
 [incompatible-packages]: https://github.com/atom/incompatible-packages
 [keybinding-resolver]: https://github.com/atom/keybinding-resolver
 [language-c]: https://github.com/atom/language-c
-[language-clojure]: https://github.com/atom/language-clojure
 [language-coffee-script]: https://github.com/atom/language-coffee-script
-[language-csharp]: https://github.com/atom/language-csharp
 [language-css]: https://github.com/atom/language-css
 [language-gfm]: https://github.com/atom/language-gfm
 [language-git]: https://github.com/atom/language-git

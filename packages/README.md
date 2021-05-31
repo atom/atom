@@ -40,9 +40,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **incompatible-packages** | [`./incompatible-packages`](./incompatible-packages) | [#17846](https://github.com/atom/atom/issues/17846) |
 | **keybinding-resolver** | [`atom/keybinding-resolver`][keybinding-resolver] | [#18275](https://github.com/atom/atom/issues/18275) |
 | **language-c** | [`atom/language-c`][language-c] |  |
-| **language-clojure** | [`atom/language-clojure`][language-clojure] |  |
 | **language-coffee-script** | [`atom/language-coffee-script`][language-coffee-script] |  |
-| **language-csharp** | [`atom/language-csharp`][language-csharp] |  |
 | **language-css** | [`atom/language-css`][language-css] |  |
 | **language-gfm** | [`atom/language-gfm`][language-gfm] |  |
 | **language-git** | [`atom/language-git`][language-git] |  |
@@ -78,10 +76,6 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | **markdown-preview** | [`atom/markdown-preview`][markdown-preview] |  |
 | **metrics** | [`atom/metrics`][metrics] | [#18276](https://github.com/atom/atom/issues/18276) |
 | **notifications** | [`atom/notifications`][notifications] | [#18277](https://github.com/atom/atom/issues/18277) |
-| **one-dark-syntax** | [`./one-dark-syntax`](./one-dark-syntax) | [#17853](https://github.com/atom/atom/issues/17853) |
-| **one-dark-ui** | [`./one-dark-ui`](./one-dark-ui) | [#17854](https://github.com/atom/atom/issues/17854) |
-| **one-light-syntax** | [`./one-light-syntax`](./one-light-syntax) | [#17855](https://github.com/atom/atom/issues/17855) |
-| **one-light-ui** | [`./one-light-ui`](./one-light-ui) | [#17856](https://github.com/atom/atom/issues/17856) |
 | **open-on-github** | [`atom/open-on-github`][open-on-github] | [#18278](https://github.com/atom/atom/issues/18278) |
 | **package-generator** | [`atom/package-generator`][package-generator] | [#18279](https://github.com/atom/atom/issues/18279) |
 | **settings-view** | [`atom/settings-view`][settings-view] |  |
@@ -118,9 +112,7 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 [image-view]: https://github.com/atom/image-view
 [keybinding-resolver]: https://github.com/atom/keybinding-resolver
 [language-c]: https://github.com/atom/language-c
-[language-clojure]: https://github.com/atom/language-clojure
 [language-coffee-script]: https://github.com/atom/language-coffee-script
-[language-csharp]: https://github.com/atom/language-csharp
 [language-css]: https://github.com/atom/language-css
 [language-gfm]: https://github.com/atom/language-gfm
 [language-git]: https://github.com/atom/language-git
