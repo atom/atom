@@ -27,7 +27,6 @@ if (global.isGeneratingSnapshot) {
   require('dev-live-reload');
   require('encoding-selector');
   require('exception-reporting');
-  require('dalek');
   require('find-and-replace');
   require('fuzzy-finder');
   require('github');

@@ -146,7 +146,7 @@ module.exports = class ThemeManager {
 
     // Use a built-in syntax and UI theme any time the configured themes are not
     // available.
-    if (themeNames.length < 1) {
+    if (themeNames.length < 2) {
       const builtInThemeNames = [
         'theme-with-syntax-variables',
         'theme-with-ui-variables',
