@@ -102,7 +102,7 @@ const EXCLUDE_REGEXPS_SOURCES = [
   // specific spec folders hand-picked
   'node_modules' +
     escapeRegExp(path.sep) +
-    '(oniguruma|dev-live-reload|deprecation-cop|one-dark-ui|incompatible-packages|git-diff|line-ending-selector|link|grammar-selector|json-schema-traverse|exception-reporting|one-light-ui|autoflow|about|go-to-line|sylvester|apparatus)' +
+    '(oniguruma|dev-live-reload|deprecation-cop|one-dark-ui|incompatible-packages|git-diff|line-ending-selector|link|grammar-selector|json-schema-traverse|exception-reporting|autoflow|go-to-line|sylvester|apparatus)' +
     escapeRegExp(path.sep) +
     'spec' +
     escapeRegExp(path.sep),

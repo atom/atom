@@ -1,0 +1,156 @@
+
+// Theme config
+// This gets changed from the theme settings
+
+@theme-tabsizing: ~'theme-@{ui-theme-name}-tabsizing';
+@theme-dockButtons: ~'theme-@{ui-theme-name}-dock-buttons';
+@theme-stickyHeaders: ~'theme-@{ui-theme-name}-sticky-headers';
+@theme-closeButton: ~'theme-@{ui-theme-name}-tab-close-button';
+
+
+// Tabs ----------------------------------------------
+
+@tab-min-width: 7em; // ~ icon + 6 characters
+
+// Even (default)
+
+.tab-bar {
+  .tab,
+  .tab.active {
+    flex: 1 1 0;
+    max-width: 22em;
+    min-width: @tab-min-width;
+  }
+  atom-dock & {
+    .tab,
+    .tab.active {
+      max-width: none;
+    }
+  }
+
+  // TODO: Turn this into a config
+  // Truncates the beginning instead
+  // .title.title.title {
+  //   direction: rtl; // change direction
+  // }
+}
+
+
+// Maximum (full width)
+
+[@{theme-tabsizing}="maximum"] .tab-bar {
+  .tab,
+  .tab.active {
+    max-width: none;
+  }
+}
+
+
+// Minimum (show long paths)
+
+[@{theme-tabsizing}="minimum"] .tab-bar {
+  .tab,
+  .tab.active {
+    flex: 0 0 auto;
+    min-width: 2.75em;
+    max-width: @tab-min-width * 3.3;
+  }
+  atom-dock {
+    .tab,
+    .tab.active {
+      max-width: @tab-min-width * 2;
+    }
+  }
+}
+
+
+// Tabs: close button position  ------------------------------
+
+[@{theme-closeButton}="left"] {
+
+  .tab-bar .tab {
+    .close-icon {
+      right: auto;
+      left: @icon-padding-right;
+    }
+  }
+
+}
+
+
+// Hide docks toggle buttons ------------------------------
+
+[@{theme-dockButtons}="hidden"] {
+
+  // Hide docks when not open
+  .atom-dock-inner:not(.atom-dock-open) {
+    display: none;
+  }
+
+  // Hide toggle buttons
+  .atom-dock-toggle-button {
+    display: none;
+  }
+
+}
+
+
+// Sticky Projects ------------------------------
+
+[@{theme-stickyHeaders}="sticky"] {
+
+  .tree-view {
+    .project-root-header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      padding-left: 5px;
+      padding-right: 10px;
+      border-bottom: 1px solid @base-border-color;
+      background-color: @tree-view-background-color;
+    }
+    .project-root.project-root {
+      margin-left: -5px;
+      margin-right: -10px;
+
+      // Disable selection
+      &::before {
+        display: none;
+      }
+
+      // Add selection back
+      &.selected .project-root-header {
+        background-color: @background-color-selected;
+      }
+    }
+    &:focus .selected .project-root-header.project-root-header  {
+      background: @button-background-color-selected;
+    }
+
+    // Fix sticky header from covering auto-revealed files
+    .entry.file.selected {
+      padding-top: @ui-tab-height;
+      margin-top: -@ui-tab-height;
+    }
+
+    // Fix sticky header from covering auto-revealed directories when using up/down keys
+    // for directories, scroll test moves to .header, see https://github.com/atom/tree-view/blob/d2857ad4d7eeb7dad5cf94b33257a8740211480e/lib/tree-view.coffee#L839
+    .entry.directory.selected:not(.project-root) {
+      & > .header {
+        padding-top: @ui-tab-height;
+        margin-top: -@ui-tab-height;
+      }
+      &::before {
+        margin-top: @ui-tab-height;
+      }
+    }
+
+    // Fix above directory is not being clickable
+    .entry.directory:not(.project-root) > .header {
+      z-index: 2;
+    }
+    .entry.directory.selected:not(.project-root) > .header {
+      z-index: 1;
+    }
+  }
+}

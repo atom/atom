@@ -148,8 +148,6 @@ module.exports = class ThemeManager {
     // available.
     if (themeNames.length < 2) {
       const builtInThemeNames = [
-        'atom-dark-syntax',
-        'atom-dark-ui',
         'atom-light-syntax',
         'atom-light-ui',
         'base16-tomorrow-dark-theme',
