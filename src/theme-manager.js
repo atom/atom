@@ -146,23 +146,19 @@ module.exports = class ThemeManager {
 
     // Use a built-in syntax and UI theme any time the configured themes are not
     // available.
-    if (themeNames.length < 2) {
+    if (themeNames.length < 1) {
       const builtInThemeNames = [
-        'atom-light-syntax',
-        'atom-light-ui',
-        'base16-tomorrow-dark-theme',
-        'base16-tomorrow-light-theme',
-        'solarized-dark-syntax',
-        'solarized-light-syntax'
+        'theme-with-syntax-variables',
+        'theme-with-ui-variables',
       ];
       themeNames = _.intersection(themeNames, builtInThemeNames);
       if (themeNames.length === 0) {
-        themeNames = ['one-dark-syntax', 'one-dark-ui'];
+        themeNames = ['theme-with-syntax-variables', 'theme-with-ui-variables'];
       } else if (themeNames.length === 1) {
         if (themeNames[0].endsWith('-ui')) {
-          themeNames.unshift('one-dark-syntax');
+          themeNames.unshift('theme-with-syntax-variables');
         } else {
-          themeNames.push('one-dark-ui');
+          themeNames.push('theme-with-ui-variables');
         }
       }
     }

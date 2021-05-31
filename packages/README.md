@@ -9,10 +9,10 @@ See [RFC 003](https://github.com/atom/atom/blob/master/docs/rfcs/003-consolidate
 | Package | Where to find it | Migration issue |
 |---------|------------------|-----------------|
 | **about** | [`./about`](./about) | [#17832](https://github.com/atom/atom/issues/17832) |
-| **atom-dark-syntax** | [`./atom-dark-syntax`](./atom-dark-syntax) | [#17849](https://github.com/atom/atom/issues/17849) |
-| **atom-dark-ui** | [`./atom-dark-ui`](./atom-dark-ui) | [#17850](https://github.com/atom/atom/issues/17850) |
-| **atom-light-syntax** | [`./atom-light-syntax`](./atom-light-syntax) | [#17851](https://github.com/atom/atom/issues/17851) |
-| **atom-light-ui** | [`./atom-light-ui`](./atom-light-ui) | [#17852](https://github.com/atom/atom/issues/17852) |
+| **theme-with-syntax-variables** | [`./theme-with-syntax-variables`](./theme-with-syntax-variables) | [#17849](https://github.com/atom/atom/issues/17849) |
+| **theme-with-ui-variables** | [`./theme-with-ui-variables`](./theme-with-ui-variables) | [#17850](https://github.com/atom/atom/issues/17850) |
+| **main-syntax** | [`./main-syntax`](./main-syntax) | [#17851](https://github.com/atom/atom/issues/17851) |
+| **main-ui** | [`./main-ui`](./main-ui) | [#17852](https://github.com/atom/atom/issues/17852) |
 | **autocomplete-atom-api** | [`atom/autocomplete-atom-api`][autocomplete-atom-api] |  |
 | **autocomplete-css** | [`atom/autocomplete-css`][autocomplete-css] |  |
 | **autocomplete-html** | [`atom/autocomplete-html`][autocomplete-html] |  |

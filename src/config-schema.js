@@ -100,7 +100,7 @@ const configSchema = {
       },
       themes: {
         type: 'array',
-        default: ['one-dark-ui', 'one-dark-syntax'],
+        default: ['main-ui', 'main-syntax'],
         items: {
           type: 'string'
         },

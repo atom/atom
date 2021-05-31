@@ -110,10 +110,8 @@ Using this criteria, all 91 packages have been evaluated and categorized to dete
 |---------|-------------|----------|---------------------| -------------|
 | **[about]** | 2 | 0 | 0 | 7/11/18 |
 | **[archive-view]** | 10 | 0 | 0 | 6/3/18 |
-| **[atom-dark-syntax]** | 5 | 0 | 0 | 12/6/17 |
-| **[atom-dark-ui]** | 1 | 2 | 0 | 2/13/18 |
-| **[atom-light-syntax]** | 1 | 0 | 0 | 10/17/16 |
-| **[atom-light-ui]** | 1 | 0 | 0 | 2/13/18 |
+| **[main-syntax]** | 1 | 0 | 0 | 10/17/16 |
+| **[main-ui]** | 1 | 0 | 0 | 2/13/18 |
 | **[autoflow]** | 17 | 4 | 0 | 4/17/18 |
 | **[autosave]** | 13 | 0 | 0 | 9/16/17 |
 | **[background-tips]** | 3 | 2 | 0 | 2/17/18 |
@@ -197,8 +195,6 @@ The following packages will not be consolidated until the stated reasons can be 
 | **[markdown-preview]** | 139 | 12 | 0 | 1/8/18 | Too many open PRs |
 | **[settings-view]** | 137 | 18 | 0 | 5/17/18 | Too many open PRs |
 | **[snippets]** | 57 | 4 | **1** | 4/17/18 | Package maintainer |
-| **[solarized-dark-syntax]** | 8 | 3 | **1** | 5/27/18 | Package maintainer |
-| **[solarized-light-syntax]** | 2 | 3 | **1** | 5/27/18 | Package maintainer |
 | **[spell-check]** | 68 | 14 | **1** | 5/25/18 | Too many open PRs, package maintainer |
 | **[symbols-view]** | 86 | 13 | 0 | 12/10/17 | Too many open PRs |
 | **[tree-view]** | 210 | 36 | 0 | 3/21/18 | Too many open PRs |
@@ -253,10 +249,10 @@ One alternative approach would be to break this core Atom functionality out of p
 
 [about]: https://github.com/atom/about
 [archive-view]: https://github.com/atom/archive-view
-[atom-dark-syntax]: https://github.com/atom/atom-dark-syntax
-[atom-dark-ui]: https://github.com/atom/atom-dark-ui
-[atom-light-syntax]: https://github.com/atom/atom-light-syntax
-[atom-light-ui]: https://github.com/atom/atom-light-ui
+[theme-with-syntax-variables]: https://github.com/atom/theme-with-syntax-variables
+[theme-with-ui-variables]:ui-variables
+[main-syntax]: h
+[main-ui]: https://github.com/atom/main-ui
 [autocomplete-atom-api]: https://github.com/atom/autocomplete-atom-api
 [autocomplete-css]: https://github.com/atom/autocomplete-css
 [autocomplete-html]: https://github.com/atom/autocomplete-html

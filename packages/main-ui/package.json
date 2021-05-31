@@ -1,0 +1,8 @@
+{
+  "name": "main-ui",
+  "theme": "ui",
+
+  "engines": {
+    "atom": ">0.50.0"
+  }
+}
