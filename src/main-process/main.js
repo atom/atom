@@ -35,7 +35,35 @@ function isAtomRepoPath(repoPath) {
     }
   }
 
+<<<<<<< HEAD
+  if (AtomPortable.isPortableInstall(process.platform, process.env.ATOM_HOME, atomHome)) {
+    atomHome = AtomPortable.getPortableAtomHomePath()
+  }
+
+  try {
+    atomHome = fs.realpathSync(atomHome)
+  } catch (e) {
+    // Don't throw an error if atomHome doesn't exist.
+  }
+
+  process.env.ATOM_HOME = atomHome
+}
+
+function setupCompileCache () {
+  const CompileCache = require('../compile-cache')
+  CompileCache.setAtomHomeDirectory(process.env.ATOM_HOME)
+}
+
+function writeFullVersion () {
+  process.stdout.write(
+    `Atom    : ${app.getVersion()}\n` +
+    `Electron: ${process.versions.electron}\n` +
+    `Chrome  : ${process.versions.chrome}\n` +
+    `Node    : ${process.versions.node}\n`
+  )
+=======
   return false;
+>>>>>>> master
 }
 
 let resourcePath;
