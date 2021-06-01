@@ -3,9 +3,12 @@
 SET EXPECT_OUTPUT=
 SET WAIT=
 SET PSARGS=%*
+<<<<<<< HEAD
 SET ELECTRON_ENABLE_LOGGING=
 SET ATOM_ADD=
 SET ATOM_NEW_WINDOW=
+=======
+>>>>>>> origin/1.8-releases-archived
 
 FOR %%a IN (%*) DO (
   IF /I "%%a"=="-f"                         SET EXPECT_OUTPUT=YES
@@ -41,7 +44,11 @@ IF "%ATOM_ADD%"=="YES" (
 
 IF "%EXPECT_OUTPUT%"=="YES" (
   IF "%WAIT%"=="YES" (
+<<<<<<< HEAD
     powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\<%= atomExeName %>\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
+=======
+    powershell -noexit "Start-Process -FilePath \"%~dp0\..\..\atom.exe\" -ArgumentList \"--pid=$pid $env:PSARGS\" ; wait-event"
+>>>>>>> origin/1.8-releases-archived
     exit 0
   ) ELSE (
     "%~dp0\..\..\<%= atomExeName %>" %*
