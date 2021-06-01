@@ -138,6 +138,8 @@ class Package
         @mainModule.activate?(@packageManager.getPackageState(@name) ? {})
         @mainActivated = true
         @activateServices()
+      @activationCommandSubscriptions?.dispose()
+      @activationHookSubscriptions?.dispose()
     catch error
       @handleError("Failed to activate the #{@name} package", error)
 

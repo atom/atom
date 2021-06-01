@@ -9,7 +9,7 @@ class TextEditorPresenter
   startBlinkingCursorsAfterDelay: null
   stoppedScrollingTimeoutId: null
   mouseWheelScreenRow: null
-  overlayDimensions: {}
+  overlayDimensions: null
   minimumReflowInterval: 200
 
   constructor: (params) ->
@@ -31,6 +31,7 @@ class TextEditorPresenter
     @lineDecorationsByScreenRow = {}
     @lineNumberDecorationsByScreenRow = {}
     @customGutterDecorationsByGutterName = {}
+    @overlayDimensions = {}
     @observedBlockDecorations = new Set()
     @invalidatedDimensionsByBlockDecoration = new Set()
     @invalidateAllBlockDecorationsDimensions = false

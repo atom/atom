@@ -7,8 +7,6 @@ module.exports = ({blobStore}) ->
   {ipcRenderer} = require 'electron'
   {resourcePath, isSpec, devMode, env} = getWindowLoadSettings()
 
-  updateProcessEnv(env)
-
   # Add application-specific exports to module search path.
   exportsPath = path.join(resourcePath, 'exports')
   require('module').globalPaths.push(exportsPath)
