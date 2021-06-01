@@ -3,7 +3,7 @@ var quicksort = function () {
     this is a multiline comment
     it is, I promise
   */
-  var sort = function(items) {
+  var sort = function(items) { // comment at the end of a foldable line
     // This is a collection of
     // single line comments.
     // Wowza

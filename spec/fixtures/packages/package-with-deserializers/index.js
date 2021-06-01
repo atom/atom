@@ -1,4 +1,5 @@
 module.exports = {
+  initialize() {},
   activate () {},
 
   deserializeMethod1 (state) {

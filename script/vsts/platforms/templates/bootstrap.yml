@@ -1,0 +1,26 @@
+steps:
+  - pwsh: |
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Windows_NT") {
+        $env:NPM_BIN_PATH="C:/npm/prefix/npm.cmd"
+        $env:npm_config_build_from_source=true
+      }
+      if ($env:AGENT_OS -eq "Darwin") {
+        $env:NPM_BIN_PATH="/usr/local/bin/npm"
+        $env:npm_config_build_from_source=true
+      }
+      if ($env:AGENT_OS -eq "Linux") {
+        $env:NPM_BIN_PATH="/usr/local/bin/npm"
+        $env:CC=clang
+        $env:CXX=clang++
+        $env:npm_config_clang=1
+      }
+
+      # Bootstrap
+      script/bootstrap
+    displayName: Bootstrap build environment
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      CI: true
+      CI_PROVIDER: VSTS
+    condition: or(ne(variables['MainNodeModulesRestored'], 'true'), ne(variables['ScriptNodeModulesRestored'], 'true'), ne(variables['ApmNodeModulesRestored'], 'true'), ne(variables['LocalPackagesRestored'], 'true'))

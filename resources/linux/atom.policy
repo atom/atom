@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+  <vendor>Atom</vendor>
+  <action id="atom.pkexec.dd">
+    <description gettext-domain="atom">Admin privileges required</description>
+    <message gettext-domain="atom">Please enter your password to save this file</message>
+    <annotate key="org.freedesktop.policykit.exec.path">/bin/dd</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+    <defaults>
+      <allow_any>auth_admin_keep</allow_any>
+      <allow_inactive>auth_admin_keep</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+</policyconfig>

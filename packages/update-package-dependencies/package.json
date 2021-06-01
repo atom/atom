@@ -1,0 +1,39 @@
+{
+  "name": "update-package-dependencies",
+  "main": "./lib/update-package-dependencies",
+  "version": "0.13.1",
+  "private": true,
+  "description": "Runs `apm install` for the current project",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.39.0"
+  },
+  "activationCommands": {
+    "atom-workspace": [
+      "update-package-dependencies:update"
+    ]
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.1.0": "consumeStatusBar"
+      }
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
+  }
+}

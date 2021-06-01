@@ -1,0 +1,57 @@
+@import "ui-variables";
+@import "octicon-mixins";
+
+.select-list {
+  .loading {
+    .loading-message {
+      .octicon(hourglass);
+
+      &:before {
+        font-size: 1.1em;
+        width: 1.1em;
+        height: 1.1em;
+        margin-right: 5px;
+      }
+    }
+
+    .badge {
+      margin-left: 10px;
+    }
+  }
+
+  ol.list-group {
+    position: relative;
+    overflow-y: auto;
+    max-height: 312px;
+    margin: @component-padding 0 0 0;
+    padding: 0;
+
+    li {
+      display: block;
+
+      .primary-line,
+      .secondary-line {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+  }
+}
+
+
+// Popover List
+
+.select-list.popover-list {
+  width: 200px;
+  min-width: 200px;
+  margin-left: 0;
+  position: relative;
+  background-color: @overlay-background-color;
+
+  ol.list-group {
+    position: relative;
+    overflow-y: scroll;
+    max-height: 200px;
+  }
+}

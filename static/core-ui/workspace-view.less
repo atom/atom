@@ -1,0 +1,36 @@
+@import "ui-variables";
+@import "utils";
+
+atom-workspace {
+  contain: @contain_all;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  color: @text-color;
+  background-color: @app-background-color;
+  font-family: @font-family;
+
+  atom-workspace-axis {
+    contain: @contain_except_layout_paint;
+    position: relative;
+  }
+
+  atom-workspace-axis.horizontal {
+    contain: @contain_except_layout_paint;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  atom-workspace-axis.vertical {
+    contain: @contain_except_layout_paint;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+}

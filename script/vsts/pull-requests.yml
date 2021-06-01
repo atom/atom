@@ -1,0 +1,13 @@
+trigger: none # No CI builds, only PR builds
+
+jobs:
+  # Import "GetReleaseVersion" job definition
+  - template: platforms/templates/get-release-version.yml
+
+  # Import lint definition
+  - template: lint.yml
+
+  # Import OS-specific build definitions
+  - template: platforms/windows.yml
+  - template: platforms/macos.yml
+  - template: platforms/linux.yml

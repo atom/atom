@@ -9,8 +9,12 @@ class PaneResizeHandleElement extends HTMLElement
     @addEventListener 'mousedown', @resizeStarted.bind(this)
 
   attachedCallback: ->
-    @isHorizontal = @parentElement.classList.contains("horizontal")
-    @classList.add if @isHorizontal then 'horizontal' else 'vertical'
+    # For some reason Chromium 58 is firing the attached callback after the
+    # element has been detached, so we ignore the callback when a parent element
+    # can't be found.
+    if @parentElement
+      @isHorizontal = @parentElement.classList.contains("horizontal")
+      @classList.add if @isHorizontal then 'horizontal' else 'vertical'
 
   detachedCallback: ->
     @resizeStopped()
@@ -22,12 +26,20 @@ class PaneResizeHandleElement extends HTMLElement
 
   resizeStarted: (e) ->
     e.stopPropagation()
+    if not @overlay
+      @overlay = document.createElement('div')
+      @overlay.classList.add('atom-pane-cursor-overlay')
+      @overlay.classList.add(if @isHorizontal then 'horizontal' else 'vertical')
+      @appendChild @overlay
     document.addEventListener 'mousemove', @resizePane
     document.addEventListener 'mouseup', @resizeStopped
 
   resizeStopped: ->
     document.removeEventListener 'mousemove', @resizePane
     document.removeEventListener 'mouseup', @resizeStopped
+    if @overlay
+      @removeChild @overlay
+      @overlay = undefined
 
   calcRatio: (ratio1, ratio2, total) ->
     allRatio = ratio1 + ratio2

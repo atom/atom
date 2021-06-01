@@ -1,0 +1,82 @@
+jobs:
+  - job: macOS_build
+    displayName: macOS Build
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180
+
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+      RunCoreMainTests: true
+    pool:
+      vmImage: macos-10.15
+
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
+
+      - template: templates/bootstrap.yml
+
+      - template: templates/build.yml
+
+      # core main tests
+      - template: templates/test.yml
+
+      - script: |
+          cp $(Build.SourcesDirectory)/out/*.zip $(Build.ArtifactStagingDirectory)
+        displayName: Stage Artifacts
+
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom-mac.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-mac-symbols.zip
+              fileDir: $(Build.ArtifactStagingDirectory)
+              condition: succeeded()
+            - fileName: atom-api.json
+              fileDir: $(Build.SourcesDirectory)/docs/output
+              condition: succeeded()
+
+  - job: macOS_tests
+    displayName: macOS Tests
+    dependsOn: macOS_build
+    timeoutInMinutes: 180
+    pool:
+      vmImage: macos-10.15
+    strategy:
+      maxParallel: 3
+      matrix:
+        renderer:
+          RunCoreRendererTests: true
+          RunPackageTests: false
+        packages-1:
+          RunCoreTests: false
+          RunPackageTests: 1
+        packages-2:
+          RunCoreTests: false
+          RunPackageTests: 2
+
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: macos
+
+      # The artifact caching task does not work on forks, so we need to
+      # bootstrap again for pull requests coming from forked repositories.
+      - template: templates/bootstrap.yml
+
+      - template: templates/download-unzip.yml
+        parameters:
+          artifacts:
+            - atom-mac.zip
+            - atom-mac-symbols.zip
+
+      - template: templates/test.yml

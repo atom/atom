@@ -1,0 +1,153 @@
+name: 'Rust'
+scopeName: 'source.rust'
+type: 'tree-sitter'
+parser: 'tree-sitter-rust'
+injectionRegex: 'rust'
+
+fileTypes: [
+  'rs'
+]
+
+comments:
+  start: '// '
+
+folds: [
+  {
+    type: 'block_comment'
+  }
+  {
+    start: {index: 0, type: '{'}
+    end: {index: -1, type: '}'}
+  }
+  {
+    start: {index: 0, type: '['}
+    end: {index: -1, type: ']'}
+  }
+  {
+    start: {index: 0, type: '('}
+    end: {index: -1, type: ')'}
+  }
+  {
+    start: {index: 0, type: '<'}
+    end: {index: -1, type: '>'}
+  }
+]
+
+scopes:
+  'type_identifier': 'support.type'
+  'primitive_type': 'support.type'
+  'field_identifier': 'variable.other.member'
+
+  'line_comment': 'comment.block'
+  'block_comment': 'comment.block'
+
+  'identifier': [
+    {match: '^[A-Z\\d_]+$', scopes: 'constant.other'}
+  ]
+
+  '''
+  identifier,
+  call_expression > identifier,
+  call_expression > field_expression > field_identifier,
+  call_expression > scoped_identifier > identifier:nth-child(2)
+  ''': [
+    {match: '^[A-Z]', scopes: 'entity.name.class'}
+  ]
+
+  '''
+  macro_invocation > identifier,
+  macro_invocation > "!",
+  macro_definition > identifier,
+  call_expression > identifier,
+  call_expression > field_expression > field_identifier,
+  call_expression > scoped_identifier > identifier:nth-child(2),
+  generic_function > identifier,
+  generic_function > field_expression > field_identifier,
+  generic_function > scoped_identifier > identifier,
+  function_item > identifier,
+  function_signature_item > identifier,
+  ''': 'entity.name.function'
+
+  '''
+  use_list > self,
+  scoped_use_list > self,
+  scoped_identifier > self,
+  crate,
+  super
+  ''': 'keyword.control'
+
+  'self': 'variable.self'
+
+  '''
+  use_wildcard > identifier:nth-child(0),
+  use_wildcard > scoped_identifier > identifier:nth-child(2),
+  scoped_type_identifier > identifier:nth-child(0),
+  scoped_type_identifier > scoped_identifier:nth-child(0) > identifier,
+  scoped_identifier > identifier:nth-child(0),
+  scoped_identifier > scoped_identifier:nth-child(0) > identifier,
+  use_declaration > identifier,
+  use_declaration > scoped_identifier > identifier,
+  use_list > identifier,
+  use_list > scoped_identifier > identifier,
+  meta_item > identifier
+  ''': [
+    {match: '^[A-Z]', scopes: 'support.type'}
+  ]
+
+  'lifetime > identifier': 'constant.variable'
+
+  '"let"': 'storage.modifier'
+  '"const"': 'storage.modifier'
+  '"static"': 'storage.modifier'
+  '"extern"': 'storage.modifier'
+  '"fn"': 'storage.modifier'
+  '"type"': 'storage.modifier'
+  '"impl"': 'storage.modifier'
+  '"dyn"': 'storage.modifier'
+  '"trait"': 'storage.modifier'
+  '"mod"': 'storage.modifier'
+  '"pub"': 'storage.modifier'
+  '"crate"': 'storage.modifier'
+  '"default"': 'storage.modifier'
+  '"struct"': 'storage.modifier'
+  '"enum"': 'storage.modifier'
+  '"union"': 'storage.modifier'
+  'mutable_specifier': 'storage.modifier'
+
+  '"unsafe"': 'keyword.control'
+  '"use"': 'keyword.control'
+  '"match"': 'keyword.control'
+  '"if"': 'keyword.control'
+  '"in"': 'keyword.control'
+  '"else"': 'keyword.control'
+  '"move"': 'keyword.control'
+  '"while"': 'keyword.control'
+  '"loop"': 'keyword.control'
+  '"for"': 'keyword.control'
+  '"let"': 'keyword.control'
+  '"return"': 'keyword.control'
+  '"continue"': 'keyword.control'
+  '"break"': 'keyword.control'
+  '"where"': 'keyword.control'
+  '"ref"': 'keyword.control'
+  '"macro_rules!"': 'keyword.control'
+  '"async"': 'keyword.control'
+  '"await"': 'keyword.control'
+
+  '"as"': 'keyword.operator'
+
+  'char_literal': 'string.quoted.single'
+  'string_literal': 'string.quoted.double'
+  'raw_string_literal': 'string.quoted.other'
+  'boolean_literal': 'constant.language.boolean'
+  'integer_literal': 'constant.numeric.decimal'
+  'float_literal': 'constant.numeric.decimal'
+  'escape_sequence': 'constant.character.escape'
+
+  'attribute_item, inner_attribute_item': 'entity.other.attribute-name'
+
+  '''
+  "as",
+  "*",
+  "&",
+  ''': 'keyword.operator'

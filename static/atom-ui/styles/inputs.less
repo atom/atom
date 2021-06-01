@@ -1,0 +1,383 @@
+@import "./variables/ui-variables"; // Fallback for @use-custom-controls
+@import "ui-variables";
+
+@component-size: @component-icon-size; // use for text-less controls like radio, checkboxes etc.
+@component-margin-side: .3em;
+@text-component-height: 2em;
+@component-background-color: mix(@text-color, @base-background-color, 20%);
+
+
+//
+// Overrides
+// -------------------------
+
+input.input-radio,
+input.input-checkbox,
+input.input-toggle {
+  margin-top: 0; // Override Bootstrap's 4px
+}
+.input-label {
+  margin-bottom: 0;
+}
+
+//
+// Mixins
+// -------------------------
+
+.input-field-mixin() {
+  padding: .25em .4em;
+  line-height: 1.5; // line-height + padding = @text-component-height
+  border-radius: @component-border-radius;
+  border: 1px solid @input-border-color;
+  background-color: @input-background-color;
+  &::-webkit-input-placeholder {
+    color: @text-color-subtle;
+  }
+  &:invalid {
+    color: @text-color-error;
+    border-color: @background-color-error;
+  }
+}
+
+.input-block-mixin() {
+  display: block;
+  width: 100%;
+}
+
+
+//
+// Checkbox
+// -------------------------
+
+.input-checkbox {
+  vertical-align: middle;
+
+  & when (@use-custom-controls) {
+    -webkit-appearance: none;
+    display: inline-block;
+    position: relative;
+    width: @component-size;
+    height: @component-size;
+    font-size: inherit;
+    border-radius: @component-border-radius;
+    background-color: @component-background-color;
+    transition: background-color .16s cubic-bezier(0.5, 0.15, 0.2, 1);
+
+    &&:focus {
+      outline: 0; // TODO: Add it back
+    }
+    &:active {
+      background-color: @background-color-info;
+    }
+
+    &:before,
+    &:after {
+      content: "";
+      position: absolute;
+      top: @component-size * .75;
+      left: @component-size * .4;
+      height: 2px;
+      border-radius: 1px;
+      background-color: @base-background-color;
+      transform-origin: 0 0;
+      opacity: 0;
+      transition: transform .1s cubic-bezier(0.5, 0.15, 0.2, 1), opacity .1s cubic-bezier(0.5, 0.15, 0.2, 1);
+    }
+    &:before {
+      width: @component-size * .33;
+      transform: translate3d(0,0,0) rotate(225deg) scale(0);
+    }
+    &:after {
+      width: @component-size * .66;
+      margin: -1px;
+      transform: translate3d(0,0,0) rotate(-45deg) scale(0);
+      transition-delay: .05s;
+    }
+
+    &:checked {
+      background-color: @background-color-info;
+      &:active {
+        background-color: @component-background-color;
+      }
+      &:before {
+        opacity: 1;
+        transform: translate3d(0,0,0) rotate(225deg) scale(1);
+        transition-delay: .05s;
+      }
+      &:after {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(-45deg) scale(1);
+        transition-delay: 0;
+      }
+    }
+
+    &:indeterminate {
+      background-color: @background-color-info;
+      &:active {
+        background-color: @component-background-color;
+      }
+      &:after {
+        opacity: 1;
+        transform: translate3d(@component-size * -.14, @component-size * -.25, 0) rotate(0deg) scale(1);
+        transition-delay: 0;
+      }
+    }
+  }
+}
+
+
+//
+// Color
+// -------------------------
+
+
+.input-color {
+  vertical-align: middle;
+
+  & when (@use-custom-controls) {
+    -webkit-appearance: none;
+    padding: 0;
+    width: @component-size * 2.5;
+    height: @component-size * 2.5;
+    border-radius: 50%;
+    border: 2px solid @input-border-color;
+    background-color: @input-background-color;
+    &::-webkit-color-swatch-wrapper { padding: 0; }
+    &::-webkit-color-swatch {
+      border: 1px solid hsla(0,0%,0%,.1);
+      border-radius: 50%;
+      transition: transform .16s cubic-bezier(0.5, 0.15, 0.2, 1);
+      &:active {
+        transition-duration: 0s;
+        transform: scale(.9);
+      }
+    }
+  }
+}
+
+
+
+//
+// Label
+// -------------------------
+
+.input-label {
+  .input-radio,
+  .input-checkbox,
+  .input-toggle {
+    margin-top: -.25em; // Vertical center (visually) - since most labels are upper case.
+    margin-right: @component-margin-side;
+  }
+}
+
+
+//
+// Number
+// -------------------------
+
+.input-number {
+  vertical-align: middle;
+
+  & when (@use-custom-controls) {
+    .input-field-mixin();
+    position: relative;
+    width: auto;
+    .platform-darwin & {
+      padding-right: 1.2em; // space for the spin button
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: menulist-button;
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        right: 1px;
+        width: calc(.6em ~'+' 9px); // magic numbers, OMG!
+        outline: 1px solid @input-background-color;
+        outline-offset: -1px; // reduces border radius (that can't be changed)
+        border-right: .2em solid @background-color-highlight; // a bit more padding
+        background-color: @background-color-highlight;
+        transition: transform .16s cubic-bezier(0.5, 0.15, 0.2, 1);
+        &:active {
+          transform: scale(.9);
+          transition-duration: 0s;
+        }
+      }
+    }
+  }
+}
+
+
+//
+// Radio
+// -------------------------
+
+.input-radio {
+  vertical-align: middle;
+
+  & when (@use-custom-controls) {
+    -webkit-appearance: none;
+    display: inline-block;
+    position: relative;
+    width: @component-size;
+    height: @component-size;
+    font-size: inherit;
+    border-radius: 50%;
+    background-color: @component-background-color;
+    transition: background-color .16s cubic-bezier(0.5, 0.15, 0.2, 1);
+
+    &:before {
+      content: "";
+      position: absolute;
+      width: inherit;
+      height: inherit;
+      border-radius: inherit;
+      border: @component-size/3 solid transparent;
+      background-clip: content-box;
+      background-color: @base-background-color;
+      transform: scale(0);
+      transition: transform .1s cubic-bezier(0.5, 0.15, 0.2, 1);
+    }
+    &&:focus {
+      outline: none;
+    }
+    &:active {
+      background-color: @background-color-info;
+    }
+    &:checked {
+      background-color: @background-color-info;
+      &:before {
+        transform: scale(1);
+      }
+    }
+  }
+}
+
+
+//
+// Range (Slider)
+// -------------------------
+
+.input-range {
+  & when (@use-custom-controls) {
+    -webkit-appearance: none;
+    margin: @component-padding 0;
+    height: 4px;
+    border-radius: @component-border-radius;
+    background-color: @component-background-color;
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: @component-size;
+      height: @component-size;
+      border-radius: 50%;
+      background-color: @background-color-info;
+      transition: transform .16s;
+      &:active {
+        transition-duration: 0s;
+        transform: scale(.9);
+      }
+    }
+  }
+}
+
+
+//
+// Search
+// -------------------------
+
+.input-search {
+  .input-block-mixin();
+  &&::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+  }
+
+  & when (@use-custom-controls) {
+    .input-field-mixin();
+  }
+}
+
+
+//
+// Select
+// -------------------------
+
+.input-select {
+  vertical-align: middle;
+
+  & when (@use-custom-controls) {
+    height: calc(@text-component-height ~'+' 2px); // + 2px? Magic!
+    border-radius: @component-border-radius;
+    border: 1px solid @button-border-color;
+    background-color: @button-background-color;
+  }
+}
+
+
+//
+// Text
+// -------------------------
+
+.input-text {
+  .input-block-mixin();
+
+  & when (@use-custom-controls) {
+    .input-field-mixin();
+  }
+}
+
+
+//
+// Text Area
+// -------------------------
+
+.input-textarea {
+  .input-block-mixin();
+
+  & when (@use-custom-controls) {
+    .input-field-mixin();
+  }
+}
+
+
+//
+// Toggle
+// -------------------------
+
+.input-toggle {
+  & when (@use-custom-controls) {
+    -webkit-appearance: none;
+    display: inline-block;
+    position: relative;
+    font-size: inherit;
+    width: @component-size * 2;
+    height: @component-size;
+    vertical-align: middle;
+    border-radius: 2em;
+    background-color: @component-background-color;
+    transition: background-color .2s cubic-bezier(0.5, 0.15, 0.2, 1);
+
+    &&:focus {
+      outline: 0;
+    }
+    &:checked {
+      background-color: @background-color-info;
+    }
+
+    // Thumb
+    &:before {
+      content: "";
+      position: absolute;
+      width: @component-size;
+      height: @component-size;
+      border-radius: inherit;
+      border: @component-size/4 solid transparent;
+      background-clip: content-box;
+      background-color: @base-background-color;
+      transition: transform .2s cubic-bezier(0.5, 0.15, 0.2, 1);
+    }
+    &:active:before {
+      opacity: .5;
+    }
+    &:checked:before {
+      transform: translate3d(100%, 0, 0);
+    }
+  }
+}

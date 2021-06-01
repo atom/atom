@@ -1,0 +1,22 @@
+.syntax--source.syntax--ts,
+.syntax--source.syntax--tsx {
+  .syntax--import {
+    .syntax--control {
+      color: @orange;
+    }
+  }
+
+  .syntax--entity {
+    &.syntax--name.syntax--type {
+      color: @yellow;
+    }
+
+    &.syntax--inherited-class {
+      color: @yellow;
+    }
+  }
+
+  .syntax--support.syntax--type {
+    color: @yellow;
+  }
+}

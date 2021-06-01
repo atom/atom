@@ -4,9 +4,9 @@ LessCache = require 'less-cache'
 # {LessCache} wrapper used by {ThemeManager} to read stylesheets.
 module.exports =
 class LessCompileCache
-  @cacheDir: path.join(process.env.ATOM_HOME, 'compile-cache', 'less')
+  constructor: ({resourcePath, importPaths, lessSourcesByRelativeFilePath, importedFilePathsByRelativeImportPath}) ->
+    cacheDir = path.join(process.env.ATOM_HOME, 'compile-cache', 'less')
 
-  constructor: ({resourcePath, importPaths}) ->
     @lessSearchPaths = [
       path.join(resourcePath, 'static', 'variables')
       path.join(resourcePath, 'static')
@@ -17,11 +17,14 @@ class LessCompileCache
     else
       importPaths = @lessSearchPaths
 
-    @cache = new LessCache
-      cacheDir: @constructor.cacheDir
-      importPaths: importPaths
-      resourcePath: resourcePath
+    @cache = new LessCache({
+      importPaths,
+      resourcePath,
+      lessSourcesByRelativeFilePath,
+      importedFilePathsByRelativeImportPath,
+      cacheDir,
       fallbackDir: path.join(resourcePath, 'less-compile-cache')
+    })
 
   setImportPaths: (importPaths=[]) ->
     @cache.setImportPaths(importPaths.concat(@lessSearchPaths))
@@ -29,5 +32,5 @@ class LessCompileCache
   read: (stylesheetPath) ->
     @cache.readFileSync(stylesheetPath)
 
-  cssForFile: (stylesheetPath, lessContent) ->
-    @cache.cssForFile(stylesheetPath, lessContent)
+  cssForFile: (stylesheetPath, lessContent, digest) ->
+    @cache.cssForFile(stylesheetPath, lessContent, digest)

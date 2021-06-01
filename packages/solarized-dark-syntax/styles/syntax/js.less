@@ -1,0 +1,21 @@
+.syntax--source.syntax--js {
+
+  .syntax--jsx {
+    color: @syntax-text-color;
+
+    // Component
+    &.syntax--entity.syntax--type {
+      color: @blue;
+    }
+
+    // "string"
+    &.syntax--string {
+      color: @cyan;
+    }
+
+    // <div>text</div>
+    &.syntax--text {
+      color: @cyan;
+    }
+  }
+}

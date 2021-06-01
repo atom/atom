@@ -7,11 +7,13 @@ fs = require 'fs-plus'
 Grim = require 'grim'
 pathwatcher = require 'pathwatcher'
 FindParentDir = require 'find-parent-dir'
+{CompositeDisposable} = require 'event-kit'
 
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
-TokenizedBuffer = require '../src/tokenized-buffer'
-clipboard = require '../src/safe-clipboard'
+TextMateLanguageMode = require '../src/text-mate-language-mode'
+TreeSitterLanguageMode = require '../src/tree-sitter-language-mode'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -42,14 +44,20 @@ Set.prototype.isEqual = (other) ->
   else
     false
 
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().addEqualityTester (a, b) ->
+  # Match jasmine.any's equality matching logic
+  return a.jasmineMatches(b) if a?.jasmineMatches?
+  return b.jasmineMatches(a) if b?.jasmineMatches?
+
+  # Use underscore's definition of equality for toEqual assertions
+  _.isEqual(a, b)
 
 if process.env.CI
-  jasmine.getEnv().defaultTimeoutInterval = 60000
+  jasmine.getEnv().defaultTimeoutInterval = 120000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
-{resourcePath, testPaths} = atom.getLoadSettings()
+{testPaths} = atom.getLoadSettings()
 
 if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
   packageMetadata = require(path.join(specPackagePath, 'package.json'))
@@ -58,15 +66,17 @@ if specPackagePath = FindParentDir.sync(testPaths[0], 'package.json')
 if specDirectory = FindParentDir.sync(testPaths[0], 'fixtures')
   specProjectPath = path.join(specDirectory, 'fixtures')
 else
-  specProjectPath = path.join(__dirname, 'fixtures')
+  specProjectPath = require('os').tmpdir()
 
 beforeEach ->
-  documentTitle = null
+  # Do not clobber recent project history
+  spyOn(Object.getPrototypeOf(atom.history), 'saveState').andReturn(Promise.resolve())
 
   atom.project.setPaths([specProjectPath])
 
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
+  spyOn(Date, 'now').andCallFake(-> window.now)
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
@@ -87,7 +97,6 @@ beforeEach ->
   atom.config.set "editor.autoIndent", false
   atom.config.set "core.disabledPackages", ["package-that-throws-an-exception",
     "package-with-broken-package-json", "package-with-broken-keymap"]
-  atom.config.set "editor.useShadowDOM", true
   advanceClock(1000)
   window.setTimeout.reset()
 
@@ -98,8 +107,22 @@ beforeEach ->
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
 
   # make tokenization synchronous
-  TokenizedBuffer.prototype.chunkSize = Infinity
-  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+  TextMateLanguageMode.prototype.chunkSize = Infinity
+  TreeSitterLanguageMode.prototype.syncTimeoutMicros = Infinity
+  spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
+
+  # Without this spy, TextEditor.onDidTokenize callbacks would not be called
+  # after the buffer's language mode changed, because by the time the editor
+  # called its new language mode's onDidTokenize method, the language mode
+  # would already be fully tokenized.
+  spyOn(TextEditor.prototype, "onDidTokenize").andCallFake (callback) ->
+    new CompositeDisposable(
+      @emitter.on("did-tokenize", callback),
+      @onDidChangeGrammar =>
+        languageMode = @buffer.getLanguageMode()
+        if languageMode.tokenizeInBackground?.originalValue
+          callback()
+    )
 
   clipboardContent = 'initial clipboard content'
   spyOn(clipboard, 'writeText').andCallFake (text) -> clipboardContent = text
@@ -108,12 +131,16 @@ beforeEach ->
   addCustomMatchers(this)
 
 afterEach ->
-  atom.reset()
+  ensureNoDeprecatedFunctionCalls()
+  ensureNoDeprecatedStylesheets()
 
-  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+  waitsForPromise ->
+    atom.reset()
 
-  warnIfLeakingPathSubscriptions()
-  waits(0) # yield to ui thread to make screen update more frequently
+  runs ->
+    document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+    warnIfLeakingPathSubscriptions()
+    waits(0) # yield to ui thread to make screen update more frequently
 
 warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
@@ -121,8 +148,9 @@ warnIfLeakingPathSubscriptions = ->
     console.error("WARNING: Leaking subscriptions for paths: " + watchedPaths.join(", "))
   pathwatcher.closeAllWatchers()
 
-ensureNoDeprecatedFunctionsCalled = ->
-  deprecations = Grim.getDeprecations()
+ensureNoDeprecatedFunctionCalls = ->
+  deprecations = _.clone(Grim.getDeprecations())
+  Grim.clearDeprecations()
   if deprecations.length > 0
     originalPrepareStackTrace = Error.prepareStackTrace
     Error.prepareStackTrace = (error, stack) ->
@@ -139,8 +167,18 @@ ensureNoDeprecatedFunctionsCalled = ->
     error = new Error("Deprecated function(s) #{deprecations.map(({originName}) -> originName).join ', '}) were called.")
     error.stack
     Error.prepareStackTrace = originalPrepareStackTrace
-
     throw error
+
+ensureNoDeprecatedStylesheets = ->
+  deprecations = _.clone(atom.styles.getDeprecations())
+  atom.styles.clearDeprecations()
+  for sourcePath, deprecation of deprecations
+    title =
+      if sourcePath isnt 'undefined'
+        "Deprecated stylesheet at '#{sourcePath}':"
+      else
+        "Deprecated stylesheet:"
+    throw new Error("#{title}\n#{deprecation.message}")
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
@@ -157,17 +195,28 @@ jasmine.attachToDOM = (element) ->
   jasmineContent = document.querySelector('#jasmine-content')
   jasmineContent.appendChild(element) unless jasmineContent.contains(element)
 
-deprecationsSnapshot = null
+grimDeprecationsSnapshot = null
+stylesDeprecationsSnapshot = null
 jasmine.snapshotDeprecations = ->
-  deprecationsSnapshot = _.clone(Grim.deprecations)
+  grimDeprecationsSnapshot = _.clone(Grim.deprecations)
+  stylesDeprecationsSnapshot = _.clone(atom.styles.deprecationsBySourcePath)
 
 jasmine.restoreDeprecationsSnapshot = ->
-  Grim.deprecations = deprecationsSnapshot
+  Grim.deprecations = grimDeprecationsSnapshot
+  atom.styles.deprecationsBySourcePath = stylesDeprecationsSnapshot
 
 jasmine.useRealClock = ->
   jasmine.unspy(window, 'setTimeout')
   jasmine.unspy(window, 'clearTimeout')
   jasmine.unspy(_._, 'now')
+  jasmine.unspy(Date, 'now')
+
+# The clock is halfway mocked now in a sad and terrible way... only setTimeout
+# and clearTimeout are included. This method will also include setInterval. We
+# would do this everywhere if didn't cause us to break a bunch of package tests.
+jasmine.useMockClock = ->
+  spyOn(window, 'setInterval').andCallFake(fakeSetInterval)
+  spyOn(window, 'clearInterval').andCallFake(fakeClearInterval)
 
 addCustomMatchers = (spec) ->
   spec.addMatchers
@@ -213,6 +262,14 @@ addCustomMatchers = (spec) ->
       @message = -> return "Expected path '#{actualPath}' to be equal to '#{expectedPath}'."
       actualPath is expectedPath
 
+    toBeNear: (expected, acceptedError = 1, actual) ->
+      return (typeof expected is 'number') and (typeof acceptedError is 'number') and (typeof @actual is 'number') and (expected - acceptedError <= @actual) and (@actual <= expected + acceptedError)
+
+    toHaveNearPixels: (expected, acceptedError = 1, actual) ->
+      expectedNumber =  parseFloat(expected)
+      actualNumber =  parseFloat(@actual)
+      return (typeof expected is 'string') and (typeof acceptedError is 'number') and (typeof @actual is 'string') and (expected.indexOf('px') >= 1) and (@actual.indexOf('px') >= 1) and (expectedNumber - acceptedError <= actualNumber) and (actualNumber <= expectedNumber + acceptedError)
+
 window.waitsForPromise = (args...) ->
   label = null
   if args.length > 1
@@ -242,7 +299,7 @@ window.resetTimeouts = ->
   window.timeouts = []
   window.intervalTimeouts = {}
 
-window.fakeSetTimeout = (callback, ms) ->
+window.fakeSetTimeout = (callback, ms=0) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
   id

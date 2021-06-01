@@ -1,0 +1,38 @@
+@import "ui-variables";
+
+// Deprecated
+// These selectors are too vague and should be used directly in Settings and Styleguide
+
+section, .section {
+  position: relative;
+  margin-top: 0;
+  &:last-child { margin-bottom: 0; }
+
+  &.bordered {
+    margin: 0;
+    padding: @component-padding*2 0;
+    border-top: 1px solid @background-color-highlight;
+    border-bottom: 1px solid @tool-panel-border-color;
+  }
+
+  .section-heading:first-child {
+    margin-top: 0;
+    font-weight: bold;
+    color: @text-color-highlight;
+  }
+}
+
+div > section:first-child,
+form > section:first-child,
+div > .section:first-child,
+form > .section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+div > section:last-child,
+form > section:last-child,
+div > .section:last-child,
+form > .section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
