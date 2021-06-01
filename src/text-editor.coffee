@@ -191,6 +191,7 @@ class TextEditor extends Model
     @displayLayer.setTextDecorationLayer(@tokenizedBuffer)
     @defaultMarkerLayer = @displayLayer.addMarkerLayer()
     @selectionsMarkerLayer ?= @addMarkerLayer(maintainHistory: true, persistent: true)
+    @selectionsMarkerLayer.trackDestructionInOnDidCreateMarkerCallbacks = true
 
     @decorationManager = new DecorationManager(@displayLayer, @defaultMarkerLayer)
     @decorateMarkerLayer(@displayLayer.foldsMarkerLayer, {type: 'line-number', class: 'folded'})
@@ -353,7 +354,8 @@ class TextEditor extends Model
             @autoWidth = value
             @presenter?.didChangeAutoWidth()
         else
-          throw new TypeError("Invalid TextEditor parameter: '#{param}'")
+          if param isnt 'ref' and param isnt 'key'
+            throw new TypeError("Invalid TextEditor parameter: '#{param}'")
 
     if Object.keys(displayLayerParams).length > 0
       @displayLayer.reset(displayLayerParams)
