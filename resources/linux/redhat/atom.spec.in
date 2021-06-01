@@ -8,9 +8,9 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 %ifarch i386 i486 i586 i686
-Requires: lsb-core-noarch, libxkbfile.so.1, libXss.so.1, libsecret-1.so.0, polkit
+Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), lsb-core-noarch, (libcurl.so.3 or libcurl.so.4), libgbm.so.1, libgcrypt.so.20, libnotify, libnss3.so, libX11-xcb.so.1, libxcb-dri3.so.0, libxkbfile.so.1, libXss.so.1, libsecret-1.so.0, gtk3, polkit
 %else
-Requires: lsb-core-noarch, libxkbfile.so.1()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), polkit
+Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), lsb-core-noarch, (libcurl.so.3()(64bit) or libcurl.so.4()(64bit)), libgbm.so.1()(64bit), libgcrypt.so.20()(64bit), libnotify, libnss3.so()(64bit), libX11-xcb.so.1()(64bit), libxcb-dri3.so.0()(64bit), libxkbfile.so.1()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), gtk3, polkit
 %endif
 
 # Disable Fedora's shebang mangling script,

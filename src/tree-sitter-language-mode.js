@@ -31,7 +31,6 @@ class TreeSitterLanguageMode {
     this.grammar = grammar;
     this.config = config;
     this.grammarRegistry = grammars;
-    this.parser = new Parser();
     this.rootLanguageLayer = new LanguageLayer(null, this, grammar, 0);
     this.injectionsMarkerLayer = buffer.addMarkerLayer();
 
@@ -79,7 +78,6 @@ class TreeSitterLanguageMode {
   destroy() {
     this.injectionsMarkerLayer.destroy();
     this.rootLanguageLayer = null;
-    this.parser = null;
   }
 
   getLanguageId() {
@@ -145,7 +143,7 @@ class TreeSitterLanguageMode {
   */
 
   buildHighlightIterator() {
-    if (!this.rootLanguageLayer) return new NullHighlightIterator();
+    if (!this.rootLanguageLayer) return new NullLanguageModeHighlightIterator();
     return new HighlightIterator(this);
   }
 
@@ -651,7 +649,7 @@ class LanguageLayer {
     if (this.tree) {
       return new LayerHighlightIterator(this, this.tree.walk());
     } else {
-      return new NullHighlightIterator();
+      return new NullLayerHighlightIterator();
     }
   }
 
@@ -1337,7 +1335,26 @@ class NodeCursorAdaptor {
   }
 }
 
-class NullHighlightIterator {
+class NullLanguageModeHighlightIterator {
+  seek() {
+    return [];
+  }
+  compare() {
+    return 1;
+  }
+  moveToSuccessor() {}
+  getPosition() {
+    return Point.INFINITY;
+  }
+  getOpenScopeIds() {
+    return [];
+  }
+  getCloseScopeIds() {
+    return [];
+  }
+}
+
+class NullLayerHighlightIterator {
   seek() {
     return null;
   }

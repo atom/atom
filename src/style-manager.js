@@ -254,7 +254,7 @@ module.exports = class StyleManager {
   }
 
   buildStylesElement() {
-    var stylesElement = new StylesElement();
+    const stylesElement = new StylesElement();
     stylesElement.initialize(this);
     return stylesElement;
   }

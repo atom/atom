@@ -110,7 +110,7 @@ module.exports = class TextEditorRegistry {
   //
   // Returns a {Boolean} indicating whether the editor was successfully removed.
   remove(editor) {
-    var removed = this.editors.delete(editor);
+    const removed = this.editors.delete(editor);
     editor.registered = false;
     return removed;
   }

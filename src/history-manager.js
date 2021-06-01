@@ -89,7 +89,7 @@ class HistoryManager {
   }
 
   getProject(paths) {
-    for (var i = 0; i < this.projects.length; i++) {
+    for (let i = 0; i < this.projects.length; i++) {
       if (arrayEquivalent(paths, this.projects[i].paths)) {
         return this.projects[i];
       }
@@ -121,7 +121,7 @@ class HistoryManager {
 
 function arrayEquivalent(a, b) {
   if (a.length !== b.length) return false;
-  for (var i = 0; i < a.length; i++) {
+  for (let i = 0; i < a.length; i++) {
     if (a[i] !== b[i]) return false;
   }
   return true;

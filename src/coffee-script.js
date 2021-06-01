@@ -1,8 +1,8 @@
 'use strict';
 
-var crypto = require('crypto');
-var path = require('path');
-var CoffeeScript = null;
+const crypto = require('crypto');
+const path = require('path');
+let CoffeeScript = null;
 
 exports.shouldCompile = function() {
   return true;
@@ -20,7 +20,7 @@ exports.getCachePath = function(sourceCode) {
 
 exports.compile = function(sourceCode, filePath) {
   if (!CoffeeScript) {
-    var previousPrepareStackTrace = Error.prepareStackTrace;
+    const previousPrepareStackTrace = Error.prepareStackTrace;
     CoffeeScript = require('coffee-script');
 
     // When it loads, coffee-script reassigns Error.prepareStackTrace. We have
@@ -33,7 +33,7 @@ exports.compile = function(sourceCode, filePath) {
     filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/');
   }
 
-  var output = CoffeeScript.compile(sourceCode, {
+  const output = CoffeeScript.compile(sourceCode, {
     filename: filePath,
     sourceFiles: [filePath],
     inlineMap: true

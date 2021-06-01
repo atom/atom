@@ -1,13 +1,13 @@
 'use strict';
 
-var crypto = require('crypto');
-var path = require('path');
-var defaultOptions = require('../static/babelrc.json');
+const crypto = require('crypto');
+const path = require('path');
+const defaultOptions = require('../static/babelrc.json');
 
-var babel = null;
-var babelVersionDirectory = null;
+let babel = null;
+let babelVersionDirectory = null;
 
-var PREFIXES = [
+const PREFIXES = [
   '/** @babel */',
   '"use babel"',
   "'use babel'",
@@ -15,7 +15,7 @@ var PREFIXES = [
   '// @flow'
 ];
 
-var PREFIX_LENGTH = Math.max.apply(
+const PREFIX_LENGTH = Math.max.apply(
   Math,
   PREFIXES.map(function(prefix) {
     return prefix.length;
@@ -23,7 +23,7 @@ var PREFIX_LENGTH = Math.max.apply(
 );
 
 exports.shouldCompile = function(sourceCode) {
-  var start = sourceCode.substr(0, PREFIX_LENGTH);
+  const start = sourceCode.substr(0, PREFIX_LENGTH);
   return PREFIXES.some(function(prefix) {
     return start.indexOf(prefix) === 0;
   });
@@ -31,7 +31,7 @@ exports.shouldCompile = function(sourceCode) {
 
 exports.getCachePath = function(sourceCode) {
   if (babelVersionDirectory == null) {
-    var babelVersion = require('babel-core/package.json').version;
+    const babelVersion = require('babel-core/package.json').version;
     babelVersionDirectory = path.join(
       'js',
       'babel',
@@ -51,8 +51,8 @@ exports.getCachePath = function(sourceCode) {
 exports.compile = function(sourceCode, filePath) {
   if (!babel) {
     babel = require('babel-core');
-    var Logger = require('babel-core/lib/transformation/file/logger');
-    var noop = function() {};
+    const Logger = require('babel-core/lib/transformation/file/logger');
+    const noop = function() {};
     Logger.prototype.debug = noop;
     Logger.prototype.verbose = noop;
   }
@@ -61,8 +61,8 @@ exports.compile = function(sourceCode, filePath) {
     filePath = 'file:///' + path.resolve(filePath).replace(/\\/g, '/');
   }
 
-  var options = { filename: filePath };
-  for (var key in defaultOptions) {
+  const options = { filename: filePath };
+  for (const key in defaultOptions) {
     options[key] = defaultOptions[key];
   }
   return babel.transform(sourceCode, options).code;
