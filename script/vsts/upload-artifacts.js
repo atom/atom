@@ -7,7 +7,7 @@ const glob = require('glob');
 const spawnSync = require('../lib/spawn-sync');
 const publishRelease = require('publish-release');
 const releaseNotes = require('./lib/release-notes');
-const uploadToS3 = require('./lib/upload-to-s3');
+const uploadToAzure = require('./lib/upload-to-azure-blob');
 const uploadLinuxPackages = require('./lib/upload-linux-packages');
 
 const CONFIG = require('../config');
@@ -21,8 +21,8 @@ const argv = yargs
     'Path to the folder where all release assets are stored'
   )
   .describe(
-    's3-path',
-    'Indicates the S3 path in which the assets should be uploaded'
+    'azure-blob-path',
+    'Indicates the Azure Blob Path path in which the assets should be uploaded'
   )
   .describe(
     'create-github-release',
@@ -40,7 +40,7 @@ const assetsPath = argv.assetsPath || CONFIG.buildOutputPath;
 const assetsPattern =
   '/**/*(*.exe|*.zip|*.nupkg|*.tar.gz|*.rpm|*.deb|RELEASES*|atom-api.json)';
 const assets = glob.sync(assetsPattern, { root: assetsPath, nodir: true });
-const bucketPath = argv.s3Path || `releases/v${releaseVersion}/`;
+const azureBlobPath = argv.azureBlobPath || `releases/v${releaseVersion}/`;
 
 if (!assets || assets.length === 0) {
   console.error(`No assets found under specified path: ${assetsPath}`);
@@ -63,14 +63,12 @@ async function uploadArtifacts() {
   console.log(
     `Uploading ${
       assets.length
-    } release assets for ${releaseVersion} to S3 under '${bucketPath}'`
+    } release assets for ${releaseVersion} to Azure Blob Storage under '${azureBlobPath}'`
   );
 
-  await uploadToS3(
-    process.env.ATOM_RELEASES_S3_KEY,
-    process.env.ATOM_RELEASES_S3_SECRET,
-    process.env.ATOM_RELEASES_S3_BUCKET,
-    bucketPath,
+  await uploadToAzure(
+    process.env.ATOM_RELEASES_AZURE_CONN_STRING,
+    azureBlobPath,
     assets
   );
 
