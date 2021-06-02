@@ -2,7 +2,7 @@ trigger:
   - master
   - 1.* # VSTS only supports wildcards at the end
   - electron-*
-pr: pr # temporarily enable pr trigger
+pr: none # no PR triggers
 
 jobs:
   # Import "GetReleaseVersion" job definition
@@ -54,7 +54,6 @@ jobs:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
           ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
           PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
@@ -62,11 +61,10 @@ jobs:
         condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
 
       - script: |
-          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --azure-blob-path "vsts-artifacts/$(Build.BuildId)/"
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --s3-path "vsts-artifacts/$(Build.BuildId)/"
         env:
           ATOM_RELEASE_VERSION: $(ReleaseVersion)
           ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
-          ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
           ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
           ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
         displayName: Upload CI Artifacts to S3
