@@ -27,7 +27,7 @@ module.exports = class StateStore {
           resolve(dbOpenRequest.result);
         };
         dbOpenRequest.onerror = error => {
-          atom.notifications.addError('Could not connect to indexedDB', {
+          atom.notifications.addFatalError('Could not connect to indexedDB', {
             stack: new Error('Could not connect to indexedDB').stack,
             dismissable: true
           });
