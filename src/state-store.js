@@ -13,8 +13,12 @@ module.exports = class StateStore {
         const dbOpenRequest = indexedDB.open(this.databaseName, this.version);
         dbOpenRequest.onupgradeneeded = event => {
           let db = event.target.result;
-          db.onerror = event => {
-            console.error('Error loading database', event);
+          db.onerror = error => {
+            atom.notifications.addError('Error loading database', {
+              stack: new Error('Error loading database').stack,
+              dismissable: true
+            });
+            console.error('Error loading database', error);
           };
           db.createObjectStore('states');
         };
@@ -23,6 +27,10 @@ module.exports = class StateStore {
           resolve(dbOpenRequest.result);
         };
         dbOpenRequest.onerror = error => {
+          atom.notifications.addError('Could not connect to indexedDB', {
+            stack: new Error('Could not connect to indexedDB').stack,
+            dismissable: true
+          });
           console.error('Could not connect to indexedDB', error);
           this.connected = false;
           resolve(null);
