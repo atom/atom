@@ -14,7 +14,7 @@ module.exports = class StateStore {
         dbOpenRequest.onupgradeneeded = event => {
           let db = event.target.result;
           db.onerror = error => {
-            atom.notifications.addError('Error loading database', {
+            atom.notifications.addFatalError('Error loading database', {
               stack: new Error('Error loading database').stack,
               dismissable: true
             });
