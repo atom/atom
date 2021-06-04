@@ -13,9 +13,9 @@ module.exports = class StateStore {
         const dbOpenRequest = indexedDB.open(this.databaseName, this.version);
         dbOpenRequest.onupgradeneeded = event => {
           let db = event.target.result;
-          db.onerror = (event) => {
+          db.onerror = event => {
             console.error('Error loading database', event);
-          }
+          };
           db.createObjectStore('states');
         };
         dbOpenRequest.onsuccess = () => {
