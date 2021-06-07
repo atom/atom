@@ -76,7 +76,7 @@ module.exports = class TreeIndenter {
       this.scopes.types.outdent[node.type] && increment && typeDent--;
       increment += typeDent;
 
-      // check whether the last (lower) indentation happend due to a scope that
+      // check whether the last (lower) indentation happened due to a scope that
       // started on the same row and ends directly before this.
       if (
         lastScope &&
