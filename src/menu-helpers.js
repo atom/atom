@@ -53,14 +53,16 @@ function unmerge(menu, item) {
   }
 }
 
-function findMatchingItemIndex(menu, { type, label, submenu }) {
+// function findMatchingItemIndex(menu, { type, label, submenu }) {
+function findMatchingItemIndex(menu, { type, id, submenu }) {
   if (type === 'separator') {
     return -1;
   }
   for (let index = 0; index < menu.length; index++) {
     const item = menu[index];
     if (
-      normalizeLabel(item.label) === normalizeLabel(label) &&
+      // normalizeLabel(item.label) === normalizeLabel(label) &&
+      item.id === id &&
       (item.submenu != null) === (submenu != null)
     ) {
       return index;
@@ -93,6 +95,7 @@ function cloneMenuItem(item) {
     'beforeGroupContaining',
     'afterGroupContaining'
   );
+  if (item.id === null || item.id === undefined) { item.id = normalizeLabel(item.label) }
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
   }

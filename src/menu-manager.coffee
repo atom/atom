@@ -78,17 +78,20 @@ class MenuManager
   #   atom.menu.add [
   #     {
   #       label: 'Hello'
-  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #       submenu : [{label: 'World!', id: 'World!', command: 'hello:world'}]
   #     }
   #   ]
   # ```
   #
   # * `items` An {Array} of menu item {Object}s containing the keys:
-  #   * `label` The {String} menu label.
+  #   * `label` The {String} menu label, which is used for localiztion (in `atom-i18n` package).
   #   * `submenu` An optional {Array} of sub menu items.
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
   #
+  #   * `id` (internal) The {String} menu id, which is used only in javascript code, is not used in menu template. 
+  # For further information on the above args, see [Electron MenuItem](https://www.electronjs.org/docs/api/menu-item#class-menuitem)).
+  # 
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (items) ->
@@ -201,7 +204,8 @@ class MenuManager
       []
 
   sortPackagesMenu: ->
-    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    # packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = _.find @template, ({id}) -> MenuHelpers.normalizeLabel(id) is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) ->
