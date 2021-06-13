@@ -7,6 +7,7 @@ const Token = require('./token');
 const TokenizedLine = require('./tokenized-line');
 const TextMateLanguageMode = require('./text-mate-language-mode');
 const { matcherForSelector } = require('./selectors');
+const TreeIndenter = require('./tree-indenter');
 
 let nextId = 0;
 const MAX_RANGE = new Range(Point.ZERO, Point.INFINITY).freeze();
@@ -194,13 +195,26 @@ class TreeSitterLanguageMode {
   }
 
   suggestedIndentForBufferRow(row, tabLength, options) {
-    return this._suggestedIndentForLineWithScopeAtBufferRow(
-      row,
-      this.buffer.lineForRow(row),
-      this.rootScopeDescriptor,
-      tabLength,
-      options
-    );
+    if (!this.treeIndenter) {
+      this.treeIndenter = new TreeIndenter(this);
+    }
+
+    if (this.treeIndenter.isConfigured) {
+      const indent = this.treeIndenter.suggestedIndentForBufferRow(
+        row,
+        tabLength,
+        options
+      );
+      return indent;
+    } else {
+      return this._suggestedIndentForLineWithScopeAtBufferRow(
+        row,
+        this.buffer.lineForRow(row),
+        this.rootScopeDescriptor,
+        tabLength,
+        options
+      );
+    }
   }
 
   indentLevelForLine(line, tabLength) {

@@ -254,7 +254,8 @@ addCustomMatchers = (spec) ->
       element = @actual
       element = element.get(0) if element.jquery
       @message = -> return "Expected element '#{element}' or its descendants #{toOrNotTo} show."
-      element.style.display in ['block', 'inline-block', 'static', 'fixed']
+      computedStyle = getComputedStyle(element)
+      computedStyle.display isnt 'none' and computedStyle.visibility is 'visible' and not element.hidden
 
     toEqualPath: (expected) ->
       actualPath = path.normalize(@actual)
