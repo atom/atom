@@ -83,6 +83,7 @@ function cloneMenuItem(item) {
     item,
     'type',
     'label',
+    'id',            // added for atom-i18n package, and used only internal.
     'enabled',
     'visible',
     'command',
@@ -95,7 +96,11 @@ function cloneMenuItem(item) {
     'beforeGroupContaining',
     'afterGroupContaining'
   );
-  if (item.id === null || item.id === undefined) { item.id = normalizeLabel(item.label) }
+  if (item.id === null || item.id === undefined) {
+    // item.id is internally used by the function defined in this file, because `atom-i18n` localize item.label.
+    // cloneMenuItem() create menus from template (menu_{darwin, linux, win32}.cson), then `atom-i18n` can localize menu.
+    item.id = normalizeLabel(item.label)
+  }
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
   }
