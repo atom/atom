@@ -109,6 +109,9 @@ class ContextMenuManager
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
   #
+  #   * `id` (internal) The {String} menu id, which is used only in javascript code, is not used in menu template.
+  #     For further information on the `id`, see [Electron MenuItem](https://www.electronjs.org/docs/api/menu-item#class-menuitem)).
+  #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (itemsBySelector, throwOnInvalidSelector = true) ->

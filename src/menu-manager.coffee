@@ -89,9 +89,9 @@ class MenuManager
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
   #
-  #   * `id` (internal) The {String} menu id, which is used only in javascript code, is not used in menu template. 
-  # For further information on the above args, see [Electron MenuItem](https://www.electronjs.org/docs/api/menu-item#class-menuitem)).
-  # 
+  #   * `id` (internal) The {String} menu id, which is used only in javascript code, is not used in menu template.
+  #     For further information on the `id`, see [Electron MenuItem](https://www.electronjs.org/docs/api/menu-item#class-menuitem)).
+  #
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (items) ->

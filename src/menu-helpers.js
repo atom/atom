@@ -36,6 +36,7 @@ function merge(menu, item, itemSpecificity = Infinity) {
 }
 
 function unmerge(menu, item) {
+  item = cloneMenuItem(item);
   const matchingItemIndex = findMatchingItemIndex(menu, item);
   if (matchingItemIndex === -1) {
     return;
@@ -83,7 +84,7 @@ function cloneMenuItem(item) {
     item,
     'type',
     'label',
-    'id',            // added for atom-i18n package, and used only internal.
+    'id',
     'enabled',
     'visible',
     'command',
@@ -99,7 +100,7 @@ function cloneMenuItem(item) {
   if (item.id === null || item.id === undefined) {
     // item.id is internally used by the function defined in this file, because `atom-i18n` localize item.label.
     // cloneMenuItem() create menus from template (menu_{darwin, linux, win32}.cson), then `atom-i18n` can localize menu.
-    item.id = normalizeLabel(item.label)
+    item.id = normalizeLabel(item.label);
   }
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));

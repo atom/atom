@@ -19,7 +19,7 @@ describe('MenuManager', function() {
         { label: 'A', submenu: [{ label: 'B', command: 'b' }] }
       ]);
       expect(menu.template).toEqual([
-        { label: 'A', submenu: [{ label: 'B', command: 'b' }] }
+        { label: 'A', id : 'A', submenu: [{ label: 'B', id : 'B', command: 'b' }] }
       ]);
       disposable.dispose();
       expect(menu.template).toEqual([]);
@@ -44,14 +44,16 @@ describe('MenuManager', function() {
 
       expect(menu.template).toEqual([
         {
-          label: 'A',
+          label: 'A', 
+          id : 'A',
           submenu: [
-            { label: 'B', command: 'b' },
+            { label: 'B', id : 'B', command: 'b' },
             {
               label: 'C',
+              id: 'C',
               submenu: [
-                { label: 'D', command: 'd' },
-                { label: 'E', command: 'e' }
+                { label: 'D', id: 'D', command: 'd' },
+                { label: 'E', id: 'E', command: 'e' }
               ]
             }
           ]
@@ -61,17 +63,19 @@ describe('MenuManager', function() {
       disposable3.dispose();
       expect(menu.template).toEqual([
         {
-          label: 'A',
+          label: 'A', 
+          id: 'A',
           submenu: [
-            { label: 'B', command: 'b' },
-            { label: 'C', submenu: [{ label: 'D', command: 'd' }] }
+            { label: 'B', id: 'B', command: 'b' },
+            { label: 'C', id: 'C',  
+            submenu: [{ label: 'D', id: 'D', command: 'd' }] }
           ]
         }
       ]);
 
       disposable2.dispose();
       expect(menu.template).toEqual([
-        { label: 'A', submenu: [{ label: 'B', command: 'b' }] }
+        { label: 'A', id: 'A', submenu: [{ label: 'B', id: 'B', command: 'b' }] }
       ]);
 
       disposable1.dispose();
@@ -84,7 +88,8 @@ describe('MenuManager', function() {
       menu.add([{ label: 'A', submenu: [{ label: 'B', command: 'b' }] }]);
       expect(menu.template[originalItemCount]).toEqual({
         label: 'A',
-        submenu: [{ label: 'B', command: 'b' }]
+        id: 'A',
+        submenu: [{ label: 'B', id: 'B', command: 'b' }]
       });
     });
   });
