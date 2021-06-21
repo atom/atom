@@ -168,6 +168,11 @@ elif [ $OS == 'Linux' ]; then
       ;;
   esac
 
+  #Will allow user to get context menu on cinnamon desktop enviroment
+  if [[ "$(expr substr $(printenv | grep "DESKTOP_SESSION=") 17 8)" == "cinnamon" ]]; then
+    cp "resources/linux/desktopenviroment/cinnamon/atom.nemo_action" "/usr/share/nemo/actions/atom.nemo_action"
+  fi
+
   : ${TMPDIR:=/tmp}
 
   [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/Atom/atom"
