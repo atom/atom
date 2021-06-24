@@ -61,8 +61,7 @@ function findMatchingItemIndex(menu, { type, id, submenu }) {
   for (let index = 0; index < menu.length; index++) {
     const item = menu[index];
     if (
-      item.id === id &&
-      (item.submenu != null) === (submenu != null)
+      item.id === id && (item.submenu != null) === (submenu != null)
     ) {
       return index;
     }
