@@ -54,7 +54,6 @@ function unmerge(menu, item) {
   }
 }
 
-// function findMatchingItemIndex(menu, { type, label, submenu }) {
 function findMatchingItemIndex(menu, { type, id, submenu }) {
   if (type === 'separator') {
     return -1;
