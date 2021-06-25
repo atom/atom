@@ -1,5 +1,5 @@
 const path = require('path');
-const async = require('async');
+const asyncEach = require('async/each');
 const CSON = require('season');
 const fs = require('fs-plus');
 const { Emitter, CompositeDisposable } = require('event-kit');
@@ -726,14 +726,14 @@ module.exports = class Package {
         this.packageManager.packagesCache[this.name]
       ) {
         const { grammarPaths } = this.packageManager.packagesCache[this.name];
-        return async.each(grammarPaths, loadGrammar, () => resolve());
+        return asyncEach(grammarPaths, loadGrammar, () => resolve());
       } else {
         const grammarsDirPath = path.join(this.path, 'grammars');
         fs.exists(grammarsDirPath, grammarsDirExists => {
           if (!grammarsDirExists) return resolve();
           fs.list(grammarsDirPath, ['json', 'cson'], (error, grammarPaths) => {
             if (error || !grammarPaths) return resolve();
-            async.each(grammarPaths, loadGrammar, () => resolve());
+            asyncEach(grammarPaths, loadGrammar, () => resolve());
           });
         });
       }
@@ -779,7 +779,7 @@ module.exports = class Package {
           if (!settingsDirExists) return resolve();
           fs.list(settingsDirPath, ['json', 'cson'], (error, settingsPaths) => {
             if (error || !settingsPaths) return resolve();
-            async.each(settingsPaths, loadSettingsFile, () => resolve());
+            asyncEach(settingsPaths, loadSettingsFile, () => resolve());
           });
         });
       });
