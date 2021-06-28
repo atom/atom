@@ -1,10 +1,12 @@
 # Atom build status
 
-| System | Azure Pipelines | Travis | AppVeyor/Win | Dependencies |
+Note: Atom's electron version is outdated, and the electron badges are from old versions.
+
+| System | Azure Pipelines | CircleCI | AppVeyor/Win | Dependencies |
 |--------|--------|--------------|------------|--------------|
 | [Atom](https://github.com/atom/atom) | [![Build status](https://github.visualstudio.com/Atom/_apis/build/status/Atom%20Production%20Branches?branch=master)](https://github.visualstudio.com/Atom/_build/latest?definitionId=32&branch=master) | | | [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom) |
-| [APM](https://github.com/atom/apm) | | [![Travis Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/j6ixw374a397ugkb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/apm/branch/master) | [![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm) |
-| [Electron](https://github.com/electron/electron) | | [![Travis Build Status](https://travis-ci.org/electron/electron.svg?branch=master)](https://travis-ci.org/electron/electron) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/kvxe4byi7jcxbe26/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/electron) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
+| [APM](https://github.com/atom/apm) | [![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master) | |
+| [Electron](https://github.com/electron/electron) | | [![CircleCI Build Status](https://circleci.com/gh/electron/electron/tree/master.svg?style=shield)](https://circleci.com/gh/electron/electron/tree/master) | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/4lggi9dpjc1qob7k/branch/master?svg=true)](https://ci.appveyor.com/project/electron-bot/electron-ljo26/branch/master) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
 
 ## Packages
 
