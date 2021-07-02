@@ -4,6 +4,7 @@
   "dependencies": {
     "@octokit/rest": "^15.9.5",
     "aws-sdk": "^2.5.2",
+    "@azure/storage-blob": "^12.5.0",
     "download": "^7.1.0",
     "glob": "7.0.3",
     "pr-changelog": "^0.3.2",

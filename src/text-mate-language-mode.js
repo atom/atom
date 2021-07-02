@@ -329,7 +329,7 @@ class TextMateLanguageMode {
     let rowsRemaining = this.chunkSize;
 
     while (this.firstInvalidRow() != null && rowsRemaining > 0) {
-      var endRow, filledRegion;
+      let endRow, filledRegion;
       const startRow = this.invalidRows.shift();
       const lastRow = this.buffer.getLastRow();
       if (startRow > lastRow) continue;

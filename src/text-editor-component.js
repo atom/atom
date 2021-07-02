@@ -306,7 +306,7 @@ module.exports = class TextEditorComponent {
       this.remeasureAllBlockDecorations = false;
 
       const decorations = this.props.model.getDecorations();
-      for (var i = 0; i < decorations.length; i++) {
+      for (let i = 0; i < decorations.length; i++) {
         const decoration = decorations[i];
         const marker = decoration.getMarker();
         if (marker.isValid() && decoration.getProperties().type === 'block') {
@@ -2169,7 +2169,7 @@ module.exports = class TextEditorComponent {
   }
 
   autoscrollOnMouseDrag({ clientX, clientY }, verticalOnly = false) {
-    var {
+    let {
       top,
       bottom,
       left,
@@ -4283,7 +4283,7 @@ class LinesTileComponent {
   }
 
   updateLines(oldProps, newProps) {
-    var {
+    const {
       screenLines,
       tileStartRow,
       lineDecorations,
@@ -4293,20 +4293,20 @@ class LinesTileComponent {
       lineComponentsByScreenLineId
     } = newProps;
 
-    var oldScreenLines = oldProps.screenLines;
-    var newScreenLines = screenLines;
-    var oldScreenLinesEndIndex = oldScreenLines.length;
-    var newScreenLinesEndIndex = newScreenLines.length;
-    var oldScreenLineIndex = 0;
-    var newScreenLineIndex = 0;
-    var lineComponentIndex = 0;
+    const oldScreenLines = oldProps.screenLines;
+    const newScreenLines = screenLines;
+    const oldScreenLinesEndIndex = oldScreenLines.length;
+    const newScreenLinesEndIndex = newScreenLines.length;
+    let oldScreenLineIndex = 0;
+    let newScreenLineIndex = 0;
+    let lineComponentIndex = 0;
 
     while (
       oldScreenLineIndex < oldScreenLinesEndIndex ||
       newScreenLineIndex < newScreenLinesEndIndex
     ) {
-      var oldScreenLine = oldScreenLines[oldScreenLineIndex];
-      var newScreenLine = newScreenLines[newScreenLineIndex];
+      const oldScreenLine = oldScreenLines[oldScreenLineIndex];
+      const newScreenLine = newScreenLines[newScreenLineIndex];
 
       if (oldScreenLineIndex >= oldScreenLinesEndIndex) {
         var newScreenLineComponent = new LineComponent({
@@ -4329,7 +4329,7 @@ class LinesTileComponent {
 
         oldScreenLineIndex++;
       } else if (oldScreenLine === newScreenLine) {
-        var lineComponent = this.lineComponents[lineComponentIndex];
+        const lineComponent = this.lineComponents[lineComponentIndex];
         lineComponent.update({
           screenRow: tileStartRow + newScreenLineIndex,
           lineDecoration: lineDecorations[newScreenLineIndex],
@@ -4340,17 +4340,17 @@ class LinesTileComponent {
         newScreenLineIndex++;
         lineComponentIndex++;
       } else {
-        var oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(
+        const oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(
           oldScreenLine
         );
-        var newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(
+        const newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(
           newScreenLine
         );
         if (
           newScreenLineIndex < oldScreenLineIndexInNewScreenLines &&
           oldScreenLineIndexInNewScreenLines < newScreenLinesEndIndex
         ) {
-          var newScreenLineComponents = [];
+          const newScreenLineComponents = [];
           while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
             // eslint-disable-next-line no-redeclare
             var newScreenLineComponent = new LineComponent({
@@ -4389,7 +4389,9 @@ class LinesTileComponent {
             oldScreenLineIndex++;
           }
         } else {
-          var oldScreenLineComponent = this.lineComponents[lineComponentIndex];
+          const oldScreenLineComponent = this.lineComponents[
+            lineComponentIndex
+          ];
           // eslint-disable-next-line no-redeclare
           var newScreenLineComponent = new LineComponent({
             screenLine: newScreenLines[newScreenLineIndex],
@@ -4416,13 +4418,13 @@ class LinesTileComponent {
   }
 
   getFirstElementForScreenLine(oldProps, screenLine) {
-    var blockDecorations = oldProps.blockDecorations
+    const blockDecorations = oldProps.blockDecorations
       ? oldProps.blockDecorations.get(screenLine.id)
       : null;
     if (blockDecorations) {
-      var blockDecorationElementsBeforeOldScreenLine = [];
+      const blockDecorationElementsBeforeOldScreenLine = [];
       for (let i = 0; i < blockDecorations.length; i++) {
-        var decoration = blockDecorations[i];
+        const decoration = blockDecorations[i];
         if (decoration.position !== 'after') {
           blockDecorationElementsBeforeOldScreenLine.push(
             TextEditor.viewForItem(decoration.item)
@@ -4435,7 +4437,7 @@ class LinesTileComponent {
         i < blockDecorationElementsBeforeOldScreenLine.length;
         i++
       ) {
-        var blockDecorationElement =
+        const blockDecorationElement =
           blockDecorationElementsBeforeOldScreenLine[i];
         if (
           !blockDecorationElementsBeforeOldScreenLine.includes(
@@ -4451,19 +4453,19 @@ class LinesTileComponent {
   }
 
   updateBlockDecorations(oldProps, newProps) {
-    var { blockDecorations, lineComponentsByScreenLineId } = newProps;
+    const { blockDecorations, lineComponentsByScreenLineId } = newProps;
 
     if (oldProps.blockDecorations) {
       oldProps.blockDecorations.forEach((oldDecorations, screenLineId) => {
-        var newDecorations = newProps.blockDecorations
+        const newDecorations = newProps.blockDecorations
           ? newProps.blockDecorations.get(screenLineId)
           : null;
-        for (var i = 0; i < oldDecorations.length; i++) {
-          var oldDecoration = oldDecorations[i];
+        for (let i = 0; i < oldDecorations.length; i++) {
+          const oldDecoration = oldDecorations[i];
           if (newDecorations && newDecorations.includes(oldDecoration))
             continue;
 
-          var element = TextEditor.viewForItem(oldDecoration.item);
+          const element = TextEditor.viewForItem(oldDecoration.item);
           if (element.parentElement !== this.element) continue;
 
           element.remove();
@@ -5125,11 +5127,11 @@ class NodePool {
   }
 
   getElement(type, className, style) {
-    var element;
-    var elementsByDepth = this.elementsByType[type];
+    let element;
+    const elementsByDepth = this.elementsByType[type];
     if (elementsByDepth) {
       while (elementsByDepth.length > 0) {
-        var elements = elementsByDepth[elementsByDepth.length - 1];
+        const elements = elementsByDepth[elementsByDepth.length - 1];
         if (elements && elements.length > 0) {
           element = elements.pop();
           if (elements.length === 0) elementsByDepth.pop();
@@ -5150,7 +5152,7 @@ class NodePool {
       while (element.firstChild) element.firstChild.remove();
       return element;
     } else {
-      var newElement = document.createElement(type);
+      const newElement = document.createElement(type);
       if (className) newElement.className = className;
       if (style) Object.assign(newElement.style, style);
       return newElement;
@@ -5159,7 +5161,7 @@ class NodePool {
 
   getTextNode(text) {
     if (this.textNodes.length > 0) {
-      var node = this.textNodes.pop();
+      const node = this.textNodes.pop();
       node.textContent = text;
       return node;
     } else {
@@ -5168,24 +5170,24 @@ class NodePool {
   }
 
   release(node, depth = 0) {
-    var { nodeName } = node;
+    const { nodeName } = node;
     if (nodeName === '#text') {
       this.textNodes.push(node);
     } else {
-      var elementsByDepth = this.elementsByType[nodeName];
+      let elementsByDepth = this.elementsByType[nodeName];
       if (!elementsByDepth) {
         elementsByDepth = [];
         this.elementsByType[nodeName] = elementsByDepth;
       }
 
-      var elements = elementsByDepth[depth];
+      let elements = elementsByDepth[depth];
       if (!elements) {
         elements = [];
         elementsByDepth[depth] = elements;
       }
 
       elements.push(node);
-      for (var i = 0; i < node.childNodes.length; i++) {
+      for (let i = 0; i < node.childNodes.length; i++) {
         this.release(node.childNodes[i], depth + 1);
       }
     }
