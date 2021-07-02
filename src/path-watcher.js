@@ -296,11 +296,11 @@ class NSFWNativeWatcher extends NativeWatcher {
           } else {
             payload.oldPath = path.join(
               event.directory,
-              (typeof event.oldFile === 'undefined') ? '' : event.oldFile
+              typeof event.oldFile === 'undefined' ? '' : event.oldFile
             );
             payload.path = path.join(
               event.directory, 
-              (typeof event.newFile === 'undefined') ? '' : event.newFile
+              typeof event.newFile === 'undefined' ? '' : event.newFile
             );
           }
 
