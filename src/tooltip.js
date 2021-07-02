@@ -7,9 +7,9 @@ const listen = require('./delegated-listener');
 // This tooltip class is derived from Bootstrap 3, but modified to not require
 // jQuery, which is an expensive dependency we want to eliminate.
 
-var followThroughTimer = null;
+let followThroughTimer = null;
 
-var Tooltip = function(element, options, viewRegistry) {
+const Tooltip = function(element, options, viewRegistry) {
   this.options = null;
   this.enabled = null;
   this.timeout = null;
@@ -66,9 +66,9 @@ Tooltip.prototype.init = function(element, options) {
     );
   }
 
-  var triggers = this.options.trigger.split(' ');
+  const triggers = this.options.trigger.split(' ');
 
-  for (var i = triggers.length; i--; ) {
+  for (let i = triggers.length; i--; ) {
     var trigger = triggers[i];
 
     if (trigger === 'click') {
@@ -91,7 +91,7 @@ Tooltip.prototype.init = function(element, options) {
     } else if (trigger === 'manual') {
       this.show();
     } else {
-      var eventIn, eventOut;
+      let eventIn, eventOut;
 
       if (trigger === 'hover') {
         this.hideOnKeydownOutsideOfTooltip = () => this.hide();
@@ -175,12 +175,12 @@ Tooltip.prototype.getOptions = function(options) {
 };
 
 Tooltip.prototype.getDelegateOptions = function() {
-  var options = {};
-  var defaults = this.getDefaults();
+  const options = {};
+  const defaults = this.getDefaults();
 
   if (this._options) {
-    for (var key of Object.getOwnPropertyNames(this._options)) {
-      var value = this._options[key];
+    for (const key of Object.getOwnPropertyNames(this._options)) {
+      const value = this._options[key];
       if (defaults[key] !== value) options[key] = value;
     }
   }
@@ -223,7 +223,7 @@ Tooltip.prototype.enter = function(event) {
 };
 
 Tooltip.prototype.isInStateTrue = function() {
-  for (var key in this.inState) {
+  for (const key in this.inState) {
     if (this.inState[key]) return true;
   }
 
@@ -272,9 +272,9 @@ Tooltip.prototype.show = function() {
       );
     }
 
-    var tip = this.getTooltipElement();
+    const tip = this.getTooltipElement();
     this.startObservingMutations();
-    var tipId = this.getUID('tooltip');
+    const tipId = this.getUID('tooltip');
 
     this.setContent();
     tip.setAttribute('id', tipId);
@@ -282,13 +282,13 @@ Tooltip.prototype.show = function() {
 
     if (this.options.animation) tip.classList.add('fade');
 
-    var placement =
+    let placement =
       typeof this.options.placement === 'function'
         ? this.options.placement.call(this, tip, this.element)
         : this.options.placement;
 
-    var autoToken = /\s?auto?\s?/i;
-    var autoPlace = autoToken.test(placement);
+    const autoToken = /\s?auto?\s?/i;
+    const autoPlace = autoToken.test(placement);
     if (autoPlace) placement = placement.replace(autoToken, '') || 'top';
 
     tip.remove();
@@ -299,13 +299,13 @@ Tooltip.prototype.show = function() {
 
     document.body.appendChild(tip);
 
-    var pos = this.element.getBoundingClientRect();
-    var actualWidth = tip.offsetWidth;
-    var actualHeight = tip.offsetHeight;
+    const pos = this.element.getBoundingClientRect();
+    const actualWidth = tip.offsetWidth;
+    const actualHeight = tip.offsetHeight;
 
     if (autoPlace) {
-      var orgPlacement = placement;
-      var viewportDim = this.viewport.getBoundingClientRect();
+      const orgPlacement = placement;
+      const viewportDim = this.viewport.getBoundingClientRect();
 
       placement =
         placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom
@@ -322,7 +322,7 @@ Tooltip.prototype.show = function() {
       tip.classList.add(placement);
     }
 
-    var calculatedOffset = this.getCalculatedOffset(
+    const calculatedOffset = this.getCalculatedOffset(
       placement,
       pos,
       actualWidth,
@@ -331,7 +331,7 @@ Tooltip.prototype.show = function() {
 
     this.applyPlacement(calculatedOffset, placement);
 
-    var prevHoverState = this.hoverState;
+    const prevHoverState = this.hoverState;
     this.hoverState = null;
 
     if (prevHoverState === 'out') this.leave();
@@ -339,15 +339,15 @@ Tooltip.prototype.show = function() {
 };
 
 Tooltip.prototype.applyPlacement = function(offset, placement) {
-  var tip = this.getTooltipElement();
+  const tip = this.getTooltipElement();
 
-  var width = tip.offsetWidth;
-  var height = tip.offsetHeight;
+  const width = tip.offsetWidth;
+  const height = tip.offsetHeight;
 
   // manually read margins because getBoundingClientRect includes difference
-  var computedStyle = window.getComputedStyle(tip);
-  var marginTop = parseInt(computedStyle.marginTop, 10);
-  var marginLeft = parseInt(computedStyle.marginLeft, 10);
+  const computedStyle = window.getComputedStyle(tip);
+  const marginTop = parseInt(computedStyle.marginTop, 10);
+  const marginLeft = parseInt(computedStyle.marginLeft, 10);
 
   offset.top += marginTop;
   offset.left += marginLeft;
@@ -358,14 +358,14 @@ Tooltip.prototype.applyPlacement = function(offset, placement) {
   tip.classList.add('in');
 
   // check to see if placing tip in new offset caused the tip to resize itself
-  var actualWidth = tip.offsetWidth;
-  var actualHeight = tip.offsetHeight;
+  const actualWidth = tip.offsetWidth;
+  const actualHeight = tip.offsetHeight;
 
   if (placement === 'top' && actualHeight !== height) {
     offset.top = offset.top + height - actualHeight;
   }
 
-  var delta = this.getViewportAdjustedDelta(
+  const delta = this.getViewportAdjustedDelta(
     placement,
     offset,
     actualWidth,
@@ -375,11 +375,11 @@ Tooltip.prototype.applyPlacement = function(offset, placement) {
   if (delta.left) offset.left += delta.left;
   else offset.top += delta.top;
 
-  var isVertical = /top|bottom/.test(placement);
-  var arrowDelta = isVertical
+  const isVertical = /top|bottom/.test(placement);
+  const arrowDelta = isVertical
     ? delta.left * 2 - width + actualWidth
     : delta.top * 2 - height + actualHeight;
-  var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight';
+  const arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight';
 
   tip.style.top = offset.top + 'px';
   tip.style.left = offset.left + 'px';
@@ -388,8 +388,8 @@ Tooltip.prototype.applyPlacement = function(offset, placement) {
 };
 
 Tooltip.prototype.replaceArrow = function(delta, dimension, isVertical) {
-  var arrow = this.getArrowElement();
-  var amount = 50 * (1 - delta / dimension) + '%';
+  const arrow = this.getArrowElement();
+  const amount = 50 * (1 - delta / dimension) + '%';
 
   if (isVertical) {
     arrow.style.left = amount;
@@ -401,17 +401,17 @@ Tooltip.prototype.replaceArrow = function(delta, dimension, isVertical) {
 };
 
 Tooltip.prototype.setContent = function() {
-  var tip = this.getTooltipElement();
+  const tip = this.getTooltipElement();
 
   if (this.options.class) {
     tip.classList.add(this.options.class);
   }
 
-  var inner = tip.querySelector('.tooltip-inner');
+  const inner = tip.querySelector('.tooltip-inner');
   if (this.options.item) {
     inner.appendChild(this.viewRegistry.getView(this.options.item));
   } else {
-    var title = this.getTitle();
+    const title = this.getTitle();
     if (this.options.html) {
       inner.innerHTML = title;
     } else {
@@ -506,16 +506,16 @@ Tooltip.prototype.getViewportAdjustedDelta = function(
   actualWidth,
   actualHeight
 ) {
-  var delta = { top: 0, left: 0 };
+  const delta = { top: 0, left: 0 };
   if (!this.viewport) return delta;
 
-  var viewportPadding =
+  const viewportPadding =
     (this.options.viewport && this.options.viewport.padding) || 0;
-  var viewportDimensions = this.viewport.getBoundingClientRect();
+  const viewportDimensions = this.viewport.getBoundingClientRect();
 
   if (/right|left/.test(placement)) {
-    var topEdgeOffset = pos.top - viewportPadding - viewportDimensions.scroll;
-    var bottomEdgeOffset =
+    const topEdgeOffset = pos.top - viewportPadding - viewportDimensions.scroll;
+    const bottomEdgeOffset =
       pos.top + viewportPadding - viewportDimensions.scroll + actualHeight;
     if (topEdgeOffset < viewportDimensions.top) {
       // top overflow
@@ -529,8 +529,8 @@ Tooltip.prototype.getViewportAdjustedDelta = function(
         viewportDimensions.top + viewportDimensions.height - bottomEdgeOffset;
     }
   } else {
-    var leftEdgeOffset = pos.left - viewportPadding;
-    var rightEdgeOffset = pos.left + viewportPadding + actualWidth;
+    const leftEdgeOffset = pos.left - viewportPadding;
+    const rightEdgeOffset = pos.left + viewportPadding + actualWidth;
     if (leftEdgeOffset < viewportDimensions.left) {
       // left overflow
       delta.left = viewportDimensions.left - leftEdgeOffset;
@@ -545,7 +545,7 @@ Tooltip.prototype.getViewportAdjustedDelta = function(
 };
 
 Tooltip.prototype.getTitle = function() {
-  var title = this.element.getAttribute('data-original-title');
+  const title = this.element.getAttribute('data-original-title');
   if (title) {
     return title;
   } else {
@@ -617,7 +617,7 @@ Tooltip.prototype.destroy = function() {
 };
 
 Tooltip.prototype.getDelegateComponent = function(element) {
-  var component = tooltipComponentsByElement.get(element);
+  let component = tooltipComponentsByElement.get(element);
   if (!component) {
     component = new Tooltip(
       element,
@@ -630,26 +630,26 @@ Tooltip.prototype.getDelegateComponent = function(element) {
 };
 
 Tooltip.prototype.recalculatePosition = function() {
-  var tip = this.getTooltipElement();
+  const tip = this.getTooltipElement();
 
-  var placement =
+  let placement =
     typeof this.options.placement === 'function'
       ? this.options.placement.call(this, tip, this.element)
       : this.options.placement;
 
-  var autoToken = /\s?auto?\s?/i;
-  var autoPlace = autoToken.test(placement);
+  const autoToken = /\s?auto?\s?/i;
+  const autoPlace = autoToken.test(placement);
   if (autoPlace) placement = placement.replace(autoToken, '') || 'top';
 
   tip.classList.add(placement);
 
-  var pos = this.element.getBoundingClientRect();
-  var actualWidth = tip.offsetWidth;
-  var actualHeight = tip.offsetHeight;
+  const pos = this.element.getBoundingClientRect();
+  const actualWidth = tip.offsetWidth;
+  const actualHeight = tip.offsetHeight;
 
   if (autoPlace) {
-    var orgPlacement = placement;
-    var viewportDim = this.viewport.getBoundingClientRect();
+    const orgPlacement = placement;
+    const viewportDim = this.viewport.getBoundingClientRect();
 
     placement =
       placement === 'bottom' && pos.bottom + actualHeight > viewportDim.bottom
@@ -666,7 +666,7 @@ Tooltip.prototype.recalculatePosition = function() {
     tip.classList.add(placement);
   }
 
-  var calculatedOffset = this.getCalculatedOffset(
+  const calculatedOffset = this.getCalculatedOffset(
     placement,
     pos,
     actualWidth,
@@ -676,11 +676,11 @@ Tooltip.prototype.recalculatePosition = function() {
 };
 
 function extend() {
-  var args = Array.prototype.slice.apply(arguments);
-  var target = args.shift();
-  var source = args.shift();
+  const args = Array.prototype.slice.apply(arguments);
+  const target = args.shift();
+  let source = args.shift();
   while (source) {
-    for (var key of Object.getOwnPropertyNames(source)) {
+    for (const key of Object.getOwnPropertyNames(source)) {
       target[key] = source[key];
     }
     source = args.shift();

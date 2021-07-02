@@ -1173,7 +1173,7 @@ module.exports = class Package {
       return nativeModulePaths;
     }
 
-    var traversePath = nodeModulesPath => {
+    const traversePath = nodeModulesPath => {
       try {
         for (let modulePath of fs.listSync(nodeModulesPath)) {
           const modulePathNodeFiles = this.getModulePathNodeFiles(modulePath);

@@ -104,7 +104,7 @@ export default class GitDiffView {
         }),
         this.editor.onDidStopChanging(scheduleUpdate),
         this.editor.onDidChangePath(() => {
-          this.editorPath = this.edtior.getPath();
+          this.editorPath = this.editor.getPath();
           this.buffer = this.editor.getBuffer();
           scheduleUpdate();
         }),
