@@ -299,7 +299,7 @@ class NSFWNativeWatcher extends NativeWatcher {
               typeof event.oldFile === 'undefined' ? '' : event.oldFile
             );
             payload.path = path.join(
-              event.directory, 
+              event.directory,
               typeof event.newFile === 'undefined' ? '' : event.newFile
             );
           }
