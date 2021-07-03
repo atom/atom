@@ -118,7 +118,6 @@ module.exports = class ApplicationMenu {
       ({ id }) => id === 'Check for Update'
     );
     const checkingForUpdateItem = items.find(
-      // ({ label }) => label === 'Checking for Update'
       ({ id }) => id === 'Checking for Update'
     );
     const downloadingUpdateItem = items.find(
