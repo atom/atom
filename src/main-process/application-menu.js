@@ -124,7 +124,6 @@ module.exports = class ApplicationMenu {
       ({ id }) => id === 'Downloading Update'
     );
     const installUpdateItem = items.find(
-      // ({ label }) => label === 'Restart and Install Update'
       ({ id }) => id === 'Restart and Install Update'
     );
 
