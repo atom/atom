@@ -115,7 +115,6 @@ module.exports = class ApplicationMenu {
   showUpdateMenuItem(state) {
     const items = this.flattenMenuItems(this.menu);
     const checkForUpdateItem = items.find(
-      // ({ label }) => label === 'Check for Update'
       ({ id }) => id === 'Check for Update'
     );
     const checkingForUpdateItem = items.find(
