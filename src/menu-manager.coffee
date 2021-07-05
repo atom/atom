@@ -202,7 +202,6 @@ class MenuManager
       []
 
   sortPackagesMenu: ->
-    # packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
     packagesMenu = _.find @template, ({id}) -> MenuHelpers.normalizeLabel(id) is 'Packages'
     return unless packagesMenu?.submenu?
 
