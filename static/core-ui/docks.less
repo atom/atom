@@ -16,6 +16,11 @@ atom-dock {
 .atom-dock-inner {
   display: flex;
 
+  // Keep the area at least a pixel wide so that you have something to hover
+  // over to trigger the toggle button affordance even when fullscreen.
+  &.left, &.right { min-width: 1px; }
+  &.bottom { min-height: 1px; }
+
   &.bottom { width: 100%; }
   &.left, &.right { height: 100%; }
 

@@ -3,8 +3,12 @@ steps:
   # Linux Specific
   - script: |
       sudo apt-get update
-      sudo apt-get install -y wget software-properties-common
-      sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev
+      sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git libsecret-1-dev libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev software-properties-common wget
+      # rpm needs to be at least 4.13, in xenial it is too old
+      sudo apt-add-repository -y 'deb http://azure.archive.ubuntu.com/ubuntu/ bionic main universe'
+      sudo apt-add-repository -y 'deb http://azure.archive.ubuntu.com/ubuntu/ bionic-security main universe'
+      sudo apt-get update
+      sudo apt-get install -y rpm
       # clang 9 is included in the image
       clang -v
     displayName: Install apt dependencies
@@ -38,11 +42,6 @@ steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.8'
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - script: |
-      npm install --global --production windows-build-tools@4.0
-    displayName: Install windows build tools
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - pwsh: |
