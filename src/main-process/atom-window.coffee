@@ -86,6 +86,7 @@ class AtomWindow
     @browserWindow.loadSettings = loadSettings
 
     @browserWindow.on 'window:loaded', =>
+      @disableZoom()
       @emit 'window:loaded'
       @resolveLoadedPromise()
 
