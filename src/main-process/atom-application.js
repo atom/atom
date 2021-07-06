@@ -619,6 +619,12 @@ module.exports = class AtomApplication extends EventEmitter {
 
     if (process.platform === 'darwin') {
       this.on('application:reopen-project', ({ paths }) => {
+        const focusedWindow = this.focusedWindow();
+        if (focusedWindow) {
+          const { safeMode, devMode } = focusedWindow;
+          this.openPaths({ pathsToOpen: paths, safeMode, devMode });
+          return;
+        }
         this.openPaths({ pathsToOpen: paths });
       });
 

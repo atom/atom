@@ -87,7 +87,7 @@
   'alt-8': 'pane:show-item-8'
   'alt-9': 'pane:show-item-9'
 
-'atom-workspace atom-text-editor':
+'atom-text-editor':
   # Platform Bindings
   'ctrl-left': 'editor:move-to-beginning-of-word'
   'ctrl-right': 'editor:move-to-end-of-word'

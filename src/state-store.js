@@ -43,7 +43,7 @@ module.exports = class StateStore {
       this.dbPromise.then(db => {
         if (db == null) return resolve();
 
-        var request = db
+        const request = db
           .transaction(['states'], 'readwrite')
           .objectStore('states')
           .put({ value: value, storedAt: new Date().toString() }, key);
@@ -59,7 +59,7 @@ module.exports = class StateStore {
       if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db
+        const request = db
           .transaction(['states'])
           .objectStore('states')
           .get(key);
@@ -83,7 +83,7 @@ module.exports = class StateStore {
       this.dbPromise.then(db => {
         if (db == null) return resolve();
 
-        var request = db
+        const request = db
           .transaction(['states'], 'readwrite')
           .objectStore('states')
           .delete(key);
@@ -99,7 +99,7 @@ module.exports = class StateStore {
       if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db
+        const request = db
           .transaction(['states'], 'readwrite')
           .objectStore('states')
           .clear();
@@ -115,7 +115,7 @@ module.exports = class StateStore {
       if (!db) return;
 
       return new Promise((resolve, reject) => {
-        var request = db
+        const request = db
           .transaction(['states'])
           .objectStore('states')
           .count();

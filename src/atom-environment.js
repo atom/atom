@@ -1036,7 +1036,12 @@ class AtomEnvironment {
         commands: this.commands,
         history: this.history,
         config: this.config,
-        open: paths => this.open({ pathsToOpen: paths })
+        open: paths =>
+          this.open({
+            pathsToOpen: paths,
+            safeMode: this.inSafeMode(),
+            devMode: this.inDevMode()
+          })
       });
       this.reopenProjectMenuManager.update();
     });

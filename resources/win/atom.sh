@@ -4,6 +4,7 @@ if command -v "cygpath" > /dev/null; then
   # We have cygpath to do the conversion
   ATOMCMD=$(cygpath "$(dirname "$0")/atom.cmd" -a -w)
 else
+<<<<<<< HEAD
   pushd "$(dirname "$0")" > /dev/null
   if [[ $(uname -r) =~ (M|m)icrosoft ]]; then
     # We are in Windows Subsystem for Linux, map /mnt/drive
@@ -17,6 +18,11 @@ else
     # We don't have cygpath or WSL so try pwd -W
     ATOMCMD="$(pwd -W)/atom.cmd"
   fi
+=======
+  # We don't have cygpath so try pwd -W
+  pushd "$(dirname "$0")" > /dev/null
+  ATOMCMD="$(pwd -W)/atom.cmd"
+>>>>>>> origin/1.8-releases-archived
   popd > /dev/null
 fi
 if [ "$(uname -o)" == "Msys" ]; then

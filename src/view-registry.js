@@ -259,13 +259,13 @@ module.exports = class ViewRegistry {
     this.nextUpdatePromise = null;
     this.resolveNextUpdatePromise = null;
 
-    var writer = this.documentWriters.shift();
+    let writer = this.documentWriters.shift();
     while (writer) {
       writer();
       writer = this.documentWriters.shift();
     }
 
-    var reader = this.documentReaders.shift();
+    let reader = this.documentReaders.shift();
     this.documentReadInProgress = true;
     while (reader) {
       reader();
