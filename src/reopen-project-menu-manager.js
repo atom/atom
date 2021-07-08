@@ -146,9 +146,11 @@ module.exports = class ReopenProjectMenuManager {
   static createProjectsMenu(projects) {
     return {
       label: 'File',
+      id: 'File',
       submenu: [
         {
           label: 'Reopen Project',
+          id: 'Reopen Project',
           submenu: projects.map((project, index) => ({
             label: this.createLabel(project),
             command: 'application:reopen-project',

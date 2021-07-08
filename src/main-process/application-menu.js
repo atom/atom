@@ -115,16 +115,16 @@ module.exports = class ApplicationMenu {
   showUpdateMenuItem(state) {
     const items = this.flattenMenuItems(this.menu);
     const checkForUpdateItem = items.find(
-      ({ label }) => label === 'Check for Update'
+      ({ id }) => id === 'Check for Update'
     );
     const checkingForUpdateItem = items.find(
-      ({ label }) => label === 'Checking for Update'
+      ({ id }) => id === 'Checking for Update'
     );
     const downloadingUpdateItem = items.find(
-      ({ label }) => label === 'Downloading Update'
+      ({ id }) => id === 'Downloading Update'
     );
     const installUpdateItem = items.find(
-      ({ label }) => label === 'Restart and Install Update'
+      ({ id }) => id === 'Restart and Install Update'
     );
 
     if (
@@ -165,13 +165,16 @@ module.exports = class ApplicationMenu {
     return [
       {
         label: 'Atom',
+        id: 'Atom',
         submenu: [
           {
             label: 'Check for Update',
+            id: 'Check for Update',
             metadata: { autoUpdate: true }
           },
           {
             label: 'Reload',
+            id: 'Reload',
             accelerator: 'Command+R',
             click: () => {
               const window = this.focusedWindow();
@@ -180,6 +183,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Close Window',
+            id: 'Close Window',
             accelerator: 'Command+Shift+W',
             click: () => {
               const window = this.focusedWindow();
@@ -188,6 +192,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Toggle Dev Tools',
+            id: 'Toggle Dev Tools',
             accelerator: 'Command+Alt+I',
             click: () => {
               const window = this.focusedWindow();
@@ -196,6 +201,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Quit',
+            id: 'Quit',
             accelerator: 'Command+Q',
             click: () => app.quit()
           }

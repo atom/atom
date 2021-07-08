@@ -37,9 +37,9 @@ describe('ContextMenuManager', function() {
       });
 
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'C', command: 'c' },
-        { label: 'B', command: 'b' },
-        { label: 'A', command: 'a' }
+        { label: 'C', id: 'C', command: 'c' },
+        { label: 'B', id: 'B', command: 'b' },
+        { label: 'A', id: 'A', command: 'a' }
       ]);
 
       disposable.dispose();
@@ -57,7 +57,11 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForElement(grandchild)).toEqual([
         {
           label: 'A',
-          submenu: [{ label: 'B', command: 'b' }, { label: 'C', command: 'c' }]
+          id: 'A',
+          submenu: [
+            { label: 'B', id: 'B', command: 'b' },
+            { label: 'C', id: 'C', command: 'c' }
+          ]
         }
       ]);
 
@@ -65,7 +69,8 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForElement(grandchild)).toEqual([
         {
           label: 'A',
-          submenu: [{ label: 'B', command: 'b' }]
+          id: 'A',
+          submenu: [{ label: 'B', id: 'B', command: 'b' }]
         }
       ]);
 
@@ -91,22 +96,22 @@ describe('ContextMenuManager', function() {
       });
 
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'b' }
+        { label: 'A', id: 'A', command: 'b' }
       ]);
 
       disposable2.dispose();
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'c' }
+        { label: 'A', id: 'A', command: 'c' }
       ]);
 
       disposable3.dispose();
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'a' }
+        { label: 'A', id: 'A', command: 'a' }
       ]);
 
       disposable1.dispose();
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'd' }
+        { label: 'A', id: 'A', command: 'd' }
       ]);
     });
 
@@ -124,11 +129,11 @@ describe('ContextMenuManager', function() {
       });
 
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'a' },
+        { label: 'A', id: 'A', command: 'a' },
         { type: 'separator' },
-        { label: 'B', command: 'b' },
+        { label: 'B', id: 'B', command: 'b' },
         { type: 'separator' },
-        { label: 'C', command: 'c' }
+        { label: 'C', id: 'C', command: 'c' }
       ]);
     });
 
@@ -141,13 +146,13 @@ describe('ContextMenuManager', function() {
       });
 
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'B', command: 'b' }
+        { label: 'B', id: 'B', command: 'b' }
       ]);
 
       contextMenu.devMode = true;
       expect(contextMenu.templateForElement(grandchild)).toEqual([
-        { label: 'A', command: 'a' },
-        { label: 'B', command: 'b' }
+        { label: 'A', id: 'A', command: 'a' },
+        { label: 'B', id: 'B', command: 'b' }
       ]);
     });
 
@@ -167,7 +172,7 @@ describe('ContextMenuManager', function() {
 
       const dispatchedEvent = { target: grandchild };
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
-        { label: 'A', command: 'b' }
+        { label: 'A', id: 'A', command: 'b' }
       ]);
       expect(item.command).toBe('a'); // doesn't modify original item template
       expect(createdEvent).toBe(dispatchedEvent);
@@ -190,7 +195,7 @@ describe('ContextMenuManager', function() {
 
       const dispatchedEvent = { target: grandchild };
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
-        { label: 'A', command: 'a' }
+        { label: 'A', id: 'A', command: 'a' }
       ]);
       expect(item.foo).toBeUndefined(); // doesn't modify original item template
       expect(shouldDisplayEvent).toBe(dispatchedEvent);
@@ -293,10 +298,12 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'A',
+          id: 'A',
           command: 'B',
           submenu: [
             {
-              label: 'D'
+              label: 'D',
+              id: 'D'
             }
           ]
         }
@@ -335,11 +342,13 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'My Command',
+          id: 'My Command',
           command: 'test:my-command',
           accelerator: 'Ctrl+A',
           submenu: [
             {
               label: 'My Other Command',
+              id: 'My Other Command',
               command: 'test:my-other-command',
               accelerator: 'Shift+B'
             }
@@ -354,11 +363,13 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'My Command',
+          id: 'My Command',
           command: 'test:my-command',
           accelerator: 'Ctrl+A',
           submenu: [
             {
               label: 'My Other Command',
+              id: 'My Other Command',
               command: 'test:my-other-command',
               accelerator: 'Shift+B'
             }
@@ -373,10 +384,12 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'My Command',
+          id: 'My Command',
           command: 'test:my-command',
           submenu: [
             {
               label: 'My Other Command',
+              id: 'My Other Command',
               command: 'test:my-other-command'
             }
           ]
@@ -390,11 +403,13 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'My Command',
+          id: 'My Command',
           command: 'test:my-command',
           accelerator: 'Ctrl+A',
           submenu: [
             {
               label: 'My Other Command',
+              id: 'My Other Command',
               command: 'test:my-other-command',
               accelerator: 'Shift+B'
             }
@@ -425,6 +440,7 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent({ target: child })).toEqual([
         {
           label: `Multi-keystroke command [${label}]`,
+          id: `Multi-keystroke command`,
           command: 'test:multi-keystroke-command'
         }
       ]);
@@ -450,10 +466,12 @@ describe('ContextMenuManager', function() {
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
           label: 'My Other Command',
+          id: 'My Other Command',
           command: 'test:my-other-command'
         },
         {
           label: 'My Command',
+          id: 'My Command',
           command: 'test:my-command',
           after: ['test:my-other-command']
         }
@@ -464,6 +482,7 @@ describe('ContextMenuManager', function() {
       contextMenu.add({
         '.parent': [
           {
+            label: 'Parent',
             submenu: [
               {
                 label: 'My Command',
@@ -481,13 +500,17 @@ describe('ContextMenuManager', function() {
       const dispatchedEvent = { target: parent };
       expect(contextMenu.templateForEvent(dispatchedEvent)).toEqual([
         {
+          label: 'Parent',
+          id: `Parent`,
           submenu: [
             {
               label: 'My Other Command',
+              id: 'My Other Command',
               command: 'test:my-other-command'
             },
             {
               label: 'My Command',
+              id: 'My Command',
               command: 'test:my-command',
               after: ['test:my-other-command']
             }

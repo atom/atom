@@ -109,6 +109,7 @@ class ContextMenuManager
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
   #
+  #   * `id` (internal) A {String} containing the menu item's id.
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (itemsBySelector, throwOnInvalidSelector = true) ->
