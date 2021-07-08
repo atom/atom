@@ -1,16 +1,25 @@
 # Atom build status
 
-| System | Azure Pipelines | Travis | AppVeyor/Win | Dependencies |
+> **Note**: Since Atom's electron version is outdated, the electron badges are from old versions.
+
+| System | Azure Pipelines | CircleCI | AppVeyor/Win | Dependencies |
 |--------|--------|--------------|------------|--------------|
 | [Atom](https://github.com/atom/atom) | [![Build status](https://github.visualstudio.com/Atom/_apis/build/status/Atom%20Production%20Branches?branch=master)](https://github.visualstudio.com/Atom/_build/latest?definitionId=32&branch=master) | | | [![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom) |
-| [APM](https://github.com/atom/apm) | | [![Travis Build Status](https://travis-ci.org/atom/apm.svg?branch=master)](https://travis-ci.org/atom/apm) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/j6ixw374a397ugkb/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/apm/branch/master) | [![Dependency Status](https://david-dm.org/atom/apm.svg)](https://david-dm.org/atom/apm) |
-| [Electron](https://github.com/electron/electron) | | [![Travis Build Status](https://travis-ci.org/electron/electron.svg?branch=master)](https://travis-ci.org/electron/electron) | [![AppVeyor/Wi Build Status](https://ci.appveyor.com/api/projects/status/kvxe4byi7jcxbe26/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/electron) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
+| [APM](https://github.com/atom/apm) | [![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master) | |
+| [Electron](https://github.com/electron/electron) | | [![CircleCI Build Status](https://circleci.com/gh/electron/electron/tree/master.svg?style=shield)](https://circleci.com/gh/electron/electron/tree/master) | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/4lggi9dpjc1qob7k/branch/master?svg=true)](https://ci.appveyor.com/project/electron-bot/electron-ljo26/branch/master) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
 
 ## Packages
 
+> **Note**: Some packages have been merged with Atom.
+> See <https://github.com/atom/atom/blob/master/packages/README.md> for details.
+>
+> Here are the packages tested along with Atom, and so have no testing badges, since the main Atom badges take care of that:
+>
+> - [About](https://github.com/atom/atom/tree/master/packages/about)
+
 | Package | Travis | AppVeyor/Win | Dependencies |
 |---------|--------|--------------|--------------|
-| [About](https://github.com/atom/about)   | [![macOS Build Status](https://travis-ci.org/atom/about.svg?branch=master)](https://travis-ci.org/atom/about) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/msprea3vq47l8oce/branch/master?svg=true)](https://ci.appveyor.com/project/atom/about/branch/master) | [![Dependency Status](https://david-dm.org/atom/about.svg)](https://david-dm.org/atom/about) |
+| [About](https://github.com/atom/atom/tree/master/packages/about) | | | [![Dependency Status](https://david-dm.org/atom/about.svg)](https://david-dm.org/atom/about) |
 | [Archive View](https://github.com/atom/archive-view) | [![macOS Build Status](https://travis-ci.org/atom/archive-view.svg?branch=master)](https://travis-ci.org/atom/archive-view) | [![Windows Build status](https://ci.appveyor.com/api/projects/status/u3qfgaod4lhriqlj/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/archive-view/branch/master) | [![Dependency Status](https://david-dm.org/atom/archive-view.svg)](https://david-dm.org/atom/archive-view) |
 | [AutoComplete Atom API](https://github.com/atom/autocomplete-atom-api) | [![macOS Build Status](https://travis-ci.org/atom/autocomplete-atom-api.svg?branch=master)](https://travis-ci.org/atom/autocomplete-atom-api) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/1x3uqd9ddchpe555/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/autocomplete-atom-api/branch/master) | [![Dependency Status](https://david-dm.org/atom/autocomplete-atom-api.svg)](https://david-dm.org/atom/autocomplete-atom-api) |
 | [AutoComplete CSS](https://github.com/atom/autocomplete-css) | [![macOS Build Status](https://travis-ci.org/atom/autocomplete-css.svg?branch=master)](https://travis-ci.org/atom/autocomplete-css) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/k3e5uvpmpc5bkja9/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/autocomplete-css/branch/master) | [![Dependency Status](https://david-dm.org/atom/autocomplete-css.svg)](https://david-dm.org/atom/autocomplete-css) |
