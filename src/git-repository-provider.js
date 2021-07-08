@@ -81,7 +81,7 @@ async function findGitDirectory(directory) {
   if (
     typeof gitDir.exists === 'function' &&
     (await gitDir.exists()) &&
-    isValidGitDirectory(gitDir)
+    (await isValidGitDirectory(gitDir))
   ) {
     return gitDir;
   } else if (directory.isRoot()) {
@@ -141,7 +141,7 @@ async function isValidGitDirectory(directory) {
   return (
     (await directory.getFile('HEAD').exists()) &&
     (await commonDir.getSubdirectory('objects').exists()) &&
-    commonDir.getSubdirectory('refs').exists()
+    await commonDir.getSubdirectory('refs').exists()
   );
 }
 
