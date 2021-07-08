@@ -1,6 +1,6 @@
 path = require 'path'
 temp = require('temp').track()
-Babel = require 'babel-core'
+Babel = require '@babel/core'
 CoffeeScript = require 'coffee-script'
 {TypeScriptSimple} = require 'typescript-simple'
 CSON = require 'season'
