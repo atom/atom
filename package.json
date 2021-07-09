@@ -23,7 +23,7 @@
     "async": "3.2.0",
     "atom-dark-syntax": "file:packages/atom-dark-syntax",
     "atom-dark-ui": "file:packages/atom-dark-ui",
-    "atom-keymap": "8.2.14",
+    "atom-keymap": "8.2.15",
     "atom-light-syntax": "file:packages/atom-light-syntax",
     "atom-light-ui": "file:packages/atom-light-ui",
     "atom-select-list": "^0.8.1",
