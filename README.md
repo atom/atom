@@ -60,7 +60,7 @@ but should be compatible with other Linux distributions.
 
 1. Install dependencies (on Ubuntu):
 ```sh
-sudo apt install git libasound2 libcurl libgbm1 libgcrypt20 libgtk-3-0 libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0 libxss1 libxtst6 libxkbfile1
+sudo apt install git libasound2 libcurl4 libgbm1 libgcrypt20 libgtk-3-0 libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0 libxss1 libxtst6 libxkbfile1
 ```
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
