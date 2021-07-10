@@ -90,6 +90,12 @@ fi
 ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
 mkdir -p "$ATOM_HOME"
 
+if [ ! -t 0 ]; then
+  TEMPFILE="$(mktemp)"
+  cat > "$TEMPFILE"
+  set "$TEMPFILE" "$@"
+fi
+
 if [ $OS == 'Mac' ]; then
   if [ -L "$0" ]; then
     SCRIPT="$(readlink "$0")"
