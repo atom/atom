@@ -29,7 +29,8 @@ class TextEditorElement extends HTMLElement {
     return this;
   }
 
-  createdCallback() {
+  constructor() {
+    super();
     this.emitter = new Emitter();
     this.initialText = this.textContent;
     if (this.tabIndex == null) this.tabIndex = -1;
@@ -39,12 +40,12 @@ class TextEditorElement extends HTMLElement {
     this.addEventListener('blur', event => this.getComponent().didBlur(event));
   }
 
-  attachedCallback() {
+  connectedCallback() {
     this.getComponent().didAttach();
     this.emitter.emit('did-attach');
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.emitter.emit('did-detach');
     this.getComponent().didDetach();
   }
@@ -354,6 +355,5 @@ class TextEditorElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-text-editor', {
-  prototype: TextEditorElement.prototype
-});
+window.customElements.define('atom-text-editor', TextEditorElement);
+module.exports = window.customElements.get('atom-text-editor');

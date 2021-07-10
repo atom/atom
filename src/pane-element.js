@@ -2,7 +2,8 @@ const path = require('path');
 const { CompositeDisposable } = require('event-kit');
 
 class PaneElement extends HTMLElement {
-  createdCallback() {
+  constructor() {
+    super();
     this.attached = false;
     this.subscriptions = new CompositeDisposable();
     this.inlineDisplayStyles = new WeakMap();
@@ -10,14 +11,14 @@ class PaneElement extends HTMLElement {
     this.subscribeToDOMEvents();
   }
 
-  attachedCallback() {
+  connectedCallback() {
     this.attached = true;
     if (this.model.isFocused()) {
       this.focus();
     }
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.attached = false;
   }
 
@@ -213,6 +214,5 @@ class PaneElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-pane', {
-  prototype: PaneElement.prototype
-});
+window.customElements.define('atom-pane', PaneElement);
+module.exports = window.customElements.get('atom-pane');
