@@ -2,7 +2,6 @@ path = require 'path'
 process = require 'process'
 _ = require 'underscore-plus'
 grim = require 'grim'
-marked = require 'marked'
 listen = require '../src/delegated-listener'
 ipcHelpers = require '../src/ipc-helpers'
 
