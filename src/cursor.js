@@ -62,7 +62,7 @@ module.exports = class Cursor extends Model {
   // * `options` (optional) {Object} with the following keys:
   //   * `autoscroll` A Boolean which, if `true`, scrolls the {TextEditor} to wherever
   //     the cursor moves to.
-  setScreenPosition(screenPosition, options = {}) {
+  setScreenPosition(screenPosition, options = {}) { 
     this.changePosition(options, () => {
       this.marker.setHeadScreenPosition(screenPosition, options);
     });
@@ -89,6 +89,56 @@ module.exports = class Cursor extends Model {
   // Public: Returns the current buffer position as an Array.
   getBufferPosition() {
     return this.marker.getHeadBufferPosition();
+  }
+
+  checkRTL(s){
+    if(s==" " || s=="")return true ; 
+      var ltrChars    = 'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02B8\u0300-\u0590\u0800-\u1FFF'+'\u2C00-\uFB1C\uFDFE-\uFE6F\uFEFD-\uFFFF',
+          rtlChars    = '\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC',
+          rtlDirCheck = new RegExp('^[^'+ltrChars+']*['+rtlChars+']');
+
+      return rtlDirCheck.test(s);
+  }
+
+
+  getNextChar(shift=0){
+      const editor = atom.workspace.getActiveTextEditor()
+     const row = this.getBufferPosition().row ; 
+     const col = this.getBufferPosition().column-shift ;
+
+     let char = editor.getTextInBufferRange([
+      Point(row , col) , 
+      Point(row , col+1)
+     ])
+     
+
+     return char
+  }
+  checkNextChar(){
+
+    let char = this.getNextChar() ;
+    if(char==' ') char = this.getNextChar(1) ; 
+    return this.checkRTL(char);
+  }
+  
+  getPreviousChar(shift=0){
+      const editor = atom.workspace.getActiveTextEditor()
+     const row = this.getBufferPosition().row ; 
+     const col = this.getBufferPosition().column-1-shift ;
+
+     let char = editor.getTextInBufferRange([
+      Point(row , col) , 
+      Point(row , col+1)
+     ])
+     
+
+     return char
+  }
+  checkPreviousChar(){
+
+    let char = this.getPreviousChar() ;
+    if(char ==' ' ) char = this.getPreviousChar(1) ; 
+    return this.checkRTL(char);
   }
 
   // Public: Returns the cursor's current screen row.

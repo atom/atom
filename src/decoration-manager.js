@@ -204,6 +204,7 @@ module.exports = class DecorationManager {
   }
 
   decorateMarker(marker, decorationParams) {
+    console.log('decorateMarker called') ;
     if (marker.isDestroyed()) {
       const error = new Error('Cannot decorate a destroyed marker');
       error.metadata = { markerLayerIsDestroyed: marker.layer.isDestroyed() };
@@ -238,6 +239,7 @@ module.exports = class DecorationManager {
   }
 
   decorateMarkerLayer(markerLayer, decorationParams) {
+    console.log('decorateMarkerLayer called') ;
     if (markerLayer.isDestroyed()) {
       throw new Error('Cannot decorate a destroyed marker layer');
     }
