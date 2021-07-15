@@ -263,10 +263,6 @@ module.exports = class AtomWindow extends EventEmitter {
       }
     });
 
-    this.browserWindow.webContents.on('will-navigate', (event, url) => {
-      if (url !== this.browserWindow.webContents.getURL())
-        event.preventDefault();
-    });
 
     this.setupContextMenu();
 
