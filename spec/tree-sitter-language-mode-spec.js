@@ -1603,7 +1603,7 @@ describe('TreeSitterLanguageMode', () => {
             type: 'else',
 
             // There are double quotes around the `else` type. This indicates that
-            // we're targetting an *anonymous* node in the syntax tree. The fold
+            // we're targeting an *anonymous* node in the syntax tree. The fold
             // should start at the token representing the literal string "else",
             // not at an `else` node.
             start: { type: '"else"' }
