@@ -5,7 +5,7 @@ jobs:
     variables:
       ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
     pool:
-      vmImage: ubuntu-latest
+      vmImage: ubuntu-18.04
 
     steps:
       - template: templates/preparation.yml
