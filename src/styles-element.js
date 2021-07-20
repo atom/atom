@@ -3,7 +3,9 @@ const { Emitter, CompositeDisposable } = require('event-kit');
 class StylesElement extends HTMLElement {
   constructor() {
     super();
-    this.subscriptions = null;
+    this.subscriptions = new CompositeDisposable();
+    this.emitter = new Emitter();
+    this.styleElementClonesByOriginalElement = new WeakMap();
     this.context = null;
   }
 
@@ -19,21 +21,19 @@ class StylesElement extends HTMLElement {
     this.emitter.on('did-update-style-element', callback);
   }
 
-  createdCallback() {
-    this.subscriptions = new CompositeDisposable();
-    this.emitter = new Emitter();
-    this.styleElementClonesByOriginalElement = new WeakMap();
-  }
-
-  attachedCallback() {
+  connectedCallback() {
     let left;
     this.context =
       (left = this.getAttribute('context')) != null ? left : undefined;
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.subscriptions.dispose();
     this.subscriptions = new CompositeDisposable();
+  }
+
+  static get observedAttributes() {
+    return ['context'];
   }
 
   attributeChangedCallback(attrName) {
@@ -58,7 +58,7 @@ class StylesElement extends HTMLElement {
         this.styleElementRemoved.bind(this)
       )
     );
-    return this.subscriptions.add(
+    this.subscriptions.add(
       this.styleManager.onDidUpdateStyleElement(
         this.styleElementUpdated.bind(this)
       )
@@ -140,6 +140,12 @@ class StylesElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-styles', {
-  prototype: StylesElement.prototype
-});
+window.customElements.define('atom-styles', StylesElement);
+
+function createStylesElement() {
+  return document.createElement('atom-styles');
+}
+
+module.exports = {
+  createStylesElement
+};

@@ -1,4 +1,4 @@
-const StylesElement = require('../src/styles-element');
+const { createStylesElement } = require('../src/styles-element');
 
 describe('StylesElement', function() {
   let [
@@ -9,7 +9,7 @@ describe('StylesElement', function() {
   ] = [];
 
   beforeEach(function() {
-    element = new StylesElement();
+    element = createStylesElement();
     element.initialize(atom.styles);
     document.querySelector('#jasmine-content').appendChild(element);
     addedStyleElements = [];
