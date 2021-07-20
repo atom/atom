@@ -2,7 +2,7 @@ const { find } = require('underscore-plus');
 const { Emitter, CompositeDisposable } = require('event-kit');
 const Pane = require('./pane');
 const ItemRegistry = require('./item-registry');
-const {createPaneContainerElement} = require('./pane-container-element');
+const { createPaneContainerElement } = require('./pane-container-element');
 
 const SERIALIZATION_VERSION = 1;
 const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100;

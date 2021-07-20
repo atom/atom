@@ -2,7 +2,7 @@ const { CompositeDisposable } = require('event-kit');
 
 class PaneContainerElement extends HTMLElement {
   constructor() {
-    super()
+    super();
     this.subscriptions = new CompositeDisposable();
   }
 
@@ -43,12 +43,12 @@ class PaneContainerElement extends HTMLElement {
   }
 }
 
-window.customElements.define('atom-pane-container', PaneContainerElement)
+window.customElements.define('atom-pane-container', PaneContainerElement);
 
 function createPaneContainerElement() {
-  return document.createElement('atom-pane-container')
+  return document.createElement('atom-pane-container');
 }
 
 module.exports = {
   createPaneContainerElement
-}
+};
