@@ -62,6 +62,7 @@ describe('PaneContainerElement', function() {
       expect(document.activeElement).toBe(rightPaneElement);
 
       rightPane.destroy();
+      expect(containerElement).toHaveClass('panes')
       return expect(document.activeElement).toBe(leftPaneElement);
     });
   });
