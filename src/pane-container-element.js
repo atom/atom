@@ -1,9 +1,9 @@
 const { CompositeDisposable } = require('event-kit');
 
 class PaneContainerElement extends HTMLElement {
-  createdCallback() {
+  constructor() {
+    super();
     this.subscriptions = new CompositeDisposable();
-    this.classList.add('panes');
   }
 
   initialize(model, { views }) {
@@ -16,6 +16,10 @@ class PaneContainerElement extends HTMLElement {
     }
     this.subscriptions.add(this.model.observeRoot(this.rootChanged.bind(this)));
     return this;
+  }
+
+  connectedCallback() {
+    this.classList.add('panes');
   }
 
   rootChanged(root) {
@@ -39,6 +43,12 @@ class PaneContainerElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-pane-container', {
-  prototype: PaneContainerElement.prototype
-});
+window.customElements.define('atom-pane-container', PaneContainerElement);
+
+function createPaneContainerElement() {
+  return document.createElement('atom-pane-container');
+}
+
+module.exports = {
+  createPaneContainerElement
+};
