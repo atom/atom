@@ -2,15 +2,17 @@ const path = require('path');
 const { CompositeDisposable } = require('event-kit');
 
 class PaneElement extends HTMLElement {
-  createdCallback() {
+  constructor() {
+    super();
     this.attached = false;
     this.subscriptions = new CompositeDisposable();
     this.inlineDisplayStyles = new WeakMap();
-    this.initializeContent();
     this.subscribeToDOMEvents();
+    this.itemViews = document.createElement('div');
   }
 
-  attachedCallback() {
+  connectedCallback() {
+    this.initializeContent();
     this.attached = true;
     if (this.model.isFocused()) {
       this.focus();
@@ -24,7 +26,6 @@ class PaneElement extends HTMLElement {
   initializeContent() {
     this.setAttribute('class', 'pane');
     this.setAttribute('tabindex', -1);
-    this.itemViews = document.createElement('div');
     this.appendChild(this.itemViews);
     this.itemViews.setAttribute('class', 'item-views');
   }
@@ -148,6 +149,7 @@ class PaneElement extends HTMLElement {
         });
       }
     }
+
     if (!this.itemViews.contains(itemView)) {
       this.itemViews.appendChild(itemView);
     }
@@ -213,6 +215,12 @@ class PaneElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-pane', {
-  prototype: PaneElement.prototype
-});
+function createPaneElement() {
+  return document.createElement('atom-pane');
+}
+
+window.customElements.define('atom-pane', PaneElement);
+
+module.exports = {
+  createPaneElement
+};
