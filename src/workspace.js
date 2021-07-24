@@ -15,7 +15,7 @@ const Panel = require('./panel');
 const PanelContainer = require('./panel-container');
 const Task = require('./task');
 const WorkspaceCenter = require('./workspace-center');
-const WorkspaceElement = require('./workspace-element');
+const { createWorkspaceElement } = require('./workspace-element');
 
 const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100;
 const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
@@ -267,7 +267,7 @@ module.exports = class Workspace extends Model {
 
   getElement() {
     if (!this.element) {
-      this.element = new WorkspaceElement().initialize(this, {
+      this.element = createWorkspaceElement().initialize(this, {
         config: this.config,
         project: this.project,
         viewRegistry: this.viewRegistry,
