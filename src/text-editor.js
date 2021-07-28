@@ -5242,7 +5242,8 @@ module.exports = class TextEditor {
         TextEditorElement = require('./text-editor-element');
       this.component = new TextEditorComponent({
         model: this,
-        updatedSynchronously: TextEditorElement.prototype.updatedSynchronously,
+        updatedSynchronously:
+          TextEditorElement.TextEditorElement.prototype.updatedSynchronously,
         initialScrollTopRow: this.initialScrollTopRow,
         initialScrollLeftColumn: this.initialScrollLeftColumn
       });

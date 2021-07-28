@@ -10,7 +10,7 @@ FindParentDir = require 'find-parent-dir'
 {CompositeDisposable} = require 'event-kit'
 
 TextEditor = require '../src/text-editor'
-TextEditorElement = require '../src/text-editor-element'
+{createTextEditorElement} = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
 TreeSitterLanguageMode = require '../src/tree-sitter-language-mode'
 {clipboard} = require 'electron'
@@ -101,7 +101,7 @@ beforeEach ->
   window.setTimeout.reset()
 
   # make editor display updates synchronous
-  TextEditorElement::setUpdatedSynchronously(true)
+  createTextEditorElement().setUpdatedSynchronously(true)
 
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
