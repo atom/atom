@@ -24,9 +24,12 @@ class DummyElement extends HTMLElement {
   }
 }
 
-window.customElements.define('text-editor-component-test-element', DummyElement)
+window.customElements.define(
+  'text-editor-component-test-element',
+  DummyElement
+);
 
-document.createElement('text-editor-component-test-element')
+document.createElement('text-editor-component-test-element');
 
 const editors = [];
 let verticalScrollbarWidth, horizontalScrollbarHeight;
