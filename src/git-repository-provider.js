@@ -141,7 +141,7 @@ async function isValidGitDirectory(directory) {
   return (
     (await directory.getFile('HEAD').exists()) &&
     (await commonDir.getSubdirectory('objects').exists()) &&
-    await commonDir.getSubdirectory('refs').exists()
+    commonDir.getSubdirectory('refs').exists()
   );
 }
 
