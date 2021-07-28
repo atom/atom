@@ -18,15 +18,15 @@ const SAMPLE_TEXT = fs.readFileSync(
   'utf8'
 );
 
-document.registerElement('text-editor-component-test-element', {
-  prototype: Object.create(HTMLElement.prototype, {
-    attachedCallback: {
-      value: function() {
-        this.didAttach();
-      }
-    }
-  })
-});
+class DummyElement extends HTMLElement {
+  connectedCallback() {
+    this.didAttach();
+  }
+}
+
+window.customElements.define('text-editor-component-test-element', DummyElement)
+
+document.createElement('text-editor-component-test-element')
 
 const editors = [];
 let verticalScrollbarWidth, horizontalScrollbarHeight;
