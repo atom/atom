@@ -218,15 +218,16 @@ describe('TextEditorElement', () => {
     });
 
     describe('when focused while a parent node is being attached to the DOM', () => {
-      class ElementThatFocusesChild extends HTMLDivElement {
-        attachedCallback() {
+      class ElementThatFocusesChild extends HTMLElement {
+        connectedCallback() {
           this.firstChild.focus();
         }
       }
 
-      document.registerElement('element-that-focuses-child', {
-        prototype: ElementThatFocusesChild.prototype
-      });
+      window.customElements.define(
+        'element-that-focuses-child',
+        ElementThatFocusesChild
+      );
 
       it('proxies the focus event to the hidden input', () => {
         const element = buildTextEditorElement();
