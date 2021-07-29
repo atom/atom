@@ -49,7 +49,7 @@ module.exports = class ViewRegistry {
   //
   // ```coffee
   // atom.views.addViewProvider TextEditor, (textEditor) ->
-  //   textEditorElement = new TextEditorElement
+  //   textEditorElement = createTextEditorElement()
   //   textEditorElement.initialize(textEditor)
   //   textEditorElement
   // ```

@@ -3,7 +3,7 @@ const { conditionPromise } = require('./async-spec-helpers');
 const Random = require('../script/node_modules/random-seed');
 const { getRandomBufferRange, buildRandomLines } = require('./helpers/random');
 const TextEditorComponent = require('../src/text-editor-component');
-const TextEditorElement = require('../src/text-editor-element');
+const TextEditorElement = require('../src/text-editor-element').default;
 const TextEditor = require('../src/text-editor');
 const TextBuffer = require('text-buffer');
 const { Point } = TextBuffer;
@@ -1350,19 +1350,6 @@ describe('TextEditorComponent', () => {
       hiddenInput.focus();
       await component.getNextUpdatePromise();
       expect(element.classList.contains('is-focused')).toBe(true);
-    });
-
-    it('gracefully handles a focus event that occurs prior to the attachedCallback of the element', () => {
-      const { component, element } = buildComponent({ attach: false });
-      const parent = document.createElement(
-        'text-editor-component-test-element'
-      );
-      parent.appendChild(element);
-      parent.didAttach = () => element.focus();
-      jasmine.attachToDOM(parent);
-      expect(document.activeElement).toBe(
-        component.refs.cursorsAndInput.refs.hiddenInput
-      );
     });
 
     it('gracefully handles a focus event that occurs prior to detecting the element has become visible', async () => {

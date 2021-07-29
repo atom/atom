@@ -1,5 +1,5 @@
 const TextEditor = require('../src/text-editor');
-const TextEditorElement = require('../src/text-editor-element');
+const { createTextEditorElement } = require('../src/text-editor-element');
 
 describe('TextEditorElement', () => {
   let jasmineContent;
@@ -14,7 +14,7 @@ describe('TextEditorElement', () => {
   });
 
   function buildTextEditorElement(options = {}) {
-    const element = new TextEditorElement();
+    const element = createTextEditorElement();
     element.setUpdatedSynchronously(false);
     if (options.attach !== false) jasmine.attachToDOM(element);
     return element;

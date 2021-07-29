@@ -5239,7 +5239,7 @@ module.exports = class TextEditor {
       if (!TextEditorComponent)
         TextEditorComponent = require('./text-editor-component');
       if (!TextEditorElement)
-        TextEditorElement = require('./text-editor-element');
+        TextEditorElement = require('./text-editor-element').default;
       this.component = new TextEditorComponent({
         model: this,
         updatedSynchronously: TextEditorElement.prototype.updatedSynchronously,

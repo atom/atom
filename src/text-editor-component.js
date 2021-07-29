@@ -67,7 +67,7 @@ module.exports = class TextEditorComponent {
     } else {
       if (!TextEditorElement)
         TextEditorElement = require('./text-editor-element');
-      this.element = new TextEditorElement();
+      this.element = TextEditorElement.createTextEditorElement();
     }
     this.element.initialize(this);
     this.virtualNode = $('atom-text-editor');

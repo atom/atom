@@ -101,7 +101,7 @@ beforeEach ->
   window.setTimeout.reset()
 
   # make editor display updates synchronous
-  TextEditorElement::setUpdatedSynchronously(true)
+  TextEditorElement.default::setUpdatedSynchronously(true)
 
   spyOn(pathwatcher.File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
   spyOn(TextEditor.prototype, "shouldPromptToSave").andReturn false
