@@ -22,6 +22,7 @@ describe('the status bar', () => {
 
     await atom.packages.activatePackage('status-bar');
     await atom.workspace.open('sample.js');
+    jasmine.attachToDOM(workspaceElement);
   });
 
   afterEach(async () => {
