@@ -4059,7 +4059,6 @@ describe('TextEditorComponent', () => {
     describe('on the lines', () => {
       describe('when there is only one cursor', () => {
         it('positions the cursor on single-click or when middle-clicking', async () => {
-          atom.config.set('editor.selectionClipboard', true);
           for (const button of [0, 1]) {
             const { component, editor } = buildComponent();
             const { lineHeight } = component.measurements;
@@ -4807,7 +4806,6 @@ describe('TextEditorComponent', () => {
         const { component, editor } = buildComponent({ platform: 'linux' });
 
         // Middle mouse pasting.
-        atom.config.set('editor.selectionClipboard', true);
         editor.setSelectedBufferRange([[1, 6], [1, 10]]);
         await conditionPromise(() => TextEditor.clipboard.read() === 'sort');
         component.didMouseDownOnContent({
@@ -4819,19 +4817,7 @@ describe('TextEditorComponent', () => {
         expect(editor.lineTextForBufferRow(10)).toBe('sort');
         editor.undo();
 
-        // Doesn't paste when middle mouse button is clicked
-        atom.config.set('editor.selectionClipboard', false);
-        editor.setSelectedBufferRange([[1, 6], [1, 10]]);
-        component.didMouseDownOnContent({
-          button: 1,
-          clientX: clientLeftForCharacter(component, 10, 0),
-          clientY: clientTopForLine(component, 10)
-        });
-        expect(TextEditor.clipboard.read()).toBe('sort');
-        expect(editor.lineTextForBufferRow(10)).toBe('');
-
         // Ensure left clicks don't interfere.
-        atom.config.set('editor.selectionClipboard', true);
         editor.setSelectedBufferRange([[1, 2], [1, 5]]);
         await conditionPromise(() => TextEditor.clipboard.read() === 'var');
         component.didMouseDownOnContent({
