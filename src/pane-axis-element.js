@@ -1,5 +1,6 @@
 const { CompositeDisposable } = require('event-kit');
-require('./pane-resize-handle-element');
+/* eslint-disable-next-line no-unused-vars */
+const PaneResizeHandleElement = require('./pane-resize-handle-element');
 
 class PaneAxisElement extends HTMLElement {
   connectedCallback() {
