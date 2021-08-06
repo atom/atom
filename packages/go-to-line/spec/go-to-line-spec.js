@@ -77,7 +77,7 @@ describe('GoToLine', () => {
       const rowsPerPage = editor.getRowsPerPage();
       const currentRow = editor.getCursorBufferPosition().row;
       expect(editor.getFirstVisibleScreenRow()).toBe(
-        currentRow - Math.ceil(rowsPerPage / 2)
+        Math.ceil(currentRow - rowsPerPage / 2)
       );
       expect(editor.getLastVisibleScreenRow()).toBe(
         currentRow + Math.floor(rowsPerPage / 2)
