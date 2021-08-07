@@ -1,5 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+if [[ "$(id -u)" -ne 0 ]];
+then
+  echo "Please, Run This Programm as Root!
+  "
+  exit 1
+fi
 if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
 elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
