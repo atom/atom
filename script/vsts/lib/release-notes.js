@@ -37,7 +37,7 @@ module.exports.generateForVersion = async function(
   if (githubToken) {
     changelog.setGithubAccessToken(githubToken);
     octokit.authenticate({
-      type: 'oauth',
+      type: 'token',
       token: githubToken
     });
   }
