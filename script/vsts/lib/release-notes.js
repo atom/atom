@@ -6,7 +6,7 @@ const childProcess = require('child_process');
 module.exports.getRelease = async function(releaseVersion, githubToken) {
   if (githubToken) {
     octokit.authenticate({
-      type: 'oauth',
+      type: 'token',
       token: githubToken
     });
   }
