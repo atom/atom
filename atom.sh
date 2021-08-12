@@ -48,7 +48,6 @@ while getopts ":anwtfvh-:" opt; do
           WAIT=1
           ;;
         help|version)
-          REDIRECT_STDERR=1
           EXPECT_OUTPUT=1
           ;;
         foreground|benchmark|benchmark-test|test)
@@ -69,7 +68,6 @@ while getopts ":anwtfvh-:" opt; do
       WAIT=1
       ;;
     h|v)
-      REDIRECT_STDERR=1
       EXPECT_OUTPUT=1
       ;;
     f|t)
