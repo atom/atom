@@ -18,7 +18,6 @@ describe('GoToLine', () => {
       const workspaceElement = atom.views.getView(atom.workspace);
       workspaceElement.style.height = '200px';
       workspaceElement.style.width = '1000px';
-      jasmine.attachToDOM(workspaceElement);
       editor = atom.workspace.getActiveTextEditor();
       editorView = atom.views.getView(editor);
       goToLine = GoToLineView.activate();
@@ -72,6 +71,9 @@ describe('GoToLine', () => {
     });
 
     it('centers the selected line', () => {
+      const workspaceElement = atom.views.getView(atom.workspace);
+      jasmine.attachToDOM(workspaceElement);
+
       goToLine.miniEditor.insertText('45:4');
       atom.commands.dispatch(goToLine.miniEditor.element, 'core:confirm');
       const rowsPerPage = editor.getRowsPerPage();
