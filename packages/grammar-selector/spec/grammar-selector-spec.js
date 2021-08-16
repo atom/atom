@@ -3,6 +3,7 @@ const SelectListView = require('atom-select-list');
 
 describe('GrammarSelector', () => {
   let [editor, textGrammar, jsGrammar] = [];
+  atom.openDevTools()
 
   beforeEach(async () => {
     jasmine.attachToDOM(atom.views.getView(atom.workspace));
