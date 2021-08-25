@@ -151,6 +151,19 @@
         )
       : require('document-register-element');
 
+    const Grim = useSnapshot
+      ? snapshotResult.customRequire('../node_modules/grim/lib/grim.js')
+      : require('grim');
+    const documentRegisterElement = document.registerElement;
+
+    document.registerElement = (type, options) => {
+      Grim.deprecate(
+        'Use `customElements.define` instead of `document.registerElement` see https://javascript.info/custom-elements'
+      );
+
+      return documentRegisterElement(type, options);
+    };
+
     const { userSettings, appVersion } = getWindowLoadSettings();
     const uploadToServer =
       userSettings &&
