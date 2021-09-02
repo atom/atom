@@ -5,6 +5,8 @@ fs = require 'fs-plus'
 {Disposable} = require 'event-kit'
 {remote} = require 'electron'
 MenuHelpers = require './menu-helpers'
+{sortMenuItems} = require './menu-sort-helpers'
+_ = require 'underscore-plus'
 
 platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 
@@ -40,15 +42,17 @@ platformContextMenu = require('../package.json')?._atomMenu?['context-menu']
 # {::add} for more information.
 module.exports =
 class ContextMenuManager
-  constructor: ({@resourcePath, @devMode, @keymapManager}) ->
+  constructor: ({@keymapManager}) ->
     @definitions = {'.overlayer': []} # TODO: Remove once color picker package stops touching private data
     @clear()
 
     @keymapManager.onDidLoadBundledKeymaps => @loadPlatformItems()
 
+  initialize: ({@resourcePath, @devMode}) ->
+
   loadPlatformItems: ->
     if platformContextMenu?
-      @add(platformContextMenu)
+      @add(platformContextMenu, @devMode ? false)
     else
       menusDirPath = path.join(@resourcePath, 'menus')
       platformMenuPath = fs.resolve(menusDirPath, process.platform, ['cson', 'json'])
@@ -105,13 +109,14 @@ class ContextMenuManager
   #     with the following argument:
   #     * `event` The click event that deployed the context menu.
   #
+  #   * `id` (internal) A {String} containing the menu item's id.
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
-  add: (itemsBySelector) ->
+  add: (itemsBySelector, throwOnInvalidSelector = true) ->
     addedItemSets = []
 
     for selector, items of itemsBySelector
-      validateSelector(selector)
+      validateSelector(selector) if throwOnInvalidSelector
       itemSet = new ContextMenuItemSet(selector, items)
       addedItemSets.push(itemSet)
       @itemSets.push(itemSet)
@@ -145,8 +150,27 @@ class ContextMenuManager
       currentTarget = currentTarget.parentElement
 
     @pruneRedundantSeparators(template)
+    @addAccelerators(template)
 
-    template
+    return @sortTemplate(template)
+
+  # Adds an `accelerator` property to items that have key bindings. Electron
+  # uses this property to surface the relevant keymaps in the context menu.
+  addAccelerators: (template) ->
+    for id, item of template
+      if item.command
+        keymaps = @keymapManager.findKeyBindings({command: item.command, target: document.activeElement})
+        keystrokes = keymaps?[0]?.keystrokes
+        if keystrokes
+          # Electron does not support multi-keystroke accelerators. Therefore,
+          # when the command maps to a multi-stroke key binding, show the
+          # keystrokes next to the item's label.
+          if keystrokes.includes(' ')
+            item.label += " [#{_.humanizeKeystroke(keystrokes)}]"
+          else
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystrokes)
+      if Array.isArray(item.submenu)
+        @addAccelerators(item.submenu)
 
   pruneRedundantSeparators: (menu) ->
     keepNextItemIfSeparator = false
@@ -161,6 +185,13 @@ class ContextMenuManager
         keepNextItemIfSeparator = true
         index++
 
+  sortTemplate: (template) ->
+    template = sortMenuItems(template)
+    for id, item of template
+      if Array.isArray(item.submenu)
+        item.submenu = @sortTemplate(item.submenu)
+    return template
+
   # Returns an object compatible with `::add()` or `null`.
   cloneItemForEvent: (item, event) ->
     return null if item.devMode and not @devMode
@@ -174,27 +205,6 @@ class ContextMenuManager
         .filter((submenuItem) -> submenuItem isnt null)
     return item
 
-  convertLegacyItemsBySelector: (legacyItemsBySelector, devMode) ->
-    itemsBySelector = {}
-
-    for selector, commandsByLabel of legacyItemsBySelector
-      itemsBySelector[selector] = @convertLegacyItems(commandsByLabel, devMode)
-
-    itemsBySelector
-
-  convertLegacyItems: (legacyItems, devMode) ->
-    items = []
-
-    for label, commandOrSubmenu of legacyItems
-      if typeof commandOrSubmenu is 'object'
-        items.push({label, submenu: @convertLegacyItems(commandOrSubmenu, devMode), devMode})
-      else if commandOrSubmenu is '-'
-        items.push({type: 'separator'})
-      else
-        items.push({label, command: commandOrSubmenu, devMode})
-
-    items
-
   showForEvent: (event) ->
     @activeElement = event.target
     menuTemplate = @templateForEvent(event)
@@ -206,14 +216,17 @@ class ContextMenuManager
   clear: ->
     @activeElement = null
     @itemSets = []
-    @add 'atom-workspace': [{
-      label: 'Inspect Element'
-      command: 'application:inspect'
-      devMode: true
-      created: (event) ->
-        {pageX, pageY} = event
-        @commandDetail = {x: pageX, y: pageY}
-    }]
+    inspectElement = {
+      'atom-workspace': [{
+        label: 'Inspect Element'
+        command: 'application:inspect'
+        devMode: true
+        created: (event) ->
+          {pageX, pageY} = event
+          @commandDetail = {x: pageX, y: pageY}
+      }]
+    }
+    @add(inspectElement, false)
 
 class ContextMenuItemSet
   constructor: (@selector, @items) ->

@@ -875,10 +875,6 @@
     "hasDeprecations": true,
     "latestHasDeprecations": false
   },
-  "language-typescript": {
-    "hasAlternative": true,
-    "alternative": "atom-typescript"
-  },
   "laravel-facades": {
     "version": "<=1.0.0",
     "hasDeprecations": true,

@@ -1,7 +1,5 @@
-/** @babel */
-
-import crypto from 'crypto'
-import clipboard from './safe-clipboard'
+const crypto = require('crypto');
+const { clipboard } = require('electron');
 
 // Extended: Represents the clipboard used for copying and pasting in Atom.
 //
@@ -9,19 +7,19 @@ import clipboard from './safe-clipboard'
 //
 // ## Examples
 //
-// ```coffee
+// ```js
 // atom.clipboard.write('hello')
 //
-// console.log(atom.clipboard.read()) # 'hello'
+// console.log(atom.clipboard.read()) // 'hello'
 // ```
-export default class Clipboard {
-  constructor () {
-    this.reset()
+module.exports = class Clipboard {
+  constructor() {
+    this.reset();
   }
 
-  reset () {
-    this.metadata = null
-    this.signatureForMetadata = null
+  reset() {
+    this.metadata = null;
+    this.signatureForMetadata = null;
   }
 
   // Creates an `md5` hash of some text.
@@ -29,8 +27,11 @@ export default class Clipboard {
   // * `text` A {String} to hash.
   //
   // Returns a hashed {String}.
-  md5 (text) {
-    return crypto.createHash('md5').update(text, 'utf8').digest('hex')
+  md5(text) {
+    return crypto
+      .createHash('md5')
+      .update(text, 'utf8')
+      .digest('hex');
   }
 
   // Public: Write the given text to the clipboard.
@@ -40,17 +41,29 @@ export default class Clipboard {
   //
   // * `text` The {String} to store.
   // * `metadata` (optional) The additional info to associate with the text.
-  write (text, metadata) {
-    this.signatureForMetadata = this.md5(text)
-    this.metadata = metadata
-    clipboard.writeText(text)
+  write(text, metadata) {
+    this.signatureForMetadata = this.md5(text);
+    this.metadata = metadata;
+    clipboard.writeText(text);
   }
 
   // Public: Read the text from the clipboard.
   //
   // Returns a {String}.
-  read () {
-    return clipboard.readText()
+  read() {
+    return clipboard.readText();
+  }
+
+  // Public: Write the given text to the macOS find pasteboard
+  writeFindText(text) {
+    clipboard.writeFindText(text);
+  }
+
+  // Public: Read the text from the macOS find pasteboard.
+  //
+  // Returns a {String}.
+  readFindText() {
+    return clipboard.readFindText();
   }
 
   // Public: Read the text from the clipboard and return both the text and the
@@ -59,12 +72,12 @@ export default class Clipboard {
   // Returns an {Object} with the following keys:
   // * `text` The {String} clipboard text.
   // * `metadata` The metadata stored by an earlier call to {::write}.
-  readWithMetadata () {
-    let text = this.read()
+  readWithMetadata() {
+    const text = this.read();
     if (this.signatureForMetadata === this.md5(text)) {
-      return {text, metadata: this.metadata}
+      return { text, metadata: this.metadata };
     } else {
-      return {text}
+      return { text };
     }
   }
-}
+};

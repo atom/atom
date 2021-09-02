@@ -1,0 +1,11 @@
+{
+  "name": "atom-light-ui",
+  "theme": "ui",
+  "version": "0.46.3",
+  "description": "A light UI theme for Atom",
+  "repository": "https://github.com/atom/atom.git",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  }
+}

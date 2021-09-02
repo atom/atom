@@ -1,0 +1,76 @@
+jobs:
+  # Import "GetReleaseVersion" job definition, with the "NightlyFlag" parameter set
+  - template: platforms/templates/get-release-version.yml
+    parameters:
+      NightlyFlag: --nightly
+
+  # Import lint definition
+  - template: lint.yml
+
+  # Import OS-specific build definitions
+  - template: platforms/windows.yml
+  - template: platforms/macos.yml
+  - template: platforms/linux.yml
+
+
+  - job: Release
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    dependsOn:
+      - GetReleaseVersion
+      - Lint
+      - Windows_tests
+      - Linux
+      - macOS_tests
+
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+
+    steps:
+      - template: platforms/templates/preparation.yml
+
+      - script: |
+          cd script/vsts
+          npm install
+        displayName: npm install
+
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          itemPattern: '**'
+          downloadType: 'specific'
+        displayName: Download Release Artifacts
+
+      - script: |
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom"
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          ATOM_RELEASE_VERSION: $(ReleaseVersion)
+          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
+          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+          PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+        displayName: Create Nightly Release
+  - job: bump_dependencies
+    displayName: Bump Dependencies
+    timeoutInMinutes: 180
+
+    pool:
+      vmImage: macos-10.15
+
+    steps:
+      - template: platforms/templates/preparation.yml
+
+      - template: platforms/templates/bootstrap.yml
+
+      - script: |
+          cd script/lib
+          npm install
+        displayName: npm install
+      - script: |
+          cd script/lib/update-dependency
+          node index.js
+        displayName: Bump depedencies
+        env:
+          AUTH_TOKEN: $(GITHUB_TOKEN)

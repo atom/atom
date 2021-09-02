@@ -92,7 +92,7 @@
   'alt-8': 'pane:show-item-8'
   'alt-9': 'pane:show-item-9'
 
-'atom-workspace atom-text-editor':
+'atom-text-editor':
   # Platform Bindings
   'ctrl-left': 'editor:move-to-beginning-of-word'
   'ctrl-right': 'editor:move-to-end-of-word'
@@ -110,6 +110,7 @@
   'alt-shift-right': 'editor:select-to-next-subword-boundary'
   'alt-backspace': 'editor:delete-to-beginning-of-subword'
   'alt-delete': 'editor:delete-to-end-of-subword'
+  'ctrl-shift-V': 'editor:paste-without-reformatting'
 
   # Sublime Parity
   'ctrl-a': 'core:select-all'

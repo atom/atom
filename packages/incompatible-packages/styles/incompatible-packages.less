@@ -1,0 +1,42 @@
+@import "ui-variables";
+
+.incompatible-packages {
+  background-color: @pane-item-background-color;
+  overflow-y: scroll;
+
+  .incompatible-package {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid @base-border-color;
+    background-color: lighten(@tool-panel-background-color, 8%);
+    overflow: hidden;
+
+    .badge {
+      margin-left: 1em;
+    }
+
+    .heading {
+      margin-top: 0px;
+    }
+
+    ul {
+      padding-left: 1em;
+    }
+
+    li {
+      list-style-type: none;
+    }
+
+    pre {
+      margin-top: 2em;
+      max-height: 25em;
+      overflow: scroll;
+      color: @text-color-error;
+    }
+  }
+}
+
+.incompatible-packages-status {
+  padding-left: 2px;
+}

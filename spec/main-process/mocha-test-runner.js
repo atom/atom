@@ -1,30 +1,45 @@
-"use babel"
+const Mocha = require('mocha');
+const fs = require('fs-plus');
+const { assert } = require('chai');
 
-import Mocha from 'mocha'
-import fs from 'fs-plus'
-import {assert} from 'chai'
+module.exports = function(testPaths) {
+  global.assert = assert;
 
-export default function (testPaths) {
-  global.assert = assert
+  let reporterOptions = {
+    reporterEnabled: 'list'
+  };
 
-  const mocha = new Mocha({reporter: 'spec'})
+  if (process.env.TEST_JUNIT_XML_PATH) {
+    reporterOptions = {
+      reporterEnabled: 'list, mocha-junit-reporter',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: process.env.TEST_JUNIT_XML_PATH
+      }
+    };
+  }
+
+  const mocha = new Mocha({
+    reporter: 'mocha-multi-reporters',
+    reporterOptions
+  });
+
   for (let testPath of testPaths) {
     if (fs.isDirectorySync(testPath)) {
       for (let testFilePath of fs.listTreeSync(testPath)) {
         if (/\.test\.(coffee|js)$/.test(testFilePath)) {
-          mocha.addFile(testFilePath)
+          mocha.addFile(testFilePath);
         }
       }
     } else {
-      mocha.addFile(testPath)
+      mocha.addFile(testPath);
     }
   }
 
-  mocha.run(function (failures) {
+  mocha.run(failures => {
     if (failures === 0) {
-      process.exit(0)
+      process.exit(0);
     } else {
-      process.exit(1)
+      process.exit(1);
     }
-  })
-}
+  });
+};

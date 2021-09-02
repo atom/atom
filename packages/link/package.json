@@ -1,0 +1,33 @@
+{
+  "name": "link",
+  "version": "0.31.6",
+  "main": "./lib/link",
+  "description": "Opens http(s) links under the cursor",
+  "license": "MIT",
+  "repository": "https://github.com/atom/atom",
+  "engines": {
+    "atom": "*"
+  },
+  "activationCommands": {
+    "atom-workspace": [
+      "link:open"
+    ]
+  },
+  "dependencies": {
+    "underscore-plus": "^1.7.0"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
+  }
+}

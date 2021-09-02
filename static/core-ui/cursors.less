@@ -1,0 +1,26 @@
+@import "./variables/syntax-variables";
+@import "syntax-variables";
+
+@import "./variables/ui-variables";
+@import "ui-variables";
+
+@ibeam-1x: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAL0lEQVQoz2NgCD3x//9/BhBYBWdhgFVAiVW4JBFKGIa4AqD0//9D3pt4I4tAdAMAHTQ/j5Zom30AAAAASUVORK5CYII=');
+@ibeam-2x: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAz0lEQVRIx2NgYGBY/R8I/vx5eelX3n82IJ9FxGf6tksvf/8FiTMQAcAGQMDvSwu09abffY8QYSAScNk45G198eX//yev73/4///701eh//kZSARckrNBRvz//+8+6ZohwCzjGNjdgQxkAg7B9WADeBjIBqtJCbhRA0YNoIkBSNmaPEMoNmA0FkYNoFKhapJ6FGyAH3nauaSmPfwI0v/3OukVi0CIZ+F25KrtYcx/CTIy0e+rC7R1Z4KMICVTQQ14feVXIbR695u14+Ir4gwAAD49E54wc1kWAAAAAElFTkSuQmCC');
+
+.cursor-white() {
+  cursor: -webkit-image-set(@ibeam-1x 1x, @ibeam-2x 2x) 5 8, text;
+}
+
+// Editors
+& when ( lightness(@syntax-background-color) < 50% ) {
+  .platform-darwin atom-text-editor:not([mini]) {
+    .cursor-white();
+  }
+}
+
+// Mini Editors
+& when ( lightness(@input-background-color) < 50% ) {
+  .platform-darwin atom-text-editor[mini] {
+    .cursor-white();
+  }
+}

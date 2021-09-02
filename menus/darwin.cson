@@ -26,7 +26,7 @@
       { label: 'Hide Others', command: 'application:hide-other-applications' }
       { label: 'Show All', command: 'application:unhide-all-applications' }
       { type: 'separator' }
-      { label: 'Quit', command: 'application:quit' }
+      { label: 'Quit Atom', command: 'application:quit' }
     ]
   }
   {
@@ -65,6 +65,7 @@
       { label: 'Copy', command: 'core:copy' }
       { label: 'Copy Path', command: 'editor:copy-path' }
       { label: 'Paste', command: 'core:paste' }
+      { label: 'Paste Without Reformatting', command: 'editor:paste-without-reformatting' }
       { label: 'Select All', command: 'core:select-all' }
       { type: 'separator' }
       { label: 'Toggle Comments', command: 'editor:toggle-line-comments' }

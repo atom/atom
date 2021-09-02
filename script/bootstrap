@@ -2,11 +2,14 @@
 
 'use strict'
 
+const path = require('path')
+const CONFIG = require('./config')
+const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')
 const deleteMsbuildFromPath = require('./lib/delete-msbuild-from-path')
 const dependenciesFingerprint = require('./lib/dependencies-fingerprint')
 const installApm = require('./lib/install-apm')
-const installAtomDependencies = require('./lib/install-atom-dependencies')
+const runApmInstall = require('./lib/run-apm-install')
 const installScriptDependencies = require('./lib/install-script-dependencies')
 const verifyMachineRequirements = require('./lib/verify-machine-requirements')
 
@@ -15,7 +18,15 @@ process.on('unhandledRejection', function (e) {
   process.exit(1)
 })
 
-verifyMachineRequirements()
+// We can't use yargs until installScriptDependencies() is executed, so...
+let ci = process.argv.indexOf('--ci') !== -1
+
+if (!ci && process.env.CI === 'true' && process.argv.indexOf('--no-ci') === -1) {
+  console.log('Automatically enabling --ci because CI is set in the environment')
+  ci = true
+}
+
+verifyMachineRequirements(ci)
 
 if (dependenciesFingerprint.isOutdated()) {
   cleanDependencies()
@@ -23,8 +34,16 @@ if (dependenciesFingerprint.isOutdated()) {
 
 if (process.platform === 'win32') deleteMsbuildFromPath()
 
-installScriptDependencies()
-installApm()
-installAtomDependencies()
+installScriptDependencies(ci)
+installApm(ci)
+const apmVersionEnv = Object.assign({}, process.env);
+// Set resource path so that apm can load Atom's version.
+apmVersionEnv.ATOM_RESOURCE_PATH = CONFIG.repositoryRootPath;
+childProcess.execFileSync(
+  CONFIG.getApmBinPath(),
+  ['--version'],
+  {stdio: 'inherit', env: apmVersionEnv}
+)
+runApmInstall(CONFIG.repositoryRootPath, ci)
 
 dependenciesFingerprint.write()

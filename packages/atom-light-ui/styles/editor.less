@@ -1,0 +1,34 @@
+atom-text-editor[mini] {
+  color: lighten(@text-color, 15%);
+  background-color: darken(@input-background-color, 1%);
+  border: 1px solid lighten(@input-border-color, 10%);
+
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  border-radius: @component-border-radius;
+  padding-left: @component-padding/2;
+
+  .cursor { border-color: #000; }
+  .selection .region { background-color: rgba(0, 0, 0, .2); }
+  .placeholder-text {
+    color: lighten(@text-color-subtle, 10%);
+  }
+}
+
+atom-text-editor[mini].is-focused {
+  color: @text-color;
+  background-color: @input-background-color;
+  border-color: @input-border-color;
+  .placeholder-text {
+    color: @text-color-subtle;
+  }
+  .selection .region {
+    background-color: lighten(@background-color-info, 30%);
+  }
+}
+
+// FIXME: these should go in syntax themes?
+atom-text-editor {
+  .gutter.drop-shadow {
+    -webkit-box-shadow: -2px 0 10px 2px #222;
+  }
+}

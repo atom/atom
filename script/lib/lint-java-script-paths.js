@@ -1,32 +1,60 @@
-'use strict'
+'use strict';
 
-const expandGlobPaths = require('./expand-glob-paths')
-const standard = require('standard')
-const path = require('path')
+const path = require('path');
+const { spawn } = require('child_process');
+const process = require('process');
 
-const CONFIG = require('../config')
+const CONFIG = require('../config');
 
-module.exports = function () {
-  const globPathsToLint = [
-    path.join(CONFIG.repositoryRootPath, 'exports', '**', '*.js'),
-    path.join(CONFIG.repositoryRootPath, 'src', '**', '*.js'),
-    path.join(CONFIG.repositoryRootPath, 'static', '*.js')
-  ]
-  return expandGlobPaths(globPathsToLint).then((paths) => {
-    return new Promise((resolve, reject) => {
-      standard.lintFiles(paths, (error, lintOutput) => {
-        if (error) {
-          reject(error)
-        } else {
-          const errors = []
-          for (let result of lintOutput.results) {
-            for (let message of result.messages) {
-              errors.push({path: result.filePath, lineNumber: message.line, message: message.message, rule: message.ruleId})
-            }
-          }
-          resolve(errors)
+module.exports = async function() {
+  return new Promise((resolve, reject) => {
+    const eslintArgs = ['--cache', '--format', 'json'];
+
+    if (process.argv.includes('--fix')) {
+      eslintArgs.push('--fix');
+    }
+
+    const eslintBinary = process.platform === 'win32' ? 'eslint.cmd' : 'eslint';
+    const eslint = spawn(
+      path.join('script', 'node_modules', '.bin', eslintBinary),
+      [...eslintArgs, '.'],
+      { cwd: CONFIG.repositoryRootPath }
+    );
+
+    let output = '';
+    let errorOutput = '';
+    eslint.stdout.on('data', data => {
+      output += data.toString();
+    });
+
+    eslint.stderr.on('data', data => {
+      errorOutput += data.toString();
+    });
+
+    eslint.on('error', error => reject(error));
+    eslint.on('close', exitCode => {
+      const errors = [];
+      let files;
+
+      try {
+        files = JSON.parse(output);
+      } catch (_) {
+        reject(errorOutput);
+        return;
+      }
+
+      for (const file of files) {
+        for (const error of file.messages) {
+          errors.push({
+            path: file.filePath,
+            message: error.message,
+            lineNumber: error.line,
+            rule: error.ruleId
+          });
         }
-      })
-    })
-  })
-}
+      }
+
+      resolve(errors);
+    });
+  });
+};

@@ -1,0 +1,103 @@
+.syntax--source.syntax--css {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @mono-2;
+
+      // url rgb
+      &.syntax--support {
+        color: @hue-1;
+      }
+    }
+
+    // .class :pseudo-class attribute
+    &.syntax--selector {
+      color: @hue-6;
+
+      // div span
+      &.syntax--tag {
+        color: @hue-5;
+      }
+
+      // #id
+      &.syntax--id {
+        color: @hue-2;
+      }
+    }
+
+    // property: constant
+    &.syntax--property {
+      color: @mono-2;
+
+      // height position border
+      &.syntax--support {
+        color: @mono-1;
+      }
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: @hue-5;
+    }
+  }
+
+  // property: constant
+  .syntax--constant {
+    color: @mono-2;
+
+    // flex solid bold
+    &.syntax--support {
+      color: @mono-1;
+    }
+
+    // 3px 4em
+    &.syntax--numeric {
+      color: @hue-6;
+    }
+
+    // screen print
+    &.syntax--media {
+      color: @hue-6;
+    }
+
+    // #b294bb blue red
+    &.syntax--color {
+      color: @hue-6;
+    }
+
+    // from to
+    &.syntax--offset {
+      color: @mono-1;
+    }
+
+    // [attribute=attribute-value]
+    &.syntax--attribute-value {
+      color: @hue-4;
+    }
+  }
+
+  .syntax--punctuation {
+
+    // . : ::
+    &.syntax--selector {
+      color: @hue-6;
+
+      // *
+      &.syntax--wildcard {
+        color: @hue-5;
+      }
+
+      // #
+      &.syntax--id {
+        color: @hue-2;
+      }
+
+      // []
+      &.syntax--attribute {
+        color: @mono-1;
+      }
+    }
+  }
+}

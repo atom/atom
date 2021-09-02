@@ -1,0 +1,128 @@
+.syntax--source.syntax--css {
+
+  // @media and or
+  .syntax--keyword {
+    color: @green;
+
+    // + = *=
+    &.syntax--symbolic {
+      color: @syntax-text-color;
+    }
+
+    // !important
+    &.syntax--important {
+      color: @green;
+    }
+  }
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @cyan;
+
+      // url rgb
+      &.syntax--support {
+        color: @blue;
+      }
+    }
+
+    // #id .class
+    &.syntax--selector {
+      color: @magenta;
+
+      // div span
+      &.syntax--tag {
+        color: @blue;
+      }
+
+      // :pseudo-class ::pseudo-element
+      &.syntax--pseudo-class,
+      &.syntax--pseudo-element {
+        color: @yellow;
+      }
+    }
+
+    // href src alt
+    &.syntax--attribute {
+      color: @yellow;
+    }
+
+    // property: constant
+    &.syntax--property {
+      color: @syntax-subtle-color;
+
+      // height position border
+      &.syntax--support {
+        color: @syntax-text-color;
+      }
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: @syntax-text-color;
+    }
+
+    // @keyframes keyframe
+    &.syntax--keyframe {
+      color: @syntax-text-color;
+    }
+  }
+
+  // property: constant
+  .syntax--constant {
+    color: @cyan;
+
+    // tv tty
+    &.syntax--media {
+      color: @yellow;
+
+      // print screen
+      &.syntax--support {
+        color: @yellow;
+      }
+    }
+
+    // from to 50%
+    &.syntax--offset {
+      color: @syntax-text-color;
+
+      // %
+      &.syntax--unit {
+        color: @syntax-text-color;
+      }
+    }
+  }
+
+  .syntax--punctuation {
+
+    &.syntax--selector {
+
+      // *
+      &.syntax--wildcard {
+        color: @blue;
+      }
+
+      // #
+      &.syntax--id {
+        color: @magenta;
+      }
+
+      // .
+      &.syntax--class {
+        color: @magenta;
+      }
+
+      // : ::
+      &.syntax--pseudo-class,
+      &.syntax--pseudo-element {
+        color: @yellow;
+      }
+    }
+
+    // ()
+    &.syntax--arguments {
+      color: @syntax-text-color;
+    }
+  }
+}

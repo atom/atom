@@ -10,21 +10,25 @@ class TokenizedLine
 
     return unless properties?
 
-    {@openScopes, @text, @tags, @ruleStack, @tokenIterator} = properties
+    {@openScopes, @text, @tags, @ruleStack, @tokenIterator, @grammar, tokens} = properties
+    @cachedTokens = tokens
 
-  getTokenIterator: -> @tokenIterator.reset(this, arguments...)
+  getTokenIterator: -> @tokenIterator.reset(this)
 
   Object.defineProperty @prototype, 'tokens', get: ->
-    iterator = @getTokenIterator()
-    tokens = []
+    if @cachedTokens
+      @cachedTokens
+    else
+      iterator = @getTokenIterator()
+      tokens = []
 
-    while iterator.next()
-      tokens.push(new Token({
-        value: iterator.getText()
-        scopes: iterator.getScopes().slice()
-      }))
+      while iterator.next()
+        tokens.push(new Token({
+          value: iterator.getText()
+          scopes: iterator.getScopes().slice()
+        }))
 
-    tokens
+      tokens
 
   tokenAtBufferColumn: (bufferColumn) ->
     @tokens[@tokenIndexAtBufferColumn(bufferColumn)]
@@ -48,16 +52,33 @@ class TokenizedLine
     return @isCommentLine if @isCommentLine?
 
     @isCommentLine = false
-    iterator = @getTokenIterator()
-    while iterator.next()
-      scopes = iterator.getScopes()
-      continue if scopes.length is 1
-      for scope in scopes
-        if CommentScopeRegex.test(scope)
-          @isCommentLine = true
-          break
-      break
+
+    for tag in @openScopes
+      if @isCommentOpenTag(tag)
+        @isCommentLine = true
+        return @isCommentLine
+
+    startIndex = 0
+    for tag in @tags
+      # If we haven't encountered any comment scope when reading the first
+      # non-whitespace chunk of text, then we consider this as not being a
+      # comment line.
+      if tag > 0
+        break unless isWhitespaceOnly(@text.substr(startIndex, tag))
+        startIndex += tag
+
+      if @isCommentOpenTag(tag)
+        @isCommentLine = true
+        return @isCommentLine
+
     @isCommentLine
+
+  isCommentOpenTag: (tag) ->
+    if tag < 0 and (tag & 1) is 1
+      scope = @grammar.scopeForId(tag)
+      if CommentScopeRegex.test(scope)
+        return true
+    false
 
   tokenAtIndex: (index) ->
     @tokens[index]
@@ -66,3 +87,9 @@ class TokenizedLine
     count = 0
     count++ for tag in @tags when tag >= 0
     count
+
+isWhitespaceOnly = (text) ->
+  for char in text
+    if char isnt '\t' and char isnt ' '
+      return false
+  return true

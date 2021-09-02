@@ -1,0 +1,10 @@
+
+// CSS containment variables.
+// The words after `except` explicitly show the excluded/incompatible values.
+@contain_all: layout size paint style;
+@contain_except_layout: size paint style;
+@contain_except_size: layout paint style;
+@contain_except_paint: layout size style;
+@contain_except_layout_size: paint style;
+@contain_except_layout_paint: size style;
+@contain_except_size_paint: layout style;
