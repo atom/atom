@@ -115,16 +115,16 @@ module.exports = class ApplicationMenu {
   showUpdateMenuItem(state) {
     const items = this.flattenMenuItems(this.menu);
     const checkForUpdateItem = items.find(
-      ({ label }) => label === 'Check for Update'
+      ({ id }) => id === 'Check for Update'
     );
     const checkingForUpdateItem = items.find(
-      ({ label }) => label === 'Checking for Update'
+      ({ id }) => id === 'Checking for Update'
     );
     const downloadingUpdateItem = items.find(
-      ({ label }) => label === 'Downloading Update'
+      ({ id }) => id === 'Downloading Update'
     );
     const installUpdateItem = items.find(
-      ({ label }) => label === 'Restart and Install Update'
+      ({ id }) => id === 'Restart and Install Update'
     );
 
     if (
@@ -165,13 +165,16 @@ module.exports = class ApplicationMenu {
     return [
       {
         label: 'Atom',
+        id: 'Atom',
         submenu: [
           {
             label: 'Check for Update',
+            id: 'Check for Update',
             metadata: { autoUpdate: true }
           },
           {
             label: 'Reload',
+            id: 'Reload',
             accelerator: 'Command+R',
             click: () => {
               const window = this.focusedWindow();
@@ -180,6 +183,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Close Window',
+            id: 'Close Window',
             accelerator: 'Command+Shift+W',
             click: () => {
               const window = this.focusedWindow();
@@ -188,6 +192,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Toggle Dev Tools',
+            id: 'Toggle Dev Tools',
             accelerator: 'Command+Alt+I',
             click: () => {
               const window = this.focusedWindow();
@@ -196,6 +201,7 @@ module.exports = class ApplicationMenu {
           },
           {
             label: 'Quit',
+            id: 'Quit',
             accelerator: 'Command+Q',
             click: () => app.quit()
           }
@@ -222,10 +228,18 @@ module.exports = class ApplicationMenu {
     template.forEach(item => {
       if (item.metadata == null) item.metadata = {};
       if (item.command) {
-        item.accelerator = this.acceleratorForCommand(
-          item.command,
-          keystrokesByCommand
-        );
+        const keystrokes = keystrokesByCommand[item.command];
+        if (keystrokes && keystrokes.length > 0) {
+          const keystroke = keystrokes[0];
+          // Electron does not support multi-keystroke accelerators. Therefore,
+          // when the command maps to a multi-stroke key binding, show the
+          // keystrokes next to the item's label.
+          if (keystroke.includes(' ')) {
+            item.label += ` [${_.humanizeKeystroke(keystroke)}]`;
+          } else {
+            item.accelerator = MenuHelpers.acceleratorForKeystroke(keystroke);
+          }
+        }
         item.click = () =>
           global.atomApplication.sendCommand(item.command, item.commandDetail);
         if (!/^application:/.test(item.command)) {
@@ -236,19 +250,5 @@ module.exports = class ApplicationMenu {
         this.translateTemplate(item.submenu, keystrokesByCommand);
     });
     return template;
-  }
-
-  // Determine the accelerator for a given command.
-  //
-  // command - The name of the command.
-  // keystrokesByCommand - An Object where the keys are commands and the values
-  //                       are Arrays containing the keystroke.
-  //
-  // Returns a String containing the keystroke in a format that can be interpreted
-  //   by Electron to provide nice icons where available.
-  acceleratorForCommand(command, keystrokesByCommand) {
-    const firstKeystroke =
-      keystrokesByCommand[command] && keystrokesByCommand[command][0];
-    return MenuHelpers.acceleratorForKeystroke(firstKeystroke);
   }
 };

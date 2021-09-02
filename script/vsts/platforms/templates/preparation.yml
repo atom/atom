@@ -1,0 +1,46 @@
+steps:
+
+  # Linux Specific
+  - script: |
+      sudo apt-get update
+      sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git rpm libsecret-1-dev libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev software-properties-common wget
+      # clang 9 is included in the image
+      clang -v
+    displayName: Install apt dependencies
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+
+  - script: sudo /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
+    displayName: Start Xvfb
+    condition: eq(variables['Agent.OS'], 'Linux')
+
+  # Common
+  - pwsh: |
+      if ($env:BUILD_ARCH -eq "x86") {
+        echo "##vso[task.setvariable variable=IsWinX86]true"
+      }
+    displayName: Set "IsWinX86" based on "BUILD_ARCH"
+    # Convert "BUILD_ARCH" to a boolean ("IsWinX86") for the following NodeTool task.
+    # Templates evaluate too early for the matrix variable "BUILD_ARCH" to be available in ${{ template expressions }}.
+    # Scripts are interpreted at runtime, so "BUILD_ARCH" will be available to this script, and we can set "IsWinX86".
+
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 12.16.3
+      force32bit: $(IsWinX86)
+    displayName: Install Node.js 12.16.3
+
+  - script: npm install --global npm@6.14.8
+    displayName: Update npm
+
+  # Windows Specific
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.8'
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+  - pwsh: |
+      cd script/vsts
+      npm install
+    displayName: Install script/vsts dependencies on Windows
+    condition: eq(variables['Agent.OS'], 'Windows_NT')

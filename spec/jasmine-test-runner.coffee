@@ -8,6 +8,7 @@ temp.track()
 
 module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   window[key] = value for key, value of require '../vendor/jasmine'
+
   require 'jasmine-tagged'
 
   # Rewrite global jasmine functions to have support for async tests.
@@ -60,8 +61,6 @@ module.exports = ({logFile, headless, testPaths, buildAtomEnvironment}) ->
   promise = new Promise (resolve, reject) -> resolveWithExitCode = resolve
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(buildReporter({logFile, headless, resolveWithExitCode}))
-  TimeReporter = require './time-reporter'
-  jasmineEnv.addReporter(new TimeReporter())
 
   if process.env.TEST_JUNIT_XML_PATH
     {JasmineJUnitReporter} = require './jasmine-junit-reporter'

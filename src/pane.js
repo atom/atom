@@ -2,7 +2,7 @@ const Grim = require('grim');
 const { CompositeDisposable, Emitter } = require('event-kit');
 const PaneAxis = require('./pane-axis');
 const TextEditor = require('./text-editor');
-const PaneElement = require('./pane-element');
+const { createPaneElement } = require('./pane-element');
 
 let nextInstanceId = 1;
 
@@ -98,7 +98,7 @@ module.exports = class Pane {
 
   getElement() {
     if (!this.element) {
-      this.element = new PaneElement().initialize(this, {
+      this.element = createPaneElement().initialize(this, {
         views: this.viewRegistry,
         applicationDelegate: this.applicationDelegate
       });

@@ -1,0 +1,5 @@
+{
+  "name": "package-with-workspace-openers",
+  "version": "0.1.0",
+  "workspaceOpeners": ['atom://fictitious']
+}

@@ -97,6 +97,25 @@ describe('GitRepositoryProvider', () => {
       });
     });
 
+    describe('when specified a Directory with a commondir file for a worktree', () => {
+      it('returns a Promise that resolves to a GitRepository', async () => {
+        const directory = new Directory(
+          path.join(
+            __dirname,
+            'fixtures',
+            'git',
+            'master.git',
+            'worktrees',
+            'worktree-dir'
+          )
+        );
+        const result = await provider.repositoryForDirectory(directory);
+        expect(result).toBeInstanceOf(GitRepository);
+        expect(provider.pathToRepository[result.getPath()]).toBeTruthy();
+        expect(result.getType()).toBe('git');
+      });
+    });
+
     describe('when specified a Directory without exists()', () => {
       let directory;
 
@@ -186,6 +205,25 @@ describe('GitRepositoryProvider', () => {
         );
 
         const directory = new Directory(workDirPath);
+        const result = provider.repositoryForDirectorySync(directory);
+        expect(result).toBeInstanceOf(GitRepository);
+        expect(provider.pathToRepository[result.getPath()]).toBeTruthy();
+        expect(result.getType()).toBe('git');
+      });
+    });
+
+    describe('when specified a Directory with a commondir file for a worktree', () => {
+      it('returns a Promise that resolves to a GitRepository', () => {
+        const directory = new Directory(
+          path.join(
+            __dirname,
+            'fixtures',
+            'git',
+            'master.git',
+            'worktrees',
+            'worktree-dir'
+          )
+        );
         const result = provider.repositoryForDirectorySync(directory);
         expect(result).toBeInstanceOf(GitRepository);
         expect(provider.pathToRepository[result.getPath()]).toBeTruthy();

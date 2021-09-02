@@ -1,13 +1,17 @@
 'use strict';
 
 const buildMetadata = require('../package.json');
-const CONFIG = require('../config');
 const semver = require('semver');
+const chromedriverMetadataPath = require('electron-chromedriver/package.json');
+const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
 module.exports = function() {
-  // Chromedriver should be specified as ^n.x where n matches the Electron major version
+  // Chromedriver should be at least v9.0.0
+  // Mksnapshot should be at least v9.0.2
   const chromedriverVer = buildMetadata.dependencies['electron-chromedriver'];
   const mksnapshotVer = buildMetadata.dependencies['electron-mksnapshot'];
+  const chromedriverActualVer = chromedriverMetadataPath.version;
+  const mksnapshotActualVer = mksnapshotMetadataPath.version;
 
   // Always use caret on electron-chromedriver so that it can pick up the best minor/patch versions
   if (!chromedriverVer.startsWith('^')) {
@@ -22,24 +26,15 @@ module.exports = function() {
     );
   }
 
-  const electronVer = CONFIG.appMetadata.electronVersion;
-  if (!semver.satisfies(electronVer, chromedriverVer)) {
+  if (!semver.satisfies(chromedriverActualVer, '>=9.0.0')) {
     throw new Error(
-      `electron-chromedriver ${chromedriverVer} incompatible with electron ${electronVer}.\n` +
-        'Did you upgrade electron in package.json and forget to upgrade electron-chromedriver in ' +
-        `script/package.json to '~${semver.major(electronVer)}.${semver.minor(
-          electronVer
-        )}' ?`
+      `electron-chromedriver should be at least v9.0.0 to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
 
-  if (!semver.satisfies(electronVer, mksnapshotVer)) {
+  if (!semver.satisfies(mksnapshotActualVer, '>=9.0.2')) {
     throw new Error(
-      `electron-mksnapshot ${mksnapshotVer} incompatible with electron ${electronVer}.\n` +
-        'Did you upgrade electron in package.json and forget to upgrade electron-mksnapshot in ' +
-        `script/package.json to '~${semver.major(electronVer)}.${semver.minor(
-          electronVer
-        )}' ?`
+      `electron-mksnapshot should be at least v9.0.2 to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
 };

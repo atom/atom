@@ -121,12 +121,21 @@ async function getEnvFromShell(env) {
   }
 
   let result = {};
+  let skip = false;
   for (let line of stdout.split('\n')) {
-    if (line.includes('=')) {
+    // start of shell function definition: skip full definition
+    if (line.includes('=() {')) {
+      skip = true;
+    }
+    if (!skip && line.includes('=')) {
       let components = line.split('=');
       let key = components.shift();
       let value = components.join('=');
       result[key] = value;
+    }
+    // end of shell function definition
+    if (line === '}') {
+      skip = false;
     }
   }
   return result;

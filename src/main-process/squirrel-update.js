@@ -1,5 +1,7 @@
 let setxPath;
+const { app } = require('electron');
 const fs = require('fs-plus');
+const getAppName = require('../get-app-name');
 const path = require('path');
 const Spawner = require('./spawner');
 const WinShell = require('./win-shell');
@@ -9,7 +11,7 @@ const appFolder = path.resolve(process.execPath, '..');
 const rootAtomFolder = path.resolve(appFolder, '..');
 const binFolder = path.join(rootAtomFolder, 'bin');
 const updateDotExe = path.join(rootAtomFolder, 'Update.exe');
-const exeName = path.basename(process.execPath);
+const execName = path.basename(app.getPath('exe'));
 
 if (process.env.SystemRoot) {
   const system32Path = path.join(process.env.SystemRoot, 'System32');
@@ -32,15 +34,20 @@ const spawnUpdate = (args, callback) =>
 // install directory that point to the newly installed versions inside
 // the versioned app directories.
 const addCommandsToPath = callback => {
+  const atomCmdName = execName.replace('.exe', '.cmd');
+  const apmCmdName = atomCmdName.replace('atom', 'apm');
+  const atomShName = execName.replace('.exe', '');
+  const apmShName = atomShName.replace('atom', 'apm');
+
   const installCommands = callback => {
-    const atomCommandPath = path.join(binFolder, 'atom.cmd');
+    const atomCommandPath = path.join(binFolder, atomCmdName);
     const relativeAtomPath = path.relative(
       binFolder,
       path.join(appFolder, 'resources', 'cli', 'atom.cmd')
     );
     const atomCommand = `@echo off\r\n"%~dp0\\${relativeAtomPath}" %*`;
 
-    const atomShCommandPath = path.join(binFolder, 'atom');
+    const atomShCommandPath = path.join(binFolder, atomShName);
     const relativeAtomShPath = path.relative(
       binFolder,
       path.join(appFolder, 'resources', 'cli', 'atom.sh')
@@ -50,14 +57,14 @@ const addCommandsToPath = callback => {
       '/'
     )}" "$@"\r\necho`;
 
-    const apmCommandPath = path.join(binFolder, 'apm.cmd');
+    const apmCommandPath = path.join(binFolder, apmCmdName);
     const relativeApmPath = path.relative(
       binFolder,
       path.join(process.resourcesPath, 'app', 'apm', 'bin', 'apm.cmd')
     );
     const apmCommand = `@echo off\r\n"%~dp0\\${relativeApmPath}" %*`;
 
-    const apmShCommandPath = path.join(binFolder, 'apm');
+    const apmShCommandPath = path.join(binFolder, apmShName);
     const relativeApmShPath = path.relative(
       binFolder,
       path.join(appFolder, 'resources', 'cli', 'apm.sh')
@@ -123,7 +130,7 @@ const removeCommandsFromPath = callback =>
 // provided by Squirrel's Update.exe
 const createShortcuts = (locations, callback) =>
   spawnUpdate(
-    ['--createShortcut', exeName, '-l', locations.join(',')],
+    ['--createShortcut', execName, '-l', locations.join(',')],
     callback
   );
 
@@ -132,7 +139,11 @@ const createShortcuts = (locations, callback) =>
 const updateShortcuts = callback => {
   const homeDirectory = fs.getHomeDirectory();
   if (homeDirectory) {
-    const desktopShortcutPath = path.join(homeDirectory, 'Desktop', 'Atom.lnk');
+    const desktopShortcutPath = path.join(
+      homeDirectory,
+      'Desktop',
+      `${getAppName()}.lnk`
+    );
     // Check if the desktop shortcut has been previously deleted and
     // and keep it deleted if it was
     fs.exists(desktopShortcutPath, desktopShortcutExists => {
@@ -151,7 +162,7 @@ const updateShortcuts = callback => {
 // Remove the desktop and start menu shortcuts by using the command line API
 // provided by Squirrel's Update.exe
 const removeShortcuts = callback =>
-  spawnUpdate(['--removeShortcut', exeName], callback);
+  spawnUpdate(['--removeShortcut', execName], callback);
 
 exports.spawn = spawnUpdate;
 
@@ -159,15 +170,15 @@ exports.spawn = spawnUpdate;
 exports.existsSync = () => fs.existsSync(updateDotExe);
 
 // Restart Atom using the version pointed to by the atom.cmd shim
-exports.restartAtom = app => {
+exports.restartAtom = () => {
   let args;
+  const atomCmdName = execName.replace('.exe', '.cmd');
+
   if (global.atomApplication && global.atomApplication.lastFocusedWindow) {
     const { projectPath } = global.atomApplication.lastFocusedWindow;
     if (projectPath) args = [projectPath];
   }
-  app.once('will-quit', () =>
-    Spawner.spawn(path.join(binFolder, 'atom.cmd'), args)
-  );
+  Spawner.spawn(path.join(binFolder, atomCmdName), args);
   app.quit();
 };
 
@@ -179,7 +190,7 @@ const updateContextMenus = callback =>
   );
 
 // Handle squirrel events denoted by --squirrel-* command line arguments.
-exports.handleStartupEvent = (app, squirrelCommand) => {
+exports.handleStartupEvent = squirrelCommand => {
   switch (squirrelCommand) {
     case '--squirrel-install':
       createShortcuts(['Desktop', 'StartMenu'], () =>

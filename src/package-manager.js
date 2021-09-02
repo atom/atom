@@ -419,14 +419,24 @@ module.exports = class PackageManager {
 
     for (const packageDirPath of this.packageDirPaths) {
       if (fs.isDirectorySync(packageDirPath)) {
-        for (let packagePath of fs.readdirSync(packageDirPath)) {
-          packagePath = path.join(packageDirPath, packagePath);
-          const packageName = path.basename(packagePath);
+        // checks for directories.
+        // dirent is faster, but for checking symbolic link we need stat.
+        const packageNames = fs
+          .readdirSync(packageDirPath, { withFileTypes: true })
+          .filter(
+            dirent =>
+              dirent.isDirectory() ||
+              (dirent.isSymbolicLink() &&
+                fs.isDirectorySync(path.join(packageDirPath, dirent.name)))
+          )
+          .map(dirent => dirent.name);
+
+        for (const packageName of packageNames) {
           if (
             !packageName.startsWith('.') &&
-            !packagesByName.has(packageName) &&
-            fs.isDirectorySync(packagePath)
+            !packagesByName.has(packageName)
           ) {
+            const packagePath = path.join(packageDirPath, packageName);
             packages.push({
               name: packageName,
               path: packagePath,
@@ -521,7 +531,7 @@ module.exports = class PackageManager {
     ) => {
       for (const packageName of packageNames) {
         if (!disabledPackageNames.has(packageName)) {
-          var pack = this.getLoadedPackage(packageName);
+          const pack = this.getLoadedPackage(packageName);
           if (pack != null) {
             action(pack);
           }

@@ -1,6 +1,7 @@
 @import "ui-variables";
 @import "octicon-utf-codes";
 @import "octicon-mixins";
+@import "utils.less";
 
 :root {
   // Fixes specs
@@ -8,6 +9,7 @@
 }
 
 atom-text-editor {
+  contain: @contain_except_size;
   display: flex;
   cursor: text;
   font-family: var(--editor-font-family);
@@ -15,12 +17,14 @@ atom-text-editor {
   line-height: var(--editor-line-height);
 
   .gutter-container {
+    contain: @contain_except_size;
     width: min-content;
     background-color: inherit;
     cursor: default;
   }
 
   .gutter {
+    contain: @contain_except_size;
     overflow: hidden;
     z-index: 0;
     text-align: right;
@@ -32,6 +36,7 @@ atom-text-editor {
 
   .gutter:hover {
     .line-number.foldable .icon-right {
+      contain: @contain_except_layout_size;
       visibility: visible;
 
       &:hover {
@@ -42,6 +47,7 @@ atom-text-editor {
 
   .gutter, .gutter:hover {
     .line-number.folded .icon-right {
+      contain: @contain_except_layout_size;
       .octicon(chevron-right, 0.8em);
 
       visibility: visible;
@@ -54,17 +60,20 @@ atom-text-editor {
   }
 
   .line-numbers {
+    contain: @contain_except_size;
     width: max-content;
     background-color: inherit;
   }
 
   .line-number {
+    contain: @contain_except_size;
     padding-left: .5em;
     white-space: nowrap;
     opacity: 0.6;
     position: relative;
 
     .icon-right {
+      contain: @contain_except_layout_size;
       .octicon(chevron-down, 0.8em);
       display: inline-block;
       visibility: hidden;
@@ -78,18 +87,20 @@ atom-text-editor {
   }
 
   .highlight {
+    contain: @contain_except_paint;
     background: none;
     padding: 0;
   }
 
   .highlight .region {
+    contain: @contain_except_paint;
     pointer-events: none;
     z-index: -1;
   }
 
   .line {
     white-space: pre;
-    contain: layout;
+    contain: @contain_except_size;
 
     &.cursor-line .fold-marker::after {
       opacity: 1;
@@ -97,6 +108,7 @@ atom-text-editor {
   }
 
   .fold-marker {
+    contain: @contain_all;
     cursor: default;
 
     &::after {
@@ -108,21 +120,25 @@ atom-text-editor {
   }
 
   .placeholder-text {
+    contain: @contain_except_size;
     position: absolute;
     color: @text-color-subtle;
   }
 
   .invisible-character {
+    contain: @contain_all;
     font-weight: normal !important;
     font-style: normal !important;
   }
 
   .indent-guide {
+    contain: @contain_except_layout_size;
     display: inline-block;
     box-shadow: inset 1px 0;
   }
 
   .cursor {
+    contain: @contain_all;
     z-index: 4;
     pointer-events: none;
     box-sizing: border-box;
@@ -145,6 +161,7 @@ atom-text-editor {
 }
 
 atom-text-editor[mini] {
+  contain: @contain_except_size;
   font-size: @input-font-size;
   line-height: @component-line-height;
   max-height: @component-line-height + 2; // +2 for borders
@@ -152,6 +169,7 @@ atom-text-editor[mini] {
 }
 
 atom-overlay {
+  contain: @contain_except_size_paint;
   position: fixed;
   display: block;
   z-index: 4;

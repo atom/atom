@@ -1,4 +1,5 @@
 const { EventEmitter } = require('events');
+const os = require('os');
 const path = require('path');
 
 const IdleState = 'idle';
@@ -34,14 +35,16 @@ module.exports = class AutoUpdateManager extends EventEmitter {
   initialize() {
     if (process.platform === 'win32') {
       const archSuffix = process.arch === 'ia32' ? '' : `-${process.arch}`;
-      this.feedUrl = `${
-        this.updateUrlPrefix
-      }/api/updates${archSuffix}?version=${this.version}`;
+      this.feedUrl =
+        this.updateUrlPrefix +
+        `/api/updates${archSuffix}?version=${this.version}&os_version=${
+          os.release
+        }`;
       autoUpdater = require('./auto-updater-win32');
     } else {
-      this.feedUrl = `${this.updateUrlPrefix}/api/updates?version=${
-        this.version
-      }`;
+      this.feedUrl =
+        this.updateUrlPrefix +
+        `/api/updates?version=${this.version}&os_version=${os.release}`;
       ({ autoUpdater } = require('electron'));
     }
 
@@ -165,17 +168,14 @@ module.exports = class AutoUpdateManager extends EventEmitter {
   onUpdateNotAvailable() {
     autoUpdater.removeListener('error', this.onUpdateError);
     const { dialog } = require('electron');
-    dialog.showMessageBox(
-      {
-        type: 'info',
-        buttons: ['OK'],
-        icon: this.iconPath,
-        message: 'No update available.',
-        title: 'No Update Available',
-        detail: `Version ${this.version} is the latest version.`
-      },
-      () => {}
-    ); // noop callback to get async behavior
+    dialog.showMessageBox({
+      type: 'info',
+      buttons: ['OK'],
+      icon: this.iconPath,
+      message: 'No update available.',
+      title: 'No Update Available',
+      detail: `Version ${this.version} is the latest version.`
+    });
   }
 
   onUpdateError(event, message) {
@@ -184,17 +184,14 @@ module.exports = class AutoUpdateManager extends EventEmitter {
       this.onUpdateNotAvailable
     );
     const { dialog } = require('electron');
-    dialog.showMessageBox(
-      {
-        type: 'warning',
-        buttons: ['OK'],
-        icon: this.iconPath,
-        message: 'There was an error checking for updates.',
-        title: 'Update Error',
-        detail: message
-      },
-      () => {}
-    ); // noop callback to get async behavior
+    dialog.showMessageBox({
+      type: 'warning',
+      buttons: ['OK'],
+      icon: this.iconPath,
+      message: 'There was an error checking for updates.',
+      title: 'Update Error',
+      detail: message
+    });
   }
 
   getWindows() {

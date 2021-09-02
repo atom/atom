@@ -102,17 +102,7 @@ const createSocketSecret = async atomVersion => {
 
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options);
-
-  // Even if the following IV is not cryptographically secure, there's a really good chance
-  // it's going to be unique between executions which is the requirement for GCM.
-  // We're not using `crypto.randomBytes()` because in electron v2, that API is really slow
-  // on Windows machines, which affects the startup time of Atom.
-  // TodoElectronIssue: Once we upgrade to electron v3 we can use `crypto.randomBytes()`
-  const initVectorHash = crypto.createHash('sha1');
-  initVectorHash.update(Date.now() + '');
-  initVectorHash.update(Math.random() + '');
-  const initVector = initVectorHash.digest();
-
+  const initVector = crypto.randomBytes(16); // AES uses 16 bytes for iV
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector);
 
   let content = cipher.update(message, 'utf8', 'hex');
@@ -278,18 +268,18 @@ module.exports = class AtomApplication extends EventEmitter {
       this.safeMode
     );
 
-    // Don't await for the following method to avoid delaying the opening of a new window.
-    // (we await it just after opening it).
-    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
-    // which is really slow on Windows machines.
-    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
-    const socketServerPromise = this.listenForArgumentsFromNewProcess(options);
+    let socketServerPromise;
+    if (options.test || options.benchmark || options.benchmarkTest) {
+      socketServerPromise = Promise.resolve();
+    } else {
+      socketServerPromise = this.listenForArgumentsFromNewProcess();
+    }
 
+    await socketServerPromise;
     this.setupDockMenu();
 
     const result = await this.launch(options);
     this.autoUpdateManager.initialize();
-    await socketServerPromise;
 
     StartupTime.addMarker('main-process:atom-application:initialize:end');
 
@@ -314,12 +304,7 @@ module.exports = class AtomApplication extends EventEmitter {
           this.promptForRestart()
         );
       });
-
-      // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
-      // in Windows machines, which affects directly the startup time.
-      if (process.platform !== 'win32') {
-        await this.configFilePromise;
-      }
+      await this.configFilePromise;
     }
 
     let optionsForWindowsToOpen = [];
@@ -454,14 +439,9 @@ module.exports = class AtomApplication extends EventEmitter {
   // Public: Removes the {AtomWindow} from the global window list.
   removeWindow(window) {
     this.windowStack.removeWindow(window);
-    if (this.getAllWindows().length === 0) {
-      if (this.applicationMenu != null) {
-        this.applicationMenu.enableWindowSpecificItems(false);
-      }
-      if (['win32', 'linux'].includes(process.platform)) {
-        app.quit();
-        return;
-      }
+    if (this.getAllWindows().length === 0 && process.platform !== 'darwin') {
+      app.quit();
+      return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
   }
@@ -505,12 +485,10 @@ module.exports = class AtomApplication extends EventEmitter {
   // You can run the atom command multiple times, but after the first launch
   // the other launches will just pass their information to this server and then
   // close immediately.
-  async listenForArgumentsFromNewProcess(options) {
-    if (!options.test && !options.benchmark && !options.benchmarkTest) {
-      this.socketSecretPromise = createSocketSecret(this.version);
-      this.socketSecret = await this.socketSecretPromise;
-      this.socketPath = getSocketPath(this.socketSecret);
-    }
+  async listenForArgumentsFromNewProcess() {
+    this.socketSecretPromise = createSocketSecret(this.version);
+    this.socketSecret = await this.socketSecretPromise;
+    this.socketPath = getSocketPath(this.socketSecret);
 
     await this.deleteSocketFile();
 
@@ -641,6 +619,12 @@ module.exports = class AtomApplication extends EventEmitter {
 
     if (process.platform === 'darwin') {
       this.on('application:reopen-project', ({ paths }) => {
+        const focusedWindow = this.focusedWindow();
+        if (focusedWindow) {
+          const { safeMode, devMode } = focusedWindow;
+          this.openPaths({ pathsToOpen: paths, safeMode, devMode });
+          return;
+        }
         this.openPaths({ pathsToOpen: paths });
       });
 
@@ -775,6 +759,19 @@ module.exports = class AtomApplication extends EventEmitter {
       })
     );
 
+    // See: https://www.electronjs.org/docs/api/app#event-window-all-closed
+    this.disposable.add(
+      ipcHelpers.on(app, 'window-all-closed', () => {
+        if (this.applicationMenu != null) {
+          this.applicationMenu.enableWindowSpecificItems(false);
+        }
+        // Don't quit when the last window is closed on macOS.
+        if (process.platform !== 'darwin') {
+          app.quit();
+        }
+      })
+    );
+
     // Triggered by the 'open-file' event from Electron:
     // https://electronjs.org/docs/api/app#event-open-file-macos
     // For example, this is fired when a file is dragged and dropped onto the Atom application icon in the dock.
@@ -811,11 +808,10 @@ module.exports = class AtomApplication extends EventEmitter {
     );
 
     this.disposable.add(
-      ipcHelpers.on(ipcMain, 'resolve-proxy', (event, requestId, url) => {
-        event.sender.session.resolveProxy(url, proxy => {
-          if (!event.sender.isDestroyed())
-            event.sender.send('did-resolve-proxy', requestId, proxy);
-        });
+      ipcHelpers.on(ipcMain, 'resolve-proxy', async (event, requestId, url) => {
+        const proxy = await event.sender.session.resolveProxy(url);
+        if (!event.sender.isDestroyed())
+          event.sender.send('did-resolve-proxy', requestId, proxy);
       })
     );
 
@@ -2024,11 +2020,17 @@ module.exports = class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path;
-    dialog.showOpenDialog(parentWindow, openOptions, callback);
+    dialog
+      .showOpenDialog(parentWindow, openOptions)
+      .then(({ filePaths, bookmarks }) => {
+        if (typeof callback === 'function') {
+          callback(filePaths, bookmarks);
+        }
+      });
   }
 
-  promptForRestart() {
-    dialog.showMessageBox(
+  async promptForRestart() {
+    const result = await dialog.showMessageBox(
       BrowserWindow.getFocusedWindow(),
       {
         type: 'warning',
@@ -2036,11 +2038,9 @@ module.exports = class AtomApplication extends EventEmitter {
         message:
           'You will need to restart Atom for this change to take effect.',
         buttons: ['Restart Atom', 'Cancel']
-      },
-      response => {
-        if (response === 0) this.restart();
       }
     );
+    if (result.response === 0) this.restart();
   }
 
   restart() {

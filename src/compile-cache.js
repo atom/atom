@@ -1,20 +1,17 @@
 'use strict';
 
-// For now, we're not using babel or ES6 features like `let` and `const` in
-// this file, because `apm` requires this file directly in order to pre-warm
-// Atom's compile-cache when installing or updating packages, using an older
-// version of node.js
+// Atom's compile-cache when installing or updating packages, called by apm's Node-js
 
-var path = require('path');
-var fs = require('fs-plus');
-var sourceMapSupport = require('@atom/source-map-support');
+const path = require('path');
+const fs = require('fs-plus');
+const sourceMapSupport = require('@atom/source-map-support');
 
-var PackageTranspilationRegistry = require('./package-transpilation-registry');
-var CSON = null;
+const PackageTranspilationRegistry = require('./package-transpilation-registry');
+let CSON = null;
 
-var packageTranspilationRegistry = new PackageTranspilationRegistry();
+const packageTranspilationRegistry = new PackageTranspilationRegistry();
 
-var COMPILERS = {
+const COMPILERS = {
   '.js': packageTranspilationRegistry.wrapTranspiler(require('./babel')),
   '.ts': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
   '.tsx': packageTranspilationRegistry.wrapTranspiler(require('./typescript')),
@@ -43,11 +40,11 @@ exports.removeTranspilerConfigForPath = function(packagePath) {
   packageTranspilationRegistry.removeTranspilerConfigForPath(packagePath);
 };
 
-var cacheStats = {};
-var cacheDirectory = null;
+const cacheStats = {};
+let cacheDirectory = null;
 
 exports.setAtomHomeDirectory = function(atomHome) {
-  var cacheDir = path.join(atomHome, 'compile-cache');
+  let cacheDir = path.join(atomHome, 'compile-cache');
   if (
     process.env.USER === 'root' &&
     process.env.SUDO_USER &&
@@ -68,7 +65,7 @@ exports.getCacheDirectory = function() {
 
 exports.addPathToCache = function(filePath, atomHome) {
   this.setAtomHomeDirectory(atomHome);
-  var extension = path.extname(filePath);
+  const extension = path.extname(filePath);
 
   if (extension === '.cson') {
     if (!CSON) {
@@ -77,7 +74,7 @@ exports.addPathToCache = function(filePath, atomHome) {
     }
     return CSON.readFileSync(filePath);
   } else {
-    var compiler = COMPILERS[extension];
+    const compiler = COMPILERS[extension];
     if (compiler) {
       return compileFileAtPath(compiler, filePath, extension);
     }
@@ -98,10 +95,10 @@ exports.resetCacheStats = function() {
 };
 
 function compileFileAtPath(compiler, filePath, extension) {
-  var sourceCode = fs.readFileSync(filePath, 'utf8');
+  const sourceCode = fs.readFileSync(filePath, 'utf8');
   if (compiler.shouldCompile(sourceCode, filePath)) {
-    var cachePath = compiler.getCachePath(sourceCode, filePath);
-    var compiledCode = readCachedJavaScript(cachePath);
+    const cachePath = compiler.getCachePath(sourceCode, filePath);
+    let compiledCode = readCachedJavaScript(cachePath);
     if (compiledCode != null) {
       cacheStats[extension].hits++;
     } else {
@@ -115,7 +112,7 @@ function compileFileAtPath(compiler, filePath, extension) {
 }
 
 function readCachedJavaScript(relativeCachePath) {
-  var cachePath = path.join(cacheDirectory, relativeCachePath);
+  const cachePath = path.join(cacheDirectory, relativeCachePath);
   if (fs.isFileSync(cachePath)) {
     try {
       return fs.readFileSync(cachePath, 'utf8');
@@ -125,11 +122,11 @@ function readCachedJavaScript(relativeCachePath) {
 }
 
 function writeCachedJavaScript(relativeCachePath, code) {
-  var cachePath = path.join(cacheDirectory, relativeCachePath);
+  const cachePath = path.join(cacheDirectory, relativeCachePath);
   fs.writeFileSync(cachePath, code, 'utf8');
 }
 
-var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/gm;
+const INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/gm;
 
 exports.install = function(resourcesPath, nodeRequire) {
   const snapshotSourceMapConsumer = {
@@ -166,7 +163,7 @@ exports.install = function(resourcesPath, nodeRequire) {
         return null;
       }
 
-      var compiler = COMPILERS[path.extname(filePath)];
+      let compiler = COMPILERS[path.extname(filePath)];
       if (!compiler) compiler = COMPILERS['.js'];
 
       try {
@@ -182,7 +179,7 @@ exports.install = function(resourcesPath, nodeRequire) {
         return null;
       }
 
-      var match, lastMatch;
+      let match, lastMatch;
       INLINE_SOURCE_MAP_REGEXP.lastIndex = 0;
       while ((match = INLINE_SOURCE_MAP_REGEXP.exec(fileData))) {
         lastMatch = match;
@@ -191,8 +188,8 @@ exports.install = function(resourcesPath, nodeRequire) {
         return null;
       }
 
-      var sourceMappingURL = lastMatch[1];
-      var rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
+      const sourceMappingURL = lastMatch[1];
+      const rawData = sourceMappingURL.slice(sourceMappingURL.indexOf(',') + 1);
 
       try {
         var sourceMap = JSON.parse(Buffer.from(rawData, 'base64'));
@@ -208,7 +205,7 @@ exports.install = function(resourcesPath, nodeRequire) {
     }
   });
 
-  var prepareStackTraceWithSourceMapping = Error.prepareStackTrace;
+  const prepareStackTraceWithSourceMapping = Error.prepareStackTrace;
   var prepareStackTrace = prepareStackTraceWithSourceMapping;
 
   function prepareStackTraceWithRawStackAssignment(error, frames) {
@@ -245,13 +242,13 @@ exports.install = function(resourcesPath, nodeRequire) {
   };
 
   Object.keys(COMPILERS).forEach(function(extension) {
-    var compiler = COMPILERS[extension];
+    const compiler = COMPILERS[extension];
 
     Object.defineProperty(nodeRequire.extensions, extension, {
       enumerable: true,
       writable: false,
       value: function(module, filePath) {
-        var code = compileFileAtPath(compiler, filePath, extension);
+        const code = compileFileAtPath(compiler, filePath, extension);
         return module._compile(code, filePath);
       }
     });

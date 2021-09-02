@@ -71,6 +71,9 @@ module.exports = class TreeSitterGrammar {
   }
 
   idForScope(scopeName) {
+    if (!scopeName) {
+      return undefined;
+    }
     let id = this.idsByScope[scopeName];
     if (!id) {
       id = this.nextScopeId += 2;
@@ -118,6 +121,25 @@ module.exports = class TreeSitterGrammar {
         delete this.injectionPointsByType[injectionPoint.type];
       }
     }
+  }
+
+  /*
+  Section - Backward compatibility shims
+  */
+
+  onDidUpdate(callback) {
+    // do nothing
+  }
+
+  tokenizeLines(text, compatibilityMode = true) {
+    return text.split('\n').map(line => this.tokenizeLine(line, null, false));
+  }
+
+  tokenizeLine(line, ruleStack, firstLine) {
+    return {
+      value: line,
+      scopes: [this.scopeName]
+    };
   }
 };
 

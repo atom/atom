@@ -8,7 +8,7 @@ import fs from 'fs-plus';
 import Grim from 'grim';
 import marked from 'marked';
 import path from 'path';
-import shell from 'shell';
+import { shell } from 'electron';
 
 export default class DeprecationCopView {
   constructor({ uri }) {

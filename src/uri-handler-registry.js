@@ -27,7 +27,7 @@ const { Emitter, Disposable } = require('event-kit');
 // is triggered. If you need your package to activate right away, you can add
 // `"deferActivation": false` to your "uriHandler" configuration object. When activation
 // is deferred, once Atom receives a request for a URI in your package's namespace, it will
-// activate your pacakge and then call `methodName` on it as before.
+// activate your package and then call `methodName` on it as before.
 //
 // If your package specifies a deprecated `urlMain` property, you cannot register URI handlers
 // via the `uriHandler` key.

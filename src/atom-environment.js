@@ -45,6 +45,7 @@ const TextBuffer = require('text-buffer');
 const TextEditorRegistry = require('./text-editor-registry');
 const AutoUpdateManager = require('./auto-update-manager');
 const StartupTime = require('./startup-time');
+const getReleaseChannel = require('./get-release-channel');
 
 const stat = util.promisify(fs.stat);
 
@@ -313,6 +314,8 @@ class AtomEnvironment {
     this.attachSaveStateListeners();
     this.windowEventHandler.initialize(this.window, this.document);
 
+    this.workspace.initialize();
+
     const didChangeStyles = this.didChangeStyles.bind(this);
     this.disposables.add(this.styles.onDidAddStyleElement(didChangeStyles));
     this.disposables.add(this.styles.onDidUpdateStyleElement(didChangeStyles));
@@ -337,12 +340,16 @@ class AtomEnvironment {
         if (!this.unloading) this.saveState({ isUnloading: false });
       });
     }, this.saveStateDebounceInterval);
-    this.document.addEventListener('mousedown', saveState, true);
-    this.document.addEventListener('keydown', saveState, true);
+    this.document.addEventListener('mousedown', saveState, { capture: true });
+    this.document.addEventListener('keydown', saveState, { capture: true });
     this.disposables.add(
       new Disposable(() => {
-        this.document.removeEventListener('mousedown', saveState, true);
-        this.document.removeEventListener('keydown', saveState, true);
+        this.document.removeEventListener('mousedown', saveState, {
+          capture: true
+        });
+        this.document.removeEventListener('keydown', saveState, {
+          capture: true
+        });
       })
     );
   }
@@ -429,7 +436,7 @@ class AtomEnvironment {
     this.workspace.reset(this.packages);
     this.registerDefaultOpeners();
     this.project.reset(this.packages);
-    this.workspace.subscribeToEvents();
+    this.workspace.initialize();
     this.grammars.clear();
     this.textEditors.clear();
     this.views.clear();
@@ -548,6 +555,14 @@ class AtomEnvironment {
     return this.firstLoad;
   }
 
+  // Public: Get the full name of this Atom release (e.g. "Atom", "Atom Beta")
+  //
+  // Returns the app name {String}.
+  getAppName() {
+    if (this.appName == null) this.appName = this.getLoadSettings().appName;
+    return this.appName;
+  }
+
   // Public: Get the version of the Atom application.
   //
   // Returns the version text {String}.
@@ -563,18 +578,7 @@ class AtomEnvironment {
   // name like 'beta' or 'nightly' if one is found in the Atom version or 'stable'
   // otherwise.
   getReleaseChannel() {
-    // This matches stable, dev (with or without commit hash) and any other
-    // release channel following the pattern '1.00.0-channel0'
-    const match = this.getVersion().match(
-      /\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/
-    );
-    if (!match) {
-      return 'unrecognized';
-    } else if (match[2]) {
-      return match[2];
-    }
-
-    return 'stable';
+    return getReleaseChannel(this.getVersion());
   }
 
   // Public: Returns a {Boolean} that is `true` if the current version is an official release.
@@ -1032,7 +1036,12 @@ class AtomEnvironment {
         commands: this.commands,
         history: this.history,
         config: this.config,
-        open: paths => this.open({ pathsToOpen: paths })
+        open: paths =>
+          this.open({
+            pathsToOpen: paths,
+            safeMode: this.inSafeMode(),
+            devMode: this.inDevMode()
+          })
       });
       this.reopenProjectMenuManager.update();
     });

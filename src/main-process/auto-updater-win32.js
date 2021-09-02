@@ -8,7 +8,7 @@ class AutoUpdater extends EventEmitter {
 
   quitAndInstall() {
     if (SquirrelUpdate.existsSync()) {
-      SquirrelUpdate.restartAtom(require('electron').app);
+      SquirrelUpdate.restartAtom();
     } else {
       require('electron').autoUpdater.quitAndInstall();
     }
