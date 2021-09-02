@@ -16,4 +16,4 @@ When people install core Atom packages as if they are community packages, it can
 
 ## I have more questions. Where can I ask them?
 
-Please feel free to ask on [the official Atom message board](https://discuss.atom.io/c/support).
+Please feel free to ask on [the official Atom message board](https://github.com/atom/atom/discussions).
