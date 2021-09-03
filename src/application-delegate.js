@@ -1,405 +1,415 @@
-const {ipcRenderer, remote, shell} = require('electron')
-const ipcHelpers = require('./ipc-helpers')
-const {Disposable} = require('event-kit')
-const getWindowLoadSettings = require('./get-window-load-settings')
+const { ipcRenderer, remote, shell } = require('electron');
+const ipcHelpers = require('./ipc-helpers');
+const { Emitter, Disposable } = require('event-kit');
+const getWindowLoadSettings = require('./get-window-load-settings');
 
-module.exports =
-class ApplicationDelegate {
-  constructor () {
-    this.pendingSettingsUpdateCount = 0
+module.exports = class ApplicationDelegate {
+  constructor() {
+    this.pendingSettingsUpdateCount = 0;
+    this._ipcMessageEmitter = null;
   }
 
-  getWindowLoadSettings () { return getWindowLoadSettings() }
-
-  open (params) {
-    return ipcRenderer.send('open', params)
+  ipcMessageEmitter() {
+    if (!this._ipcMessageEmitter) {
+      this._ipcMessageEmitter = new Emitter();
+      ipcRenderer.on('message', (event, message, detail) => {
+        this._ipcMessageEmitter.emit(message, detail);
+      });
+    }
+    return this._ipcMessageEmitter;
   }
 
-  pickFolder (callback) {
-    const responseChannel = 'atom-pick-folder-response'
-    ipcRenderer.on(responseChannel, function (event, path) {
-      ipcRenderer.removeAllListeners(responseChannel)
-      return callback(path)
-    })
-    return ipcRenderer.send('pick-folder', responseChannel)
+  getWindowLoadSettings() {
+    return getWindowLoadSettings();
   }
 
-  getCurrentWindow () {
-    return remote.getCurrentWindow()
+  open(params) {
+    return ipcRenderer.send('open', params);
   }
 
-  closeWindow () {
-    return ipcHelpers.call('window-method', 'close')
+  pickFolder(callback) {
+    const responseChannel = 'atom-pick-folder-response';
+    ipcRenderer.on(responseChannel, function(event, path) {
+      ipcRenderer.removeAllListeners(responseChannel);
+      return callback(path);
+    });
+    return ipcRenderer.send('pick-folder', responseChannel);
   }
 
-  async getTemporaryWindowState () {
-    const stateJSON = await ipcHelpers.call('get-temporary-window-state')
-    return JSON.parse(stateJSON)
+  getCurrentWindow() {
+    return remote.getCurrentWindow();
   }
 
-  setTemporaryWindowState (state) {
-    return ipcHelpers.call('set-temporary-window-state', JSON.stringify(state))
+  closeWindow() {
+    return ipcHelpers.call('window-method', 'close');
   }
 
-  getWindowSize () {
-    const [width, height] = Array.from(remote.getCurrentWindow().getSize())
-    return {width, height}
+  async getTemporaryWindowState() {
+    const stateJSON = await ipcHelpers.call('get-temporary-window-state');
+    return stateJSON && JSON.parse(stateJSON);
   }
 
-  setWindowSize (width, height) {
-    return ipcHelpers.call('set-window-size', width, height)
+  setTemporaryWindowState(state) {
+    return ipcHelpers.call('set-temporary-window-state', JSON.stringify(state));
   }
 
-  getWindowPosition () {
-    const [x, y] = Array.from(remote.getCurrentWindow().getPosition())
-    return {x, y}
+  getWindowSize() {
+    const [width, height] = Array.from(remote.getCurrentWindow().getSize());
+    return { width, height };
   }
 
-  setWindowPosition (x, y) {
-    return ipcHelpers.call('set-window-position', x, y)
+  setWindowSize(width, height) {
+    return ipcHelpers.call('set-window-size', width, height);
   }
 
-  centerWindow () {
-    return ipcHelpers.call('center-window')
+  getWindowPosition() {
+    const [x, y] = Array.from(remote.getCurrentWindow().getPosition());
+    return { x, y };
   }
 
-  focusWindow () {
-    return ipcHelpers.call('focus-window')
+  setWindowPosition(x, y) {
+    return ipcHelpers.call('set-window-position', x, y);
   }
 
-  showWindow () {
-    return ipcHelpers.call('show-window')
+  centerWindow() {
+    return ipcHelpers.call('center-window');
   }
 
-  hideWindow () {
-    return ipcHelpers.call('hide-window')
+  focusWindow() {
+    return ipcHelpers.call('focus-window');
   }
 
-  reloadWindow () {
-    return ipcHelpers.call('window-method', 'reload')
+  showWindow() {
+    return ipcHelpers.call('show-window');
   }
 
-  restartApplication () {
-    return ipcRenderer.send('restart-application')
+  hideWindow() {
+    return ipcHelpers.call('hide-window');
   }
 
-  minimizeWindow () {
-    return ipcHelpers.call('window-method', 'minimize')
+  reloadWindow() {
+    return ipcHelpers.call('window-method', 'reload');
   }
 
-  isWindowMaximized () {
-    return remote.getCurrentWindow().isMaximized()
+  restartApplication() {
+    return ipcRenderer.send('restart-application');
   }
 
-  maximizeWindow () {
-    return ipcHelpers.call('window-method', 'maximize')
+  minimizeWindow() {
+    return ipcHelpers.call('window-method', 'minimize');
   }
 
-  unmaximizeWindow () {
-    return ipcHelpers.call('window-method', 'unmaximize')
+  isWindowMaximized() {
+    return remote.getCurrentWindow().isMaximized();
   }
 
-  isWindowFullScreen () {
-    return remote.getCurrentWindow().isFullScreen()
+  maximizeWindow() {
+    return ipcHelpers.call('window-method', 'maximize');
   }
 
-  setWindowFullScreen (fullScreen = false) {
-    return ipcHelpers.call('window-method', 'setFullScreen', fullScreen)
+  unmaximizeWindow() {
+    return ipcHelpers.call('window-method', 'unmaximize');
   }
 
-  onDidEnterFullScreen (callback) {
-    return ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback)
+  isWindowFullScreen() {
+    return remote.getCurrentWindow().isFullScreen();
   }
 
-  onDidLeaveFullScreen (callback) {
-    return ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback)
+  setWindowFullScreen(fullScreen = false) {
+    return ipcHelpers.call('window-method', 'setFullScreen', fullScreen);
   }
 
-  async openWindowDevTools () {
+  onDidEnterFullScreen(callback) {
+    return ipcHelpers.on(ipcRenderer, 'did-enter-full-screen', callback);
+  }
+
+  onDidLeaveFullScreen(callback) {
+    return ipcHelpers.on(ipcRenderer, 'did-leave-full-screen', callback);
+  }
+
+  async openWindowDevTools() {
     // Defer DevTools interaction to the next tick, because using them during
     // event handling causes some wrong input events to be triggered on
     // `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-    await new Promise(process.nextTick)
-    return ipcHelpers.call('window-method', 'openDevTools')
+    await new Promise(process.nextTick);
+    return ipcHelpers.call('window-method', 'openDevTools');
   }
 
-  async closeWindowDevTools () {
+  async closeWindowDevTools() {
     // Defer DevTools interaction to the next tick, because using them during
     // event handling causes some wrong input events to be triggered on
     // `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-    await new Promise(process.nextTick)
-    return ipcHelpers.call('window-method', 'closeDevTools')
+    await new Promise(process.nextTick);
+    return ipcHelpers.call('window-method', 'closeDevTools');
   }
 
-  async toggleWindowDevTools () {
+  async toggleWindowDevTools() {
     // Defer DevTools interaction to the next tick, because using them during
     // event handling causes some wrong input events to be triggered on
     // `TextEditorComponent` (Ref.: https://github.com/atom/atom/issues/9697).
-    await new Promise(process.nextTick)
-    return ipcHelpers.call('window-method', 'toggleDevTools')
+    await new Promise(process.nextTick);
+    return ipcHelpers.call('window-method', 'toggleDevTools');
   }
 
-  executeJavaScriptInWindowDevTools (code) {
-    return ipcRenderer.send('execute-javascript-in-dev-tools', code)
+  executeJavaScriptInWindowDevTools(code) {
+    return ipcRenderer.send('execute-javascript-in-dev-tools', code);
   }
 
-  didClosePathWithWaitSession (path) {
-    return ipcHelpers.call('window-method', 'didClosePathWithWaitSession', path)
+  didClosePathWithWaitSession(path) {
+    return ipcHelpers.call(
+      'window-method',
+      'didClosePathWithWaitSession',
+      path
+    );
   }
 
-  setWindowDocumentEdited (edited) {
-    return ipcHelpers.call('window-method', 'setDocumentEdited', edited)
+  setWindowDocumentEdited(edited) {
+    return ipcHelpers.call('window-method', 'setDocumentEdited', edited);
   }
 
-  setRepresentedFilename (filename) {
-    return ipcHelpers.call('window-method', 'setRepresentedFilename', filename)
+  setRepresentedFilename(filename) {
+    return ipcHelpers.call('window-method', 'setRepresentedFilename', filename);
   }
 
-  addRecentDocument (filename) {
-    return ipcRenderer.send('add-recent-document', filename)
+  addRecentDocument(filename) {
+    return ipcRenderer.send('add-recent-document', filename);
   }
 
-  setRepresentedDirectoryPaths (paths) {
-    return ipcHelpers.call('window-method', 'setRepresentedDirectoryPaths', paths)
+  setProjectRoots(paths) {
+    return ipcHelpers.call('window-method', 'setProjectRoots', paths);
   }
 
-  setAutoHideWindowMenuBar (autoHide) {
-    return ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide)
+  setAutoHideWindowMenuBar(autoHide) {
+    return ipcHelpers.call('window-method', 'setAutoHideMenuBar', autoHide);
   }
 
-  setWindowMenuBarVisibility (visible) {
-    return remote.getCurrentWindow().setMenuBarVisibility(visible)
+  setWindowMenuBarVisibility(visible) {
+    return remote.getCurrentWindow().setMenuBarVisibility(visible);
   }
 
-  getPrimaryDisplayWorkAreaSize () {
-    return remote.screen.getPrimaryDisplay().workAreaSize
+  getPrimaryDisplayWorkAreaSize() {
+    return remote.screen.getPrimaryDisplay().workAreaSize;
   }
 
-  getUserDefault (key, type) {
-    return remote.systemPreferences.getUserDefault(key, type)
+  getUserDefault(key, type) {
+    return remote.systemPreferences.getUserDefault(key, type);
   }
 
-  async setUserSettings (config, configFilePath) {
-    this.pendingSettingsUpdateCount++
+  async setUserSettings(config, configFilePath) {
+    this.pendingSettingsUpdateCount++;
     try {
-      await ipcHelpers.call('set-user-settings', JSON.stringify(config), configFilePath)
+      await ipcHelpers.call(
+        'set-user-settings',
+        JSON.stringify(config),
+        configFilePath
+      );
     } finally {
-      this.pendingSettingsUpdateCount--
+      this.pendingSettingsUpdateCount--;
     }
   }
 
-  onDidChangeUserSettings (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'did-change-user-settings') {
-        if (this.pendingSettingsUpdateCount === 0) callback(detail)
-      }
-    }
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onDidChangeUserSettings(callback) {
+    return this.ipcMessageEmitter().on('did-change-user-settings', detail => {
+      if (this.pendingSettingsUpdateCount === 0) callback(detail);
+    });
   }
 
-  onDidFailToReadUserSettings (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'did-fail-to-read-user-settings') callback(detail)
-    }
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onDidFailToReadUserSettings(callback) {
+    return this.ipcMessageEmitter().on(
+      'did-fail-to-read-user-setting',
+      callback
+    );
   }
 
-  confirm (options, callback) {
+  confirm(options, callback) {
     if (typeof callback === 'function') {
       // Async version: pass options directly to Electron but set sane defaults
-      options = Object.assign({type: 'info', normalizeAccessKeys: true}, options)
-      remote.dialog.showMessageBox(remote.getCurrentWindow(), options, callback)
+      options = Object.assign(
+        { type: 'info', normalizeAccessKeys: true },
+        options
+      );
+      remote.dialog
+        .showMessageBox(remote.getCurrentWindow(), options)
+        .then(result => {
+          callback(result.response, result.checkboxChecked);
+        });
     } else {
       // Legacy sync version: options can only have `message`,
       // `detailedMessage` (optional), and buttons array or object (optional)
-      let {message, detailedMessage, buttons} = options
+      let { message, detailedMessage, buttons } = options;
 
-      let buttonLabels
-      if (!buttons) buttons = {}
+      let buttonLabels;
+      if (!buttons) buttons = {};
       if (Array.isArray(buttons)) {
-        buttonLabels = buttons
+        buttonLabels = buttons;
       } else {
-        buttonLabels = Object.keys(buttons)
+        buttonLabels = Object.keys(buttons);
       }
 
-      const chosen = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'info',
-        message,
-        detail: detailedMessage,
-        buttons: buttonLabels,
-        normalizeAccessKeys: true
-      })
+      const chosen = remote.dialog.showMessageBoxSync(
+        remote.getCurrentWindow(),
+        {
+          type: 'info',
+          message,
+          detail: detailedMessage,
+          buttons: buttonLabels,
+          normalizeAccessKeys: true
+        }
+      );
 
       if (Array.isArray(buttons)) {
-        return chosen
+        return chosen;
       } else {
-        const callback = buttons[buttonLabels[chosen]]
-        if (typeof callback === 'function') return callback()
+        const callback = buttons[buttonLabels[chosen]];
+        if (typeof callback === 'function') return callback();
       }
     }
   }
 
-  showMessageDialog (params) {}
+  showMessageDialog(params) {}
 
-  showSaveDialog (options, callback) {
+  showSaveDialog(options, callback) {
     if (typeof callback === 'function') {
       // Async
-      this.getCurrentWindow().showSaveDialog(options, callback)
+      this.getCurrentWindow().showSaveDialog(options, callback);
     } else {
       // Sync
       if (typeof options === 'string') {
-        options = {defaultPath: options}
+        options = { defaultPath: options };
       }
-      return this.getCurrentWindow().showSaveDialog(options)
+      return this.getCurrentWindow().showSaveDialog(options);
     }
   }
 
-  playBeepSound () {
-    return shell.beep()
+  playBeepSound() {
+    return shell.beep();
   }
 
-  onDidOpenLocations (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'open-locations') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onDidOpenLocations(callback) {
+    return this.ipcMessageEmitter().on('open-locations', callback);
   }
 
-  onUpdateAvailable (callback) {
-    const outerCallback = (event, message, detail) => {
-      // TODO: Yes, this is strange that `onUpdateAvailable` is listening for
-      // `did-begin-downloading-update`. We currently have no mechanism to know
-      // if there is an update, so begin of downloading is a good proxy.
-      if (message === 'did-begin-downloading-update') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onUpdateAvailable(callback) {
+    // TODO: Yes, this is strange that `onUpdateAvailable` is listening for
+    // `did-begin-downloading-update`. We currently have no mechanism to know
+    // if there is an update, so begin of downloading is a good proxy.
+    return this.ipcMessageEmitter().on(
+      'did-begin-downloading-update',
+      callback
+    );
   }
 
-  onDidBeginDownloadingUpdate (callback) {
-    return this.onUpdateAvailable(callback)
+  onDidBeginDownloadingUpdate(callback) {
+    return this.onUpdateAvailable(callback);
   }
 
-  onDidBeginCheckingForUpdate (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'checking-for-update') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onDidBeginCheckingForUpdate(callback) {
+    return this.ipcMessageEmitter().on('checking-for-update', callback);
   }
 
-  onDidCompleteDownloadingUpdate (callback) {
-    const outerCallback = (event, message, detail) => {
-      // TODO: We could rename this event to `did-complete-downloading-update`
-      if (message === 'update-available') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onDidCompleteDownloadingUpdate(callback) {
+    return this.ipcMessageEmitter().on('update-available', callback);
   }
 
-  onUpdateNotAvailable (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'update-not-available') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onUpdateNotAvailable(callback) {
+    return this.ipcMessageEmitter().on('update-not-available', callback);
   }
 
-  onUpdateError (callback) {
-    const outerCallback = (event, message, detail) => {
-      if (message === 'update-error') callback(detail)
-    }
-
-    ipcRenderer.on('message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('message', outerCallback))
+  onUpdateError(callback) {
+    return this.ipcMessageEmitter().on('update-error', callback);
   }
 
-  onApplicationMenuCommand (handler) {
-    const outerCallback = (event, ...args) => handler(...args)
+  onApplicationMenuCommand(handler) {
+    const outerCallback = (event, ...args) => handler(...args);
 
-    ipcRenderer.on('command', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('command', outerCallback))
+    ipcRenderer.on('command', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('command', outerCallback)
+    );
   }
 
-  onContextMenuCommand (handler) {
-    const outerCallback = (event, ...args) => handler(...args)
+  onContextMenuCommand(handler) {
+    const outerCallback = (event, ...args) => handler(...args);
 
-    ipcRenderer.on('context-command', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('context-command', outerCallback))
+    ipcRenderer.on('context-command', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('context-command', outerCallback)
+    );
   }
 
-  onURIMessage (handler) {
-    const outerCallback = (event, ...args) => handler(...args)
+  onURIMessage(handler) {
+    const outerCallback = (event, ...args) => handler(...args);
 
-    ipcRenderer.on('uri-message', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('uri-message', outerCallback))
+    ipcRenderer.on('uri-message', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('uri-message', outerCallback)
+    );
   }
 
-  onDidRequestUnload (callback) {
+  onDidRequestUnload(callback) {
     const outerCallback = async (event, message) => {
-      const shouldUnload = await callback(event)
-      ipcRenderer.send('did-prepare-to-unload', shouldUnload)
-    }
+      const shouldUnload = await callback(event);
+      ipcRenderer.send('did-prepare-to-unload', shouldUnload);
+    };
 
-    ipcRenderer.on('prepare-to-unload', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('prepare-to-unload', outerCallback))
+    ipcRenderer.on('prepare-to-unload', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('prepare-to-unload', outerCallback)
+    );
   }
 
-  onDidChangeHistoryManager (callback) {
-    const outerCallback = (event, message) => callback(event)
+  onDidChangeHistoryManager(callback) {
+    const outerCallback = (event, message) => callback(event);
 
-    ipcRenderer.on('did-change-history-manager', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('did-change-history-manager', outerCallback))
+    ipcRenderer.on('did-change-history-manager', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('did-change-history-manager', outerCallback)
+    );
   }
 
-  didChangeHistoryManager () {
-    return ipcRenderer.send('did-change-history-manager')
+  didChangeHistoryManager() {
+    return ipcRenderer.send('did-change-history-manager');
   }
 
-  openExternal (url) {
-    return shell.openExternal(url)
+  openExternal(url) {
+    return shell.openExternal(url);
   }
 
-  checkForUpdate () {
-    return ipcRenderer.send('command', 'application:check-for-update')
+  checkForUpdate() {
+    return ipcRenderer.send('command', 'application:check-for-update');
   }
 
-  restartAndInstallUpdate () {
-    return ipcRenderer.send('command', 'application:install-update')
+  restartAndInstallUpdate() {
+    return ipcRenderer.send('command', 'application:install-update');
   }
 
-  getAutoUpdateManagerState () {
-    return ipcRenderer.sendSync('get-auto-update-manager-state')
+  getAutoUpdateManagerState() {
+    return ipcRenderer.sendSync('get-auto-update-manager-state');
   }
 
-  getAutoUpdateManagerErrorMessage () {
-    return ipcRenderer.sendSync('get-auto-update-manager-error')
+  getAutoUpdateManagerErrorMessage() {
+    return ipcRenderer.sendSync('get-auto-update-manager-error');
   }
 
-  emitWillSavePath (path) {
-    return ipcHelpers.call('will-save-path', path)
+  emitWillSavePath(path) {
+    return ipcHelpers.call('will-save-path', path);
   }
 
-  emitDidSavePath (path) {
-    return ipcHelpers.call('did-save-path', path)
+  emitDidSavePath(path) {
+    return ipcHelpers.call('did-save-path', path);
   }
 
-  resolveProxy (requestId, url) {
-    return ipcRenderer.send('resolve-proxy', requestId, url)
+  resolveProxy(requestId, url) {
+    return ipcRenderer.send('resolve-proxy', requestId, url);
   }
 
-  onDidResolveProxy (callback) {
-    const outerCallback = (event, requestId, proxy) => callback(requestId, proxy)
+  onDidResolveProxy(callback) {
+    const outerCallback = (event, requestId, proxy) =>
+      callback(requestId, proxy);
 
-    ipcRenderer.on('did-resolve-proxy', outerCallback)
-    return new Disposable(() => ipcRenderer.removeListener('did-resolve-proxy', outerCallback))
+    ipcRenderer.on('did-resolve-proxy', outerCallback);
+    return new Disposable(() =>
+      ipcRenderer.removeListener('did-resolve-proxy', outerCallback)
+    );
   }
-}
+};

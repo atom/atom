@@ -8,10 +8,15 @@ AutoReqProv:    no # Avoid libchromiumcontent.so missing dependency
 Prefix:         <%= installDir %>
 
 %ifarch i386 i486 i586 i686
-Requires: lsb-core-noarch, libXss.so.1 libsecret-1.so.0
+Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), lsb-core-noarch, (libcurl.so.3 or libcurl.so.4), libgbm.so.1, libgcrypt.so.20, libnotify, libnss3.so, libX11-xcb.so.1, libxcb-dri3.so.0, libxkbfile.so.1, libXss.so.1, libsecret-1.so.0, gtk3, polkit
 %else
-Requires: lsb-core-noarch, libXss.so.1()(64bit) libsecret-1.so.0()(64bit)
+Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), lsb-core-noarch, (libcurl.so.3()(64bit) or libcurl.so.4()(64bit)), libgbm.so.1()(64bit), libgcrypt.so.20()(64bit), libnotify, libnss3.so()(64bit), libX11-xcb.so.1()(64bit), libxcb-dri3.so.0()(64bit), libxkbfile.so.1()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), gtk3, polkit
 %endif
+
+# Disable Fedora's shebang mangling script,
+# which errors out on any file with versionless `python` in its shebang
+# See: https://github.com/atom/atom/issues/21937
+%undefine __brp_mangle_shebangs
 
 %description
 <%= description %>
@@ -25,6 +30,8 @@ cp atom.sh "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
 chmod 755 "%{buildroot}/<%= installDir %>/bin/<%= appFileName %>"
 mkdir -p "%{buildroot}/<%= installDir %>/share/applications/"
 cp "<%= appFileName %>.desktop" "%{buildroot}/<%= installDir %>/share/applications/"
+mkdir -p "%{buildroot}/<%= installDir %>/share/polkit-1/actions/"
+cp "<%= policyFileName %>" "%{buildroot}/<%= installDir %>/share/polkit-1/actions/<%= policyFileName %>"
 
 mkdir -p "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps"
 cp "icons/1024.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/1024x1024/apps/<%= appFileName %>.png"
@@ -50,4 +57,6 @@ cp "icons/16.png" "%{buildroot}/<%= installDir %>/share/icons/hicolor/16x16/apps
 <%= installDir %>/bin/<%= apmFileName %>
 <%= installDir %>/share/<%= appFileName %>/
 <%= installDir %>/share/applications/<%= appFileName %>.desktop
+<%= installDir %>/share/polkit-1/actions/<%= policyFileName %>
 <%= installDir %>/share/icons/hicolor/
+%attr(4755, root, root) <%= installDir %>/share/<%= appFileName %>/chrome-sandbox

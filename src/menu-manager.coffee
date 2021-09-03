@@ -78,7 +78,7 @@ class MenuManager
   #   atom.menu.add [
   #     {
   #       label: 'Hello'
-  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #       submenu : [{label: 'World!', id: 'World!', command: 'hello:world'}]
   #     }
   #   ]
   # ```
@@ -89,11 +89,16 @@ class MenuManager
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
   #
+  #   * `id` (internal) A {String} containing the menu item's id.
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (items) ->
     items = _.deepClone(items)
-    @merge(@template, item) for item in items
+
+    for item in items
+      continue unless item.label? # TODO: Should we emit a warning here?
+      @merge(@template, item)
+
     @update()
     new Disposable => @remove(items)
 
@@ -149,9 +154,9 @@ class MenuManager
   update: ->
     return unless @initialized
 
-    clearImmediate(@pendingUpdateOperation) if @pendingUpdateOperation?
+    clearTimeout(@pendingUpdateOperation) if @pendingUpdateOperation?
 
-    @pendingUpdateOperation = setImmediate =>
+    @pendingUpdateOperation = setTimeout(=>
       unsetKeystrokes = new Set
       for binding in @keymapManager.getKeyBindings()
         if binding.command is 'unset!'
@@ -161,13 +166,13 @@ class MenuManager
       for binding in @keymapManager.getKeyBindings()
         continue unless @includeSelector(binding.selector)
         continue if unsetKeystrokes.has(binding.keystrokes)
-        continue if binding.keystrokes.includes(' ')
         continue if process.platform is 'darwin' and /^alt-(shift-)?.$/.test(binding.keystrokes)
         continue if process.platform is 'win32' and /^ctrl-alt-(shift-)?.$/.test(binding.keystrokes)
         keystrokesByCommand[binding.command] ?= []
         keystrokesByCommand[binding.command].unshift binding.keystrokes
 
       @sendToBrowserProcess(@template, keystrokesByCommand)
+    , 1)
 
   loadPlatformItems: ->
     if platformMenu?
@@ -197,7 +202,7 @@ class MenuManager
       []
 
   sortPackagesMenu: ->
-    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = _.find @template, ({id}) -> MenuHelpers.normalizeLabel(id) is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) ->

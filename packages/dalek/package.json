@@ -1,0 +1,29 @@
+{
+  "name": "dalek",
+  "main": "./lib/main",
+  "version": "0.2.2",
+  "description": "EXTERMINATEs built-in packages installed in ~/.atom/packages",
+  "keywords": [],
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "atomTestRunner": "./test/runner",
+  "engines": {
+    "atom": ">=1.12.7 <2.0.0"
+  },
+  "dependencies": {
+    "grim": "^2.0.1"
+  },
+  "devDependencies": {
+    "atom-mocha-test-runner": "^1.0.0",
+    "sinon": "9.0.3",
+    "standard": "^8.6.0"
+  },
+  "standard": {
+    "env": {
+      "jasmine": true
+    },
+    "globals": [
+      "atom"
+    ]
+  }
+}

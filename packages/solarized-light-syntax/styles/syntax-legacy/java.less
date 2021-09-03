@@ -1,0 +1,47 @@
+.syntax--source.syntax--java {
+  .syntax--keyword.syntax--operator{
+    color:@green;
+  }
+  .syntax--keyword.syntax--import{
+    color: @orange;
+  }
+  .syntax--storage.syntax--modifier.syntax--import{
+    color: @syntax-comment-color;
+  }
+  .syntax--meta.syntax--class{
+    .syntax--storage.syntax--modifier{
+      color: @yellow;
+    }
+    .syntax--meta.syntax--class.syntax--identifier{
+      .syntax--entity.syntax--name.syntax--type.syntax--class{
+        color: @blue;
+      }
+    }
+  }
+  .syntax--storage.syntax--type.syntax--primitive.syntax--array{
+    color:@green;
+  }
+  .syntax--constant.syntax--numeric{
+    color:@magenta;
+  }
+  .syntax--constant.syntax--other{
+    color:@orange;
+  }
+  .syntax--storage.syntax--type{
+    color:@green;
+  }
+  .syntax--meta.syntax--method-call{
+    //@ibocon: method parameter's color
+    color:@red;
+    //@ibocon: method and variable use different hightlight
+    .syntax--meta.syntax--method{
+      color:@violet;
+    }
+    .syntax--punctuation.syntax--definition.syntax--seperator.syntax--parameter{
+      color:@green;
+    }
+  }
+  .syntax--punctuation.syntax--definition.syntax--method-parameters{
+    color: @syntax-emphasized-color;
+  }
+}

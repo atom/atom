@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="160px" height="80px" viewBox="0 0 160 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs></defs>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g>
+            <rect fill-opacity="0.081861413" fill="#FFFFFF" x="0" y="0" width="160" height="80"></rect>
+            <rect fill-opacity="0.164600317" fill="#000000" x="40" y="72" width="120" height="8"></rect>
+            <g>
+                <rect fill-opacity="0.161882926" fill="#000000" x="0" y="0" width="40" height="80"></rect>
+                <rect fill-opacity="0.08" fill="#FFFFFF" x="4" y="4" width="24" height="4"></rect>
+                <rect fill-opacity="0.08" fill="#FFFFFF" x="4" y="12" width="16" height="4"></rect>
+                <rect fill-opacity="0.08" fill="#FFFFFF" x="4" y="20" width="30" height="4"></rect>
+                <rect fill-opacity="0.08" fill="#FFFFFF" x="4" y="28" width="21" height="4"></rect>
+                <rect fill-opacity="0.08" fill="#FFFFFF" x="4" y="36" width="24" height="4"></rect>
+            </g>
+            <g transform="translate(40.000000, 0.000000)" fill-opacity="0.164600317" fill="#000000">
+                <rect x="60" y="0" width="60" height="8"></rect>
+                <rect x="0" y="0" width="30" height="8"></rect>
+            </g>
+            <g transform="translate(142.000000, 8.000000)">
+                <rect fill="#BB263A" x="0" y="0" width="18" height="64"></rect>
+                <rect fill="#FF5F74" x="2" y="3" width="12" height="2"></rect>
+                <rect fill="#FF5F74" x="2" y="7" width="14" height="2"></rect>
+                <rect fill="#FF5F74" x="2" y="11" width="6" height="2"></rect>
+                <rect fill="#FF5F74" x="2" y="15" width="10" height="2"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

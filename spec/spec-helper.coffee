@@ -12,7 +12,8 @@ FindParentDir = require 'find-parent-dir'
 TextEditor = require '../src/text-editor'
 TextEditorElement = require '../src/text-editor-element'
 TextMateLanguageMode = require '../src/text-mate-language-mode'
-clipboard = require '../src/safe-clipboard'
+TreeSitterLanguageMode = require '../src/tree-sitter-language-mode'
+{clipboard} = require 'electron'
 
 jasmineStyle = document.createElement('style')
 jasmineStyle.textContent = atom.themes.loadStylesheet(atom.themes.resolveStylesheet('../static/jasmine'))
@@ -43,7 +44,13 @@ Set.prototype.isEqual = (other) ->
   else
     false
 
-jasmine.getEnv().addEqualityTester(_.isEqual) # Use underscore's definition of equality for toEqual assertions
+jasmine.getEnv().addEqualityTester (a, b) ->
+  # Match jasmine.any's equality matching logic
+  return a.jasmineMatches(b) if a?.jasmineMatches?
+  return b.jasmineMatches(a) if b?.jasmineMatches?
+
+  # Use underscore's definition of equality for toEqual assertions
+  _.isEqual(a, b)
 
 if process.env.CI
   jasmine.getEnv().defaultTimeoutInterval = 60000
@@ -101,6 +108,7 @@ beforeEach ->
 
   # make tokenization synchronous
   TextMateLanguageMode.prototype.chunkSize = Infinity
+  TreeSitterLanguageMode.prototype.syncTimeoutMicros = Infinity
   spyOn(TextMateLanguageMode.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
   # Without this spy, TextEditor.onDidTokenize callbacks would not be called
@@ -246,13 +254,22 @@ addCustomMatchers = (spec) ->
       element = @actual
       element = element.get(0) if element.jquery
       @message = -> return "Expected element '#{element}' or its descendants #{toOrNotTo} show."
-      element.style.display in ['block', 'inline-block', 'static', 'fixed']
+      computedStyle = getComputedStyle(element)
+      computedStyle.display isnt 'none' and computedStyle.visibility is 'visible' and not element.hidden
 
     toEqualPath: (expected) ->
       actualPath = path.normalize(@actual)
       expectedPath = path.normalize(expected)
       @message = -> return "Expected path '#{actualPath}' to be equal to '#{expectedPath}'."
       actualPath is expectedPath
+
+    toBeNear: (expected, acceptedError = 1, actual) ->
+      return (typeof expected is 'number') and (typeof acceptedError is 'number') and (typeof @actual is 'number') and (expected - acceptedError <= @actual) and (@actual <= expected + acceptedError)
+
+    toHaveNearPixels: (expected, acceptedError = 1, actual) ->
+      expectedNumber =  parseFloat(expected)
+      actualNumber =  parseFloat(@actual)
+      return (typeof expected is 'string') and (typeof acceptedError is 'number') and (typeof @actual is 'string') and (expected.indexOf('px') >= 1) and (@actual.indexOf('px') >= 1) and (expectedNumber - acceptedError <= actualNumber) and (actualNumber <= expectedNumber + acceptedError)
 
 window.waitsForPromise = (args...) ->
   label = null

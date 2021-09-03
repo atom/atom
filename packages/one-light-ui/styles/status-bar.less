@@ -1,0 +1,97 @@
+
+@status-bar-height: @ui-tab-height; // same as tabs
+@status-bar-padding: @ui-padding;
+
+.status-bar {
+  font-size: @ui-size;
+  height: @status-bar-height;
+  line-height: @status-bar-height;
+  background-color: @level-3-color;
+
+  .flexbox-repaint-hack {
+    padding: 0; // override default
+  }
+
+  // underlines should only be used for external links
+  a:hover,
+  a:focus {
+    text-decoration: none;
+    cursor: default;
+  }
+
+  .inline-block {
+    margin: 0; // override default
+    padding: 0 @status-bar-padding/2;
+    vertical-align: top;
+
+    &:hover {
+      text-decoration: none;
+      background-color: @level-3-color-hover;
+    }
+    &:active {
+      background-color: @level-3-color-active;
+    }
+
+    // reset on child inline-block
+    .inline-block {
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .status-bar-right {
+    .inline-block {
+      margin-left: 0; // override default
+    }
+  }
+  .icon {
+    vertical-align: middle;
+  }
+  .icon::before {
+    font-size: 1.33333em; // should be 16px with a default of 12px
+  	width: auto; // use natural width
+    line-height: 1;
+    height: 1em; // same as line-height
+    margin-right: .25em;
+    top: auto;
+  }
+}
+
+
+// Package overrides -------------------------------
+
+.status-bar.status-bar {
+
+  // Read-only -> Remove hover effect
+  .is-read-only, // <- use this class in packages
+  status-bar-launch-mode,
+  busy-signal {
+    &:hover,
+    &:active,
+    .inline-block:hover,
+    .inline-block:active {
+      background-color: transparent;
+    }
+  }
+
+  // Remove underline
+  .package-updates-status-view,
+  .github-ChangedFilesCount {
+    &:hover,
+    &:focus {
+      text-decoration: none;
+      cursor: default;
+    }
+  }
+
+  // Remove margin for icon without text
+  status-bar-launch-mode::before, // Launch mode
+  .about-release-notes::before, // New release squirrel
+  .PortalStatusBarIndicator .icon::before, // Teletype
+  .icon.is-icon-only::before {
+    margin-right: 0;
+  }
+  .github-PushPull-label.is-push:empty { // GitHub package when nothing to push
+    margin-right: -.25em;
+  }
+}

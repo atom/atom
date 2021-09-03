@@ -1,0 +1,34 @@
+jobs:
+  - job: Linux
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    pool:
+      vmImage: ubuntu-18.04
+
+    steps:
+      - template: templates/preparation.yml
+
+      - template: templates/cache.yml
+        parameters:
+          OS: linux
+
+      - template: templates/bootstrap.yml
+
+      - template: templates/build.yml
+
+      - template: templates/test.yml
+
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom.x86_64.rpm
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - fileName: atom-amd64.deb
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - fileName: atom-amd64.tar.gz
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

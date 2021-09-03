@@ -1,0 +1,73 @@
+trigger:
+  - master
+  - 1.* # VSTS only supports wildcards at the end
+  - electron-*
+pr: none # no PR triggers
+
+jobs:
+  # Import "GetReleaseVersion" job definition
+  - template: platforms/templates/get-release-version.yml
+
+  # Import lint definition
+  - template: lint.yml
+
+  # Import OS-specific build definitions.
+  - template: platforms/windows.yml
+  - template: platforms/macos.yml
+  - template: platforms/linux.yml
+
+  - job: UploadArtifacts
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    dependsOn:
+      - GetReleaseVersion
+      - Lint
+      - Windows_tests
+      - Linux
+      - macOS_tests
+
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+      IsReleaseBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsReleaseBranch'] ]
+      IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
+
+    steps:
+      - template: platforms/templates/preparation.yml
+
+      - script: |
+          cd script/vsts
+          npm install
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+        displayName: npm install
+
+      - task: DownloadBuildArtifacts@0
+        inputs:
+          itemPattern: '**'
+          downloadType: 'specific'
+        displayName: Download Release Artifacts
+
+      - script: |
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --create-github-release --assets-path "$(System.ArtifactsDirectory)" --linux-repo-name "atom-staging"
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          ATOM_RELEASE_VERSION: $(ReleaseVersion)
+          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
+          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+          PACKAGE_CLOUD_API_KEY: $(PACKAGE_CLOUD_API_KEY)
+        displayName: Create Draft Release
+        condition: and(succeeded(), eq(variables['Atom.AutoDraftRelease'], 'true'), eq(variables['IsReleaseBranch'], 'true'))
+
+      - script: |
+          node $(Build.SourcesDirectory)/script/vsts/upload-artifacts.js --assets-path "$(System.ArtifactsDirectory)" --azure-blob-path "vsts-artifacts/$(Build.BuildId)/"
+        env:
+          ATOM_RELEASE_VERSION: $(ReleaseVersion)
+          ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+          ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
+          ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+          ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+        displayName: Upload CI Artifacts to S3
+        condition: and(succeeded(), eq(variables['IsSignedZipBranch'], 'true'))

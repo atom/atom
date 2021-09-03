@@ -1,0 +1,30 @@
+{
+  "name": "git-diff",
+  "version": "1.3.9",
+  "main": "./lib/main",
+  "description": "Marks lines in the editor gutter that have been added, edited, or deleted since the last commit.",
+  "repository": "https://github.com/atom/atom",
+  "license": "MIT",
+  "engines": {
+    "atom": "*"
+  },
+  "dependencies": {
+    "atom-select-list": "^0.7.0"
+  },
+  "devDependencies": {
+    "fs-plus": "^3.0.0",
+    "temp": "~0.8.1"
+  },
+  "configSchema": {
+    "showIconsInEditorGutter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show colored icons for added (`+`), modified (`·`) and removed (`-`) lines in the editor's gutter, instead of colored markers (`|`)."
+    },
+    "wrapAroundOnMoveToDiff": {
+      "type": "boolean",
+      "default": true,
+      "description": "Wraps around to the first/last diff in the file when moving to next/previous diff."
+    }
+  }
+}

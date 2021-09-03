@@ -1,0 +1,132 @@
+
+// ONE light UI variables
+// ----------------------------------------------
+
+@import "syntax-variables";
+
+.ui-syntax-color() { @syntax-background-color: hsl(220,1%,98%); } .ui-syntax-color(); // fallback color
+@ui-syntax-color: @syntax-background-color;
+
+// Color guards -----------------
+@ui-s-h: hue(@ui-syntax-color);
+.ui-hue() when (@ui-s-h = 0) { @ui-hue: 220; } // Use blue hue when no saturation
+.ui-hue() when (@ui-s-h > 0) { @ui-hue: @ui-s-h; }
+.ui-hue();
+
+@ui-saturation:   min( saturation(@ui-syntax-color), 24%); // max saturation
+@ui-lightness:    max(  lightness(@ui-syntax-color), 92%); // min lightness
+
+// Main colors -----------------
+@ui-fg:     hsl(@ui-hue, @ui-saturation, @ui-lightness - 72%);
+@ui-bg:     hsl(@ui-hue, @ui-saturation, @ui-lightness); // normalized @syntax-background-color
+@ui-border: darken(@level-3-color, 6%);
+
+
+
+
+// Custom variables
+// These variables are only used in this theme
+// ----------------------------------------------
+
+@ui-theme-name: one-light-ui;
+
+// Text (Custom) -----------------
+@text-color-faded: fade(@text-color, 30%);
+
+@text-color-added:    @text-color-success;  // green
+@text-color-ignored:  @text-color-subtle;   // faded
+@text-color-modified: @text-color-warning;  // orange
+@text-color-removed:  @text-color-error;    // red
+@text-color-renamed:  @text-color-info;     // blue
+
+
+// Background (Custom) -----------------
+@level-1-color: lighten(@base-background-color, 4%);
+@level-2-color: @base-background-color;
+@level-3-color: darken(@base-background-color, 6%);
+
+@level-3-color-hover:  darken(@level-3-color, 6%);
+@level-3-color-active: darken(@level-3-color, 3%);
+
+
+// Accent (Custom) -----------------
+@accent-luma:             luma( hsl(@ui-hue, 50%, 50%) ); // get lightness of current hue
+
+// used for marker, inputs (smaller things)
+@accent-color:            mix( hsv( @ui-hue, 60%, 60%), hsl( @ui-hue, 100%, 68%), @accent-luma * 2 ); // mix hsv + hsl (favor hsl for dark, hsv for light colors)
+@accent-text-color:       contrast(@accent-color, hsl(@ui-hue,100%,16%), #fff, 40% );
+
+// used for button, tooltip (larger things)
+@accent-bg-color:         mix( hsv( @ui-hue, 40%, 72%), hsl( @ui-hue, 100%, 66%), @accent-luma * 2 ); // mix hsv + hsl (favor hsl for dark, hsv for light colors)
+@accent-bg-text-color:    contrast(@accent-bg-color, hsl(@ui-hue,100%,10%), #fff, 40% );
+
+// used for text only
+@accent-only-text-color: mix( hsv( @ui-hue, 70%, 50%), hsl( @ui-hue, 100%, 60%), @accent-luma * 2 ); // mix hsv + hsl (favor hsl for dark, hsv for light colors)
+
+
+// Components (Custom) -----------------
+@badge-background-color:            @background-color-selected;
+
+@button-text-color-selected:        @accent-bg-text-color;
+@button-border-color-selected:      @accent-color;
+
+@checkbox-background-color:         fade(@accent-bg-color, 33%);
+
+@input-background-color-focus:      hsl(@ui-hue, 100%, 96%);
+@input-selection-color:             mix( hsv( @ui-hue, 33%, 95%), hsl( @ui-hue, 100%, 98%), @accent-luma * 2 ); // mix hsv + hsl (favor hsl for dark, hsv for light colors)
+@input-selection-color-focus:       mix( hsv( @ui-hue, 44%, 90%), hsl( @ui-hue, 100%, 94%), @accent-luma * 2 ); // mix hsv + hsl (favor hsl for dark, hsv for light colors)
+
+@overlay-backdrop-color:            hsl(@ui-hue, @ui-saturation*0.4, @ui-lightness*0.8);
+@overlay-backdrop-opacity:          .66;
+
+@progress-background-color:         @accent-color;
+
+@scrollbar-color:                   darken(@level-3-color, 14%);
+@scrollbar-background-color:        @level-3-color; // replaced `transparent` with a solid color to test https://github.com/atom/one-light-ui/issues/4
+@scrollbar-color-editor:            contrast(@ui-syntax-color, darken(@ui-syntax-color, 14%), lighten(@ui-syntax-color, 9%) );
+@scrollbar-background-color-editor: @ui-syntax-color;
+
+@tab-text-color:                    @text-color-subtle;
+@tab-text-color-active:             @text-color-highlight;
+@tab-text-color-editor:             contrast(@ui-syntax-color, lighten(@ui-syntax-color, 70%), @text-color-highlight );
+@tab-background-color-editor:       @ui-syntax-color;
+@tab-inactive-status-added:         fade(@text-color-success, 77%);
+@tab-inactive-status-modified:      fade(@text-color-warning, 77%);
+
+@tooltip-background-color:          @accent-bg-color;
+@tooltip-text-color:                @accent-bg-text-color;
+@tooltip-text-key-color:            @tooltip-background-color;
+@tooltip-background-key-color:      @tooltip-text-color;
+
+
+// Sizes (Custom) -----------------
+
+@ui-size:                 1em;
+@ui-input-size:           @ui-size*1.15;
+@ui-padding:              @ui-size*1.5;
+@ui-padding-pane:         @ui-size*.5;
+@ui-padding-icon:         @ui-padding/3.3;
+@ui-line-height:          @ui-size*2;
+@ui-tab-height:           @ui-size*2.5;
+
+
+
+
+
+// Packages variables
+// These variables are used to override packages
+// ----------------------------------------------
+
+@settings-list-background-color: darken(@level-2-color, 3%);
+@theme-config-box-shadow: inset 0 1px 2px hsla(0, 0%, 0%, .2), 0 1px 0 hsla(0, 0%, 100%, .3);
+@theme-config-box-shadow-selected: inset 0 1px 3px hsla(0, 0%, 0%, .2);
+@theme-config-border-selected: hsla(0, 0%, 0%, .5);
+
+
+// Debug
+// Output variables to the top of the UI
+// -------------------------------------
+
+// html:before {
+//   content: "@{variable}";
+// }
