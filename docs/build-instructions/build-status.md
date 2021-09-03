@@ -100,9 +100,9 @@
 | [Underscore-Plus](https://github.com/atom/underscore-plus) | [![macOS Build Status](https://travis-ci.org/atom/underscore-plus.svg?branch=master)](https://travis-ci.org/atom/underscore-plus) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/c7l8009vgpaojxcd/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/underscore-plus/branch/master) | [![Dependency Status](https://david-dm.org/atom/underscore-plus.svg)](https://david-dm.org/atom/underscore-plus) |
 
 ## Tools
-| Language | Travis | AppVeyor/Win | Dependencies |
-|----------|--------|--------------|--------------|
-| [AtomDoc](https://github.com/atom/atomdoc) | [![macOS Build Status](https://travis-ci.org/atom/atomdoc.svg?branch=master)](https://travis-ci.org/atom/atomdoc) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/chi2bmaafr3puyq2/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/atomdoc/branch/master) | [![Dependency Status](https://david-dm.org/atom/atomdoc.svg)](https://david-dm.org/atom/atomdoc)
+| Language | Github Actions | Dependencies |
+|----------|----------------|--------------|
+| [AtomDoc](https://github.com/atom/atomdoc) | [![build](https://github.com/atom/atomdoc/workflows/CI/badge.svg)](https://github.com/atom/atomdoc/actions) | [![Dependency Status](https://david-dm.org/atom/atomdoc.svg)](https://david-dm.org/atom/atomdoc)
 
 ## Languages
 
