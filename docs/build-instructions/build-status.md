@@ -8,12 +8,10 @@
 | [APM](https://github.com/atom/apm) | [![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master) | |
 | [Electron](https://github.com/electron/electron) | | [![CircleCI Build Status](https://circleci.com/gh/electron/electron/tree/master.svg?style=shield)](https://circleci.com/gh/electron/electron/tree/master) | [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/4lggi9dpjc1qob7k/branch/master?svg=true)](https://ci.appveyor.com/project/electron-bot/electron-ljo26/branch/master) | [![Dependency Status](https://david-dm.org/electron/electron/dev-status.svg)](https://david-dm.org/electron/electron)
 
-## Packages
-
-> **Note**: Some packages have been merged with Atom.
+> **Note**: Some repositories have been merged with Atom.
 > See <https://github.com/atom/atom/blob/master/packages/README.md> for details.
 >
-> Here are the packages tested along with Atom, and so have no testing badges:
+> Here are the packages, libraries, tools, and languages tested along with Atom, and so have no testing badges:
 >
 > - [about](https://github.com/atom/atom/tree/master/packages/about)
 > - [autoflow](https://github.com/atom/atom/tree/master/packages/autoflow)
@@ -25,10 +23,13 @@
 > - [grammar-selector](https://github.com/atom/atom/tree/master/packages/grammar-selector)
 > - [line-ending-selector](https://github.com/atom/atom/tree/master/packages/line-ending-selector)
 > - [link](https://github.com/atom/atom/tree/master/packages/link)
+> - [ruby-on-rails](https://github.com/atom/atom/tree/master/packages/ruby-on-rails)
 > - [update-package-dependencies](https://github.com/atom/atom/tree/master/packages/update-package-dependencies)
 > - [welcome](https://github.com/atom/atom/tree/master/packages/welcome)
 >
 > The dependency badges might be irrelevant, so take them with a grain of salt (e.g. not very seriously).
+
+## Packages
 
 | Package | Github Actions | Dependencies |
 |---|---|---|
@@ -105,35 +106,40 @@
 
 ## Languages
 
-| Language | Travis | AppVeyor/Win |
-|----------|--------|--------------|
-| [C/C++](https://github.com/atom/language-c) | [![macOS Build Status](https://travis-ci.org/atom/language-c.svg?branch=master)](https://travis-ci.org/atom/language-c) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/8oy1hmp4yrij7c32/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-c/branch/master) |
-| [C#](https://github.com/atom/language-csharp) | [![macOS Build Status](https://travis-ci.org/atom/language-csharp.svg?branch=master)](https://travis-ci.org/atom/language-csharp) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/j1as3753y5t90obn/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-csharp/branch/master) |
-| [Clojure](https://github.com/atom/language-clojure) | [![macOS Build Status](https://travis-ci.org/atom/language-clojure.svg?branch=master)](https://travis-ci.org/atom/language-clojure) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/6kd5fs48y5hixde6/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-clojure/branch/master) |
-| [CoffeeScript](https://github.com/atom/language-coffee-script) | [![macOS Build Status](https://travis-ci.org/atom/language-coffee-script.svg?branch=master)](https://travis-ci.org/atom/language-coffee-script) | [![Windows Build status](https://ci.appveyor.com/api/projects/status/4j9aak7iwn2f2x7a/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-coffee-script/branch/master) |
-| [CSS](https://github.com/atom/language-css) | [![macOS Build Status](https://travis-ci.org/atom/language-css.svg?branch=master)](https://travis-ci.org/atom/language-css) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/v8rvm88dxp73ko2y/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-css/branch/master) |
-| [Git](https://github.com/atom/language-git) | [![macOS Build Status](https://travis-ci.org/atom/language-git.svg?branch=master)](https://travis-ci.org/atom/language-git) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/481319gyrr1feo8b/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-git/branch/master) |
-| [GitHub Flavored Markdown](https://github.com/atom/language-gfm) | [![macOS Build Status](https://travis-ci.org/atom/language-gfm.svg?branch=master)](https://travis-ci.org/atom/language-gfm) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/rpub8qjyd8lt7wai/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-gfm/branch/master) |
-| [Go](https://github.com/atom/language-go) | [![macOS Build Status](https://travis-ci.org/atom/language-go.svg?branch=master)](https://travis-ci.org/atom/language-go) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/3fxxvv05p4hv92pn/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-go/branch/master) |
-| [HTML](https://github.com/atom/language-html) | [![macOS Build Status](https://travis-ci.org/atom/language-html.svg?branch=master)](https://travis-ci.org/atom/language-html) | [![Windows Build status](https://ci.appveyor.com/api/projects/status/t6pk6mmdgcelfg85/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-html/branch/master) |
-| [Hyperlink](https://github.com/atom/language-hyperlink) | [![macOS Build Status](https://travis-ci.org/atom/language-hyperlink.svg?branch=master)](https://travis-ci.org/atom/language-hyperlink) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5tgvhph394r684l8/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-hyperlink/branch/master) |
-| [Java](https://github.com/atom/language-java) | [![macOS Build Status](https://travis-ci.org/atom/language-java.svg?branch=master)](https://travis-ci.org/atom/language-java) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/utoftje56n9u5x4h/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-java/branch/master) |
-| [JavaScript](https://github.com/atom/language-javascript) | [![macOS Build Status](https://travis-ci.org/atom/language-javascript.svg?branch=master)](https://travis-ci.org/atom/language-javascript) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/ktooccwna96ssiyr/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-javascript-dijf8/branch/master) |
-| [JSON](https://github.com/atom/language-json) | [![macOS Build Status](https://travis-ci.org/atom/language-json.svg?branch=master)](https://travis-ci.org/atom/language-json) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5rx05vhdikk6c4cl/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-json/branch/master) |
-| [Less](https://github.com/atom/language-less) | [![macOS Build Status](https://travis-ci.org/atom/language-less.svg?branch=master)](https://travis-ci.org/atom/language-less) | [![Windows Build Sstatus](https://ci.appveyor.com/api/projects/status/aeina4fr4b0i7yay/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-less/branch/master) |
-| [Make](https://github.com/atom/language-make) | [![macOS Build Status](https://travis-ci.org/atom/language-make.svg?branch=master)](https://travis-ci.org/atom/language-make) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/vq1aascey21wxjh7/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-make/branch/master) |
-| [Mustache](https://github.com/atom/language-mustache) | [![macOS Build Status](https://travis-ci.org/atom/language-mustache.svg?branch=master)](https://travis-ci.org/atom/language-mustache) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/mbxnxaojqp0g7ldv/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-mustache/branch/master) |
-| [Objective-C](https://github.com/atom/language-objective-c) | [![macOS Build Status](https://travis-ci.org/atom/language-objective-c.svg?branch=master)](https://travis-ci.org/atom/language-objective-c) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/27j8vfv5u95fjhkw/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-objective-c/branch/master) |
-| [Perl](https://github.com/atom/language-perl) | [![macOS Build Status](https://travis-ci.org/atom/language-perl.svg?branch=master)](https://travis-ci.org/atom/language-perl) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/dfs9inkkg40hchf8/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-perl/branch/master) |
-| [PHP](https://github.com/atom/language-php) | [![macOS Build Status](https://travis-ci.org/atom/language-php.svg?branch=master)](https://travis-ci.org/atom/language-php) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/y9h45ag4b72726jy/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-php/branch/master) |
-| [Python](https://github.com/atom/language-python) | [![macOS Build Status](https://travis-ci.org/atom/language-python.svg?branch=master)](https://travis-ci.org/atom/language-python) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/hmxrb9jttjh41es9/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-python/branch/master) |
-| [Ruby](https://github.com/atom/language-ruby) | [![macOS Build Status](https://travis-ci.org/atom/language-ruby.svg?branch=master)](https://travis-ci.org/atom/language-ruby) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/71as182rm1adf2br/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-ruby/branch/master) |
-| [Ruby on Rails](https://github.com/atom/language-ruby-on-rails) | [![macOS Build Status](https://travis-ci.org/atom/language-ruby-on-rails.svg?branch=master)](https://travis-ci.org/atom/language-ruby-on-rails) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/5t4pa451fu5e0ghg/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-ruby-on-rails/branch/master) |
-| [Sass](https://github.com/atom/language-sass) | [![macOS Build Status](https://travis-ci.org/atom/language-sass.svg?branch=master)](https://travis-ci.org/atom/language-sass) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/g7p16vainm4iuoot/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-sass/branch/master) |
-| [ShellScript](https://github.com/atom/language-shellscript) | [![macOS Build Status](https://travis-ci.org/atom/language-shellscript.svg?branch=master)](https://travis-ci.org/atom/language-shellscript) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/p4um3lowgrg8y0ty/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-shellscript/branch/master) |
-| [SQL](https://github.com/atom/language-sql) | [![macOS Build Status](https://travis-ci.org/atom/language-sql.svg?branch=master)](https://travis-ci.org/atom/language-sql) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/ji31ouk5ehs4jdu1/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-sql/branch/master) |
-| [Text](https://github.com/atom/language-text) | [![macOS Build Status](https://travis-ci.org/atom/language-text.svg?branch=master)](https://travis-ci.org/atom/language-text) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/psnekekg8lon67dw/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-text/branch/master) |
-| [TODO](https://github.com/atom/language-todo) | [![macOS Build Status](https://travis-ci.org/atom/language-todo.svg?branch=master)](https://travis-ci.org/atom/language-todo) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/gcgb9m7h146lv6qp/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-todo/branch/master) |
-| [TOML](https://github.com/atom/language-toml) | [![macOS Build Status](https://travis-ci.org/atom/language-toml.svg?branch=master)](https://travis-ci.org/atom/language-toml) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/kohao3fjyk6xv0sc/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-toml/branch/master) |
-| [XML](https://github.com/atom/language-xml) | [![macOS Build Status](https://travis-ci.org/atom/language-xml.svg?branch=master)](https://travis-ci.org/atom/language-xml) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/m5f6rn74a6h3q5uq/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-xml/branch/master) |
-| [YAML](https://github.com/atom/language-yaml) | [![macOS Build Status](https://travis-ci.org/atom/language-yaml.svg?branch=master)](https://travis-ci.org/atom/language-yaml) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/eaa4ql7kipgphc2n/branch/master?svg=true)](https://ci.appveyor.com/project/Atom/language-yaml/branch/master) |
+| Language | Github Actions |
+|----------|----------------|
+| [C/C++](https://github.com/atom/language-c) | [![build](https://github.com/atom/language-c/workflows/CI/badge.svg)](https://github.com/atom/language-c/actions) |
+| [C#](https://github.com/atom/language-csharp) | [![build](https://github.com/atom/language-csharp/workflows/CI/badge.svg)](https://github.com/atom/language-csharp/actions) |
+| [Clojure](https://github.com/atom/language-clojure) | [![build](https://github.com/atom/language-clojure/workflows/CI/badge.svg)](https://github.com/atom/language-clojure/actions) |
+| [CoffeeScript](https://github.com/atom/language-coffee-script) | [![build](https://github.com/atom/language-coffee-script/workflows/CI/badge.svg)](https://github.com/atom/language-coffee-script/actions) |
+| [CSS](https://github.com/atom/language-css) | [![build](https://github.com/atom/language-css/workflows/CI/badge.svg)](https://github.com/atom/language-css/actions) |
+| [Git](https://github.com/atom/language-git) | [![build](https://github.com/atom/language-git/workflows/CI/badge.svg)](https://github.com/atom/language-git/actions) |
+| [GitHub Flavored Markdown](https://github.com/atom/language-gfm) | [![build](https://github.com/atom/language-gfm/workflows/CI/badge.svg)](https://github.com/atom/language-gfm/actions) |
+| [Go](https://github.com/atom/language-go) | [![build](https://github.com/atom/language-go/workflows/CI/badge.svg)](https://github.com/atom/language-go/actions) |
+| [HTML](https://github.com/atom/language-html) | [![build](https://github.com/atom/language-html/workflows/CI/badge.svg)](https://github.com/atom/language-html/actions) |
+| [Hyperlink](https://github.com/atom/language-hyperlink) | [![build](https://github.com/atom/language-hyperlink/workflows/CI/badge.svg)](https://github.com/atom/language-hyperlink/actions) |
+| [Java](https://github.com/atom/language-java) | [![build](https://github.com/atom/language-java/workflows/build/badge.svg)](https://github.com/atom/language-java/actions) |
+| [JavaScript](https://github.com/atom/language-javascript) | [![build](https://github.com/atom/language-javascript/workflows/ci/badge.svg)](https://github.com/atom/language-javascript/actions) |
+| [JSON](https://github.com/atom/language-json) | [![build](https://github.com/atom/language-json/workflows/CI/badge.svg)](https://github.com/atom/language-json/actions) |
+| [Less](https://github.com/atom/language-less) | [![build](https://github.com/atom/language-less/workflows/CI/badge.svg)](https://github.com/atom/language-less/actions) |
+| [Make](https://github.com/atom/language-make) | [![build](https://github.com/atom/language-make/workflows/CI/badge.svg)](https://github.com/atom/language-make/actions) |
+| [Mustache](https://github.com/atom/language-mustache) | [![build](https://github.com/atom/language-mustache/workflows/CI/badge.svg)](https://github.com/atom/language-mustache/actions) |
+| [Objective-C](https://github.com/atom/language-objective-c) | [![build](https://github.com/atom/language-objective-c/workflows/CI/badge.svg)](https://github.com/atom/language-objective-c/actions) |
+| [Pegjs](https://github.com/atom/language-pegjs) | |
+| [Perl](https://github.com/atom/language-perl) | [![build](https://github.com/atom/language-perl/workflows/CI/badge.svg)](https://github.com/atom/language-perl/actions) |
+| [PHP](https://github.com/atom/language-php) | [![build](https://github.com/atom/language-php/workflows/CI/badge.svg)](https://github.com/atom/language-php/actions) |
+| [Property-List](https://github.com/atom/language-property-list) | [![build](https://github.com/atom/language-property-list/workflows/CI/badge.svg)](https://github.com/atom/language-property-list/actions) |
+| [Puppet](https://github.com/atom/language-puppet) | [![build](https://github.com/atom/language-puppet/workflows/CI/badge.svg)](https://github.com/atom/language-puppet/actions) |
+| [Python](https://github.com/atom/language-python) | [![build](https://github.com/atom/language-python/workflows/ci/badge.svg)](https://github.com/atom/language-python/actions) |
+| [Ruby](https://github.com/atom/language-ruby) | [![build](https://github.com/atom/language-ruby/workflows/ci/badge.svg)](https://github.com/atom/language-ruby/actions) |
+| [Ruby on Rails](https://github.com/atom/atom/tree/master/packages/ruby-on-rails) | |
+| [Sass](https://github.com/atom/language-sass) | [![build](https://github.com/atom/language-sass/workflows/CI/badge.svg)](https://github.com/atom/language-sass/actions) |
+| [Shellscript](https://github.com/atom/language-shellscript) | [![build](https://github.com/atom/language-shellscript/workflows/CI/badge.svg)](https://github.com/atom/language-shellscript/actions) |
+| [Source](https://github.com/atom/language-source) | [![build](https://github.com/atom/language-source/workflows/CI/badge.svg)](https://github.com/atom/language-source/actions) |
+| [SQL](https://github.com/atom/language-sql) | [![build](https://github.com/atom/language-sql/workflows/CI/badge.svg)](https://github.com/atom/language-sql/actions) |
+| [Text](https://github.com/atom/language-text) | [![build](https://github.com/atom/language-text/workflows/CI/badge.svg)](https://github.com/atom/language-text/actions) |
+| [TODO](https://github.com/atom/language-todo) | [![build](https://github.com/atom/language-todo/workflows/CI/badge.svg)](https://github.com/atom/language-todo/actions) |
+| [TOML](https://github.com/atom/language-toml) | [![build](https://github.com/atom/language-toml/workflows/CI/badge.svg)](https://github.com/atom/language-toml/actions) |
+| [TypeScript](https://github.com/atom/language-typescript) | [![build](https://github.com/atom/language-typescript/workflows/CI/badge.svg)](https://github.com/atom/language-typescript/actions) |
+| [XML](https://github.com/atom/language-xml) | [![build](https://github.com/atom/language-xml/workflows/CI/badge.svg)](https://github.com/atom/language-xml/actions) |
+| [YAML](https://github.com/atom/language-yaml) | [![build](https://github.com/atom/language-yaml/workflows/CI/badge.svg)](https://github.com/atom/language-yaml/actions) |
