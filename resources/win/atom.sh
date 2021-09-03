@@ -14,15 +14,15 @@ else
     eval $(grep "^root" /etc/wsl.conf | sed -e "s/ //g")
     root="$(echo $root | sed 's|/|\\/|g')"
     ATOMCMD="$(echo $PWD | sed 's/\/mnt\/\([a-z]*\)\(.*\)/\1:\2/')/atom.cmd"
-    ATOMCMD="${ATOMCMD////\\}"
   else
     # We don't have cygpath or WSL so try pwd -W
     ATOMCMD="$(pwd -W)/atom.cmd"
   fi
   popd > /dev/null
 fi
-if [ "$(uname -o)" == "Msys" ]; then
-  cmd.exe //C "$ATOMCMD" "${ARGS[@]}" # Msys thinks /C is a Windows path...
+
+if [ "$(uname -o)" == "Msys" ] || [[ $(uname -r) == *-Microsoft ]]; then
+  cmd.exe //C "$ATOMCMD" "$@" # Msys amd WSL think /C is a Windows path...
 else
   cmd.exe /C "$ATOMCMD" "${ARGS[@]}" # Cygwin does not
 fi
