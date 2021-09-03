@@ -1,52 +1,34 @@
 jobs:
-- job: Linux
-  dependsOn: GetReleaseVersion
-  timeoutInMinutes: 180
+  - job: Linux
+    dependsOn: GetReleaseVersion
+    timeoutInMinutes: 180
+    variables:
+      ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
+    pool:
+      vmImage: ubuntu-18.04
 
-  variables:
-    ReleaseVersion: $[ dependencies.GetReleaseVersion.outputs['Version.ReleaseVersion'] ]
-  pool:
-    # This image is used to host the Docker container that runs the build
-    vmImage: ubuntu-16.04
+    steps:
+      - template: templates/preparation.yml
 
-  container: atom-linux-ci
+      - template: templates/cache.yml
+        parameters:
+          OS: linux
 
-  steps:
-  - script: script/build --create-debian-package --create-rpm-package --compress-artifacts
-    env:
-      ATOM_RELEASE_VERSION: $(ReleaseVersion)
-    displayName: Build Atom
+      - template: templates/bootstrap.yml
 
-  - script: script/lint
-    displayName: Run linter
+      - template: templates/build.yml
 
-  - script: script/test
-    env:
-      CI: true
-      CI_PROVIDER: VSTS
-    displayName: Run tests
-    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+      - template: templates/test.yml
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/atom.x86_64.rpm
-      ArtifactName: atom.x86_64.rpm
-      ArtifactType: Container
-    displayName: Upload atom.x84_64.rpm
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.deb
-      ArtifactName: atom-amd64.deb
-      ArtifactType: Container
-    displayName: Upload atom-amd64.deb
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: $(Build.SourcesDirectory)/out/atom-amd64.tar.gz
-      ArtifactName: atom-amd64.tar.gz
-      ArtifactType: Container
-    displayName: Upload atom-amd64.tar.gz
-    condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+      - template: templates/publish.yml
+        parameters:
+          artifacts:
+            - fileName: atom.x86_64.rpm
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - fileName: atom-amd64.deb
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+            - fileName: atom-amd64.tar.gz
+              fileDir: $(Build.SourcesDirectory)/out
+              condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

@@ -2,6 +2,7 @@ name: 'Rust'
 scopeName: 'source.rust'
 type: 'tree-sitter'
 parser: 'tree-sitter-rust'
+injectionRegex: 'rust'
 
 fileTypes: [
   'rs'
@@ -130,6 +131,8 @@ scopes:
   '"where"': 'keyword.control'
   '"ref"': 'keyword.control'
   '"macro_rules!"': 'keyword.control'
+  '"async"': 'keyword.control'
+  '"await"': 'keyword.control'
 
   '"as"': 'keyword.operator'
 

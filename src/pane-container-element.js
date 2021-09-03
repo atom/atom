@@ -1,40 +1,54 @@
-const {CompositeDisposable} = require('event-kit')
+const { CompositeDisposable } = require('event-kit');
 
 class PaneContainerElement extends HTMLElement {
-  createdCallback () {
-    this.subscriptions = new CompositeDisposable()
-    this.classList.add('panes')
+  constructor() {
+    super();
+    this.subscriptions = new CompositeDisposable();
   }
 
-  initialize (model, {views}) {
-    this.model = model
-    this.views = views
+  initialize(model, { views }) {
+    this.model = model;
+    this.views = views;
     if (this.views == null) {
-      throw new Error('Must pass a views parameter when initializing PaneContainerElements')
+      throw new Error(
+        'Must pass a views parameter when initializing PaneContainerElements'
+      );
     }
-    this.subscriptions.add(this.model.observeRoot(this.rootChanged.bind(this)))
-    return this
+    this.subscriptions.add(this.model.observeRoot(this.rootChanged.bind(this)));
+    return this;
   }
 
-  rootChanged (root) {
-    const focusedElement = this.hasFocus() ? document.activeElement : null
+  connectedCallback() {
+    this.classList.add('panes');
+  }
+
+  rootChanged(root) {
+    const focusedElement = this.hasFocus() ? document.activeElement : null;
     if (this.firstChild != null) {
-      this.firstChild.remove()
+      this.firstChild.remove();
     }
     if (root != null) {
-      const view = this.views.getView(root)
-      this.appendChild(view)
+      const view = this.views.getView(root);
+      this.appendChild(view);
       if (focusedElement != null) {
-        focusedElement.focus()
+        focusedElement.focus();
       }
     }
   }
 
-  hasFocus () {
-    return this === document.activeElement || this.contains(document.activeElement)
+  hasFocus() {
+    return (
+      this === document.activeElement || this.contains(document.activeElement)
+    );
   }
 }
 
-module.exports = document.registerElement('atom-pane-container', {
-  prototype: PaneContainerElement.prototype
-})
+window.customElements.define('atom-pane-container', PaneContainerElement);
+
+function createPaneContainerElement() {
+  return document.createElement('atom-pane-container');
+}
+
+module.exports = {
+  createPaneContainerElement
+};

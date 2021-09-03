@@ -9,27 +9,11 @@
     "atom": "*"
   },
   "dependencies": {
-    "atom-select-list": "^0.7.0",
-    "fs-plus": "^3.0.0",
-    "temp": "~0.8.1"
+    "atom-select-list": "^0.7.0"
   },
   "devDependencies": {
-    "standard": "^11.0.0"
-  },
-  "standard": {
-    "ignore": [
-      "spec/fixtures/working-dir/sample.js"
-    ],
-    "env": {
-      "atomtest": true,
-      "browser": true,
-      "jasmine": true,
-      "node": true
-    },
-    "globals": [
-      "atom",
-      "snapshotResult"
-    ]
+    "fs-plus": "^3.0.0",
+    "temp": "~0.8.1"
   },
   "configSchema": {
     "showIconsInEditorGutter": {

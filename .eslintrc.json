@@ -1,0 +1,44 @@
+{
+  "extends": [
+    "./script/node_modules/eslint-config-standard/eslintrc.json",
+    "./script/node_modules/eslint-config-prettier/index.js",
+    "./script/node_modules/eslint-config-prettier/standard.js"
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "globals": {
+    "atom": true,
+    "snapshotResult": true
+  },
+  "rules": {
+    "standard/no-callback-literal": ["off"],
+    "node/no-deprecated-api": ["off"],
+    "prettier/prettier": ["error"]
+  },
+  "overrides": [
+    {
+      "files": ["spec/**", "**-spec.js", "**.test.js"],
+      "env": {
+        "jasmine": true
+      },
+      "globals": {
+        "advanceClock": true,
+        "fakeClearInterval": true,
+        "fakeSetInterval": true,
+        "waitsForPromise": true
+      }
+    }
+  ]
+}

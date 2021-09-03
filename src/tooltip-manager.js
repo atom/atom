@@ -1,6 +1,6 @@
-const _ = require('underscore-plus')
-const {Disposable, CompositeDisposable} = require('event-kit')
-let Tooltip = null
+const _ = require('underscore-plus');
+const { Disposable, CompositeDisposable } = require('event-kit');
+let Tooltip = null;
 
 // Essential: Associates tooltips with HTML elements.
 //
@@ -44,24 +44,23 @@ let Tooltip = null
 //   keyBindingTarget: this.findEditor.element
 // })
 // ```
-module.exports =
-class TooltipManager {
-  constructor ({keymapManager, viewRegistry}) {
+module.exports = class TooltipManager {
+  constructor({ keymapManager, viewRegistry }) {
     this.defaults = {
       trigger: 'hover',
       container: 'body',
       html: true,
       placement: 'auto top',
       viewportPadding: 2
-    }
+    };
 
     this.hoverDefaults = {
-      delay: {show: 1000, hide: 100}
-    }
+      delay: { show: 1000, hide: 100 }
+    };
 
-    this.keymapManager = keymapManager
-    this.viewRegistry = viewRegistry
-    this.tooltips = new Map()
+    this.keymapManager = keymapManager;
+    this.viewRegistry = viewRegistry;
+    this.tooltips = new Map();
   }
 
   // Essential: Add a tooltip to the given element.
@@ -111,69 +110,74 @@ class TooltipManager {
   //
   // Returns a {Disposable} on which `.dispose()` can be called to remove the
   // tooltip.
-  add (target, options) {
+  add(target, options) {
     if (target.jquery) {
-      const disposable = new CompositeDisposable()
+      const disposable = new CompositeDisposable();
       for (let i = 0; i < target.length; i++) {
-        disposable.add(this.add(target[i], options))
+        disposable.add(this.add(target[i], options));
       }
-      return disposable
+      return disposable;
     }
 
-    if (Tooltip == null) { Tooltip = require('./tooltip') }
+    if (Tooltip == null) {
+      Tooltip = require('./tooltip');
+    }
 
-    const {keyBindingCommand, keyBindingTarget} = options
+    const { keyBindingCommand, keyBindingTarget } = options;
 
     if (keyBindingCommand != null) {
-      const bindings = this.keymapManager.findKeyBindings({command: keyBindingCommand, target: keyBindingTarget})
-      const keystroke = getKeystroke(bindings)
-      if ((options.title != null) && (keystroke != null)) {
-        options.title += ` ${getKeystroke(bindings)}`
+      const bindings = this.keymapManager.findKeyBindings({
+        command: keyBindingCommand,
+        target: keyBindingTarget
+      });
+      const keystroke = getKeystroke(bindings);
+      if (options.title != null && keystroke != null) {
+        options.title += ` ${getKeystroke(bindings)}`;
       } else if (keystroke != null) {
-        options.title = getKeystroke(bindings)
+        options.title = getKeystroke(bindings);
       }
     }
 
-    delete options.selector
-    options = _.defaults(options, this.defaults)
+    delete options.selector;
+    options = _.defaults(options, this.defaults);
     if (options.trigger === 'hover') {
-      options = _.defaults(options, this.hoverDefaults)
+      options = _.defaults(options, this.hoverDefaults);
     }
 
-    const tooltip = new Tooltip(target, options, this.viewRegistry)
+    const tooltip = new Tooltip(target, options, this.viewRegistry);
 
     if (!this.tooltips.has(target)) {
-      this.tooltips.set(target, [])
+      this.tooltips.set(target, []);
     }
-    this.tooltips.get(target).push(tooltip)
+    this.tooltips.get(target).push(tooltip);
 
-    const hideTooltip = function () {
-      tooltip.leave({currentTarget: target})
-      tooltip.hide()
-    }
+    const hideTooltip = function() {
+      tooltip.leave({ currentTarget: target });
+      tooltip.hide();
+    };
 
     // note: adding a listener here adds a new listener for every tooltip element that's registered.  Adding unnecessary listeners is bad for performance.  It would be better to add/remove listeners when tooltips are actually created in the dom.
-    window.addEventListener('resize', hideTooltip)
+    window.addEventListener('resize', hideTooltip);
 
     const disposable = new Disposable(() => {
-      window.removeEventListener('resize', hideTooltip)
+      window.removeEventListener('resize', hideTooltip);
 
-      hideTooltip()
-      tooltip.destroy()
+      hideTooltip();
+      tooltip.destroy();
 
       if (this.tooltips.has(target)) {
-        const tooltipsForTarget = this.tooltips.get(target)
-        const index = tooltipsForTarget.indexOf(tooltip)
+        const tooltipsForTarget = this.tooltips.get(target);
+        const index = tooltipsForTarget.indexOf(tooltip);
         if (index !== -1) {
-          tooltipsForTarget.splice(index, 1)
+          tooltipsForTarget.splice(index, 1);
         }
         if (tooltipsForTarget.length === 0) {
-          this.tooltips.delete(target)
+          this.tooltips.delete(target);
         }
       }
-    })
+    });
 
-    return disposable
+    return disposable;
   }
 
   // Extended: Find the tooltips that have been applied to the given element.
@@ -181,23 +185,25 @@ class TooltipManager {
   // * `target` The `HTMLElement` to find tooltips on.
   //
   // Returns an {Array} of `Tooltip` objects that match the `target`.
-  findTooltips (target) {
+  findTooltips(target) {
     if (this.tooltips.has(target)) {
-      return this.tooltips.get(target).slice()
+      return this.tooltips.get(target).slice();
     } else {
-      return []
+      return [];
     }
   }
+};
+
+function humanizeKeystrokes(keystroke) {
+  let keystrokes = keystroke.split(' ');
+  keystrokes = keystrokes.map(stroke => _.humanizeKeystroke(stroke));
+  return keystrokes.join(' ');
 }
 
-function humanizeKeystrokes (keystroke) {
-  let keystrokes = keystroke.split(' ')
-  keystrokes = (keystrokes.map((stroke) => _.humanizeKeystroke(stroke)))
-  return keystrokes.join(' ')
-}
-
-function getKeystroke (bindings) {
+function getKeystroke(bindings) {
   if (bindings && bindings.length) {
-    return `<span class="keystroke">${humanizeKeystrokes(bindings[0].keystrokes)}</span>`
+    return `<span class="keystroke">${humanizeKeystrokes(
+      bindings[0].keystrokes
+    )}</span>`;
   }
 }

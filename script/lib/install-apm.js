@@ -1,15 +1,19 @@
-'use strict'
+'use strict';
 
-const childProcess = require('child_process')
+const childProcess = require('child_process');
 
-const CONFIG = require('../config')
+const CONFIG = require('../config');
 
-module.exports = function (ci) {
-  console.log('Installing apm')
-  // npm ci leaves apm with a bunch of unmet dependencies
+module.exports = function(ci) {
+  if (ci) {
+    // Tell apm not to dedupe its own dependencies during its
+    // postinstall script. (Deduping during `npm ci` runs is broken.)
+    process.env.NO_APM_DEDUPE = 'true';
+  }
+  console.log('Installing apm');
   childProcess.execFileSync(
     CONFIG.getNpmBinPath(),
-    ['--global-style', '--loglevel=error', 'install'],
-    {env: process.env, cwd: CONFIG.apmRootPath}
-  )
-}
+    ['--global-style', '--loglevel=error', ci ? 'ci' : 'install'],
+    { env: process.env, cwd: CONFIG.apmRootPath }
+  );
+};

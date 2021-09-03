@@ -1,0 +1,232 @@
+/*
+   This defines styling rules for syntax classes.
+
+   See the naming conventions for a list of syntax classes:
+   https://flight-manual.atom.io/hacking-atom/sections/syntax-naming-conventions
+
+   When styling rules conflict:
+   - The last rule overrides previous rules.
+   - The rule with most classes and pseudo-classes overrides the last rule.
+*/
+
+// if for and del = &&
+.syntax--keyword {
+  color: #222;
+  font-weight: bold;
+
+  // global let def class
+  &.syntax--storage {
+    color: #222;
+    font-weight: bold;
+  }
+
+  // int char float
+  &.syntax--type {
+    color: #458;
+    font-weight: normal;
+  }
+
+  // super
+  &.syntax--function {
+    color: #008080;
+  }
+
+  // this self
+  &.syntax--variable {
+    color: #008080;
+  }
+}
+
+// identifier
+.syntax--entity {
+  color: #555;
+
+  // function(parameter)
+  &.syntax--parameter {
+    color: #555;
+  }
+
+  // self cls iota
+  &.syntax--support {
+    color: #008080;
+  }
+
+  // @entity.decorator
+  &.syntax--decorator:last-child {
+    color: #900;
+  }
+
+  // label:
+  &.syntax--label {
+    text-decoration: underline;
+  }
+
+  // function method
+  &.syntax--function {
+    color: #900;
+  }
+
+  // add
+  &.syntax--operator {
+    color: #900;
+
+    // %>% <=>
+    &.syntax--symbolic {
+      color: #555;
+    }
+  }
+
+  // String Class int rune list
+  &.syntax--type {
+    color: #458;
+  }
+
+  // div span
+  &.syntax--tag {
+    color: #008080;
+  }
+
+  // href src alt
+  &.syntax--attribute {
+    color: #458;
+    font-weight: bold;
+  }
+}
+
+// () [] {} => @
+.syntax--punctuation {
+
+  // . ->
+  &.syntax--accessor.syntax--member {
+    color: #222;
+    font-weight: bold;
+  }
+}
+
+// "string"
+.syntax--string {
+  color: #D14;
+
+  // :immutable
+  &.syntax--immutable {
+    color: #D14;
+  }
+
+  // {placeholder} %().2f
+  &.syntax--part {
+    color: #606aa1;
+  }
+
+  // ${ }
+  &.syntax--interpolation {
+    color: #222;
+  }
+
+  // /^reg[ex]?p/
+  &.syntax--regexp {
+    color: #D14;
+
+    // ^ $ \b ? + i
+    &.syntax--language {
+      color: #222;
+    }
+
+    // <variable> \1
+    &.syntax--variable {
+      color: #008080;
+    }
+
+    // ( ) [^ ] (?= ) | r" /
+    &.syntax--punctuation {
+      color: #222;
+    }
+  }
+}
+
+// literal 4 1.3
+.syntax--constant {
+  color: #D14;
+
+  // &lt; 'a'
+  &.syntax--character {
+    color: #D14;
+
+    // \" \' \g \.
+    &.syntax--escape {
+      color: #D14;
+    }
+
+    // \u2661 \n \t \W .
+    &.syntax--code {
+      color: #606aa1;
+    }
+  }
+
+  // true false nil
+  &.syntax--language {
+    color: #D14;
+  }
+}
+
+// text
+.syntax--text {
+  color: #555;
+}
+
+// __formatted__
+.syntax--markup {
+
+  // # Heading
+  &.syntax--heading {
+    color: #111;
+  }
+
+  // 1. * -
+  &.syntax--list.syntax--punctuation {
+    color: #888;
+  }
+
+  // url.com (path)
+  &.syntax--link {
+    color: #888;
+  }
+}
+
+// /* comment */
+.syntax--comment {
+  color: #999988;
+  font-style: italic;
+
+  // @param TODO NOTE
+  &.syntax--caption {
+    color: lighten(#999988, 6);
+    font-weight: bold;
+  }
+
+  // variable function type
+  &.syntax--term {
+    color: lighten(#999988, 9);
+  }
+
+  // { } / .
+  &.syntax--punctuation {
+    color: #999988;
+    font-weight: normal;
+  }
+}
+
+// 0invalid
+.syntax--invalid:not(.syntax--punctuation) {
+
+  // §illegal
+  &.syntax--illegal {
+    color: #F8F8F0 !important;
+    background-color: #00A8C6 !important;
+  }
+
+  // obsolete()
+  &.syntax--deprecated {
+    color: #F8F8F0 !important;
+    background-color: #8FBE00 !important;
+  }
+}

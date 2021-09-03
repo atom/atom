@@ -1,16 +1,15 @@
-const {Emitter} = require('event-kit')
-const Notification = require('../src/notification')
+const { Emitter } = require('event-kit');
+const Notification = require('../src/notification');
 
 // Public: A notification manager used to create {Notification}s to be shown
 // to the user.
 //
 // An instance of this class is always available as the `atom.notifications`
 // global.
-module.exports =
-class NotificationManager {
-  constructor () {
-    this.notifications = []
-    this.emitter = new Emitter()
+module.exports = class NotificationManager {
+  constructor() {
+    this.notifications = [];
+    this.emitter = new Emitter();
   }
 
   /*
@@ -23,8 +22,8 @@ class NotificationManager {
   //   * `notification` The {Notification} that was added.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidAddNotification (callback) {
-    return this.emitter.on('did-add-notification', callback)
+  onDidAddNotification(callback) {
+    return this.emitter.on('did-add-notification', callback);
   }
 
   // Public: Invoke the given callback after the notifications have been cleared.
@@ -32,8 +31,8 @@ class NotificationManager {
   // * `callback` {Function} to be called after the notifications are cleared.
   //
   // Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
-  onDidClearNotifications (callback) {
-    return this.emitter.on('did-clear-notifications', callback)
+  onDidClearNotifications(callback) {
+    return this.emitter.on('did-clear-notifications', callback);
   }
 
   /*
@@ -64,8 +63,8 @@ class NotificationManager {
   //      in the notification header. Defaults to `'check'`.
   //
   // Returns the {Notification} that was added.
-  addSuccess (message, options) {
-    return this.addNotification(new Notification('success', message, options))
+  addSuccess(message, options) {
+    return this.addNotification(new Notification('success', message, options));
   }
 
   // Public: Add an informational notification.
@@ -92,8 +91,8 @@ class NotificationManager {
   //      in the notification header. Defaults to `'info'`.
   //
   // Returns the {Notification} that was added.
-  addInfo (message, options) {
-    return this.addNotification(new Notification('info', message, options))
+  addInfo(message, options) {
+    return this.addNotification(new Notification('info', message, options));
   }
 
   // Public: Add a warning notification.
@@ -120,8 +119,8 @@ class NotificationManager {
   //      in the notification header. Defaults to `'alert'`.
   //
   // Returns the {Notification} that was added.
-  addWarning (message, options) {
-    return this.addNotification(new Notification('warning', message, options))
+  addWarning(message, options) {
+    return this.addNotification(new Notification('warning', message, options));
   }
 
   // Public: Add an error notification.
@@ -148,10 +147,11 @@ class NotificationManager {
   //      in the notification header. Defaults to `'flame'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //      Requires `detail` to be set.
   //
   // Returns the {Notification} that was added.
-  addError (message, options) {
-    return this.addNotification(new Notification('error', message, options))
+  addError(message, options) {
+    return this.addNotification(new Notification('error', message, options));
   }
 
   // Public: Add a fatal error notification.
@@ -178,20 +178,21 @@ class NotificationManager {
   //      in the notification header. Defaults to `'bug'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //      Requires `detail` to be set.
   //
   // Returns the {Notification} that was added.
-  addFatalError (message, options) {
-    return this.addNotification(new Notification('fatal', message, options))
+  addFatalError(message, options) {
+    return this.addNotification(new Notification('fatal', message, options));
   }
 
-  add (type, message, options) {
-    return this.addNotification(new Notification(type, message, options))
+  add(type, message, options) {
+    return this.addNotification(new Notification(type, message, options));
   }
 
-  addNotification (notification) {
-    this.notifications.push(notification)
-    this.emitter.emit('did-add-notification', notification)
-    return notification
+  addNotification(notification) {
+    this.notifications.push(notification);
+    this.emitter.emit('did-add-notification', notification);
+    return notification;
   }
 
   /*
@@ -201,8 +202,8 @@ class NotificationManager {
   // Public: Get all the notifications.
   //
   // Returns an {Array} of {Notification}s.
-  getNotifications () {
-    return this.notifications.slice()
+  getNotifications() {
+    return this.notifications.slice();
   }
 
   /*
@@ -210,8 +211,8 @@ class NotificationManager {
   */
 
   // Public: Clear all the notifications.
-  clear () {
-    this.notifications = []
-    this.emitter.emit('did-clear-notifications')
+  clear() {
+    this.notifications = [];
+    this.emitter.emit('did-clear-notifications');
   }
-}
+};

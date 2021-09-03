@@ -1,0 +1,196 @@
+@import "octicon-mixins";
+@import "ui-variables";
+
+.welcome {
+  display: flex;
+  font-size: 1.25em;
+  line-height: 1.4;
+  color: @text-color;
+  background-color: @base-background-color;
+  overflow-x: auto;
+
+  // Overrides ----------------------
+
+  p {
+    line-height: inherit;
+  }
+
+  a {
+    color: @text-color-info;
+  }
+
+  ul {
+    padding-left: 2em;
+  }
+
+  label {
+    margin-top: 1em;
+    font-weight: normal;
+  }
+
+  .input-checkbox {
+    margin-top: -.2em;
+    margin-right: .5em;
+  }
+
+  // Components ----------------------
+
+  &-container {
+    width: 100%;
+    max-width: 580px;
+    min-width: 300px;
+    margin: auto;
+    padding: 3em 2em;
+  }
+
+  &-header {
+    margin: 0 0 3em 0;
+  }
+
+  &-logo {
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 2em auto;
+    color: @text-color-highlight;
+  }
+
+  &-title {
+    font-size: 1.4em;
+    text-align: center;
+    line-height: 1.3;
+    margin: 1em 0;
+  }
+
+  &-panel {
+  }
+
+  &-card {
+    margin: 1em 0;
+
+    border-radius: @component-border-radius*2;
+    border: 1px solid @base-border-color;
+    background-color: lighten(@base-background-color, 3%);
+  }
+
+  &-summary {
+    padding: 1em 1.5em;
+    font-size: 1.1em;
+    font-weight: 300;
+    line-height: 1.4;
+    cursor: pointer;
+    &:hover {
+      color: lighten(@text-color, 4%);
+    }
+    &::-webkit-details-marker {
+      display: none
+    }
+    &:before {
+      width: 20px;
+      color: @text-color-subtle;
+      details[open] & {
+        color: @text-color-highlight;
+      }
+    }
+    details[open] & {
+      color: @text-color-highlight;
+    }
+  }
+
+  &-highlight {
+    color: @text-color-highlight;
+  }
+
+  &-detail {
+    border-top: 1px solid @base-border-color;
+    padding: 1.5em;
+    .welcome-note {
+      margin-bottom: 0;
+    }
+    .btn {
+      margin-top: @component-padding/3;
+      margin-bottom: @component-padding/3;
+    }
+  }
+
+  &-img {
+    display: block;
+    max-width: 100%;
+    border-radius: 3px;
+    margin: 0 0 1em 0;
+    border: 1px solid @base-border-color;
+  }
+
+  &-consent {
+    margin-top: 3em;
+
+    &-choices {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      margin: 1em -1em;
+
+      button {
+        width: 100%
+      }
+
+      div {
+        margin: .5em 1em;
+        flex: 1;
+      }
+
+      .welcome-note {
+        margin-top: 1em;
+      }
+    }
+  }
+
+  &-key {
+    display: inline-block;
+    padding: .3em .4em;
+    font-size: .8em;
+    line-height: 1;
+    border-radius: 3px;
+    color: @text-color-highlight;
+    border: 1px solid @text-color-subtle;
+    background: hsla(0,0%,0%,.1);
+  }
+
+  &-love {
+    color: @text-color-subtle;
+    a { color: @text-color-subtle; }
+
+    .icon::before {
+      // Make these octicons look good inlined with text
+      position: relative;
+      top: 4px;
+      width: auto;
+      margin-right: 0;
+      font-size: 1.5em;
+    }
+
+    .icon-logo-github::before {
+      top: 2px;
+      font-size: 3.6em;
+      vertical-align: top;
+    }
+  }
+
+  &-note {
+    font-size: .86em;
+    color: @text-color-subtle;
+
+    .icon {
+      margin-left: 5px;
+    }
+
+    .icon::before {
+      margin-right: 0;
+    }
+  }
+
+  &-footer {
+    margin-top: 1em;
+    text-align: center;
+  }
+}
