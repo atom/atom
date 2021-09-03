@@ -128,13 +128,13 @@ async function getEnvFromShell(env) {
     return null;
   }
 
-  let result = {}
+  let result = {};
   for (let line of stdout.split('\0')) {
     if (line.includes('=')) {
-      let components = line.split('=')
-      let key = components.shift()
-      let value = components.join('=')
-      result[key] = value
+      let components = line.split('=');
+      let key = components.shift();
+      let value = components.join('=');
+      result[key] = value;
     }
   }
   return result;
