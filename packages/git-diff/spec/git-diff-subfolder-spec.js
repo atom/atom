@@ -16,17 +16,19 @@ describe('GitDiff package', () => {
     projectPath = temp.mkdirSync('git-diff-spec-');
     const otherPath = temp.mkdirSync('some-other-path-');
 
-    fs.copySync(path.join(__dirname, 'fixtures', 'working-dir'), projectPath);
+    fs.copySync(path.join(__dirname, 'fixtures'), projectPath);
     fs.moveSync(
-      path.join(projectPath, 'git.git'),
-      path.join(projectPath, '.git')
+      path.join(projectPath, 'working-dir', 'git.git'),
+      path.join(projectPath, 'working-dir', '.git')
     );
     atom.project.setPaths([otherPath, projectPath]);
 
     jasmine.attachToDOM(atom.workspace.getElement());
 
     waitsForPromise(async () => {
-      await atom.workspace.open(path.join(projectPath, 'sample.js'));
+      await atom.workspace.open(
+        path.join(projectPath, 'working-dir', 'sample.js')
+      );
       await atom.packages.activatePackage('git-diff');
     });
 
@@ -156,12 +158,12 @@ describe('GitDiff package', () => {
   describe('when a modified file is opened', () => {
     it('highlights the changed lines', () => {
       fs.writeFileSync(
-        path.join(projectPath, 'sample.txt'),
+        path.join(projectPath, 'working-dir', 'sample.txt'),
         'Some different text.'
       );
 
       waitsForPromise(() =>
-        atom.workspace.open(path.join(projectPath, 'sample.txt'))
+        atom.workspace.open(path.join(projectPath, 'working-dir', 'sample.txt'))
       );
 
       runs(() => {
