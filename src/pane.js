@@ -814,6 +814,9 @@ module.exports = class Pane {
   // last item, the pane will be destroyed if the `core.destroyEmptyPanes` config
   // setting is `true`.
   //
+  // This action can be prevented by onWillDestroyPaneItem callbacks in which
+  // case nothing happens.
+  //
   // * `item` Item to destroy
   // * `force` (optional) {Boolean} Destroy the item without prompting to save
   //    it, even if the item's `isPermanentDockItem` method returns true.
@@ -844,7 +847,16 @@ module.exports = class Pane {
         'will-destroy-pane-item'
       ) > 0
     ) {
-      await this.container.willDestroyPaneItem({ item, index, pane: this });
+      let preventClosing = false;
+      await this.container.willDestroyPaneItem({
+        item,
+        index,
+        pane: this,
+        prevent: () => {
+          preventClosing = true;
+        }
+      });
+      if (preventClosing) return false;
     }
 
     if (
