@@ -8,6 +8,7 @@ module.exports = {
     atom.config.observe(`${themeName}.tabCloseButton`, setTabCloseButton);
     atom.config.observe(`${themeName}.hideDockButtons`, setHideDockButtons);
     atom.config.observe(`${themeName}.stickyHeaders`, setStickyHeaders);
+  },
 
   deactivate() {
     unsetFontSize();
