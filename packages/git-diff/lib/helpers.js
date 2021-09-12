@@ -1,6 +1,5 @@
 'use babel';
-
-const { Directory } = require('atom');
+import { Directory } from 'atom';
 
 export default async function(goalPath) {
   if (goalPath) {

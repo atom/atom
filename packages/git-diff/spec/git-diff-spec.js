@@ -54,7 +54,6 @@ describe('GitDiff package', () => {
       );
       editor.insertText('a');
       advanceClock(editor.getBuffer().stoppedChangingDelay);
-
       waitsFor(() => editor.getMarkers().length > 0);
       runs(() => {
         expect(
