@@ -3,7 +3,7 @@ const fs = require('fs-plus');
 const temp = require('temp').track();
 
 describe('GitDiff when targeting nested repository', () => {
-  let editor, editorElement, projectPath, screenUpdates;
+  let editor, projectPath, screenUpdates;
 
   beforeEach(() => {
     screenUpdates = 0;
@@ -24,9 +24,6 @@ describe('GitDiff when targeting nested repository', () => {
     // The nested repo doesn't need to be managed by the temp module because
     // it's a part of our test environment.
     const nestedPath = path.join(projectPath, 'nested-repository');
-    // When instantiating a GitRepository, the repository will always point
-    // to the .git folder in it's path.
-    const targetRepositoryPath = path.join(nestedPath, '.git');
     // Initialize the repository contents.
     fs.copySync(path.join(__dirname, 'fixtures', 'working-dir'), nestedPath);
     fs.moveSync(
@@ -45,14 +42,13 @@ describe('GitDiff when targeting nested repository', () => {
 
     runs(() => {
       editor = atom.workspace.getActiveTextEditor();
-      editorElement = atom.views.getView(editor);
     });
   });
 
   afterEach(() => {
     temp.cleanup();
   });
-  
+
   describe('When git-diff targets a file in a nested git-repository', () => {
     /***
      * Non-hack regression prevention for nested repositories. If we know
@@ -62,9 +58,9 @@ describe('GitDiff when targeting nested repository', () => {
      * If our diff shows any kind of change to our target file, we're targeting
      * the incorrect repository.
      */
-    it("uses the innermost repository", () => {
-      //waitsForPromise(async () => await new Promise(resolve => setTimeout(resolve, 4000)));
-      //waitsFor(() => !! atom.packages.isPackageLoaded("git-diff"));
+    it('uses the innermost repository', () => {
+      // waitsForPromise(async () => await new Promise(resolve => setTimeout(resolve, 4000)));
+      // waitsFor(() => !! atom.packages.isPackageLoaded("git-diff"));
       waitsFor(() => screenUpdates > 0);
       runs(() => expect(editor.getMarkers().length).toBe(0));
     });
