@@ -801,15 +801,16 @@ class AtomEnvironment {
     return Promise.all(steps);
   }
 
-  // Returns true if the dimensions are useable, false if they should be ignored.
+  // Returns true if the dimensions are usable, false if they should be ignored.
   // Work around for https://github.com/atom/atom-shell/issues/473
-  isValidDimensions({ x, y, width, height } = {}) {
-    return width > 0 && height > 0 && x + width > 0 && y + height > 0;
+  // Calls isMinimized because of https://github.com/atom/atom/issues/15019
+  isValidDimensions() {
+    return !this.getCurrentWindow().isMinimized();
   }
 
   storeWindowDimensions() {
     this.windowDimensions = this.getWindowDimensions();
-    if (this.isValidDimensions(this.windowDimensions)) {
+    if (this.isValidDimensions()) {
       localStorage.setItem(
         'defaultWindowDimensions',
         JSON.stringify(this.windowDimensions)
