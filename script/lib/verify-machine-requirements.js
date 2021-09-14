@@ -14,16 +14,12 @@ module.exports = function(ci) {
 function verifyNode() {
   const fullVersion = process.versions.node;
   const majorVersion = fullVersion.split('.')[0];
-  if (majorVersion >= 6) {
+  const minorVersion = fullVersion.split('.')[1];
+  if (majorVersion >= 11 || (majorVersion === '10' && minorVersion >= 12)) {
     console.log(`Node:\tv${fullVersion}`);
-  } else if (majorVersion >= 4) {
-    console.log(`Node:\tv${fullVersion}`);
-    console.warn(
-      '\tWarning: Building on Node below version 6 is deprecated. Please use Node 6.x+ to build Atom.'
-    );
   } else {
     throw new Error(
-      `node v4+ is required to build Atom. node v${fullVersion} is installed.`
+      `node v10.12+ is required to build Atom. node v${fullVersion} is installed.`
     );
   }
 }
