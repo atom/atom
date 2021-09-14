@@ -4,11 +4,12 @@ const assert = require('assert');
 const childProcess = require('child_process');
 const electronPackager = require('electron-packager');
 const fs = require('fs-extra');
-const hostArch = require('electron-packager/targets').hostArch;
+const hostArch = require('@electron/get').getHostArch;
 const includePathInPackagedApp = require('./include-path-in-packaged-app');
 const getLicenseText = require('./get-license-text');
 const path = require('path');
 const spawnSync = require('./spawn-sync');
+const template = require('lodash.template');
 
 const CONFIG = require('../config');
 const HOST_ARCH = hostArch();
@@ -54,7 +55,7 @@ module.exports = function() {
     win32metadata: {
       CompanyName: 'GitHub, Inc.',
       FileDescription: 'Atom',
-      ProductName: 'Atom'
+      ProductName: CONFIG.appName
     }
   }).then(packagedAppPath => {
     let bundledResourcesPath;
@@ -131,7 +132,6 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
     );
   } else if (process.platform === 'win32') {
     [
-      'atom.cmd',
       'atom.sh',
       'atom.js',
       'apm.cmd',
@@ -140,10 +140,13 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
       'folder.ico'
     ].forEach(file =>
       fs.copySync(
-        path.join('resources', 'win', file),
+        path.join(CONFIG.repositoryRootPath, 'resources', 'win', file),
         path.join(bundledResourcesPath, 'cli', file)
       )
     );
+
+    // Customize atom.cmd for the channel-specific atom.exe name (e.g. atom-beta.exe)
+    generateAtomCmdForChannel(bundledResourcesPath);
   }
 
   console.log(`Writing LICENSE.md to ${bundledResourcesPath}`);
@@ -203,6 +206,8 @@ function buildAsarUnpackGlobExpression() {
 function getAppName() {
   if (process.platform === 'darwin') {
     return CONFIG.appName;
+  } else if (process.platform === 'win32') {
+    return CONFIG.channel === 'stable' ? 'atom' : `atom-${CONFIG.channel}`;
   } else {
     return 'atom';
   }
@@ -255,4 +260,17 @@ function renamePackagedAppDir(packageOutputDirPath) {
     fs.renameSync(packageOutputDirPath, packagedAppPath);
   }
   return packagedAppPath;
+}
+
+function generateAtomCmdForChannel(bundledResourcesPath) {
+  const atomCmdTemplate = fs.readFileSync(
+    path.join(CONFIG.repositoryRootPath, 'resources', 'win', 'atom.cmd')
+  );
+  const atomCmdContents = template(atomCmdTemplate)({
+    atomExeName: CONFIG.executableName
+  });
+  fs.writeFileSync(
+    path.join(bundledResourcesPath, 'cli', 'atom.cmd'),
+    atomCmdContents
+  );
 }

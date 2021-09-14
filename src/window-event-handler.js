@@ -1,5 +1,6 @@
 const { Disposable, CompositeDisposable } = require('event-kit');
 const listen = require('./delegated-listener');
+const { debounce } = require('underscore-plus');
 
 // Handles low-level events related to the `window`.
 module.exports = class WindowEventHandler {
@@ -65,7 +66,11 @@ module.exports = class WindowEventHandler {
     );
     this.addEventListener(this.window, 'focus', this.handleWindowFocus);
     this.addEventListener(this.window, 'blur', this.handleWindowBlur);
-    this.addEventListener(this.window, 'resize', this.handleWindowResize);
+    this.addEventListener(
+      this.window,
+      'resize',
+      debounce(this.handleWindowResize, 500)
+    );
 
     this.addEventListener(this.document, 'keyup', this.handleDocumentKeyEvent);
     this.addEventListener(

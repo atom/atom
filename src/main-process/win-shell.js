@@ -1,19 +1,17 @@
 const Registry = require('winreg');
 const Path = require('path');
+const getAppName = require('../get-app-name');
 
-let exeName = Path.basename(process.execPath);
-let appPath = `"${process.execPath}"`;
-let fileIconPath = `"${Path.join(
+const appName = getAppName();
+const exeName = Path.basename(process.execPath);
+const appPath = `"${process.execPath}"`;
+const fileIconPath = `"${Path.join(
   process.execPath,
   '..',
   'resources',
   'cli',
   'file.ico'
 )}"`;
-let isBeta = appPath.includes(' Beta');
-let appName = exeName
-  .replace('atom', isBeta ? 'Atom Beta' : 'Atom')
-  .replace('.exe', '');
 
 class ShellOption {
   constructor(key, parts) {

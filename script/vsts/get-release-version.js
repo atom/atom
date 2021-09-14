@@ -11,6 +11,17 @@ const argv = yargs
   .describe('nightly', 'Indicates that a nightly version should be produced')
   .wrap(yargs.terminalWidth()).argv;
 
+function getAppName(version) {
+  const match = version.match(/\d+\.\d+\.\d+(-([a-z]+)(\d+|-\w{4,})?)?$/);
+  if (!match) {
+    throw new Error(`Found incorrectly formatted Atom version ${version}`);
+  } else if (match[2]) {
+    return `atom-${match[2]}`;
+  }
+
+  return 'atom';
+}
+
 async function getReleaseVersion() {
   let releaseVersion = process.env.ATOM_RELEASE_VERSION || appMetadata.version;
   if (argv.nightly) {
@@ -67,11 +78,21 @@ async function getReleaseVersion() {
       buildBranch.startsWith('electron-') ||
       (buildBranch === 'master' &&
         !process.env.SYSTEM_PULLREQUEST_PULLREQUESTNUMBER));
+  const SHOULD_SIGN = process.env.SHOULD_SIGN;
+
+  console.log(
+    `##vso[task.setvariable variable=AppName;isOutput=true]${getAppName(
+      releaseVersion
+    )}`
+  );
   console.log(
     `##vso[task.setvariable variable=IsReleaseBranch;isOutput=true]${isReleaseBranch}`
   );
   console.log(
     `##vso[task.setvariable variable=IsSignedZipBranch;isOutput=true]${isSignedZipBranch}`
+  );
+  console.log(
+    `##vso[task.setvariable variable=SHOULD_SIGN;isOutput=true]${SHOULD_SIGN}`
   );
 }
 

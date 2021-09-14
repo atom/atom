@@ -15,7 +15,7 @@ describe('contextMenu', () => {
       expect(sortMenuItems(items)).toEqual(expected);
     });
 
-    it('preserves separators at the begining of set two', () => {
+    it('preserves separators at the beginning of set two', () => {
       const items = [
         { command: 'core:one' },
         { type: 'separator' },

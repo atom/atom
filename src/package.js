@@ -1,5 +1,5 @@
 const path = require('path');
-const async = require('async');
+const asyncEach = require('async/each');
 const CSON = require('season');
 const fs = require('fs-plus');
 const { Emitter, CompositeDisposable } = require('event-kit');
@@ -8,6 +8,7 @@ const dedent = require('dedent');
 const CompileCache = require('./compile-cache');
 const ModuleCache = require('./module-cache');
 const BufferedProcess = require('./buffered-process');
+const { requireModule } = require('./module-utils');
 
 // Extended: Loads and activates a package's main module and resources such as
 // stylesheets, keymaps, grammar, editor properties, and menus.
@@ -77,9 +78,9 @@ module.exports = class Package {
   }
 
   measure(key, fn) {
-    const startTime = Date.now();
+    const startTime = window.performance.now();
     const value = fn();
-    this[key] = Date.now() - startTime;
+    this[key] = Math.round(window.performance.now() - startTime);
     return value;
   }
 
@@ -169,6 +170,7 @@ module.exports = class Package {
     this.settings = [];
     this.mainInitialized = false;
     this.mainActivated = false;
+    this.deserialized = false;
   }
 
   initializeIfNeeded() {
@@ -248,6 +250,8 @@ module.exports = class Package {
         this.activationCommandSubscriptions.dispose();
       if (this.activationHookSubscriptions)
         this.activationHookSubscriptions.dispose();
+      if (this.workspaceOpenerSubscriptions)
+        this.workspaceOpenerSubscriptions.dispose();
     } catch (error) {
       this.handleError(`Failed to activate the ${this.name} package`, error);
     }
@@ -559,6 +563,19 @@ module.exports = class Package {
             this.registerViewProviders();
             this.requireMainModule();
             this.initializeIfNeeded();
+            if (atomEnvironment.packages.hasActivatedInitialPackages()) {
+              // Only explicitly activate the package if initial packages
+              // have finished activating. This is because deserialization
+              // generally occurs at Atom startup, which happens before the
+              // workspace element is added to the DOM and is inconsistent with
+              // with when initial package activation occurs. Triggering activation
+              // immediately may cause problems with packages that expect to
+              // always have access to the workspace element.
+              // Otherwise, we just set the deserialized flag and package-manager
+              // will activate this package as normal during initial package activation.
+              this.activateNow();
+            }
+            this.deserialized = true;
             return this.mainModule[methodName](state, atomEnvironment);
           }
         });
@@ -709,14 +726,14 @@ module.exports = class Package {
         this.packageManager.packagesCache[this.name]
       ) {
         const { grammarPaths } = this.packageManager.packagesCache[this.name];
-        return async.each(grammarPaths, loadGrammar, () => resolve());
+        return asyncEach(grammarPaths, loadGrammar, () => resolve());
       } else {
         const grammarsDirPath = path.join(this.path, 'grammars');
         fs.exists(grammarsDirPath, grammarsDirExists => {
           if (!grammarsDirExists) return resolve();
           fs.list(grammarsDirPath, ['json', 'cson'], (error, grammarPaths) => {
             if (error || !grammarPaths) return resolve();
-            async.each(grammarPaths, loadGrammar, () => resolve());
+            asyncEach(grammarPaths, loadGrammar, () => resolve());
           });
         });
       }
@@ -762,7 +779,7 @@ module.exports = class Package {
           if (!settingsDirExists) return resolve();
           fs.list(settingsDirPath, ['json', 'cson'], (error, settingsPaths) => {
             if (error || !settingsPaths) return resolve();
-            async.each(settingsPaths, loadSettingsFile, () => resolve());
+            asyncEach(settingsPaths, loadSettingsFile, () => resolve());
           });
         });
       });
@@ -865,8 +882,9 @@ module.exports = class Package {
   requireMainModule() {
     if (this.bundledPackage && this.packageManager.packagesCache[this.name]) {
       if (this.packageManager.packagesCache[this.name].main) {
-        this.mainModule = require(this.packageManager.packagesCache[this.name]
-          .main);
+        this.mainModule = requireModule(
+          this.packageManager.packagesCache[this.name].main
+        );
         return this.mainModule;
       }
     } else if (this.mainModuleRequired) {
@@ -888,7 +906,7 @@ module.exports = class Package {
 
         const previousViewProviderCount = this.viewRegistry.getViewProviderCount();
         const previousDeserializerCount = this.deserializerManager.getDeserializerCount();
-        this.mainModule = require(mainModulePath);
+        this.mainModule = requireModule(mainModulePath);
         if (
           this.viewRegistry.getViewProviderCount() ===
             previousViewProviderCount &&
@@ -933,15 +951,22 @@ module.exports = class Package {
 
   activationShouldBeDeferred() {
     return (
-      this.hasActivationCommands() ||
-      this.hasActivationHooks() ||
-      this.hasDeferredURIHandler()
+      !this.deserialized &&
+      (this.hasActivationCommands() ||
+        this.hasActivationHooks() ||
+        this.hasWorkspaceOpeners() ||
+        this.hasDeferredURIHandler())
     );
   }
 
   hasActivationHooks() {
     const hooks = this.getActivationHooks();
     return hooks && hooks.length > 0;
+  }
+
+  hasWorkspaceOpeners() {
+    const openers = this.getWorkspaceOpeners();
+    return openers && openers.length > 0;
   }
 
   hasActivationCommands() {
@@ -961,6 +986,7 @@ module.exports = class Package {
   subscribeToDeferredActivation() {
     this.subscribeToActivationCommands();
     this.subscribeToActivationHooks();
+    this.subscribeToWorkspaceOpeners();
   }
 
   subscribeToActivationCommands() {
@@ -1058,6 +1084,41 @@ module.exports = class Package {
     return this.activationHooks;
   }
 
+  subscribeToWorkspaceOpeners() {
+    this.workspaceOpenerSubscriptions = new CompositeDisposable();
+    for (let opener of this.getWorkspaceOpeners()) {
+      this.workspaceOpenerSubscriptions.add(
+        atom.workspace.addOpener(filePath => {
+          if (filePath === opener) {
+            this.activateNow();
+            this.workspaceOpenerSubscriptions.dispose();
+            return atom.workspace.createItemForURI(opener);
+          }
+        })
+      );
+    }
+  }
+
+  getWorkspaceOpeners() {
+    if (this.workspaceOpeners) return this.workspaceOpeners;
+
+    if (this.metadata.workspaceOpeners) {
+      if (Array.isArray(this.metadata.workspaceOpeners)) {
+        this.workspaceOpeners = Array.from(
+          new Set(this.metadata.workspaceOpeners)
+        );
+      } else if (typeof this.metadata.workspaceOpeners === 'string') {
+        this.workspaceOpeners = [this.metadata.workspaceOpeners];
+      } else {
+        this.workspaceOpeners = [];
+      }
+    } else {
+      this.workspaceOpeners = [];
+    }
+
+    return this.workspaceOpeners;
+  }
+
   getURIHandler() {
     return this.metadata && this.metadata.uriHandler;
   }
@@ -1065,46 +1126,60 @@ module.exports = class Package {
   // Does the given module path contain native code?
   isNativeModule(modulePath) {
     try {
-      return (
-        fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node'])
-          .length > 0
-      );
+      return this.getModulePathNodeFiles(modulePath).length > 0;
     } catch (error) {
       return false;
     }
   }
 
-  // Get an array of all the native modules that this package depends on.
+  // get the list of `.node` files for the given module path
+  getModulePathNodeFiles(modulePath) {
+    try {
+      const modulePathNodeFiles = fs.listSync(
+        path.join(modulePath, 'build', 'Release'),
+        ['.node']
+      );
+      return modulePathNodeFiles;
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Get a Map of all the native modules => the `.node` files that this package depends on.
   //
   // First try to get this information from
   // @metadata._atomModuleCache.extensions. If @metadata._atomModuleCache doesn't
   // exist, recurse through all dependencies.
-  getNativeModuleDependencyPaths() {
-    const nativeModulePaths = [];
+  getNativeModuleDependencyPathsMap() {
+    const nativeModulePaths = new Map();
 
     if (this.metadata._atomModuleCache) {
+      const nodeFilePaths = [];
       const relativeNativeModuleBindingPaths =
         (this.metadata._atomModuleCache.extensions &&
           this.metadata._atomModuleCache.extensions['.node']) ||
         [];
       for (let relativeNativeModuleBindingPath of relativeNativeModuleBindingPaths) {
-        const nativeModulePath = path.join(
+        const nodeFilePath = path.join(
           this.path,
           relativeNativeModuleBindingPath,
           '..',
           '..',
           '..'
         );
-        nativeModulePaths.push(nativeModulePath);
+        nodeFilePaths.push(nodeFilePath);
       }
+      nativeModulePaths.set(this.path, nodeFilePaths);
       return nativeModulePaths;
     }
 
-    var traversePath = nodeModulesPath => {
+    const traversePath = nodeModulesPath => {
       try {
         for (let modulePath of fs.listSync(nodeModulesPath)) {
-          if (this.isNativeModule(modulePath))
-            nativeModulePaths.push(modulePath);
+          const modulePathNodeFiles = this.getModulePathNodeFiles(modulePath);
+          if (modulePathNodeFiles) {
+            nativeModulePaths.set(modulePath, modulePathNodeFiles);
+          }
           traversePath(path.join(modulePath, 'node_modules'));
         }
       } catch (error) {}
@@ -1113,6 +1188,12 @@ module.exports = class Package {
     traversePath(path.join(this.path, 'node_modules'));
 
     return nativeModulePaths;
+  }
+
+  // Get an array of all the native modules that this package depends on.
+  // See `getNativeModuleDependencyPathsMap` for more information
+  getNativeModuleDependencyPaths() {
+    return [...this.getNativeModuleDependencyPathsMap().keys()];
   }
 
   /*
@@ -1216,8 +1297,7 @@ module.exports = class Package {
   }
 
   // Get the incompatible native modules that this package depends on.
-  // This recurses through all dependencies and requires all modules that
-  // contain a `.node` file.
+  // This recurses through all dependencies and requires all `.node` files.
   //
   // This information is cached in local storage on a per package/version basis
   // to minimize the impact on startup time.
@@ -1232,9 +1312,13 @@ module.exports = class Package {
     }
 
     const incompatibleNativeModules = [];
-    for (let nativeModulePath of this.getNativeModuleDependencyPaths()) {
+    const nativeModulePaths = this.getNativeModuleDependencyPathsMap();
+    for (const [nativeModulePath, nodeFilesPaths] of nativeModulePaths) {
       try {
-        require(nativeModulePath);
+        // require each .node file
+        for (const nodeFilePath of nodeFilesPaths) {
+          require(nodeFilePath);
+        }
       } catch (error) {
         let version;
         try {

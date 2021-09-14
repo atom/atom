@@ -38,12 +38,11 @@ class NativeCompileCache {
   }
 
   runInThisContext(code, filename) {
-    // TodoElectronIssue:  produceCachedData is deprecated after Node 10.6, so we'll
-    // will need to update this for Electron v4 to use script.createCachedData().
-    const script = new vm.Script(code, { filename, produceCachedData: true });
+    const script = new vm.Script(code, filename);
+    const cachedData = script.createCachedData();
     return {
       result: script.runInThisContext(),
-      cacheBuffer: script.cachedData
+      cacheBuffer: typeof cachedData !== 'undefined' ? cachedData : null
     };
   }
 
@@ -102,7 +101,7 @@ class NativeCompileCache {
           console.error(`Error running script ${filename}`);
           throw err;
         }
-        if (compilationResult.cacheBuffer !== null) {
+        if (compilationResult.cacheBuffer) {
           self.cacheStore.set(cacheKey, compilationResult.cacheBuffer);
         }
         compiledWrapper = compilationResult.result;

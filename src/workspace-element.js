@@ -8,13 +8,13 @@ const scrollbarStyle = require('scrollbar-style');
 const _ = require('underscore-plus');
 
 class WorkspaceElement extends HTMLElement {
-  attachedCallback() {
+  connectedCallback() {
     this.focus();
     this.htmlElement = document.querySelector('html');
     this.htmlElement.addEventListener('mouseleave', this.handleCenterLeave);
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.subscriptions.dispose();
     this.htmlElement.removeEventListener('mouseleave', this.handleCenterLeave);
   }
@@ -158,7 +158,9 @@ class WorkspaceElement extends HTMLElement {
     this.verticalAxis.appendChild(this.paneContainer);
     this.addEventListener('focus', this.handleFocus.bind(this));
 
-    this.addEventListener('mousewheel', this.handleMousewheel.bind(this), true);
+    this.addEventListener('mousewheel', this.handleMousewheel.bind(this), {
+      capture: true
+    });
     window.addEventListener('dragstart', this.handleDragStart);
     window.addEventListener('mousemove', this.handleEdgesMouseMove);
 
@@ -208,8 +210,8 @@ class WorkspaceElement extends HTMLElement {
     const { item } = event.target;
     if (!item) return;
     this.model.setDraggingItem(item);
-    window.addEventListener('dragend', this.handleDragEnd, true);
-    window.addEventListener('drop', this.handleDrop, true);
+    window.addEventListener('dragend', this.handleDragEnd, { capture: true });
+    window.addEventListener('drop', this.handleDrop, { capture: true });
   }
 
   handleDragEnd(event) {
@@ -464,10 +466,6 @@ class WorkspaceElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-workspace', {
-  prototype: WorkspaceElement.prototype
-});
-
 function isTab(element) {
   let el = element;
   while (el != null) {
@@ -476,3 +474,13 @@ function isTab(element) {
   }
   return false;
 }
+
+window.customElements.define('atom-workspace', WorkspaceElement);
+
+function createWorkspaceElement() {
+  return document.createElement('atom-workspace');
+}
+
+module.exports = {
+  createWorkspaceElement
+};

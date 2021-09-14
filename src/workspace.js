@@ -15,7 +15,7 @@ const Panel = require('./panel');
 const PanelContainer = require('./panel-container');
 const Task = require('./task');
 const WorkspaceCenter = require('./workspace-center');
-const WorkspaceElement = require('./workspace-element');
+const { createWorkspaceElement } = require('./workspace-element');
 
 const STOPPED_CHANGING_ACTIVE_PANE_ITEM_DELAY = 100;
 const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
@@ -76,7 +76,7 @@ const ALL_LOCATIONS = ['center', 'left', 'right', 'bottom'];
 // Returns a {String} containing a longer version of the title to display in
 // places like the window title or on tabs their short titles are ambiguous.
 //
-// #### `onDidChangeTitle`
+// #### `onDidChangeTitle(callback)`
 //
 // Called by the workspace so it can be notified when the item's title changes.
 // Must return a {Disposable}.
@@ -256,8 +256,6 @@ module.exports = class Workspace extends Model {
     };
 
     this.incoming = new Map();
-
-    this.subscribeToEvents();
   }
 
   get paneContainer() {
@@ -269,7 +267,7 @@ module.exports = class Workspace extends Model {
 
   getElement() {
     if (!this.element) {
-      this.element = new WorkspaceElement().initialize(this, {
+      this.element = createWorkspaceElement().initialize(this, {
         config: this.config,
         project: this.project,
         viewRegistry: this.viewRegistry,
@@ -365,7 +363,6 @@ module.exports = class Workspace extends Model {
       })
     };
 
-    this.originalFontSize = null;
     this.openers = [];
     this.destroyedItemURIs = [];
     if (this.element) {
@@ -375,9 +372,11 @@ module.exports = class Workspace extends Model {
     this.consumeServices(this.packageManager);
   }
 
-  subscribeToEvents() {
+  initialize() {
+    // we set originalFontSize to avoid breaking packages that might have relied on it
+    this.originalFontSize = this.config.get('defaultFontSize');
+
     this.project.onDidChangePaths(this.updateWindowTitle);
-    this.subscribeToFontSize();
     this.subscribeToAddedItems();
     this.subscribeToMovedItems();
     this.subscribeToDockToggling();
@@ -680,7 +679,7 @@ module.exports = class Workspace extends Model {
   // open.
   updateWindowTitle() {
     let itemPath, itemTitle, projectPath, representedPath;
-    const appName = 'Atom';
+    const appName = atom.getAppName();
     const left = this.project.getPaths();
     const projectPaths = left != null ? left : [];
     const item = this.getActivePaneItem();
@@ -1518,6 +1517,10 @@ module.exports = class Workspace extends Model {
   // that is already open in a text editor view. You could signal this by calling
   // {Workspace::open} on the URI `quux-preview://foo/bar/baz.quux`. Then your opener
   // can check the protocol for quux-preview and only handle those URIs that match.
+  //
+  // To defer your package's activation until a specific URL is opened, add a
+  // `workspaceOpeners` field to your `package.json` containing an array of URL
+  // strings.
   addOpener(opener) {
     this.openers.push(opener);
     return new Disposable(() => {
@@ -1544,12 +1547,12 @@ module.exports = class Workspace extends Model {
 
   // Essential: Get the active {Pane}'s active item.
   //
-  // Returns an pane item {Object}.
+  // Returns a pane item {Object}.
   getActivePaneItem() {
     return this.getActivePaneContainer().getActivePaneItem();
   }
 
-  // Essential: Get all text editors in the workspace.
+  // Essential: Get all text editors in the workspace, if they are pane items.
   //
   // Returns an {Array} of {TextEditor}s.
   getTextEditors() {
@@ -1742,19 +1745,12 @@ module.exports = class Workspace extends Model {
     }
   }
 
-  // Restore to the window's original editor font size.
+  // Restore to the window's default editor font size.
   resetFontSize() {
-    if (this.originalFontSize) {
-      this.config.set('editor.fontSize', this.originalFontSize);
-    }
-  }
-
-  subscribeToFontSize() {
-    return this.config.onDidChange('editor.fontSize', () => {
-      if (this.originalFontSize == null) {
-        this.originalFontSize = this.config.get('editor.fontSize');
-      }
-    });
+    this.config.set(
+      'editor.fontSize',
+      this.config.get('editor.defaultFontSize')
+    );
   }
 
   // Removes the item's uri from the list of potential items to reopen.
@@ -2110,6 +2106,7 @@ module.exports = class Workspace extends Model {
         follow: this.config.get('core.followSymlinks'),
         leadingContextLineCount: options.leadingContextLineCount || 0,
         trailingContextLineCount: options.trailingContextLineCount || 0,
+        PCRE2: options.PCRE2,
         didMatch: result => {
           if (!this.project.isPathModified(result.filePath)) {
             return iterator(result);

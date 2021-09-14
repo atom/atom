@@ -10,9 +10,16 @@ const path = require('path');
 const fs = require('fs-plus');
 const CSON = require('season');
 const yargs = require('yargs');
-const electron = require('electron');
+const { app } = require('electron');
+
+const version = `Atom    : ${app.getVersion()}
+Electron: ${process.versions.electron}
+Chrome  : ${process.versions.chrome}
+Node    : ${process.versions.node}`;
 
 const args = yargs(process.argv)
+  .alias('v', 'version')
+  .version(version)
   .alias('d', 'dev')
   .alias('t', 'test')
   .alias('r', 'resource-path').argv;
@@ -40,7 +47,7 @@ if (args.resourcePath) {
 } else {
   const stableResourcePath = path.dirname(path.dirname(__dirname));
   const defaultRepositoryPath = path.join(
-    electron.app.getPath('home'),
+    app.getPath('home'),
     'github',
     'atom'
   );

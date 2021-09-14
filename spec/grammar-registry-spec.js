@@ -69,6 +69,23 @@ describe('GrammarRegistry', () => {
     });
   });
 
+  describe('.assignGrammar(buffer, grammar)', () => {
+    it('allows a TextMate grammar to be assigned directly, even when Tree-sitter is permitted', () => {
+      grammarRegistry.loadGrammarSync(
+        require.resolve(
+          'language-javascript/grammars/tree-sitter-javascript.cson'
+        )
+      );
+      const tmGrammar = grammarRegistry.loadGrammarSync(
+        require.resolve('language-javascript/grammars/javascript.cson')
+      );
+
+      const buffer = new TextBuffer();
+      expect(grammarRegistry.assignGrammar(buffer, tmGrammar)).toBe(true);
+      expect(buffer.getLanguageMode().getGrammar()).toBe(tmGrammar);
+    });
+  });
+
   describe('.grammarForId(languageId)', () => {
     it('returns a text-mate grammar when `core.useTreeSitterParsers` is false', () => {
       atom.config.set('core.useTreeSitterParsers', false, {
@@ -857,6 +874,29 @@ describe('GrammarRegistry', () => {
       );
       expect(buffer1Copy.getLanguageMode().getLanguageId()).toBe('source.c');
       expect(buffer2Copy.getLanguageMode().getLanguageId()).toBe('source.js');
+    });
+  });
+
+  describe('when working with grammars', () => {
+    beforeEach(async () => {
+      await atom.packages.activatePackage('language-javascript');
+    });
+
+    it('returns only Tree-sitter grammars by default', async () => {
+      const tmGrammars = atom.grammars.getGrammars();
+      const allGrammars = atom.grammars.getGrammars({
+        includeTreeSitter: true
+      });
+      expect(allGrammars.length).toBeGreaterThan(tmGrammars.length);
+    });
+
+    it('executes the foreach callback on both Tree-sitter and TextMate grammars', async () => {
+      const numAllGrammars = atom.grammars.getGrammars({
+        includeTreeSitter: true
+      }).length;
+      let i = 0;
+      atom.grammars.forEachGrammar(() => i++);
+      expect(i).toBe(numAllGrammars);
     });
   });
 });

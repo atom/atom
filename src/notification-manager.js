@@ -147,6 +147,7 @@ module.exports = class NotificationManager {
   //      in the notification header. Defaults to `'flame'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //      Requires `detail` to be set.
   //
   // Returns the {Notification} that was added.
   addError(message, options) {
@@ -177,6 +178,7 @@ module.exports = class NotificationManager {
   //      in the notification header. Defaults to `'bug'`.
   //    * `stack` (optional) A preformatted {String} with stack trace
   //      information describing the location of the error.
+  //      Requires `detail` to be set.
   //
   // Returns the {Notification} that was added.
   addFatalError(message, options) {

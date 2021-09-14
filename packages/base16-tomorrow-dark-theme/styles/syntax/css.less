@@ -1,0 +1,113 @@
+.syntax--source.syntax--css {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @syntax-text-color;
+
+      // url rgb
+      &.syntax--support {
+        color: @cyan;
+      }
+    }
+
+    // .class :pseudo-class attribute
+    &.syntax--selector {
+      color: @orange;
+
+      // div span
+      &.syntax--tag {
+        color: @red;
+      }
+
+      // #id
+      &.syntax--id {
+        color: @blue;
+      }
+    }
+
+    // property: constant
+    &.syntax--property {
+      color: @syntax-text-color;
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: @red;
+    }
+
+    // @keyframes keyframe
+    &.syntax--keyframe {
+      color: @red;
+    }
+  }
+
+  // property: constant
+  .syntax--constant {
+    color: @syntax-text-color;
+
+    // flex solid bold
+    &.syntax--support {
+      color: @orange;
+    }
+
+    // 3px 4em
+    &.syntax--numeric {
+      color: @orange;
+    }
+
+    // screen print
+    &.syntax--media {
+      color: @orange;
+    }
+
+    // from to 50%
+    &.syntax--offset {
+      color: @syntax-text-color;
+
+      // %
+      &.syntax--unit {
+        color: @syntax-text-color;
+      }
+    }
+
+    // #b294bb
+    &.syntax--color {
+      color: @cyan;
+
+      // blue red
+      &.syntax--support {
+        color: @orange;
+      }
+    }
+
+    // [attribute=attribute-value]
+    &.syntax--attribute-value {
+      color: @green;
+    }
+  }
+
+  .syntax--punctuation {
+
+    // . : ::
+    &.syntax--selector {
+      color: @orange;
+
+      // *
+      &.syntax--wildcard {
+        color: @red;
+      }
+
+      // #
+      &.syntax--id {
+        color: @blue;
+      }
+
+      // []
+      &.syntax--attribute {
+        color: @syntax-text-color;
+      }
+    }
+  }
+}

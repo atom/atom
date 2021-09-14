@@ -1,0 +1,108 @@
+.syntax--source.syntax--css {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: #555;
+
+      // url rgb
+      &.syntax--support {
+        color: #458;
+      }
+    }
+
+    // .class :pseudo-class attribute
+    &.syntax--selector {
+      color: #458;
+      font-weight: bold;
+
+      // div span
+      &.syntax--tag {
+        color: #008080;
+        font-weight: normal;
+      }
+    }
+
+    // href src alt
+    .syntax--attribute {
+      color: #458;
+      font-weight: bold;
+    }
+
+    // property: constant
+    &.syntax--property {
+      color: #555;
+
+      // height position border
+      &.syntax--support {
+        font-weight: bold;
+        color: #333;
+      }
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: #008080;
+    }
+
+    // @keyframes keyframe
+    &.syntax--keyframe {
+      color: #606aa1;
+    }
+  }
+
+  // property: constant
+  .syntax--constant {
+    color: #555;
+
+    // flex solid bold
+    &.syntax--support {
+      color: #099;
+    }
+
+    // 4 1.3
+    &.syntax--numeric {
+      color: #099;
+
+      // px % cm hz
+      &.syntax--unit {
+        color: #445588;
+        font-weight: bold;
+      }
+    }
+
+    // screen print
+    &.syntax--media {
+      color: #099;
+    }
+
+    // #b294bb blue red
+    &.syntax--color {
+      color: #099;
+    }
+
+    // [attribute=attribute-value]
+    &.syntax--attribute-value {
+      color: #D14;
+    }
+  }
+
+  // . : :: #
+  .syntax--punctuation.syntax--selector {
+    color: #458;
+    font-weight: bold;
+
+    // *
+    &.syntax--wildcard {
+      color: #008080;
+      font-weight: normal;
+    }
+
+    // []
+    &.syntax--attribute {
+      color: #555;
+      font-weight: normal;
+    }
+  }
+}

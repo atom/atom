@@ -1,4 +1,11 @@
-const { BrowserWindow, app, dialog, ipcMain } = require('electron');
+const {
+  BrowserWindow,
+  app,
+  dialog,
+  ipcMain,
+  nativeImage
+} = require('electron');
+const getAppName = require('../get-app-name');
 const path = require('path');
 const url = require('url');
 const { EventEmitter } = require('events');
@@ -35,7 +42,7 @@ module.exports = class AtomWindow extends EventEmitter {
 
     const options = {
       show: false,
-      title: 'Atom',
+      title: getAppName(),
       tabbingIdentifier: 'atom',
       webPreferences: {
         // Prevent specs from throttling when the window is in the background:
@@ -46,13 +53,22 @@ module.exports = class AtomWindow extends EventEmitter {
         // Disable the `auxclick` feature so that `click` events are triggered in
         // response to a middle-click.
         // (Ref: https://github.com/atom/atom/pull/12696#issuecomment-290496960)
-        disableBlinkFeatures: 'Auxclick'
-      }
+        disableBlinkFeatures: 'Auxclick',
+        nodeIntegration: true,
+        webviewTag: true,
+
+        // TodoElectronIssue: remote module is deprecated https://www.electronjs.org/docs/breaking-changes#default-changed-enableremotemodule-defaults-to-false
+        enableRemoteModule: true,
+        // node support in threads
+        nodeIntegrationInWorker: true
+      },
+      simpleFullscreen: this.getSimpleFullscreen()
     };
 
     // Don't set icon on Windows so the exe's ico will be used as window and
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
-    if (process.platform === 'linux') options.icon = ICON_PATH;
+    if (process.platform === 'linux')
+      options.icon = nativeImage.createFromPath(ICON_PATH);
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden';
     if (this.shouldAddCustomInsetTitleBar())
       options.titleBarStyle = 'hiddenInset';
@@ -80,6 +96,7 @@ module.exports = class AtomWindow extends EventEmitter {
 
     this.loadSettings = Object.assign({}, settings);
     this.loadSettings.appVersion = app.getVersion();
+    this.loadSettings.appName = getAppName();
     this.loadSettings.resourcePath = this.resourcePath;
     this.loadSettings.atomHome = process.env.ATOM_HOME;
     if (this.loadSettings.devMode == null) this.loadSettings.devMode = false;
@@ -206,22 +223,17 @@ module.exports = class AtomWindow extends EventEmitter {
       this.resolveClosedPromise();
     });
 
-    this.browserWindow.on('unresponsive', () => {
+    this.browserWindow.on('unresponsive', async () => {
       if (this.isSpec) return;
-      dialog.showMessageBox(
-        this.browserWindow,
-        {
-          type: 'warning',
-          buttons: ['Force Close', 'Keep Waiting'],
-          cancelId: 1, // Canceling should be the least destructive action
-          message: 'Editor is not responding',
-          detail:
-            'The editor is not responding. Would you like to force close it or just keep waiting?'
-        },
-        response => {
-          if (response === 0) this.browserWindow.destroy();
-        }
-      );
+      const result = await dialog.showMessageBox(this.browserWindow, {
+        type: 'warning',
+        buttons: ['Force Close', 'Keep Waiting'],
+        cancelId: 1, // Canceling should be the least destructive action
+        message: 'Editor is not responding',
+        detail:
+          'The editor is not responding. Would you like to force close it or just keep waiting?'
+      });
+      if (result.response === 0) this.browserWindow.destroy();
     });
 
     this.browserWindow.webContents.on('crashed', async () => {
@@ -232,24 +244,23 @@ module.exports = class AtomWindow extends EventEmitter {
       }
 
       await this.fileRecoveryService.didCrashWindow(this);
-      dialog.showMessageBox(
-        this.browserWindow,
-        {
-          type: 'warning',
-          buttons: ['Close Window', 'Reload', 'Keep It Open'],
-          cancelId: 2, // Canceling should be the least destructive action
-          message: 'The editor has crashed',
-          detail: 'Please report this issue to https://github.com/atom/atom'
-        },
-        response => {
-          switch (response) {
-            case 0:
-              return this.browserWindow.destroy();
-            case 1:
-              return this.browserWindow.reload();
-          }
-        }
-      );
+
+      const result = await dialog.showMessageBox(this.browserWindow, {
+        type: 'warning',
+        buttons: ['Close Window', 'Reload', 'Keep It Open'],
+        cancelId: 2, // Canceling should be the least destructive action
+        message: 'The editor has crashed',
+        detail: 'Please report this issue to https://github.com/atom/atom'
+      });
+
+      switch (result.response) {
+        case 0:
+          this.browserWindow.destroy();
+          break;
+        case 1:
+          this.browserWindow.reload();
+          break;
+      }
     });
 
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
@@ -318,7 +329,19 @@ module.exports = class AtomWindow extends EventEmitter {
   }
 
   replaceEnvironment(env) {
-    this.browserWindow.webContents.send('environment', env);
+    const {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    } = env;
+
+    this.browserWindow.webContents.send('environment', {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    });
   }
 
   sendMessage(message, detail) {
@@ -360,6 +383,10 @@ module.exports = class AtomWindow extends EventEmitter {
     return { x, y, width, height };
   }
 
+  getSimpleFullscreen() {
+    return this.atomApplication.config.get('core.simpleFullScreenWindows');
+  }
+
   shouldAddCustomTitleBar() {
     return (
       !this.isSpec &&
@@ -379,7 +406,6 @@ module.exports = class AtomWindow extends EventEmitter {
   shouldHideTitleBar() {
     return (
       !this.isSpec &&
-      process.platform === 'darwin' &&
       this.atomApplication.config.get('core.titleBar') === 'hidden'
     );
   }
@@ -459,13 +485,13 @@ module.exports = class AtomWindow extends EventEmitter {
       options
     );
 
+    let promise = dialog.showSaveDialog(this.browserWindow, options);
     if (typeof callback === 'function') {
-      // Async
-      dialog.showSaveDialog(this.browserWindow, options, callback);
-    } else {
-      // Sync
-      return dialog.showSaveDialog(this.browserWindow, options);
+      promise = promise.then(({ filePath, bookmark }) => {
+        callback(filePath, bookmark);
+      });
     }
+    return promise;
   }
 
   toggleDevTools() {
