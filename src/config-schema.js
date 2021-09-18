@@ -51,7 +51,7 @@ const configSchema = {
         default: 'native',
         enum: ['native', 'hidden'],
         description:
-          'Experimental:  The title bar can  be completely `hidden`.<br>This setting will require a relaunch of Atom to take effect.'
+          'Experimental: The title bar can be completely `hidden`.<br>This setting will require a relaunch of Atom to take effect.'
       },
       versionPinnedPackages: {
         type: 'array',
