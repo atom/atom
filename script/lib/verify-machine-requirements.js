@@ -90,7 +90,7 @@ function verifyPython() {
           env: process.env,
           stdio: ['ignore', 'pipe', 'ignore']
         });
-      } catch {}
+      } catch (e) {}
 
       if (stdout) {
         if (stdout.indexOf('+') !== -1)
