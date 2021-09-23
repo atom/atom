@@ -1474,9 +1474,14 @@ module.exports = class AtomApplication extends EventEmitter {
   async saveCurrentWindowOptions(allowEmpty = false) {
     if (this.quitting) return;
 
+    const windows = this.getAllWindows();
+    const hasASpecWindow = windows.some(window => window.isSpec);
+
+    if (windows.length === 1 && hasASpecWindow) return;
+
     const state = {
       version: APPLICATION_STATE_VERSION,
-      windows: this.getAllWindows()
+      windows: windows
         .filter(window => !window.isSpec)
         .map(window => ({ projectRoots: window.projectRoots }))
     };
