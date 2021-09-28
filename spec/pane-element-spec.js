@@ -290,8 +290,8 @@ describe('PaneElement', function() {
       describe('when a file is dragged to the pane', () =>
         it('opens it', function() {
           const event = buildDragEvent('drop', [
-            { path: '/fake1' },
-            { path: '/fake2' }
+            { kind: 'file', getAsFile: () => ({ path: '/fake1' }) },
+            { kind: 'file', getAsFile: () => ({ path: '/fake2' }) }
           ]);
           paneElement.dispatchEvent(event);
           expect(atom.applicationDelegate.open.callCount).toBe(1);
@@ -318,8 +318,8 @@ describe('PaneElement', function() {
       describe('when a drag event occurs', () => {
         it('does nothing', () => {
           const event = buildDragEvent('drop', [
-            { path: '/fake1' },
-            { path: '/fake2' }
+            { kind: 'file', getAsFile: () => ({ path: '/fake1' }) },
+            { kind: 'file', getAsFile: () => ({ path: '/fake2' }) }
           ]);
           paneElement.dispatchEvent(event);
           expect(atom.applicationDelegate.open).not.toHaveBeenCalled();
