@@ -801,13 +801,15 @@ class AtomEnvironment {
     return Promise.all(steps);
   }
 
+  // Checks if window dimensions are onscreen (on the workArea part of a display).
+  // The dimensions currently have to be completely onscreen for this to return true.
   dimensionsAreOnScreen(dimensions) {
     for (const display of screen.getAllDisplays()) {
       if (
-        display.workArea.x < dimensions.x &&
-        display.workArea.y < dimensions.y &&
-        display.workArea.x + display.workArea.width > dimensions.x + dimensions.width &&
-        display.workArea.y + display.workArea.height > dimensions.y + dimensions.height
+        display.workArea.x <= dimensions.x &&
+        display.workArea.y <= dimensions.y &&
+        display.workArea.x + display.workArea.width >= dimensions.x + dimensions.width &&
+        display.workArea.y + display.workArea.height >= dimensions.y + dimensions.height
       ) {
         return true
       }
