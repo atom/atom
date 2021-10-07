@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const path = require('path');
 const util = require('util');
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, screen } = require('electron');
 
 const _ = require('underscore-plus');
 const { deprecate } = require('grim');
@@ -801,6 +801,20 @@ class AtomEnvironment {
     return Promise.all(steps);
   }
 
+  dimensionsAreOnScreen(dimensions) {
+    for (const display of screen.getAllDisplays()) {
+      if (
+        display.workArea.x < dimensions.x &&
+        display.workArea.y < dimensions.y &&
+        display.workArea.x + display.workArea.width > dimensions.x + dimensions.width &&
+        display.workArea.y + display.workArea.height > dimensions.y + dimensions.height
+      ) {
+        return true
+      }
+    }
+    return false
+  }
+
   storeWindowDimensions() {
     this.windowDimensions = this.getWindowDimensions();
     localStorage.setItem(
@@ -821,7 +835,7 @@ class AtomEnvironment {
       localStorage.removeItem('defaultWindowDimensions');
     }
 
-    if (dimensions && this.isValidDimensions(dimensions)) {
+    if (dimensions && this.dimensionsAreOnScreen(dimensions)) {
       return dimensions;
     } else {
       const {
