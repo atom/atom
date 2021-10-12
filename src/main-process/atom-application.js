@@ -133,6 +133,13 @@ const decryptOptions = (optionsMessage, secret) => {
   return JSON.parse(message);
 };
 
+ipcMain.handle('isDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.isDefaultProtocolClient(protocol, path, args);
+});
+
+ipcMain.handle('setAsDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.setAsDefaultProtocolClient(protocol, path, args);
+});
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
