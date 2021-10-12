@@ -397,7 +397,7 @@ module.exports = class GrammarRegistry {
     }
   }
 
-  // Remove the grammar override for the given file path.
+  // Deprecated: Remove the grammar override for the given file path.
   //
   // * `filePath` A {String} file path.
   //
@@ -572,7 +572,7 @@ module.exports = class GrammarRegistry {
   // * `grammarPath` A {String} absolute file path to a grammar file.
   // * `callback` A {Function} to call when read with the following arguments:
   //   * `error` An {Error}, may be null.
-  //   * `grammar` A {Grammar} or null if an error occurred.
+  //   * `grammar` A {Grammar} or undefined if an error occurred.
   //
   // Returns undefined.
   readGrammar(grammarPath, callback) {
