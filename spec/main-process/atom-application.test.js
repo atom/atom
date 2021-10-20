@@ -749,15 +749,27 @@ describe('AtomApplication', function() {
       assert.isFalse(w._locations[0].isFile);
     });
 
-    it('truncates trailing whitespace and colons', async function() {
-      await scenario.open(parseCommandLine(['b/2.md::  ']));
-      await scenario.assert('[_ 2.md]');
+    if (process.platform === 'win32') {
+      it('truncates trailing whitespace and colons', async function() {
+        await scenario.open(parseCommandLine(['b/2.md::  ']));
+        await scenario.assert('[_ 2.md]');
 
-      const w = scenario.getWindow(0);
-      assert.lengthOf(w._locations, 1);
-      assert.isNull(w._locations[0].initialLine);
-      assert.isNull(w._locations[0].initialColumn);
-    });
+        const w = scenario.getWindow(0);
+        assert.lengthOf(w._locations, 1);
+        assert.isNull(w._locations[0].initialLine);
+        assert.isNull(w._locations[0].initialColumn);
+      });
+    } else {
+      it('truncates trailing whitespace', async function() {
+        await scenario.open(parseCommandLine(['b/2.md::  ']));
+        await scenario.assert('[_ 2.md::]');
+
+        const w = scenario.getWindow(0);
+        assert.lengthOf(w._locations, 1);
+        assert.isNull(w._locations[0].initialLine);
+        assert.isNull(w._locations[0].initialColumn);
+      });
+    }
 
     it('disregards test and benchmark windows', async function() {
       await scenario.launch(parseCommandLine(['--test', 'b']));
