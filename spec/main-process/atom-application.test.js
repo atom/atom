@@ -749,7 +749,7 @@ describe('AtomApplication', function() {
       assert.isFalse(w._locations[0].isFile);
     });
 
-    if (process.platform === 'win32') {
+    if (process.platform === "win32") {
       it('truncates trailing whitespace and colons', async function() {
         await scenario.open(parseCommandLine(['b/2.md::  ']));
         await scenario.assert('[_ 2.md]');
@@ -761,8 +761,8 @@ describe('AtomApplication', function() {
       });
     } else {
       it('truncates trailing whitespace', async function() {
-        await scenario.open(parseCommandLine(['b/2.md::  ']));
-        await scenario.assert('[_ 2.md::]');
+        await scenario.open(parseCommandLine(['b/2.md  ']));
+        await scenario.assert('[_ 2.md]');
 
         const w = scenario.getWindow(0);
         assert.lengthOf(w._locations, 1);
