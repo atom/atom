@@ -236,34 +236,37 @@ module.exports = class AtomWindow extends EventEmitter {
       if (result.response === 0) this.browserWindow.destroy();
     });
 
-    this.browserWindow.webContents.on('render-process-gone', async (event, { reason }) => {
-      if (reason === "crashed") {
-        if (this.headless) {
-          console.log('Renderer process crashed, exiting');
-          this.atomApplication.exit(100);
-          return;
-        }
+    this.browserWindow.webContents.on(
+      'render-process-gone',
+      async (event, { reason }) => {
+        if (reason === "crashed") {
+          if (this.headless) {
+            console.log('Renderer process crashed, exiting');
+            this.atomApplication.exit(100);
+            return;
+          }
 
-        await this.fileRecoveryService.didCrashWindow(this);
+          await this.fileRecoveryService.didCrashWindow(this);
 
-        const result = await dialog.showMessageBox(this.browserWindow, {
-          type: 'warning',
-          buttons: ['Close Window', 'Reload', 'Keep It Open'],
-          cancelId: 2, // Canceling should be the least destructive action
-          message: 'The editor has crashed',
-          detail: 'Please report this issue to https://github.com/atom/atom'
-        });
+          const result = await dialog.showMessageBox(this.browserWindow, {
+            type: 'warning',
+            buttons: ['Close Window', 'Reload', 'Keep It Open'],
+            cancelId: 2, // Canceling should be the least destructive action
+            message: 'The editor has crashed',
+            detail: 'Please report this issue to https://github.com/atom/atom'
+          });
 
-        switch (result.response) {
-          case 0:
-            this.browserWindow.destroy();
-            break;
-          case 1:
-            this.browserWindow.reload();
-            break;
+          switch (result.response) {
+            case 0:
+              this.browserWindow.destroy();
+              break;
+            case 1:
+              this.browserWindow.reload();
+              break;
+          }
         }
       }
-    });
+    );
 
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
       if (url !== this.browserWindow.webContents.getURL())
