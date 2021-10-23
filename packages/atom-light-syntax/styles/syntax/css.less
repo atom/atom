@@ -88,21 +88,24 @@
     }
   }
 
-  // . : :: #
-  .syntax--punctuation.syntax--selector {
-    color: #458;
-    font-weight: bold;
+  .syntax--punctuation {
 
-    // *
-    &.syntax--wildcard {
-      color: #008080;
-      font-weight: normal;
-    }
+    // . : :: #
+    &.syntax--selector {
+      color: #458;
+      font-weight: bold;
 
-    // []
-    &.syntax--attribute {
-      color: #555;
-      font-weight: normal;
+      // *
+      &.syntax--wildcard {
+        color: #008080;
+        font-weight: normal;
+      }
+
+      // []
+      &.syntax--attribute {
+        color: #555;
+        font-weight: normal;
+      }
     }
   }
 }
