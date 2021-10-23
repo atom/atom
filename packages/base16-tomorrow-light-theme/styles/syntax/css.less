@@ -111,3 +111,20 @@
     }
   }
 }
+
+.syntax--source.syntax--css.syntax--scss,
+.syntax--source.syntax--css.syntax--less {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @blue;
+
+      // url rgb
+      &.syntax--support {
+        color: @cyan;
+      }
+    }
+  }
+}
