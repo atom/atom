@@ -78,6 +78,12 @@ module.exports = class WindowEventHandler {
       'keydown',
       this.handleDocumentKeyEvent
     );
+    this.addEventListener(this.document, 'drop', this.handleDocumentDrop);
+    this.addEventListener(
+      this.document,
+      'dragover',
+      this.handleDocumentDragover
+    );
     this.addEventListener(
       this.document,
       'contextmenu',
@@ -146,6 +152,17 @@ module.exports = class WindowEventHandler {
   handleDocumentKeyEvent(event) {
     this.atomEnvironment.keymaps.handleKeyboardEvent(event);
     event.stopImmediatePropagation();
+  }
+
+  handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  handleDragover(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'none';
   }
 
   eachTabIndexedElement(callback) {

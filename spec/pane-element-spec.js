@@ -1,11 +1,19 @@
+const PaneContainer = require('../src/pane-container');
+
 describe('PaneElement', function() {
   let [paneElement, container, containerElement, pane] = [];
 
   beforeEach(function() {
     spyOn(atom.applicationDelegate, 'open');
 
-    container = atom.workspace.getActivePaneContainer();
-    containerElement = container.paneContainer.getElement();
+    container = new PaneContainer({
+      location: 'center',
+      config: atom.config,
+      confirm: atom.confirm.bind(atom),
+      viewRegistry: atom.views,
+      applicationDelegate: atom.applicationDelegate
+    });
+    containerElement = container.getElement();
     pane = container.getActivePane();
     paneElement = pane.getElement();
   });
@@ -269,9 +277,9 @@ describe('PaneElement', function() {
     }));
 
   describe('drag and drop', function() {
-    const buildDragEvent = function(type, items) {
+    const buildDragEvent = function(type, files) {
       const dataTransfer = {
-        items,
+        files,
         data: {},
         setData(key, value) {
           this.data[key] = value;
@@ -286,46 +294,26 @@ describe('PaneElement', function() {
       return event;
     };
 
-    describe('when the pane is in the center workspace', () => {
-      describe('when a file is dragged to the pane', () =>
-        it('opens it', function() {
-          const event = buildDragEvent('drop', [
-            { kind: 'file', getAsFile: () => ({ path: '/fake1' }) },
-            { kind: 'file', getAsFile: () => ({ path: '/fake2' }) }
-          ]);
-          paneElement.dispatchEvent(event);
-          expect(atom.applicationDelegate.open.callCount).toBe(1);
-          expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual({
-            pathsToOpen: ['/fake1', '/fake2'],
-            here: true
-          });
-        }));
-
-      describe('when a non-file is dragged to the pane', () =>
-        it('does nothing', function() {
-          const event = buildDragEvent('drop', []);
-          paneElement.dispatchEvent(event);
-          expect(atom.applicationDelegate.open).not.toHaveBeenCalled();
-        }));
-    });
-
-    describe('when the pane is not in the center workspace', () => {
-      beforeEach(() => {
-        pane = atom.workspace.getLeftDock().getActivePane();
-        paneElement = pane.getElement();
-      });
-
-      describe('when a drag event occurs', () => {
-        it('does nothing', () => {
-          const event = buildDragEvent('drop', [
-            { kind: 'file', getAsFile: () => ({ path: '/fake1' }) },
-            { kind: 'file', getAsFile: () => ({ path: '/fake2' }) }
-          ]);
-          paneElement.dispatchEvent(event);
-          expect(atom.applicationDelegate.open).not.toHaveBeenCalled();
+    describe('when a file is dragged to the pane', () =>
+      it('opens it', function() {
+        const event = buildDragEvent('drop', [
+          { path: '/fake1' },
+          { path: '/fake2' }
+        ]);
+        paneElement.dispatchEvent(event);
+        expect(atom.applicationDelegate.open.callCount).toBe(1);
+        expect(atom.applicationDelegate.open.argsForCall[0][0]).toEqual({
+          pathsToOpen: ['/fake1', '/fake2'],
+          here: true
         });
-      });
-    });
+      }));
+
+    describe('when a non-file is dragged to the pane', () =>
+      it('does nothing', function() {
+        const event = buildDragEvent('drop', []);
+        paneElement.dispatchEvent(event);
+        expect(atom.applicationDelegate.open).not.toHaveBeenCalled();
+      }));
   });
 
   describe('resize', () =>
