@@ -20,7 +20,7 @@
     "@atom/watcher": "^1.3.5",
     "about": "file:packages/about",
     "archive-view": "https://www.atom.io/api/packages/archive-view/versions/0.66.0/tarball",
-    "async": "3.2.0",
+    "async": "3.2.2",
     "atom-dark-syntax": "file:packages/atom-dark-syntax",
     "atom-dark-ui": "file:packages/atom-dark-ui",
     "atom-keymap": "8.2.14",
