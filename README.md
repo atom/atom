@@ -1,7 +1,6 @@
 # Atom
 
 [![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master)
-[![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
 
 Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/electron/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
@@ -9,7 +8,7 @@ Atom is a hackable text editor for the 21st century, built on [Electron](https:/
 
 ![Atom Screenshot](https://user-images.githubusercontent.com/378023/49132478-f4b77680-f31f-11e8-9e10-e8454d8d9b7e.png)
 
-Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
+Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://github.com/atom/atom/discussions).
 
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
