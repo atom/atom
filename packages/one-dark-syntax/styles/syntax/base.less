@@ -84,18 +84,18 @@
   }
 }
 
-// () [] {} => @
+// () [] {} :
 .syntax--punctuation {
   color: @mono-1;
 
+  // . -> ::
   &.syntax--accessor {
-    color: @mono-1;
+    color: @hue-3;
+  }
 
-    // . -> ::
-    &.syntax--member,
-    &.syntax--scope {
-      color: @hue-3;
-    }
+  // * ... =>
+  &.syntax--operation {
+    color: @hue-3;
   }
 
   // { } ~~~
