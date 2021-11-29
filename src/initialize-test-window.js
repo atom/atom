@@ -10,7 +10,7 @@ function cloneObject(object) {
 }
 
 module.exports = async function({ blobStore }) {
-  const { remote } = require('electron');
+  const remote = require('@electron/remote');
   const getWindowLoadSettings = require('./get-window-load-settings');
 
   const exitWithStatusCode = function(status) {

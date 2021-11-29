@@ -13,6 +13,9 @@ const StartupTime = require('../startup-time');
 
 StartupTime.setStartTime();
 
+//https://github.com/electron/remote#migrating-from-remote
+require('@electron/remote/main').initialize()
+
 module.exports = function start(resourcePath, devResourcePath, startTime) {
   global.shellStartTime = startTime;
   StartupTime.addMarker('main-process:start');

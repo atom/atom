@@ -1,4 +1,4 @@
-const { remote } = require('electron');
+const remote = require('@electron/remote');
 const path = require('path');
 const ipcHelpers = require('./ipc-helpers');
 const util = require('util');
