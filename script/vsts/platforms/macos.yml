@@ -10,7 +10,7 @@ jobs:
       IsSignedZipBranch: $[ dependencies.GetReleaseVersion.outputs['Version.IsSignedZipBranch'] ]
       RunCoreMainTests: true
     pool:
-      vmImage: macos-10.15
+      vmImage: macos-11
 
     steps:
       - template: templates/preparation.yml
