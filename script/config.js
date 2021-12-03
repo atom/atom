@@ -77,7 +77,7 @@ function getAppName(channel) {
   return channel === 'stable'
     ? 'Atom'
     : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME ||
-        channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+    channel.charAt(0).toUpperCase() + channel.slice(1)}`;
 }
 
 function getExecutableName(channel, appName) {
@@ -113,8 +113,6 @@ function getApmBinPath() {
 }
 
 function getNpmBinPath(external = false) {
-  if (process.env.NPM_BIN_PATH) return process.env.NPM_BIN_PATH;
-
   const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const localNpmBinPath = path.resolve(
     repositoryRootPath,
@@ -123,7 +121,5 @@ function getNpmBinPath(external = false) {
     '.bin',
     npmBinName
   );
-  return !external && fs.existsSync(localNpmBinPath)
-    ? localNpmBinPath
-    : npmBinName;
+  return localNpmBinPath;
 }

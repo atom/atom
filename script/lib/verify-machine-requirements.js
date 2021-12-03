@@ -7,7 +7,7 @@ const CONFIG = require('../config');
 
 module.exports = function(ci) {
   verifyNode();
-  verifyNpm(ci);
+  // verifyNpm(ci);
   verifyPython();
 };
 
