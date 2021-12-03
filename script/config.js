@@ -3,7 +3,6 @@
 
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const spawnSync = require('./lib/spawn-sync');
 
@@ -77,7 +76,7 @@ function getAppName(channel) {
   return channel === 'stable'
     ? 'Atom'
     : `Atom ${process.env.ATOM_CHANNEL_DISPLAY_NAME ||
-    channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+        channel.charAt(0).toUpperCase() + channel.slice(1)}`;
 }
 
 function getExecutableName(channel, appName) {
