@@ -3,11 +3,8 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const CONFIG = require('../config');
-
 module.exports = function(ci) {
   verifyNode();
-  verifyNpm(ci);
   verifyPython();
 };
 
@@ -20,24 +17,6 @@ function verifyNode() {
   } else {
     throw new Error(
       `node v10.12+ is required to build Atom. node v${fullVersion} is installed.`
-    );
-  }
-}
-
-function verifyNpm(ci) {
-  const stdout = childProcess.execFileSync(
-    CONFIG.getNpmBinPath(ci),
-    ['--version'],
-    { env: process.env }
-  );
-  const fullVersion = stdout.toString().trim();
-  const majorVersion = fullVersion.split('.')[0];
-  const oldestMajorVersionSupported = ci ? 6 : 3;
-  if (majorVersion >= oldestMajorVersionSupported) {
-    console.log(`Npm:\tv${fullVersion}`);
-  } else {
-    throw new Error(
-      `npm v${oldestMajorVersionSupported}+ is required to build Atom. npm v${fullVersion} was detected.`
     );
   }
 }
