@@ -70,7 +70,7 @@
     "git-diff": "file:packages/git-diff",
     "git-utils": "5.7.1",
     "github": "https://www.atom.io/api/packages/github/versions/0.36.10/tarball",
-    "glob": "^7.1.1",
+    "glob": "7.2.0",
     "go-to-line": "file:packages/go-to-line",
     "grammar-selector": "file:packages/grammar-selector",
     "grim": "2.0.3",
