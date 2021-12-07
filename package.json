@@ -115,7 +115,7 @@
     "language-typescript": "https://www.atom.io/api/packages/language-typescript/versions/0.6.3/tarball",
     "language-xml": "https://www.atom.io/api/packages/language-xml/versions/0.35.3/tarball",
     "language-yaml": "https://www.atom.io/api/packages/language-yaml/versions/0.32.0/tarball",
-    "less-cache": "1.1.0",
+    "less-cache": "1.1.1",
     "line-ending-selector": "file:packages/line-ending-selector",
     "line-top-index": "0.3.1",
     "link": "file:packages/link",
