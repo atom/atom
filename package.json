@@ -62,7 +62,7 @@
     "find-parent-dir": "^0.3.0",
     "first-mate": "7.4.3",
     "focus-trap": "6.3.0",
-    "fs-admin": "0.15.0",
+    "fs-admin": "0.19.0",
     "fs-plus": "^3.1.1",
     "fstream": "1.0.12",
     "fuzzaldrin": "^2.1",
