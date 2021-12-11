@@ -107,36 +107,6 @@ export default class GuideView {
 
             <details
               className="welcome-card"
-              {...this.getSectionProps('teletype')}
-            >
-              <summary className="welcome-summary icon icon-radio-tower">
-                Collaborate in real time with{' '}
-                <span class="welcome-highlight">Teletype</span>
-              </summary>
-              <div className="welcome-detail">
-                <p>
-                  <img
-                    className="welcome-img"
-                    src="atom://welcome/assets/code.svg"
-                  />
-                </p>
-                <p>
-                  Share your workspace with team members and collaborate on code
-                  in real time.
-                </p>
-                <p>
-                  <button
-                    onclick={this.didClickTeletypeButton}
-                    className="btn btn-primary inline-block"
-                  >
-                    Install Teletype for Atom
-                  </button>
-                </p>
-              </div>
-            </details>
-
-            <details
-              className="welcome-card"
               {...this.getSectionProps('packages')}
             >
               <summary className="welcome-summary icon icon-package">
@@ -166,6 +136,36 @@ export default class GuideView {
                 <p className="welcome-note">
                   <strong>Next time:</strong> You can install new packages from
                   the settings.
+                </p>
+              </div>
+            </details>
+
+            <details
+              className="welcome-card"
+              {...this.getSectionProps('teletype')}
+            >
+              <summary className="welcome-summary icon icon-radio-tower">
+                Collaborate in real time with{' '}
+                <span class="welcome-highlight">Teletype</span>
+              </summary>
+              <div className="welcome-detail">
+                <p>
+                  <img
+                    className="welcome-img"
+                    src="atom://welcome/assets/code.svg"
+                  />
+                </p>
+                <p>
+                  Share your workspace with team members and collaborate on code
+                  in real time.
+                </p>
+                <p>
+                  <button
+                    onclick={this.didClickTeletypeButton}
+                    className="btn btn-primary inline-block"
+                  >
+                    Install Teletype for Atom
+                  </button>
                 </p>
               </div>
             </details>
