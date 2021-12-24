@@ -41,7 +41,7 @@
     "bookmarks": "https://www.atom.io/api/packages/bookmarks/versions/0.46.0/tarball",
     "bracket-matcher": "https://www.atom.io/api/packages/bracket-matcher/versions/0.92.0/tarball",
     "chai": "4.3.4",
-    "chart.js": "2.9.4",
+    "chart.js": "3.7.0",
     "clear-cut": "^2.0.2",
     "coffee-script": "1.12.7",
     "color": "3.1.3",
