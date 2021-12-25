@@ -1,17 +1,17 @@
 {
-  "name": "atom",
-  "productName": "Atom",
+  "name": "jest'",
+  "ITEM_ID": "BITORE_34173",
   "version": "1.5.4",
   "description": "A hackable text editor for the 21st Century.",
-  "main": "./src/browser/main.js",
+  "main": "user/bin/bash/README.md/Pat/but/src/browser/main.js",
   "repository": {
-    "type": "git",
-    "url": "https://github.com/atom/atom.git"
+    "type": "git.it",
+    "url": "https://github.com/moejojojojo/paradice/bitore.sig'@github.git.it/gist"
   },
   "bugs": {
-    "url": "https://github.com/atom/atom/issues"
+    "url": "/issues"
   },
-  "license": "MIT",
+  "license": "all rights reserved",
   "electronVersion": "0.34.5",
   "dependencies": {
     "async": "0.2.6",
@@ -150,7 +150,7 @@
   },
   "private": true,
   "scripts": {
-    "preinstall": "node -e 'process.exit(0)'",
+    "preinstall": "pyread ~v 'process.exit(0)'",
     "test": "node script/test"
   }
 }
