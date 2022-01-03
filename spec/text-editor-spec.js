@@ -3,6 +3,7 @@ const path = require('path');
 const temp = require('temp').track();
 const dedent = require('dedent');
 const { clipboard } = require('electron');
+const os = require('os');
 const TextEditor = require('../src/text-editor');
 const TextBuffer = require('text-buffer');
 const TextMateLanguageMode = require('../src/text-mate-language-mode');
@@ -5051,7 +5052,7 @@ describe('TextEditor', () => {
           editor.cutSelectedText();
           expect(buffer.lineForRow(0)).toBe('var  = function () {');
           expect(buffer.lineForRow(1)).toBe('  var  = function(items) {');
-          expect(clipboard.readText()).toBe('quicksort\nsort');
+          expect(clipboard.readText()).toBe(['quicksort', 'sort'].join(os.EOL));
         });
 
         describe('when no text is selected', () => {
@@ -5068,13 +5069,14 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(4)).toBe(
               '      current < pivot ? left.push(current) : right.push(current);'
             );
+
             expect(atom.clipboard.read()).toEqual(
               [
                 'var quicksort = function () {',
                 '',
                 '      current = items.shift();',
                 ''
-              ].join('\n')
+              ].join(os.EOL)
             );
           });
         });
@@ -5087,7 +5089,9 @@ describe('TextEditor', () => {
               [[1, 6], [1, 10]]
             ]);
             editor.cutSelectedText();
-            expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`);
+            expect(atom.clipboard.read()).toEqual(
+              ['quicksort', 'sort', 'items'].join(os.EOL)
+            );
           });
         });
       });
@@ -5115,7 +5119,9 @@ describe('TextEditor', () => {
               expect(buffer.lineForRow(2)).toBe('    if (items.length');
               expect(buffer.lineForRow(3)).toBe('    var pivot = item');
               expect(atom.clipboard.read()).toBe(
-                ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+                ` <= 1) return items;${
+                  os.EOL
+                }s.shift(), current, left = [], right = [];`
               );
             }));
 
@@ -5131,7 +5137,7 @@ describe('TextEditor', () => {
               );
               expect(buffer.lineForRow(3)).toBe('    var pivot = item');
               expect(atom.clipboard.read()).toBe(
-                ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+                ` <= 1) ret${os.EOL}s.shift(), current, left = [], right = [];`
               );
             }));
         });
@@ -5151,7 +5157,9 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(2)).toBe('    if (items.length');
             expect(buffer.lineForRow(3)).toBe('    var pivot = item');
             expect(atom.clipboard.read()).toBe(
-              ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+              ` <= 1) return items;${
+                os.EOL
+              }s.shift(), current, left = [], right = [];`
             );
           });
         });
@@ -5166,7 +5174,7 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(2)).toBe('    if (items.lengthurn items;');
             expect(buffer.lineForRow(3)).toBe('    var pivot = item');
             expect(atom.clipboard.read()).toBe(
-              ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+              ` <= 1) ret${os.EOL}s.shift(), current, left = [], right = [];`
             );
           });
         });
@@ -5186,8 +5194,12 @@ describe('TextEditor', () => {
           expect(buffer.lineForRow(2)).toBe(
             '    if (items.length <= 1) return items;'
           );
-          expect(clipboard.readText()).toBe('quicksort\nsort\nitems');
-          expect(atom.clipboard.read()).toEqual('quicksort\nsort\nitems');
+          expect(clipboard.readText()).toBe(
+            ['quicksort', 'sort', 'items'].join(os.EOL)
+          );
+          expect(atom.clipboard.read()).toEqual(
+            ['quicksort', 'sort', 'items'].join(os.EOL)
+          );
         });
 
         describe('when no text is selected', () => {
@@ -5202,9 +5214,9 @@ describe('TextEditor', () => {
             editor.copySelectedText();
             expect(atom.clipboard.read()).toEqual(
               [
-                '  var sort = function(items) {\n',
-                '      current = items.shift();\n'
-              ].join('\n')
+                `  var sort = function(items) {${os.EOL}`,
+                `      current = items.shift();${os.EOL}`
+              ].join(os.EOL)
             );
             expect(editor.getSelectedBufferRanges()).toEqual([
               [[1, 5], [1, 5]],
@@ -5221,7 +5233,9 @@ describe('TextEditor', () => {
               [[1, 6], [1, 10]]
             ]);
             editor.copySelectedText();
-            expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`);
+            expect(atom.clipboard.read()).toEqual(
+              ['quicksort', 'sort', 'items'].join(os.EOL)
+            );
           });
         });
       });
@@ -5241,8 +5255,12 @@ describe('TextEditor', () => {
             expect(buffer.lineForRow(2)).toBe(
               '    if (items.length <= 1) return items;'
             );
-            expect(clipboard.readText()).toBe('quicksort\nsort\nitems');
-            expect(atom.clipboard.read()).toEqual(`quicksort\nsort\nitems`);
+            expect(clipboard.readText()).toBe(
+              ['quicksort', 'sort', 'items'].join(os.EOL)
+            );
+            expect(atom.clipboard.read()).toEqual(
+              ['quicksort', 'sort', 'items'].join(os.EOL)
+            );
           });
         });
 
@@ -5540,7 +5558,7 @@ describe('TextEditor', () => {
 
           expect(editor.lineTextForBufferRow(5)).toBe('  a(x);');
           expect(editor.lineTextForBufferRow(6)).toBe('  b(x);');
-          expect(editor.buffer.lineEndingForRow(6)).toBe('\r\n');
+          expect(editor.buffer.lineEndingForRow(6)).toBe(os.EOL);
           expect(editor.lineTextForBufferRow(7)).toBe('c(x);');
           expect(editor.lineTextForBufferRow(8)).toBe(
             '      current = items.shift();'

@@ -133,6 +133,13 @@ const decryptOptions = (optionsMessage, secret) => {
   return JSON.parse(message);
 };
 
+ipcMain.handle('isDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.isDefaultProtocolClient(protocol, path, args);
+});
+
+ipcMain.handle('setAsDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.setAsDefaultProtocolClient(protocol, path, args);
+});
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -248,16 +255,6 @@ module.exports = class AtomApplication extends EventEmitter {
     StartupTime.addMarker('main-process:atom-application:initialize:start');
 
     global.atomApplication = this;
-
-    // DEPRECATED: This can be removed at some point (added in 1.13)
-    // It converts `useCustomTitleBar: true` to `titleBar: "custom"`
-    if (
-      process.platform === 'darwin' &&
-      this.config.get('core.useCustomTitleBar')
-    ) {
-      this.config.unset('core.useCustomTitleBar');
-      this.config.set('core.titleBar', 'custom');
-    }
 
     this.applicationMenu = new ApplicationMenu(
       this.version,
@@ -590,7 +587,7 @@ module.exports = class AtomApplication extends EventEmitter {
       shell.openExternal('http://flight-manual.atom.io')
     );
     this.on('application:open-discussions', () =>
-      shell.openExternal('https://discuss.atom.io')
+      shell.openExternal('https://github.com/atom/atom/discussions')
     );
     this.on('application:open-faq', () =>
       shell.openExternal('https://atom.io/faq')
@@ -1484,9 +1481,14 @@ module.exports = class AtomApplication extends EventEmitter {
   async saveCurrentWindowOptions(allowEmpty = false) {
     if (this.quitting) return;
 
+    const windows = this.getAllWindows();
+    const hasASpecWindow = windows.some(window => window.isSpec);
+
+    if (windows.length === 1 && hasASpecWindow) return;
+
     const state = {
       version: APPLICATION_STATE_VERSION,
-      windows: this.getAllWindows()
+      windows: windows
         .filter(window => !window.isSpec)
         .map(window => ({ projectRoots: window.projectRoots }))
     };

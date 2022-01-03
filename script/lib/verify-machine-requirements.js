@@ -3,45 +3,20 @@
 const childProcess = require('child_process');
 const path = require('path');
 
-const CONFIG = require('../config');
-
 module.exports = function(ci) {
   verifyNode();
-  verifyNpm(ci);
   verifyPython();
 };
 
 function verifyNode() {
   const fullVersion = process.versions.node;
   const majorVersion = fullVersion.split('.')[0];
-  if (majorVersion >= 6) {
+  const minorVersion = fullVersion.split('.')[1];
+  if (majorVersion >= 11 || (majorVersion === '10' && minorVersion >= 12)) {
     console.log(`Node:\tv${fullVersion}`);
-  } else if (majorVersion >= 4) {
-    console.log(`Node:\tv${fullVersion}`);
-    console.warn(
-      '\tWarning: Building on Node below version 6 is deprecated. Please use Node 6.x+ to build Atom.'
-    );
   } else {
     throw new Error(
-      `node v4+ is required to build Atom. node v${fullVersion} is installed.`
-    );
-  }
-}
-
-function verifyNpm(ci) {
-  const stdout = childProcess.execFileSync(
-    CONFIG.getNpmBinPath(ci),
-    ['--version'],
-    { env: process.env }
-  );
-  const fullVersion = stdout.toString().trim();
-  const majorVersion = fullVersion.split('.')[0];
-  const oldestMajorVersionSupported = ci ? 6 : 3;
-  if (majorVersion >= oldestMajorVersionSupported) {
-    console.log(`Npm:\tv${fullVersion}`);
-  } else {
-    throw new Error(
-      `npm v${oldestMajorVersionSupported}+ is required to build Atom. npm v${fullVersion} was detected.`
+      `node v10.12+ is required to build Atom. node v${fullVersion} is installed.`
     );
   }
 }
@@ -94,7 +69,7 @@ function verifyPython() {
           env: process.env,
           stdio: ['ignore', 'pipe', 'ignore']
         });
-      } catch {}
+      } catch (e) {}
 
       if (stdout) {
         if (stdout.indexOf('+') !== -1)

@@ -1,9 +1,8 @@
 const { CompositeDisposable } = require('event-kit');
-/* eslint-disable-next-line no-unused-vars */
-const PaneResizeHandleElement = require('./pane-resize-handle-element');
+require('./pane-resize-handle-element');
 
 class PaneAxisElement extends HTMLElement {
-  attachedCallback() {
+  connectedCallback() {
     if (this.subscriptions == null) {
       this.subscriptions = this.subscribeToModel();
     }
@@ -12,7 +11,7 @@ class PaneAxisElement extends HTMLElement {
       .map((child, index) => this.childAdded({ child, index }));
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.subscriptions.dispose();
     this.subscriptions = null;
     this.model.getChildren().map(child => this.childRemoved({ child }));
@@ -116,6 +115,12 @@ class PaneAxisElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-pane-axis', {
-  prototype: PaneAxisElement.prototype
-});
+window.customElements.define('atom-pane-axis', PaneAxisElement);
+
+function createPaneAxisElement() {
+  return document.createElement('atom-pane-axis');
+}
+
+module.exports = {
+  createPaneAxisElement
+};

@@ -1,5 +1,6 @@
 class PaneResizeHandleElement extends HTMLElement {
-  createdCallback() {
+  constructor() {
+    super();
     this.resizePane = this.resizePane.bind(this);
     this.resizeStopped = this.resizeStopped.bind(this);
     this.subscribeToDOMEvents();
@@ -10,7 +11,7 @@ class PaneResizeHandleElement extends HTMLElement {
     this.addEventListener('mousedown', this.resizeStarted.bind(this));
   }
 
-  attachedCallback() {
+  connectedCallback() {
     // For some reason Chromium 58 is firing the attached callback after the
     // element has been detached, so we ignore the callback when a parent element
     // can't be found.
@@ -20,7 +21,7 @@ class PaneResizeHandleElement extends HTMLElement {
     }
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.resizeStopped();
   }
 
@@ -105,6 +106,15 @@ class PaneResizeHandleElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-pane-resize-handle', {
-  prototype: PaneResizeHandleElement.prototype
-});
+window.customElements.define(
+  'atom-pane-resize-handle',
+  PaneResizeHandleElement
+);
+
+function createPaneResizeHandleElement() {
+  return document.createElement('atom-pane-resize-handle');
+}
+
+module.exports = {
+  createPaneResizeHandleElement
+};
