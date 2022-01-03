@@ -24,9 +24,6 @@ describe('GitDiff when targeting nested repository', () => {
     // The nested repo doesn't need to be managed by the temp module because
     // it's a part of our test environment.
     const nestedPath = path.join(projectPath, 'nested-repository');
-    // When instantiating a GitRepository, the repository will always point
-    // to the .git folder in it's path.
-    const targetRepositoryPath = path.join(nestedPath, '.git');
     // Initialize the repository contents.
     fs.copySync(path.join(__dirname, 'fixtures', 'working-dir'), nestedPath);
     fs.moveSync(
@@ -58,15 +55,20 @@ describe('GitDiff when targeting nested repository', () => {
      * Non-hack regression prevention for nested repositories. If we know
      * that our project path contains two repositories, we can ensure that
      * git-diff is targeting the correct one by creating an artificial change
-     * in the ancestor repository, which doesn't effect the target repository.
-     * If our diff shows any kind of change to our target file, we're targeting
-     * the incorrect repository.
+     * in the ancestor repository, which is percieved differently within the
+     * child. In this case, creating a new file will not generate markers in
+     * the ancestor repo, even if there are changes; but changes will be
+     * marked within the child repo. So all we have to do is check if
+     * markers exist and we know we're targeting the proper repository,
+     * If no markers exist, we're targeting an ancestor repo.
      */
-    it("uses the innermost repository", () => {
-      //waitsForPromise(async () => await new Promise(resolve => setTimeout(resolve, 4000)));
-      //waitsFor(() => !! atom.packages.isPackageLoaded("git-diff"));
+    it('uses the innermost repository', () => {
+      editor.insertText('a');
       waitsFor(() => screenUpdates > 0);
-      runs(() => expect(editor.getMarkers().length).toBe(0));
+      runs(() => {
+        expect(editorElement.querySelectorAll('.git-line-modified').length)
+          .toBe(1);
+      });
     });
   });
 });
