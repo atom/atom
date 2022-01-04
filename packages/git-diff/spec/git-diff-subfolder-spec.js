@@ -66,8 +66,9 @@ describe('GitDiff when targeting nested repository', () => {
       editor.insertText('a');
       waitsFor(() => screenUpdates > 0);
       runs(() => {
-        expect(editorElement.querySelectorAll('.git-line-modified').length)
-          .toBe(1);
+        expect(
+          editorElement.querySelectorAll('.git-line-modified').length
+        ).toBe(1);
       });
     });
   });
