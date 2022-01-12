@@ -1,7 +1,7 @@
 name: Pull Request
 on: [pull_request]
 jobs:
-  Bootstrap:
+  bootstrap:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
@@ -9,7 +9,4 @@ jobs:
         id: node-cache
         with:
           node-version: '12.18.3'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
       - run: script/bootstrap
-        if: steps.node-cache.outputs.cache-hit != 'true'
