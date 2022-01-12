@@ -8,4 +8,5 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12.18.3'
+          cache: 'npm'
       - run: script/bootstrap
