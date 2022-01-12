@@ -10,3 +10,4 @@ jobs:
         with:
           node-version: '12.18.3'
       - run: script/bootstrap
+      - run: script/build --no-bootstrap
