@@ -1,7 +1,7 @@
 name: Pull Request
 on: [pull_request]
 jobs:
-  bootstrap:
+  Bootstrap:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
