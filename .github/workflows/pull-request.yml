@@ -5,14 +5,5 @@ env:
   ATOM_RUN_CORE_TESTS: true
   ATOM_RUN_CORE_MAIN_TESTS: true
 jobs:
-  bootstrap:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v2
-        id: node-cache
-        with:
-          node-version: '12.18.3'
-      - run: script/bootstrap
-      - run: script/build --no-bootstrap
-      - run: script/test
+  build:
+    uses: atom/atom/.github/workflows/build.yml@use-github-actions
