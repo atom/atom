@@ -10,7 +10,9 @@ jobs:
         with:
           node-version: '12.18.3'
       - run: script/build
+      - name: Tar output
+        run: tar -cvf atom-${{ runner.os }}.tar out/
       - uses: actions/upload-artifact@v2
         with:
             name: atom-${{ runner.os }}
-            path: out/
+            path: atom-${{ runner.os }}.tar
