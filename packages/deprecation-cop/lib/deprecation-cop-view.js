@@ -6,7 +6,7 @@ import { CompositeDisposable } from 'atom';
 import etch from 'etch';
 import fs from 'fs-plus';
 import Grim from 'grim';
-import marked from 'marked';
+import { marked } from 'marked';
 import path from 'path';
 import { shell } from 'electron';
 
