@@ -52,7 +52,7 @@ jobs:
           node-version: '12.18.3'
       - run: script/build
       - name: Tar output
-        run: tar -cvf atom-${{ matrix.os }}.tar out/
+        run: tar -cvf atom-${{ matrix.os }}.tar out
       - uses: actions/upload-artifact@v2
         with:
             name: atom-${{ matrix.os }}
