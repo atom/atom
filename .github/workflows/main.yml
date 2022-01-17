@@ -1,0 +1,25 @@
+name: Atom Pipeline
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  get_release_version:
+    name: Get Release Version
+    runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: scripts/vsts
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.18.3'
+          cache: 'npm'
+      - run: npm install
+      - run: node get-release-version.js
