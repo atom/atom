@@ -1,9 +1,59 @@
-name: Pull Request
-on: [pull_request]
-env:
-  ATOM_RUN_CORE_RENDER_TESTS: true
-  ATOM_RUN_CORE_TESTS: true
-  ATOM_RUN_CORE_MAIN_TESTS: true
+name: Atom
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
 jobs:
+  get_release_version:
+    name: Get Release Version
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: script/vsts
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.18.3'
+          cache: 'npm'
+      - run: npm install
+      - run: node get-release-version.js
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: script
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.18.3'
+          cache: 'npm'
+      - run: npm install
+      - run: ./lint
   build:
-    uses: atom/atom/.github/workflows/build.yml@use-github-actions
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: [get_release_version, lint]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.18.3'
+      - run: script/build
+      - name: Tar output
+        run: tar -cvf atom-${{ runner.os }}.tar out/
+      - uses: actions/upload-artifact@v2
+        with:
+            name: atom-${{ runner.os }}
+            path: atom-${{ runner.os }}.tar
