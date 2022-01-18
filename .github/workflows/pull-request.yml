@@ -35,8 +35,14 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12.18.3'
-          cache: 'npm'
+      - name: Cache script dependencies
+        id: script-deps
+        uses: actions/cache@v2
+        with:
+          path: script/node_modules
+          key: ${{ runner.os }}-script-${{ hashFiles('script/package-lock.json') }}
       - run: npm install
+        if: steps.script-deps.outputs.cache-hit != 'true'
       - run: ./lint
   build:
     name: Build
@@ -50,7 +56,41 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12.18.3'
-      - run: script/build
+
+      - name: Cache script dependencies
+        id: script-deps
+        uses: actions/cache@v2
+        with:
+          path: script/node_modules
+          key: ${{ matrix.os }}-script-${{ hashFiles('script/package-lock.json') }}
+
+      - name: Cache apm dependencies
+        id: apm-deps
+        uses: actions/cache@v2
+        with:
+          path: apm/node_modules
+          key: ${{ matrix.os }}-apm-${{ hashFiles('apm/package-lock.json') }}
+
+      - name: Cache core dependencies
+        id: core-deps
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ matrix.os }}-core-${{ hashFiles('package-lock.json') }}
+      - name:  Install script dependencies
+        if: steps.script-deps.outputs.cache-hit != 'true'
+        run: |
+            cd script
+            npm install
+      - name: Install apm
+        if: steps.apm-deps.outputs.cache-hit != 'true'
+        run: |
+            cd apm
+            npm install
+      - name: Install core dependencies
+        if: steps.core-deps.outputs.cache-hit != 'true'
+        run: npm install
+      - run: script/build --no-bootstrap
       - name: Tar output
         run: tar -cvf atom-${{ matrix.os }}.tar out
       - uses: actions/upload-artifact@v2
