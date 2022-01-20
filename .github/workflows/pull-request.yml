@@ -97,3 +97,25 @@ jobs:
         with:
             name: atom-${{ matrix.os }}
             path: atom-${{ matrix.os }}.tar
+
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.18.3'
+      - uses: actions/download-artifact@v2
+        with:
+          name: atom-${{ matrix.os }}
+          path: out
+
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: out
+      - run: ls
