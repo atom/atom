@@ -48,7 +48,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: [get_release_version, lint]
     steps:
@@ -89,7 +89,9 @@ jobs:
             npm install
       - name: Install core dependencies
         if: steps.core-deps.outputs.cache-hit != 'true'
-        run: npm install
+        run: |
+            npm install
+            npx electron-rebuild -v 11.4.12
       - run: script/build --no-bootstrap
       - name: Tar output
         run: tar -cvf atom-${{ matrix.os }}.tar out
@@ -102,20 +104,43 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     needs: [build]
+    env:
+      ATOM_RUN_CORE_TESTS: true
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v2
         with:
           node-version: '12.18.3'
       - uses: actions/download-artifact@v2
+        name: Download Artifact
         with:
           name: atom-${{ matrix.os }}
-          path: out
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: out
+      - run: npm --version
+      - run: node --version
+      - name: Extract Artifact
+        run: |
+          tar -xvf atom-${{ matrix.os }}.tar -C .
       - run: ls
+        working-directory: out
+      - name: Restor script dependencies
+        uses: actions/cache@v2
+        with:
+          path: script/node_modules
+          key: ${{ matrix.os }}-script-${{ hashFiles('script/package-lock.json') }}
+
+      - name: Restor apm dependencies
+        uses: actions/cache@v2
+        with:
+          path: apm/node_modules
+          key: ${{ matrix.os }}-apm-${{ hashFiles('apm/package-lock.json') }}
+
+      - name: Restore core dependencies
+        id: core-deps
+        uses: actions/cache@v2
+        with:
+          path: node_modules
+          key: ${{ matrix.os }}-core-${{ hashFiles('package-lock.json') }}
+      - run: script/test
