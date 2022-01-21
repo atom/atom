@@ -48,7 +48,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     needs: [get_release_version, lint]
     steps:
@@ -76,7 +76,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ matrix.os }}-core-${{ hashFiles('package-lock.json') }}
+          key: ${{ matrix.os }}-core-deps-${{ hashFiles('package-lock.json') }}
       - name:  Install script dependencies
         if: steps.script-deps.outputs.cache-hit != 'true'
         run: |
@@ -104,34 +104,29 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     needs: [build]
-    env:
-      ATOM_RUN_CORE_TESTS: true
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v2
         with:
           node-version: '12.18.3'
+
       - uses: actions/download-artifact@v2
         name: Download Artifact
         with:
           name: atom-${{ matrix.os }}
-      - run: npm --version
-      - run: node --version
       - name: Extract Artifact
-        run: |
-          tar -xvf atom-${{ matrix.os }}.tar -C .
-      - run: ls
-        working-directory: out
+        run: tar -xvf atom-${{ matrix.os }}.tar -C .
+
       - name: Restor script dependencies
         uses: actions/cache@v2
         with:
           path: script/node_modules
           key: ${{ matrix.os }}-script-${{ hashFiles('script/package-lock.json') }}
 
-      - name: Restor apm dependencies
+      - name: Restore apm dependencies
         uses: actions/cache@v2
         with:
           path: apm/node_modules
@@ -142,5 +137,33 @@ jobs:
         uses: actions/cache@v2
         with:
           path: node_modules
-          key: ${{ matrix.os }}-core-${{ hashFiles('package-lock.json') }}
-      - run: script/test
+          key: ${{ matrix.os }}-core-deps-${{ hashFiles('package-lock.json') }}
+
+      - name: Run test
+        uses: GabrielBB/xvfb-action@v1
+        if: ${{ matrix.os }} == 'ubuntu-latest'
+        env:
+          ATOM_RUN_CORE_MAIN_TESTS: true
+        with:
+          run: script/test
+
+      - name: Run test
+        uses: GabrielBB/xvfb-action@v1
+        if: ${{ matrix.os }} == 'macos-latest'
+        env:
+          ATOM_RUN_CORE_TESTS: true
+          ATOM_RUN_CORE_MAIN_TESTS: true
+          ATOM_RUN_CORE_RENDER_TESTS: true
+          ATOM_RUN_PACKAGE_TESTS: true
+        with:
+          run: script/test
+
+      - name: Run test
+        uses: GabrielBB/xvfb-action@v1
+        if: ${{ matrix.os }} == 'windows-latest'
+        env:
+          ATOM_RUN_CORE_TESTS: true
+          ATOM_RUN_CORE_MAIN_TESTS: true
+          ATOM_RUN_CORE_RENDER_TESTS: true
+        with:
+          run: script/test
