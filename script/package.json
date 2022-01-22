@@ -35,7 +35,7 @@
     "minidump": "^0.22.0",
     "mkdirp": "0.5.1",
     "nock": "^13.0.2",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.1.1",
     "normalize-package-data": "2.3.5",
     "npm": "6.14.8",
     "npm-check": "^5.9.2",
