@@ -103,8 +103,10 @@ jobs:
   test:
     name: Test
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        test_type: [ATOM_RUN_CORE_TESTS, ATOM_RUN_CORE_MAIN_TESTS, ATOM_RUN_CORE_RENDER_TESTS, ATOM_RUN_PACKAGE_TESTS]
     runs-on: ${{ matrix.os }}
     needs: [build]
     steps:
@@ -141,29 +143,24 @@ jobs:
 
       - name: Run test
         uses: GabrielBB/xvfb-action@v1
-        if: ${{ matrix.os }} == 'ubuntu-latest'
-        env:
-          ATOM_RUN_CORE_MAIN_TESTS: true
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.test_type == 'ATOM_RUN_CORE_MAIN_TESTS'}}
         with:
-          run: script/test
+          run: |
+            echo "${{ matrix.test_type}}=true" >> $GITHUB_ENV
+            script/test
 
       - name: Run test
         uses: GabrielBB/xvfb-action@v1
-        if: ${{ matrix.os }} == 'macos-latest'
-        env:
-          ATOM_RUN_CORE_TESTS: true
-          ATOM_RUN_CORE_MAIN_TESTS: true
-          ATOM_RUN_CORE_RENDER_TESTS: true
-          ATOM_RUN_PACKAGE_TESTS: true
+        if: ${{ matrix.os == 'macos-latest' }}
         with:
-          run: script/test
+          run: |
+            echo "${{ matrix.test_type}}='true'" >> $GITHUB_ENV
+            script/test
 
       - name: Run test
         uses: GabrielBB/xvfb-action@v1
-        if: ${{ matrix.os }} == 'windows-latest'
-        env:
-          ATOM_RUN_CORE_TESTS: true
-          ATOM_RUN_CORE_MAIN_TESTS: true
-          ATOM_RUN_CORE_RENDER_TESTS: true
+        if: ${{ matrix.os == 'windows-latest' && matrix.test_type != 'ATOM_RUN_PACKAGE_TESTS'}}
         with:
-          run: script/test
+          run: |
+            echo "${{ matrix.test_type}}='true'" >> $GITHUB_ENV
+            script/test
