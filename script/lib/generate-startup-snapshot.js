@@ -293,11 +293,16 @@ module.exports = function(packagedAppPath) {
         CONFIG.executableName
       );
     }
-    childProcess.execFileSync(
-      nodeBundledInElectronPath,
-      [verifySnapshotScriptPath, snapshotScriptPath],
-      { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: 1 }) }
-    );
+    try {
+      childProcess.execFileSync(
+        nodeBundledInElectronPath,
+        [verifySnapshotScriptPath, snapshotScriptPath],
+        { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: 1 }) }
+      );
+    } catch (ex) {
+      console.log(ex.message);
+      console.log(ex.error);
+    }
 
     console.log('Generating startup blob with mksnapshot');
     childProcess.spawnSync(process.execPath, [
