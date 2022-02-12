@@ -67,7 +67,7 @@ module.exports = class TextEditorComponent {
     } else {
       if (!TextEditorElement)
         TextEditorElement = require('./text-editor-element');
-      this.element = new TextEditorElement();
+      this.element = TextEditorElement.createTextEditorElement();
     }
     this.element.initialize(this);
     this.virtualNode = $('atom-text-editor');
@@ -306,7 +306,7 @@ module.exports = class TextEditorComponent {
       this.remeasureAllBlockDecorations = false;
 
       const decorations = this.props.model.getDecorations();
-      for (var i = 0; i < decorations.length; i++) {
+      for (let i = 0; i < decorations.length; i++) {
         const decoration = decorations[i];
         const marker = decoration.getMarker();
         if (marker.isValid() && decoration.getProperties().type === 'block') {
@@ -1656,15 +1656,6 @@ module.exports = class TextEditorComponent {
   // Called by TextEditorElement so that focus events can be handled before
   // the element is attached to the DOM.
   didFocus() {
-    // This element can be focused from a parent custom element's
-    // attachedCallback before *its* attachedCallback is fired. This protects
-    // against that case.
-    if (!this.attached) this.didAttach();
-
-    // The element can be focused before the intersection observer detects that
-    // it has been shown for the first time. If this element is being focused,
-    // it is necessarily visible, so we call `didShow` to ensure the hidden
-    // input is rendered before we try to shift focus to it.
     if (!this.visible) this.didShow();
 
     if (!this.focused) {
@@ -1673,7 +1664,7 @@ module.exports = class TextEditorComponent {
       this.scheduleUpdate();
     }
 
-    this.getHiddenInput().focus();
+    this.getHiddenInput().focus({ preventScroll: true });
   }
 
   // Called by TextEditorElement so that this function is always the first
@@ -1698,12 +1689,6 @@ module.exports = class TextEditorComponent {
   }
 
   didFocusHiddenInput() {
-    // Focusing the hidden input when it is off-screen causes the browser to
-    // scroll it into view. Since we use synthetic scrolling this behavior
-    // causes all the lines to disappear so we counteract it by always setting
-    // the scroll position to 0.
-    this.refs.scrollContainer.scrollTop = 0;
-    this.refs.scrollContainer.scrollLeft = 0;
     if (!this.focused) {
       this.focused = true;
       this.startCursorBlinking();
@@ -1736,7 +1721,10 @@ module.exports = class TextEditorComponent {
     const scrollTopChanged =
       wheelDeltaY !== 0 && this.setScrollTop(this.getScrollTop() - wheelDeltaY);
 
-    if (scrollLeftChanged || scrollTopChanged) this.updateSync();
+    if (scrollLeftChanged || scrollTopChanged) {
+      event.preventDefault();
+      this.updateSync();
+    }
   }
 
   didResize() {
@@ -1865,7 +1853,7 @@ module.exports = class TextEditorComponent {
   // keydown(code: X), keypress, keydown(code: X)
   //
   // The code X must be the same in the keydown events that bracket the
-  // keypress, meaning we're *holding* the _same_ key we intially pressed.
+  // keypress, meaning we're *holding* the _same_ key we initially pressed.
   // Got that?
   didKeydown(event) {
     // Stop dragging when user interacts with the keyboard. This prevents
@@ -1929,7 +1917,7 @@ module.exports = class TextEditorComponent {
         // Disabling the hidden input makes it lose focus as well, so we have to
         // re-enable and re-focus it.
         this.getHiddenInput().disabled = false;
-        this.getHiddenInput().focus();
+        this.getHiddenInput().focus({ preventScroll: true });
       });
       return;
     }
@@ -1972,8 +1960,12 @@ module.exports = class TextEditorComponent {
 
       // On Linux, pasting happens on middle click. A textInput event with the
       // contents of the selection clipboard will be dispatched by the browser
-      // automatically on mouseup.
-      if (platform === 'linux' && this.isInputEnabled())
+      // automatically on mouseup if editor.selectionClipboard is set to true.
+      if (
+        platform === 'linux' &&
+        this.isInputEnabled() &&
+        atom.config.get('editor.selectionClipboard')
+      )
         model.insertText(clipboard.readText('selection'));
       return;
     }
@@ -1991,7 +1983,9 @@ module.exports = class TextEditorComponent {
       return;
     }
 
-    const addOrRemoveSelection = metaKey || (ctrlKey && platform !== 'darwin');
+    const allowMultiCursor = atom.config.get('editor.multiCursorOnClick');
+    const addOrRemoveSelection =
+      allowMultiCursor && (metaKey || (ctrlKey && platform !== 'darwin'));
 
     switch (detail) {
       case 1:
@@ -2175,7 +2169,7 @@ module.exports = class TextEditorComponent {
   }
 
   autoscrollOnMouseDrag({ clientX, clientY }, verticalOnly = false) {
-    var {
+    let {
       top,
       bottom,
       left,
@@ -2315,15 +2309,10 @@ module.exports = class TextEditorComponent {
     let desiredScrollTop, desiredScrollBottom;
     if (options && options.center) {
       const desiredScrollCenter = (screenRangeTop + screenRangeBottom) / 2;
-      if (
-        desiredScrollCenter < this.getScrollTop() ||
-        desiredScrollCenter > this.getScrollBottom()
-      ) {
-        desiredScrollTop =
-          desiredScrollCenter - this.getScrollContainerClientHeight() / 2;
-        desiredScrollBottom =
-          desiredScrollCenter + this.getScrollContainerClientHeight() / 2;
-      }
+      desiredScrollTop =
+        desiredScrollCenter - this.getScrollContainerClientHeight() / 2;
+      desiredScrollBottom =
+        desiredScrollCenter + this.getScrollContainerClientHeight() / 2;
     } else {
       desiredScrollTop = screenRangeTop - verticalScrollMargin;
       desiredScrollBottom = screenRangeBottom + verticalScrollMargin;
@@ -4294,7 +4283,7 @@ class LinesTileComponent {
   }
 
   updateLines(oldProps, newProps) {
-    var {
+    const {
       screenLines,
       tileStartRow,
       lineDecorations,
@@ -4304,20 +4293,20 @@ class LinesTileComponent {
       lineComponentsByScreenLineId
     } = newProps;
 
-    var oldScreenLines = oldProps.screenLines;
-    var newScreenLines = screenLines;
-    var oldScreenLinesEndIndex = oldScreenLines.length;
-    var newScreenLinesEndIndex = newScreenLines.length;
-    var oldScreenLineIndex = 0;
-    var newScreenLineIndex = 0;
-    var lineComponentIndex = 0;
+    const oldScreenLines = oldProps.screenLines;
+    const newScreenLines = screenLines;
+    const oldScreenLinesEndIndex = oldScreenLines.length;
+    const newScreenLinesEndIndex = newScreenLines.length;
+    let oldScreenLineIndex = 0;
+    let newScreenLineIndex = 0;
+    let lineComponentIndex = 0;
 
     while (
       oldScreenLineIndex < oldScreenLinesEndIndex ||
       newScreenLineIndex < newScreenLinesEndIndex
     ) {
-      var oldScreenLine = oldScreenLines[oldScreenLineIndex];
-      var newScreenLine = newScreenLines[newScreenLineIndex];
+      const oldScreenLine = oldScreenLines[oldScreenLineIndex];
+      const newScreenLine = newScreenLines[newScreenLineIndex];
 
       if (oldScreenLineIndex >= oldScreenLinesEndIndex) {
         var newScreenLineComponent = new LineComponent({
@@ -4340,7 +4329,7 @@ class LinesTileComponent {
 
         oldScreenLineIndex++;
       } else if (oldScreenLine === newScreenLine) {
-        var lineComponent = this.lineComponents[lineComponentIndex];
+        const lineComponent = this.lineComponents[lineComponentIndex];
         lineComponent.update({
           screenRow: tileStartRow + newScreenLineIndex,
           lineDecoration: lineDecorations[newScreenLineIndex],
@@ -4351,17 +4340,17 @@ class LinesTileComponent {
         newScreenLineIndex++;
         lineComponentIndex++;
       } else {
-        var oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(
+        const oldScreenLineIndexInNewScreenLines = newScreenLines.indexOf(
           oldScreenLine
         );
-        var newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(
+        const newScreenLineIndexInOldScreenLines = oldScreenLines.indexOf(
           newScreenLine
         );
         if (
           newScreenLineIndex < oldScreenLineIndexInNewScreenLines &&
           oldScreenLineIndexInNewScreenLines < newScreenLinesEndIndex
         ) {
-          var newScreenLineComponents = [];
+          const newScreenLineComponents = [];
           while (newScreenLineIndex < oldScreenLineIndexInNewScreenLines) {
             // eslint-disable-next-line no-redeclare
             var newScreenLineComponent = new LineComponent({
@@ -4400,7 +4389,9 @@ class LinesTileComponent {
             oldScreenLineIndex++;
           }
         } else {
-          var oldScreenLineComponent = this.lineComponents[lineComponentIndex];
+          const oldScreenLineComponent = this.lineComponents[
+            lineComponentIndex
+          ];
           // eslint-disable-next-line no-redeclare
           var newScreenLineComponent = new LineComponent({
             screenLine: newScreenLines[newScreenLineIndex],
@@ -4427,13 +4418,13 @@ class LinesTileComponent {
   }
 
   getFirstElementForScreenLine(oldProps, screenLine) {
-    var blockDecorations = oldProps.blockDecorations
+    const blockDecorations = oldProps.blockDecorations
       ? oldProps.blockDecorations.get(screenLine.id)
       : null;
     if (blockDecorations) {
-      var blockDecorationElementsBeforeOldScreenLine = [];
+      const blockDecorationElementsBeforeOldScreenLine = [];
       for (let i = 0; i < blockDecorations.length; i++) {
-        var decoration = blockDecorations[i];
+        const decoration = blockDecorations[i];
         if (decoration.position !== 'after') {
           blockDecorationElementsBeforeOldScreenLine.push(
             TextEditor.viewForItem(decoration.item)
@@ -4446,7 +4437,7 @@ class LinesTileComponent {
         i < blockDecorationElementsBeforeOldScreenLine.length;
         i++
       ) {
-        var blockDecorationElement =
+        const blockDecorationElement =
           blockDecorationElementsBeforeOldScreenLine[i];
         if (
           !blockDecorationElementsBeforeOldScreenLine.includes(
@@ -4462,19 +4453,19 @@ class LinesTileComponent {
   }
 
   updateBlockDecorations(oldProps, newProps) {
-    var { blockDecorations, lineComponentsByScreenLineId } = newProps;
+    const { blockDecorations, lineComponentsByScreenLineId } = newProps;
 
     if (oldProps.blockDecorations) {
       oldProps.blockDecorations.forEach((oldDecorations, screenLineId) => {
-        var newDecorations = newProps.blockDecorations
+        const newDecorations = newProps.blockDecorations
           ? newProps.blockDecorations.get(screenLineId)
           : null;
-        for (var i = 0; i < oldDecorations.length; i++) {
-          var oldDecoration = oldDecorations[i];
+        for (let i = 0; i < oldDecorations.length; i++) {
+          const oldDecoration = oldDecorations[i];
           if (newDecorations && newDecorations.includes(oldDecoration))
             continue;
 
-          var element = TextEditor.viewForItem(oldDecoration.item);
+          const element = TextEditor.viewForItem(oldDecoration.item);
           if (element.parentElement !== this.element) continue;
 
           element.remove();
@@ -5136,11 +5127,11 @@ class NodePool {
   }
 
   getElement(type, className, style) {
-    var element;
-    var elementsByDepth = this.elementsByType[type];
+    let element;
+    const elementsByDepth = this.elementsByType[type];
     if (elementsByDepth) {
       while (elementsByDepth.length > 0) {
-        var elements = elementsByDepth[elementsByDepth.length - 1];
+        const elements = elementsByDepth[elementsByDepth.length - 1];
         if (elements && elements.length > 0) {
           element = elements.pop();
           if (elements.length === 0) elementsByDepth.pop();
@@ -5161,7 +5152,7 @@ class NodePool {
       while (element.firstChild) element.firstChild.remove();
       return element;
     } else {
-      var newElement = document.createElement(type);
+      const newElement = document.createElement(type);
       if (className) newElement.className = className;
       if (style) Object.assign(newElement.style, style);
       return newElement;
@@ -5170,7 +5161,7 @@ class NodePool {
 
   getTextNode(text) {
     if (this.textNodes.length > 0) {
-      var node = this.textNodes.pop();
+      const node = this.textNodes.pop();
       node.textContent = text;
       return node;
     } else {
@@ -5179,24 +5170,24 @@ class NodePool {
   }
 
   release(node, depth = 0) {
-    var { nodeName } = node;
+    const { nodeName } = node;
     if (nodeName === '#text') {
       this.textNodes.push(node);
     } else {
-      var elementsByDepth = this.elementsByType[nodeName];
+      let elementsByDepth = this.elementsByType[nodeName];
       if (!elementsByDepth) {
         elementsByDepth = [];
         this.elementsByType[nodeName] = elementsByDepth;
       }
 
-      var elements = elementsByDepth[depth];
+      let elements = elementsByDepth[depth];
       if (!elements) {
         elements = [];
         elementsByDepth[depth] = elements;
       }
 
       elements.push(node);
-      for (var i = 0; i < node.childNodes.length; i++) {
+      for (let i = 0; i < node.childNodes.length; i++) {
         this.release(node.childNodes[i], depth + 1);
       }
     }

@@ -340,12 +340,16 @@ class AtomEnvironment {
         if (!this.unloading) this.saveState({ isUnloading: false });
       });
     }, this.saveStateDebounceInterval);
-    this.document.addEventListener('mousedown', saveState, true);
-    this.document.addEventListener('keydown', saveState, true);
+    this.document.addEventListener('mousedown', saveState, { capture: true });
+    this.document.addEventListener('keydown', saveState, { capture: true });
     this.disposables.add(
       new Disposable(() => {
-        this.document.removeEventListener('mousedown', saveState, true);
-        this.document.removeEventListener('keydown', saveState, true);
+        this.document.removeEventListener('mousedown', saveState, {
+          capture: true
+        });
+        this.document.removeEventListener('keydown', saveState, {
+          capture: true
+        });
       })
     );
   }
@@ -1032,7 +1036,12 @@ class AtomEnvironment {
         commands: this.commands,
         history: this.history,
         config: this.config,
-        open: paths => this.open({ pathsToOpen: paths })
+        open: paths =>
+          this.open({
+            pathsToOpen: paths,
+            safeMode: this.inSafeMode(),
+            devMode: this.inDevMode()
+          })
       });
       this.reopenProjectMenuManager.update();
     });

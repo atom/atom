@@ -62,6 +62,7 @@ function compress(inputDirPath, outputArchivePath) {
   }
   compressArguments.push(outputArchivePath, path.basename(inputDirPath));
   spawnSync(compressCommand, compressArguments, {
-    cwd: path.dirname(inputDirPath)
+    cwd: path.dirname(inputDirPath),
+    maxBuffer: 2024 * 2024
   });
 }

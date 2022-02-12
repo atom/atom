@@ -1,0 +1,79 @@
+steps:
+  - pwsh: |
+      # OS specific env variables
+      if ($env:AGENT_OS -eq "Linux") {
+        $env:DISPLAY=":99.0"
+        $env:npm_config_build_from_source=true
+      }
+
+      # Test
+      if ($env:AGENT_OS -eq "Darwin") {
+        osascript -e 'tell application "System Events" to keystroke "x"' # clear screen saver
+        caffeinate -s script/test # Run with caffeinate to prevent screen saver
+      } else {
+        script/test
+      }
+    env:
+      CI: true
+      CI_PROVIDER: VSTS
+      ATOM_JASMINE_REPORTER: list
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+      ATOM_RUN_CORE_TESTS: $(RunCoreTests)
+      ATOM_RUN_CORE_MAIN_TESTS: $(RunCoreMainTests)
+      ATOM_RUN_CORE_RENDER_TESTS: $(RunCoreRendererTests)
+      ATOM_RUN_PACKAGE_TESTS: $(RunPackageTests)
+    displayName: Run tests
+    condition: and(succeeded(), ne(variables['Atom.SkipTests'], 'true'))
+
+  # Test results
+  - pwsh: script/postprocess-junit-results --search-folder "$env:TEST_JUNIT_XML_ROOT" --test-results-files "**/*.xml"
+    env:
+      TEST_JUNIT_XML_ROOT: $(Common.TestResultsDirectory)/junit
+    displayName: Post-process test results
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFormat: JUnit
+      searchFolder: $(Common.TestResultsDirectory)/junit
+      testResultsFiles: '**/*.xml'
+      mergeTestResults: true
+      testRunTitle: $(Agent.OS) $(BUILD_ARCH)
+    condition: ne(variables['Atom.SkipTests'], 'true')
+
+  # Crash Reports
+  - pwsh: |
+      New-Item -Path $env:ARTIFACT_STAGING_DIR/crash-reports -Type Directory -Force
+      if (($env:AGENT_OS -eq "Windows_NT") -and (Test-Path "$env:TEMP/Atom Crashes")) {
+        cp "$env:TEMP/Atom Crashes/*.dmp"  $env:ARTIFACT_STAGING_DIR/crash-reports
+      } else {
+        cp $env:HOME/Library/Logs/DiagnosticReports/*.crash $env:ARTIFACT_STAGING_DIR/crash-reports
+      }
+    env:
+      ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
+    displayName: Stage Crash Reports
+    condition: failed()
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/crash-reports
+      ArtifactName: crash-reports.zip
+    ${{ if eq(variables['Agent.OS'], 'Windows_NT') }}:
+      condition: and(failed(), eq(variables['ATOM_RELEASES_S3_KEY'], ''))
+      displayName: Publish crash reports on non-release branch
+    ${{ if ne(variables['Agent.OS'], 'Windows_NT') }}:
+      condition: failed()
+      displayName: Upload Crash Reports
+
+  - script: >
+      node $(Build.SourcesDirectory)\script\vsts\upload-crash-reports.js --crash-report-path "%ARTIFACT_STAGING_DIR%\crash-reports" --azure-blob-path "vsts-artifacts/%BUILD_ID%/"
+    env:
+      ATOM_RELEASES_S3_KEY: $(ATOM_RELEASES_S3_KEY)
+      ATOM_RELEASES_AZURE_CONN_STRING: $(ATOM_RELEASES_AZURE_CONN_STRING)
+      ATOM_RELEASES_S3_SECRET: $(ATOM_RELEASES_S3_SECRET)
+      ATOM_RELEASES_S3_BUCKET: $(ATOM_RELEASES_S3_BUCKET)
+      ARTIFACT_STAGING_DIR: $(Build.ArtifactStagingDirectory)
+      BUILD_ID: $(Build.BuildId)
+    displayName: Upload crash reports to S3 on release branch
+    condition: and(failed(), ne(variables['ATOM_RELEASES_S3_KEY'], ''), eq(variables['Agent.OS'], 'Windows_NT'))

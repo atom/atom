@@ -42,6 +42,8 @@ module.exports = class Clipboard {
   // * `text` The {String} to store.
   // * `metadata` (optional) The additional info to associate with the text.
   write(text, metadata) {
+    text = text.replace(/\r?\n/g, process.platform === 'win32' ? '\r\n' : '\n');
+
     this.signatureForMetadata = this.md5(text);
     this.metadata = metadata;
     clipboard.writeText(text);
@@ -52,6 +54,18 @@ module.exports = class Clipboard {
   // Returns a {String}.
   read() {
     return clipboard.readText();
+  }
+
+  // Public: Write the given text to the macOS find pasteboard
+  writeFindText(text) {
+    clipboard.writeFindText(text);
+  }
+
+  // Public: Read the text from the macOS find pasteboard.
+  //
+  // Returns a {String}.
+  readFindText() {
+    return clipboard.readFindText();
   }
 
   // Public: Read the text from the clipboard and return both the text and the

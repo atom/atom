@@ -22,7 +22,7 @@ atom-pane-container {
       &:before {
         content: "";
         position: absolute;
-        z-index: 3;
+        z-index: 11;
       }
     }
   }
@@ -103,5 +103,22 @@ atom-pane-container {
         cursor: ew-resize;
       }
     }
+  }
+}
+
+.atom-pane-cursor-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+
+  &.horizontal {
+    cursor: col-resize;
+  }
+
+  &.vertical {
+    cursor: row-resize;
   }
 }

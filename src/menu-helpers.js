@@ -36,6 +36,7 @@ function merge(menu, item, itemSpecificity = Infinity) {
 }
 
 function unmerge(menu, item) {
+  item = cloneMenuItem(item);
   const matchingItemIndex = findMatchingItemIndex(menu, item);
   if (matchingItemIndex === -1) {
     return;
@@ -53,16 +54,13 @@ function unmerge(menu, item) {
   }
 }
 
-function findMatchingItemIndex(menu, { type, label, submenu }) {
+function findMatchingItemIndex(menu, { type, id, submenu }) {
   if (type === 'separator') {
     return -1;
   }
   for (let index = 0; index < menu.length; index++) {
     const item = menu[index];
-    if (
-      normalizeLabel(item.label) === normalizeLabel(label) &&
-      (item.submenu != null) === (submenu != null)
-    ) {
+    if (item.id === id && (item.submenu != null) === (submenu != null)) {
       return index;
     }
   }
@@ -81,6 +79,7 @@ function cloneMenuItem(item) {
     item,
     'type',
     'label',
+    'id',
     'enabled',
     'visible',
     'command',
@@ -93,6 +92,9 @@ function cloneMenuItem(item) {
     'beforeGroupContaining',
     'afterGroupContaining'
   );
+  if (item.id === null || item.id === undefined) {
+    item.id = normalizeLabel(item.label);
+  }
   if (item.submenu != null) {
     item.submenu = item.submenu.map(submenuItem => cloneMenuItem(submenuItem));
   }

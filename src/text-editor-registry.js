@@ -110,9 +110,31 @@ module.exports = class TextEditorRegistry {
   //
   // Returns a {Boolean} indicating whether the editor was successfully removed.
   remove(editor) {
-    var removed = this.editors.delete(editor);
+    const removed = this.editors.delete(editor);
     editor.registered = false;
     return removed;
+  }
+
+  // Gets the currently active text editor.
+  //
+  // Returns the currently active text editor, or `null` if there is none.
+  getActiveTextEditor() {
+    for (let ed of this.editors) {
+      // fast path, works as long as there's a shadow DOM inside the text editor
+      if (ed.getElement() === document.activeElement) {
+        return ed;
+      } else {
+        let editorElement = ed.getElement();
+        let current = document.activeElement;
+        while (current) {
+          if (current === editorElement) {
+            return ed;
+          }
+          current = current.parentNode;
+        }
+      }
+    }
+    return null;
   }
 
   // Invoke the given callback with all the current and future registered

@@ -399,9 +399,8 @@ describe('Pane', () => {
       const pendingSpy = jasmine.createSpy('onItemDidTerminatePendingState');
       const destroySpy = jasmine.createSpy('onWillDestroyItem');
 
-      await atom.workspace.open('sample.txt', { pending: true }).then(() => {
-        pane = atom.workspace.getActivePane();
-      });
+      await atom.workspace.open('sample.txt', { pending: true });
+      pane = atom.workspace.getActivePane();
 
       pane.onItemDidTerminatePendingState(pendingSpy);
       pane.onWillDestroyItem(destroySpy);
@@ -569,6 +568,32 @@ describe('Pane', () => {
       expect(pane.getActiveItem()).toBeUndefined();
     });
 
+    it('does nothing if prevented', () => {
+      const container = new PaneContainer({
+        config: atom.config,
+        deserializerManager: atom.deserializers,
+        applicationDelegate: atom.applicationDelegate
+      });
+
+      pane.setContainer(container);
+      container.onWillDestroyPaneItem(e => e.prevent());
+      pane.itemStack = [item2, item3, item1];
+
+      pane.activateItem(item1);
+      expect(pane.getActiveItem()).toBe(item1);
+      pane.destroyItem(item3);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
+
+      pane.destroyItem(item1);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
+
+      pane.destroyItem(item2);
+      expect(pane.itemStack).toEqual([item2, item3, item1]);
+      expect(pane.getActiveItem()).toBe(item1);
+    });
+
     it('invokes ::onWillDestroyItem() and PaneContainer::onWillDestroyPaneItem observers before destroying the item', async () => {
       jasmine.useRealClock();
       pane.container = new PaneContainer({ config: atom.config, confirm });
@@ -590,10 +615,16 @@ describe('Pane', () => {
 
       await pane.destroyItem(item2);
       expect(item2.isDestroyed()).toBe(true);
-      expect(events).toEqual([
-        ['will-destroy-item', { item: item2, index: 1 }],
-        ['will-destroy-pane-item', { item: item2, index: 1, pane }]
-      ]);
+
+      expect(events[0][0]).toEqual('will-destroy-item');
+      expect(events[0][1].item).toEqual(item2);
+      expect(events[0][1].index).toEqual(1);
+
+      expect(events[1][0]).toEqual('will-destroy-pane-item');
+      expect(events[1][1].item).toEqual(item2);
+      expect(events[1][1].index).toEqual(1);
+      expect(typeof events[1][1].prevent).toEqual('function');
+      expect(events[1][1].pane).toEqual(pane);
     });
 
     it('invokes ::onWillRemoveItem() observers', () => {

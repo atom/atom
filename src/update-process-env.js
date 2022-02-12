@@ -10,6 +10,12 @@ const ENVIRONMENT_VARIABLES_TO_PRESERVE = new Set([
 
 const PLATFORMS_KNOWN_TO_WORK = new Set(['darwin', 'linux']);
 
+// Shell command that returns env var=value lines separated by \0s so that
+// newlines are handled properly. Note: need to use %c to inject the \0s
+// to work with some non GNU awks.
+const ENV_COMMAND =
+  'command awk \'BEGIN{for(v in ENVIRON) printf("%s=%s%c", v, ENVIRON[v], 0)}\'';
+
 async function updateProcessEnv(launchEnv) {
   let envToAssign;
   if (launchEnv) {
@@ -78,7 +84,7 @@ async function getEnvFromShell(env) {
     setTimeout(() => {
       cleanup();
     }, 5000);
-    child = childProcess.spawn(env.SHELL, ['-ilc', 'command env'], {
+    child = childProcess.spawn(env.SHELL, ['-ilc', ENV_COMMAND], {
       encoding: 'utf8',
       detached: true,
       stdio: ['ignore', 'pipe', process.stderr]
@@ -109,7 +115,9 @@ async function getEnvFromShell(env) {
     console.log(
       'warning: ' +
         env.SHELL +
-        ' -ilc "command env" failed with signal (' +
+        ' -ilc "' +
+        ENV_COMMAND +
+        '" failed with signal (' +
         error.signal +
         ')'
     );
@@ -121,7 +129,7 @@ async function getEnvFromShell(env) {
   }
 
   let result = {};
-  for (let line of stdout.split('\n')) {
+  for (let line of stdout.split('\0')) {
     if (line.includes('=')) {
       let components = line.split('=');
       let key = components.shift();

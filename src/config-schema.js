@@ -46,6 +46,13 @@ const configSchema = {
         description:
           'List of names of installed packages which are not loaded at startup.'
       },
+      titleBar: {
+        type: 'string',
+        default: 'native',
+        enum: ['native', 'hidden'],
+        description:
+          'Experimental:  The title bar can  be completely `hidden`.<br>This setting will require a relaunch of Atom to take effect.'
+      },
       versionPinnedPackages: {
         type: 'array',
         default: [],
@@ -440,6 +447,14 @@ const configSchema = {
         maximum: 100,
         description: 'Height in pixels of editor text.'
       },
+      defaultFontSize: {
+        type: 'integer',
+        default: 14,
+        minimum: 1,
+        maximum: 100,
+        description:
+          'Default height in pixels of the editor text. Useful when resetting font size'
+      },
       lineHeight: {
         type: ['string', 'number'],
         default: 1.5,
@@ -609,6 +624,12 @@ const configSchema = {
         default: process.platform !== 'darwin',
         description:
           'Change the editor font size when pressing the Ctrl key and scrolling the mouse up/down.'
+      },
+      multiCursorOnClick: {
+        type: 'boolean',
+        default: true,
+        description:
+          'Add multiple cursors when pressing the Ctrl key (Command key on MacOS) and clicking the editor.'
       }
     }
   }
@@ -630,6 +651,20 @@ if (process.platform === 'darwin') {
     enum: ['native', 'custom', 'custom-inset', 'hidden'],
     description:
       'Experimental: A `custom` title bar adapts to theme colors. Choosing `custom-inset` adds a bit more padding. The title bar can also be completely `hidden`.<br>Note: Switching to a custom or hidden title bar will compromise some functionality.<br>This setting will require a relaunch of Atom to take effect.'
+  };
+  configSchema.core.properties.simpleFullScreenWindows = {
+    type: 'boolean',
+    default: false,
+    description:
+      'Use pre-Lion fullscreen on macOS. This does not create a new desktop space for the atom on fullscreen mode.'
+  };
+}
+
+if (process.platform === 'linux') {
+  configSchema.editor.properties.selectionClipboard = {
+    type: 'boolean',
+    default: true,
+    description: 'Enable pasting on middle mouse button click'
   };
 }
 

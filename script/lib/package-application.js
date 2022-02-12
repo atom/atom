@@ -4,7 +4,7 @@ const assert = require('assert');
 const childProcess = require('child_process');
 const electronPackager = require('electron-packager');
 const fs = require('fs-extra');
-const hostArch = require('electron-packager/targets').hostArch;
+const hostArch = require('@electron/get').getHostArch;
 const includePathInPackagedApp = require('./include-path-in-packaged-app');
 const getLicenseText = require('./get-license-text');
 const path = require('path');
@@ -140,7 +140,7 @@ function copyNonASARResources(packagedAppPath, bundledResourcesPath) {
       'folder.ico'
     ].forEach(file =>
       fs.copySync(
-        path.join('resources', 'win', file),
+        path.join(CONFIG.repositoryRootPath, 'resources', 'win', file),
         path.join(bundledResourcesPath, 'cli', file)
       )
     );

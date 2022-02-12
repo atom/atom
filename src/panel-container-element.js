@@ -1,14 +1,15 @@
 'use strict';
 
-const focusTrap = require('focus-trap');
+const { createFocusTrap } = require('focus-trap');
 const { CompositeDisposable } = require('event-kit');
 
 class PanelContainerElement extends HTMLElement {
-  createdCallback() {
+  constructor() {
+    super();
     this.subscriptions = new CompositeDisposable();
   }
 
-  attachedCallback() {
+  connectedCallback() {
     if (this.model.dock) {
       this.model.dock.elementAttached();
     }
@@ -73,13 +74,14 @@ class PanelContainerElement extends HTMLElement {
           fallbackFocus: panelElement,
           // closing is handled by core Atom commands and this already deactivates
           // on visibility changes
-          escapeDeactivates: false
+          escapeDeactivates: false,
+          delayInitialFocus: false
         };
 
         if (panel.autoFocus !== true) {
           focusOptions.initialFocus = panel.autoFocus;
         }
-        const modalFocusTrap = focusTrap(panelElement, focusOptions);
+        const modalFocusTrap = createFocusTrap(panelElement, focusOptions);
 
         this.subscriptions.add(
           panel.onDidChangeVisible(visible => {
@@ -110,6 +112,12 @@ class PanelContainerElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-panel-container', {
-  prototype: PanelContainerElement.prototype
-});
+window.customElements.define('atom-panel-container', PanelContainerElement);
+
+function createPanelContainerElement() {
+  return document.createElement('atom-panel-container');
+}
+
+module.exports = {
+  createPanelContainerElement
+};

@@ -14,7 +14,7 @@ describe('TextEditorElement', () => {
   });
 
   function buildTextEditorElement(options = {}) {
-    const element = new TextEditorElement();
+    const element = TextEditorElement.createTextEditorElement();
     element.setUpdatedSynchronously(false);
     if (options.attach !== false) jasmine.attachToDOM(element);
     return element;
@@ -218,15 +218,16 @@ describe('TextEditorElement', () => {
     });
 
     describe('when focused while a parent node is being attached to the DOM', () => {
-      class ElementThatFocusesChild extends HTMLDivElement {
-        attachedCallback() {
+      class ElementThatFocusesChild extends HTMLElement {
+        connectedCallback() {
           this.firstChild.focus();
         }
       }
 
-      document.registerElement('element-that-focuses-child', {
-        prototype: ElementThatFocusesChild.prototype
-      });
+      window.customElements.define(
+        'element-that-focuses-child',
+        ElementThatFocusesChild
+      );
 
       it('proxies the focus event to the hidden input', () => {
         const element = buildTextEditorElement();
@@ -438,12 +439,15 @@ describe('TextEditorElement', () => {
       const bottom = 13 * editor.getLineHeightInPixels();
       const left = Math.round(3 * editor.getDefaultCharWidth());
       const right = Math.round(11 * editor.getDefaultCharWidth());
-      expect(element.pixelRectForScreenRange([[2, 3], [13, 11]])).toEqual({
-        top,
-        left,
-        height: bottom + editor.getLineHeightInPixels() - top,
-        width: right - left
-      });
+
+      const pixelRect = element.pixelRectForScreenRange([[2, 3], [13, 11]]);
+
+      expect(pixelRect.top).toEqual(top);
+      expect(pixelRect.left).toEqual(left);
+      expect(pixelRect.height).toEqual(
+        bottom + editor.getLineHeightInPixels() - top
+      );
+      expect(pixelRect.width).toBeNear(right - left);
     });
   });
 

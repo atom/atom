@@ -102,17 +102,7 @@ const createSocketSecret = async atomVersion => {
 
 const encryptOptions = (options, secret) => {
   const message = JSON.stringify(options);
-
-  // Even if the following IV is not cryptographically secure, there's a really good chance
-  // it's going to be unique between executions which is the requirement for GCM.
-  // We're not using `crypto.randomBytes()` because in electron v2, that API is really slow
-  // on Windows machines, which affects the startup time of Atom.
-  // TodoElectronIssue: Once we upgrade to electron v3 we can use `crypto.randomBytes()`
-  const initVectorHash = crypto.createHash('sha1');
-  initVectorHash.update(Date.now() + '');
-  initVectorHash.update(Math.random() + '');
-  const initVector = initVectorHash.digest();
-
+  const initVector = crypto.randomBytes(16); // AES uses 16 bytes for iV
   const cipher = crypto.createCipheriv('aes-256-gcm', secret, initVector);
 
   let content = cipher.update(message, 'utf8', 'hex');
@@ -143,6 +133,13 @@ const decryptOptions = (optionsMessage, secret) => {
   return JSON.parse(message);
 };
 
+ipcMain.handle('isDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.isDefaultProtocolClient(protocol, path, args);
+});
+
+ipcMain.handle('setAsDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.setAsDefaultProtocolClient(protocol, path, args);
+});
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -259,16 +256,6 @@ module.exports = class AtomApplication extends EventEmitter {
 
     global.atomApplication = this;
 
-    // DEPRECATED: This can be removed at some point (added in 1.13)
-    // It converts `useCustomTitleBar: true` to `titleBar: "custom"`
-    if (
-      process.platform === 'darwin' &&
-      this.config.get('core.useCustomTitleBar')
-    ) {
-      this.config.unset('core.useCustomTitleBar');
-      this.config.set('core.titleBar', 'custom');
-    }
-
     this.applicationMenu = new ApplicationMenu(
       this.version,
       this.autoUpdateManager
@@ -278,11 +265,6 @@ module.exports = class AtomApplication extends EventEmitter {
       this.safeMode
     );
 
-    // Don't await for the following method to avoid delaying the opening of a new window.
-    // (we await it just after opening it).
-    // We need to do this because `listenForArgumentsFromNewProcess()` calls `crypto.randomBytes`,
-    // which is really slow on Windows machines.
-    // (TodoElectronIssue: This got fixed in electron v3: https://github.com/electron/electron/issues/2073).
     let socketServerPromise;
     if (options.test || options.benchmark || options.benchmarkTest) {
       socketServerPromise = Promise.resolve();
@@ -290,11 +272,11 @@ module.exports = class AtomApplication extends EventEmitter {
       socketServerPromise = this.listenForArgumentsFromNewProcess();
     }
 
+    await socketServerPromise;
     this.setupDockMenu();
 
     const result = await this.launch(options);
     this.autoUpdateManager.initialize();
-    await socketServerPromise;
 
     StartupTime.addMarker('main-process:atom-application:initialize:end');
 
@@ -319,12 +301,7 @@ module.exports = class AtomApplication extends EventEmitter {
           this.promptForRestart()
         );
       });
-
-      // TodoElectronIssue: In electron v2 awaiting the watcher causes some delay
-      // in Windows machines, which affects directly the startup time.
-      if (process.platform !== 'win32') {
-        await this.configFilePromise;
-      }
+      await this.configFilePromise;
     }
 
     let optionsForWindowsToOpen = [];
@@ -459,14 +436,9 @@ module.exports = class AtomApplication extends EventEmitter {
   // Public: Removes the {AtomWindow} from the global window list.
   removeWindow(window) {
     this.windowStack.removeWindow(window);
-    if (this.getAllWindows().length === 0) {
-      if (this.applicationMenu != null) {
-        this.applicationMenu.enableWindowSpecificItems(false);
-      }
-      if (['win32', 'linux'].includes(process.platform)) {
-        app.quit();
-        return;
-      }
+    if (this.getAllWindows().length === 0 && process.platform !== 'darwin') {
+      app.quit();
+      return;
     }
     if (!window.isSpec) this.saveCurrentWindowOptions(true);
   }
@@ -615,7 +587,7 @@ module.exports = class AtomApplication extends EventEmitter {
       shell.openExternal('http://flight-manual.atom.io')
     );
     this.on('application:open-discussions', () =>
-      shell.openExternal('https://discuss.atom.io')
+      shell.openExternal('https://github.com/atom/atom/discussions')
     );
     this.on('application:open-faq', () =>
       shell.openExternal('https://atom.io/faq')
@@ -644,6 +616,12 @@ module.exports = class AtomApplication extends EventEmitter {
 
     if (process.platform === 'darwin') {
       this.on('application:reopen-project', ({ paths }) => {
+        const focusedWindow = this.focusedWindow();
+        if (focusedWindow) {
+          const { safeMode, devMode } = focusedWindow;
+          this.openPaths({ pathsToOpen: paths, safeMode, devMode });
+          return;
+        }
         this.openPaths({ pathsToOpen: paths });
       });
 
@@ -778,6 +756,19 @@ module.exports = class AtomApplication extends EventEmitter {
       })
     );
 
+    // See: https://www.electronjs.org/docs/api/app#event-window-all-closed
+    this.disposable.add(
+      ipcHelpers.on(app, 'window-all-closed', () => {
+        if (this.applicationMenu != null) {
+          this.applicationMenu.enableWindowSpecificItems(false);
+        }
+        // Don't quit when the last window is closed on macOS.
+        if (process.platform !== 'darwin') {
+          app.quit();
+        }
+      })
+    );
+
     // Triggered by the 'open-file' event from Electron:
     // https://electronjs.org/docs/api/app#event-open-file-macos
     // For example, this is fired when a file is dragged and dropped onto the Atom application icon in the dock.
@@ -814,11 +805,10 @@ module.exports = class AtomApplication extends EventEmitter {
     );
 
     this.disposable.add(
-      ipcHelpers.on(ipcMain, 'resolve-proxy', (event, requestId, url) => {
-        event.sender.session.resolveProxy(url, proxy => {
-          if (!event.sender.isDestroyed())
-            event.sender.send('did-resolve-proxy', requestId, proxy);
-        });
+      ipcHelpers.on(ipcMain, 'resolve-proxy', async (event, requestId, url) => {
+        const proxy = await event.sender.session.resolveProxy(url);
+        if (!event.sender.isDestroyed())
+          event.sender.send('did-resolve-proxy', requestId, proxy);
       })
     );
 
@@ -1491,9 +1481,14 @@ module.exports = class AtomApplication extends EventEmitter {
   async saveCurrentWindowOptions(allowEmpty = false) {
     if (this.quitting) return;
 
+    const windows = this.getAllWindows();
+    const hasASpecWindow = windows.some(window => window.isSpec);
+
+    if (windows.length === 1 && hasASpecWindow) return;
+
     const state = {
       version: APPLICATION_STATE_VERSION,
-      windows: this.getAllWindows()
+      windows: windows
         .filter(window => !window.isSpec)
         .map(window => ({ projectRoots: window.projectRoots }))
     };
@@ -2027,11 +2022,17 @@ module.exports = class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path;
-    dialog.showOpenDialog(parentWindow, openOptions, callback);
+    dialog
+      .showOpenDialog(parentWindow, openOptions)
+      .then(({ filePaths, bookmarks }) => {
+        if (typeof callback === 'function') {
+          callback(filePaths, bookmarks);
+        }
+      });
   }
 
-  promptForRestart() {
-    dialog.showMessageBox(
+  async promptForRestart() {
+    const result = await dialog.showMessageBox(
       BrowserWindow.getFocusedWindow(),
       {
         type: 'warning',
@@ -2039,11 +2040,9 @@ module.exports = class AtomApplication extends EventEmitter {
         message:
           'You will need to restart Atom for this change to take effect.',
         buttons: ['Restart Atom', 'Cancel']
-      },
-      response => {
-        if (response === 0) this.restart();
       }
     );
+    if (result.response === 0) this.restart();
   }
 
   restart() {

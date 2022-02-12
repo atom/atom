@@ -3,6 +3,7 @@ const TextEditor = require('../src/text-editor');
 const TextBuffer = require('text-buffer');
 const { Point, Range } = TextBuffer;
 const dedent = require('dedent');
+const NullGrammar = require('../src/null-grammar');
 
 describe('TextEditorRegistry', function() {
   let registry, editor, initialPackageActivation;
@@ -69,16 +70,35 @@ describe('TextEditorRegistry', function() {
   });
 
   describe('.build', function() {
-    it('constructs a TextEditor with the right parameters based on its path and text', async function() {
-      await atom.packages.activatePackage('language-javascript');
-      await atom.packages.activatePackage('language-c');
-
+    it('constructs a TextEditor with the right parameters based on its path and text', function() {
       atom.config.set('editor.tabLength', 8, { scope: '.source.js' });
 
+      const languageMode = {
+        grammar: NullGrammar,
+        onDidChangeHighlighting: jasmine.createSpy()
+      };
+
+      const buffer = new TextBuffer({ filePath: 'test.js' });
+      buffer.setLanguageMode(languageMode);
+
       const editor = registry.build({
-        buffer: new TextBuffer({ filePath: 'test.js' })
+        buffer
       });
+
       expect(editor.getTabLength()).toBe(8);
+      expect(editor.getGrammar()).toEqual(NullGrammar);
+      expect(languageMode.onDidChangeHighlighting.calls.length).toBe(1);
+    });
+  });
+
+  describe('.getActiveTextEditor', function() {
+    it('gets the currently focused text editor', function() {
+      const disposable = registry.add(editor);
+      var editorElement = editor.getElement();
+      jasmine.attachToDOM(editorElement);
+      editorElement.focus();
+      expect(registry.getActiveTextEditor()).toBe(editor);
+      disposable.dispose();
     });
   });
 

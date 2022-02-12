@@ -344,6 +344,7 @@ module.exports = class TextEditor {
   get languageMode() {
     return this.buffer.getLanguageMode();
   }
+
   get tokenizedBuffer() {
     return this.buffer.getLanguageMode();
   }
@@ -396,206 +397,123 @@ module.exports = class TextEditor {
 
       switch (param) {
         case 'autoIndent':
-          this.autoIndent = value;
+          this.updateAutoIndent(value, false);
           break;
 
         case 'autoIndentOnPaste':
-          this.autoIndentOnPaste = value;
+          this.updateAutoIndentOnPaste(value, false);
           break;
 
         case 'undoGroupingInterval':
-          this.undoGroupingInterval = value;
+          this.updateUndoGroupingInterval(value, false);
           break;
 
         case 'scrollSensitivity':
-          this.scrollSensitivity = value;
+          this.updateScrollSensitivity(value, false);
           break;
 
         case 'encoding':
-          this.buffer.setEncoding(value);
+          this.updateEncoding(value, false);
           break;
 
         case 'softTabs':
-          if (value !== this.softTabs) {
-            this.softTabs = value;
-          }
+          this.updateSoftTabs(value, false);
           break;
 
         case 'atomicSoftTabs':
-          if (value !== this.displayLayer.atomicSoftTabs) {
-            displayLayerParams.atomicSoftTabs = value;
-          }
+          this.updateAtomicSoftTabs(value, false, displayLayerParams);
           break;
 
         case 'tabLength':
-          if (value > 0 && value !== this.displayLayer.tabLength) {
-            displayLayerParams.tabLength = value;
-          }
+          this.updateTabLength(value, false, displayLayerParams);
           break;
 
         case 'softWrapped':
-          if (value !== this.softWrapped) {
-            this.softWrapped = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-            this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
-          }
+          this.updateSoftWrapped(value, false, displayLayerParams);
           break;
 
         case 'softWrapHangingIndentLength':
-          if (value !== this.displayLayer.softWrapHangingIndent) {
-            displayLayerParams.softWrapHangingIndent = value;
-          }
+          this.updateSoftWrapHangingIndentLength(
+            value,
+            false,
+            displayLayerParams
+          );
           break;
 
         case 'softWrapAtPreferredLineLength':
-          if (value !== this.softWrapAtPreferredLineLength) {
-            this.softWrapAtPreferredLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateSoftWrapAtPreferredLineLength(
+            value,
+            false,
+            displayLayerParams
+          );
           break;
 
         case 'preferredLineLength':
-          if (value !== this.preferredLineLength) {
-            this.preferredLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updatePreferredLineLength(value, false, displayLayerParams);
           break;
 
         case 'maxScreenLineLength':
-          if (value !== this.maxScreenLineLength) {
-            this.maxScreenLineLength = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateMaxScreenLineLength(value, false, displayLayerParams);
           break;
 
         case 'mini':
-          if (value !== this.mini) {
-            this.mini = value;
-            this.emitter.emit('did-change-mini', value);
-            displayLayerParams.invisibles = this.getInvisibles();
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
-            if (this.mini) {
-              for (let decoration of this.cursorLineDecorations) {
-                decoration.destroy();
-              }
-              this.cursorLineDecorations = null;
-            } else {
-              this.decorateCursorLine();
-            }
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateMini(value, false, displayLayerParams);
           break;
 
         case 'readOnly':
-          if (value !== this.readOnly) {
-            this.readOnly = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateReadOnly(value, false);
           break;
 
         case 'keyboardInputEnabled':
-          if (value !== this.keyboardInputEnabled) {
-            this.keyboardInputEnabled = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateKeyboardInputEnabled(value, false);
           break;
 
         case 'placeholderText':
-          if (value !== this.placeholderText) {
-            this.placeholderText = value;
-            this.emitter.emit('did-change-placeholder-text', value);
-          }
+          this.updatePlaceholderText(value, false);
           break;
 
         case 'lineNumberGutterVisible':
-          if (value !== this.lineNumberGutterVisible) {
-            if (value) {
-              this.lineNumberGutter.show();
-            } else {
-              this.lineNumberGutter.hide();
-            }
-            this.emitter.emit(
-              'did-change-line-number-gutter-visible',
-              this.lineNumberGutter.isVisible()
-            );
-          }
+          this.updateLineNumberGutterVisible(value, false);
           break;
 
         case 'showIndentGuide':
-          if (value !== this.showIndentGuide) {
-            this.showIndentGuide = value;
-            displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
-          }
+          this.updateShowIndentGuide(value, false, displayLayerParams);
           break;
 
         case 'showLineNumbers':
-          if (value !== this.showLineNumbers) {
-            this.showLineNumbers = value;
-            if (this.component != null) {
-              this.component.scheduleUpdate();
-            }
-          }
+          this.updateShowLineNumbers(value, false);
           break;
 
         case 'showInvisibles':
-          if (value !== this.showInvisibles) {
-            this.showInvisibles = value;
-            displayLayerParams.invisibles = this.getInvisibles();
-          }
+          this.updateShowInvisibles(value, false, displayLayerParams);
           break;
 
         case 'invisibles':
-          if (!_.isEqual(value, this.invisibles)) {
-            this.invisibles = value;
-            displayLayerParams.invisibles = this.getInvisibles();
-          }
+          this.updateInvisibles(value, false, displayLayerParams);
           break;
 
         case 'editorWidthInChars':
-          if (value > 0 && value !== this.editorWidthInChars) {
-            this.editorWidthInChars = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateEditorWidthInChars(value, false, displayLayerParams);
           break;
 
         case 'width':
-          if (value !== this.width) {
-            this.width = value;
-            displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
-          }
+          this.updateWidth(value, false, displayLayerParams);
           break;
 
         case 'scrollPastEnd':
-          if (value !== this.scrollPastEnd) {
-            this.scrollPastEnd = value;
-            if (this.component) this.component.scheduleUpdate();
-          }
+          this.updateScrollPastEnd(value, false);
           break;
 
         case 'autoHeight':
-          if (value !== this.autoHeight) {
-            this.autoHeight = value;
-          }
+          this.updateAutoHight(value, false);
           break;
 
         case 'autoWidth':
-          if (value !== this.autoWidth) {
-            this.autoWidth = value;
-          }
+          this.updateAutoWidth(value, false);
           break;
 
         case 'showCursorOnSelection':
-          if (value !== this.showCursorOnSelection) {
-            this.showCursorOnSelection = value;
-            if (this.component) this.component.scheduleUpdate();
-          }
+          this.updateShowCursorOnSelection(value, false);
           break;
 
         default:
@@ -605,6 +523,10 @@ module.exports = class TextEditor {
       }
     }
 
+    return this.finishUpdate(displayLayerParams);
+  }
+
+  finishUpdate(displayLayerParams = {}) {
     this.displayLayer.reset(displayLayerParams);
 
     if (this.component) {
@@ -612,6 +534,237 @@ module.exports = class TextEditor {
     } else {
       return Promise.resolve();
     }
+  }
+
+  updateAutoIndent(value, finish) {
+    this.autoIndent = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoIndentOnPaste(value, finish) {
+    this.autoIndentOnPaste = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateUndoGroupingInterval(value, finish) {
+    this.undoGroupingInterval = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateScrollSensitivity(value, finish) {
+    this.scrollSensitivity = value;
+    if (finish) this.finishUpdate();
+  }
+
+  updateEncoding(value, finish) {
+    this.buffer.setEncoding(value);
+    if (finish) this.finishUpdate();
+  }
+
+  updateSoftTabs(value, finish) {
+    if (value !== this.softTabs) {
+      this.softTabs = value;
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateAtomicSoftTabs(value, finish, displayLayerParams = {}) {
+    if (value !== this.displayLayer.atomicSoftTabs) {
+      displayLayerParams.atomicSoftTabs = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateTabLength(value, finish, displayLayerParams = {}) {
+    if (value > 0 && value !== this.displayLayer.tabLength) {
+      displayLayerParams.tabLength = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapped(value, finish, displayLayerParams = {}) {
+    if (value !== this.softWrapped) {
+      this.softWrapped = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+      this.emitter.emit('did-change-soft-wrapped', this.isSoftWrapped());
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapHangingIndentLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.displayLayer.softWrapHangingIndent) {
+      displayLayerParams.softWrapHangingIndent = value;
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateSoftWrapAtPreferredLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.softWrapAtPreferredLineLength) {
+      this.softWrapAtPreferredLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updatePreferredLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.preferredLineLength) {
+      this.preferredLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateMaxScreenLineLength(value, finish, displayLayerParams = {}) {
+    if (value !== this.maxScreenLineLength) {
+      this.maxScreenLineLength = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateMini(value, finish, displayLayerParams = {}) {
+    if (value !== this.mini) {
+      this.mini = value;
+      this.emitter.emit('did-change-mini', value);
+      displayLayerParams.invisibles = this.getInvisibles();
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+      displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
+      if (this.mini) {
+        for (let decoration of this.cursorLineDecorations) {
+          decoration.destroy();
+        }
+        this.cursorLineDecorations = null;
+      } else {
+        this.decorateCursorLine();
+      }
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateReadOnly(value, finish) {
+    if (value !== this.readOnly) {
+      this.readOnly = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateKeyboardInputEnabled(value, finish) {
+    if (value !== this.keyboardInputEnabled) {
+      this.keyboardInputEnabled = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updatePlaceholderText(value, finish) {
+    if (value !== this.placeholderText) {
+      this.placeholderText = value;
+      this.emitter.emit('did-change-placeholder-text', value);
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateLineNumberGutterVisible(value, finish) {
+    if (value !== this.lineNumberGutterVisible) {
+      if (value) {
+        this.lineNumberGutter.show();
+      } else {
+        this.lineNumberGutter.hide();
+      }
+      this.emitter.emit(
+        'did-change-line-number-gutter-visible',
+        this.lineNumberGutter.isVisible()
+      );
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateShowIndentGuide(value, finish, displayLayerParams = {}) {
+    if (value !== this.showIndentGuide) {
+      this.showIndentGuide = value;
+      displayLayerParams.showIndentGuides = this.doesShowIndentGuide();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateShowLineNumbers(value, finish) {
+    if (value !== this.showLineNumbers) {
+      this.showLineNumbers = value;
+      if (this.component != null) {
+        this.component.scheduleUpdate();
+      }
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateShowInvisibles(value, finish, displayLayerParams = {}) {
+    if (value !== this.showInvisibles) {
+      this.showInvisibles = value;
+      displayLayerParams.invisibles = this.getInvisibles();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateInvisibles(value, finish, displayLayerParams = {}) {
+    if (!_.isEqual(value, this.invisibles)) {
+      this.invisibles = value;
+      displayLayerParams.invisibles = this.getInvisibles();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateEditorWidthInChars(value, finish, displayLayerParams = {}) {
+    if (value > 0 && value !== this.editorWidthInChars) {
+      this.editorWidthInChars = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateWidth(value, finish, displayLayerParams = {}) {
+    if (value !== this.width) {
+      this.width = value;
+      displayLayerParams.softWrapColumn = this.getSoftWrapColumn();
+    }
+    if (finish) this.finishUpdate(displayLayerParams);
+  }
+
+  updateScrollPastEnd(value, finish) {
+    if (value !== this.scrollPastEnd) {
+      this.scrollPastEnd = value;
+      if (this.component) this.component.scheduleUpdate();
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoHight(value, finish) {
+    if (value !== this.autoHeight) {
+      this.autoHeight = value;
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateAutoWidth(value, finish) {
+    if (value !== this.autoWidth) {
+      this.autoWidth = value;
+    }
+    if (finish) this.finishUpdate();
+  }
+
+  updateShowCursorOnSelection(value, finish) {
+    if (value !== this.showCursorOnSelection) {
+      this.showCursorOnSelection = value;
+      if (this.component) this.component.scheduleUpdate();
+    }
+    if (finish) this.finishUpdate();
   }
 
   scheduleComponentUpdate() {
@@ -1108,7 +1261,7 @@ module.exports = class TextEditor {
   }
 
   setMini(mini) {
-    this.update({ mini });
+    this.updateMini(mini, true);
   }
 
   isMini() {
@@ -1116,7 +1269,7 @@ module.exports = class TextEditor {
   }
 
   setReadOnly(readOnly) {
-    this.update({ readOnly });
+    this.updateReadOnly(readOnly, true);
   }
 
   isReadOnly() {
@@ -1124,7 +1277,7 @@ module.exports = class TextEditor {
   }
 
   enableKeyboardInput(enabled) {
-    this.update({ keyboardInputEnabled: enabled });
+    this.updateKeyboardInputEnabled(enabled, true);
   }
 
   isKeyboardInputEnabled() {
@@ -1136,7 +1289,7 @@ module.exports = class TextEditor {
   }
 
   setLineNumberGutterVisible(lineNumberGutterVisible) {
-    this.update({ lineNumberGutterVisible });
+    this.updateLineNumberGutterVisible(lineNumberGutterVisible, true);
   }
 
   isLineNumberGutterVisible() {
@@ -1190,7 +1343,7 @@ module.exports = class TextEditor {
   // * `editorWidthInChars` A {Number} representing the width of the
   // {TextEditorElement} in characters.
   setEditorWidthInChars(editorWidthInChars) {
-    this.update({ editorWidthInChars });
+    this.updateEditorWidthInChars(editorWidthInChars, true);
   }
 
   // Returns the editor width in characters.
@@ -2596,7 +2749,7 @@ module.exports = class TextEditor {
   // * __cursor__: Render a cursor at the head of the {DisplayMarker}. If multiple cursor decorations
   //     are created for the same marker, their class strings and style objects are combined
   //     into a single cursor. This decoration type may be used to style existing cursors
-  //     by passing in their markers or to render artificial cursors that don't actaully
+  //     by passing in their markers or to render artificial cursors that don't actually
   //     exist in the model by passing a marker that isn't associated with a real cursor.
   //
   // ## Arguments
@@ -4054,7 +4207,7 @@ module.exports = class TextEditor {
   // * `softTabs` A {Boolean}
   setSoftTabs(softTabs) {
     this.softTabs = softTabs;
-    this.update({ softTabs: this.softTabs });
+    this.updateSoftTabs(this.softTabs, true);
   }
 
   // Returns a {Boolean} indicating whether atomic soft tabs are enabled for this editor.
@@ -4080,7 +4233,7 @@ module.exports = class TextEditor {
   // * `tabLength` {Number} length of a single tab. Setting to `null` will
   //   fallback to using the `editor.tabLength` config setting
   setTabLength(tabLength) {
-    this.update({ tabLength });
+    this.updateTabLength(tabLength, true);
   }
 
   // Returns an {Object} representing the current invisible character
@@ -4163,7 +4316,7 @@ module.exports = class TextEditor {
   //
   // Returns a {Boolean}.
   setSoftWrapped(softWrapped) {
-    this.update({ softWrapped });
+    this.updateSoftWrapped(softWrapped, true);
     return this.isSoftWrapped();
   }
 
@@ -4425,10 +4578,20 @@ module.exports = class TextEditor {
     );
   }
 
-  bufferRangeForScopeAtPosition(scopeSelector, position) {
+  // Extended: Get the range in buffer coordinates of all tokens surrounding the
+  // given position in buffer coordinates that match the given scope selector.
+  //
+  // For example, if you wanted to find the string surrounding the cursor, you
+  // could call `editor.bufferRangeForScopeAtPosition(".string.quoted", this.getCursorBufferPosition())`.
+  //
+  // * `scopeSelector` {String} selector. e.g. `'.source.ruby'`
+  // * `bufferPosition` A {Point} or {Array} of [row, column]
+  //
+  // Returns a {Range}.
+  bufferRangeForScopeAtPosition(scopeSelector, bufferPosition) {
     return this.buffer
       .getLanguageMode()
-      .bufferRangeForScopeAtPosition(scopeSelector, position);
+      .bufferRangeForScopeAtPosition(scopeSelector, bufferPosition);
   }
 
   // Extended: Determine if the given row is entirely a comment
@@ -5103,7 +5266,7 @@ module.exports = class TextEditor {
   //
   // * `placeholderText` {String} text that is displayed when the editor has no content.
   setPlaceholderText(placeholderText) {
-    this.update({ placeholderText });
+    this.updatePlaceholderText(placeholderText, true);
   }
 
   pixelPositionForBufferPosition(bufferPosition) {

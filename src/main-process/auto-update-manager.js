@@ -168,17 +168,14 @@ module.exports = class AutoUpdateManager extends EventEmitter {
   onUpdateNotAvailable() {
     autoUpdater.removeListener('error', this.onUpdateError);
     const { dialog } = require('electron');
-    dialog.showMessageBox(
-      {
-        type: 'info',
-        buttons: ['OK'],
-        icon: this.iconPath,
-        message: 'No update available.',
-        title: 'No Update Available',
-        detail: `Version ${this.version} is the latest version.`
-      },
-      () => {}
-    ); // noop callback to get async behavior
+    dialog.showMessageBox({
+      type: 'info',
+      buttons: ['OK'],
+      icon: this.iconPath,
+      message: 'No update available.',
+      title: 'No Update Available',
+      detail: `Version ${this.version} is the latest version.`
+    });
   }
 
   onUpdateError(event, message) {
@@ -187,17 +184,14 @@ module.exports = class AutoUpdateManager extends EventEmitter {
       this.onUpdateNotAvailable
     );
     const { dialog } = require('electron');
-    dialog.showMessageBox(
-      {
-        type: 'warning',
-        buttons: ['OK'],
-        icon: this.iconPath,
-        message: 'There was an error checking for updates.',
-        title: 'Update Error',
-        detail: message
-      },
-      () => {}
-    ); // noop callback to get async behavior
+    dialog.showMessageBox({
+      type: 'warning',
+      buttons: ['OK'],
+      icon: this.iconPath,
+      message: 'There was an error checking for updates.',
+      title: 'Update Error',
+      detail: message
+    });
   }
 
   getWindows() {
