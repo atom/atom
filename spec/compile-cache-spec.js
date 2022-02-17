@@ -33,42 +33,80 @@ describe('CompileCache', () => {
     describe('when the given file is plain javascript', () => {
       it('does not compile or cache the file', () => {
         CompileCache.addPathToCache(path.join(fixtures, 'sample.js'), atomHome);
-        expect(CompileCache.getCacheStats()['.js']).toEqual({ hits: 0, misses: 0 });
+        expect(CompileCache.getCacheStats()['.js']).toEqual({
+          hits: 0,
+          misses: 0
+        });
       });
     });
 
     describe('when the given file uses babel', () => {
       it('compiles the file with babel and caches it', () => {
-        CompileCache.addPathToCache(path.join(fixtures, 'babel', 'babel-comment.js'), atomHome);
-        expect(CompileCache.getCacheStats()['.js']).toEqual({ hits: 0, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'babel', 'babel-comment.js'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.js']).toEqual({
+          hits: 0,
+          misses: 1
+        });
         expect(Babel.transform.callCount).toBe(1);
 
-        CompileCache.addPathToCache(path.join(fixtures, 'babel', 'babel-comment.js'), atomHome);
-        expect(CompileCache.getCacheStats()['.js']).toEqual({ hits: 1, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'babel', 'babel-comment.js'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.js']).toEqual({
+          hits: 1,
+          misses: 1
+        });
         expect(Babel.transform.callCount).toBe(1);
       });
     });
 
     describe('when the given file is coffee-script', () => {
       it('compiles the file with coffee-script and caches it', () => {
-        CompileCache.addPathToCache(path.join(fixtures, 'coffee.coffee'), atomHome);
-        expect(CompileCache.getCacheStats()['.coffee']).toEqual({ hits: 0, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'coffee.coffee'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.coffee']).toEqual({
+          hits: 0, misses: 1
+        });
         expect(CoffeeScript.compile.callCount).toBe(1);
 
-        CompileCache.addPathToCache(path.join(fixtures, 'coffee.coffee'), atomHome);
-        expect(CompileCache.getCacheStats()['.coffee']).toEqual({ hits: 1, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'coffee.coffee'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.coffee']).toEqual({
+          hits: 1,
+          misses: 1
+        });
         expect(CoffeeScript.compile.callCount).toBe(1);
       });
     });
 
     describe('when the given file is typescript', () => {
       it('compiles the file with typescript and caches it', () => {
-        CompileCache.addPathToCache(path.join(fixtures, 'typescript', 'valid.ts'), atomHome);
-        expect(CompileCache.getCacheStats()['.ts']).toEqual({ hits: 0, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'typescript', 'valid.ts'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.ts']).toEqual({
+          hits: 0,
+          misses: 1
+        });
         expect(TypeScriptSimpleProto.compile.callCount).toBe(1);
 
-        CompileCache.addPathToCache(path.join(fixtures, 'typescript', 'valid.ts'), atomHome);
-        expect(CompileCache.getCacheStats()['.ts']).toEqual({ hits: 1, misses: 1 });
+        CompileCache.addPathToCache(
+          path.join(fixtures, 'typescript', 'valid.ts'),
+          atomHome
+        );
+        expect(CompileCache.getCacheStats()['.ts']).toEqual({
+          hits: 1,
+          misses: 1
+        });
         expect(TypeScriptSimpleProto.compile.callCount).toBe(1);
       });
     });
@@ -79,13 +117,19 @@ describe('CompileCache', () => {
         spyOn(CSON, 'readFileSync').andCallThrough();
 
         CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome);
-        expect(CSON.readFileSync).toHaveBeenCalledWith(path.join(fixtures, 'cson.cson'));
-        expect(CSON.setCacheDir).toHaveBeenCalledWith(path.join(atomHome, '/compile-cache'));
+        expect(CSON.readFileSync).toHaveBeenCalledWith(
+          path.join(fixtures, 'cson.cson')
+        );
+        expect(CSON.setCacheDir).toHaveBeenCalledWith(
+          path.join(atomHome, '/compile-cache')
+        );
 
         CSON.readFileSync.reset();
         CSON.setCacheDir.reset();
         CompileCache.addPathToCache(path.join(fixtures, 'cson.cson'), atomHome);
-        expect(CSON.readFileSync).toHaveBeenCalledWith(path.join(fixtures, 'cson.cson'));
+        expect(CSON.readFileSync).toHaveBeenCalledWith(
+          path.join(fixtures, 'cson.cson')
+        );
         expect(CSON.setCacheDir).not.toHaveBeenCalled();
       });
     });
@@ -99,13 +143,13 @@ describe('CompileCache', () => {
 
       Error.prepareStackTrace = () => 'a-stack-trace';
 
-      let error = new Error("Oops");
+      let error = new Error('Oops');
       expect(error.stack).toBe('a-stack-trace');
       expect(Array.isArray(error.getRawStack())).toBe(true);
 
       waits(1);
       runs(() => {
-        error = new Error("Oops again");
+        error = new Error('Oops again');
         expect(error.stack).toContain('compile-cache-spec.coffee');
         expect(Array.isArray(error.getRawStack())).toBe(true);
       });
