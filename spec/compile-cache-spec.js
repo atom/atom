@@ -2,7 +2,7 @@ const path = require('path');
 const temp = require('temp').track();
 const Babel = require('babel-core');
 const CoffeeScript = require('coffee-script');
-const TypeScriptSimpleProto = require('typescript-simple').TypeScriptSimple.prototype;
+const TypeScript = require('typescript-simple').TypeScriptSimple.prototype;
 const CSON = require('season');
 const CompileCache = require('../src/compile-cache');
 
@@ -18,7 +18,7 @@ describe('CompileCache', () => {
 
     spyOn(Babel, 'transform').andReturn({ code: 'the-babel-code' });
     spyOn(CoffeeScript, 'compile').andReturn('the-coffee-code');
-    spyOn(TypeScriptSimpleProto, 'compile').andReturn('the-typescript-code');
+    spyOn(TypeScript, 'compile').andReturn('the-typescript-code');
   });
 
   afterEach(() => {
@@ -98,7 +98,7 @@ describe('CompileCache', () => {
           hits: 0,
           misses: 1
         });
-        expect(TypeScriptSimpleProto.compile.callCount).toBe(1);
+        expect(TypeScript.compile.callCount).toBe(1);
 
         CompileCache.addPathToCache(
           path.join(fixtures, 'typescript', 'valid.ts'),
@@ -108,7 +108,7 @@ describe('CompileCache', () => {
           hits: 1,
           misses: 1
         });
-        expect(TypeScriptSimpleProto.compile.callCount).toBe(1);
+        expect(TypeScript.compile.callCount).toBe(1);
       });
     });
 
