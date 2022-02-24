@@ -2,7 +2,7 @@ const path = require('path');
 const temp = require('temp').track();
 const Babel = require('babel-core');
 const CoffeeScript = require('coffee-script');
-const TypeScriptSimpleProto = require('typescript-simple').prototype;
+const TypeScriptSimpleProto = require('typescript-simple').TypeScriptSimple.prototype;
 const CSON = require('season');
 const CompileCache = require('../src/compile-cache');
 
