@@ -71,7 +71,8 @@ describe('CompileCache', () => {
           atomHome
         );
         expect(CompileCache.getCacheStats()['.coffee']).toEqual({
-          hits: 0, misses: 1
+          hits: 0,
+          misses: 1
         });
         expect(CoffeeScript.compile.callCount).toBe(1);
 
@@ -150,7 +151,7 @@ describe('CompileCache', () => {
       waits(1);
       runs(() => {
         error = new Error('Oops again');
-        expect(error.stack).toContain('compile-cache-spec.coffee');
+        expect(error.stack).toContain('compile-cache-spec');
         expect(Array.isArray(error.getRawStack())).toBe(true);
       });
     });
@@ -161,7 +162,7 @@ describe('CompileCache', () => {
       Error.prepareStackTrace = originalPrepareStackTrace;
 
       const error = new Error('Oops');
-      expect(error.stack).toContain('compile-cache-spec.coffee');
+      expect(error.stack).toContain('compile-cache-spec');
       expect(Array.isArray(error.getRawStack())).toBe(true);
     });
 
@@ -174,7 +175,7 @@ describe('CompileCache', () => {
       };
 
       const error = new Error('Oops');
-      expect(error.stack).toContain('compile-cache-spec.coffee');
+      expect(error.stack).toContain('compile-cache-spec');
       expect(error.foo).toBe('bar');
       expect(Array.isArray(error.getRawStack())).toBe(true);
     });
