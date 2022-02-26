@@ -3,7 +3,6 @@
 
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const spawnSync = require('./lib/spawn-sync');
 
