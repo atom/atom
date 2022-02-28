@@ -253,7 +253,7 @@
     "language-php": "0.48.1",
     "language-property-list": "0.9.1",
     "language-python": "0.53.6",
-    "language-ruby": "0.72.23",
+    "language-ruby": "0.73.0",
     "language-ruby-on-rails": "0.25.3",
     "language-rust-bundled": "file:./packages/language-rust-bundled",
     "language-sass": "0.62.1",
