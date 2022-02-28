@@ -40,8 +40,8 @@ This project and everyone participating in it is governed by the [Atom Code of C
 
 We have an official message board with a detailed FAQ and where the community chimes in with helpful advice if you have questions.
 
-* [Github Discussions, the official Atom](https://github.com/atom/atom/discussions)
-* [Atom FAQ](https://github.com/atom/atom/discussions)
+* [Github Discussions, the official Atom message board](https://github.com/atom/atom/discussions)
+* [Atom FAQ](https://flight-manual.atom.io/faq/)
 
 ## What should I know before I get started?
 
@@ -110,7 +110,7 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 #### Before Submitting A Bug Report
 
 * **Check the [debugging guide](https://flight-manual.atom.io/hacking-atom/sections/debugging/).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of Atom](https://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version), if the problem happens when you run Atom in [safe mode](https://flight-manual.atom.io/hacking-atom/sections/debugging/#check-if-the-problem-shows-up-in-safe-mode), and if you can get the desired behavior by changing [Atom's or packages' config settings](https://flight-manual.atom.io/hacking-atom/sections/debugging/#check-atom-and-package-settings).
-* **Check the [discussions](https://github.com/atom/atom/discussions)** for a list of common questions and problems.
+* **Check the [faq](https://flight-manual.atom.io/faq/) and the [discussions](https://github.com/atom/atom/discussions)** for a list of common questions and problems.
 * **Determine [which repository the problem should be reported in](#atom-and-packages)**.
 * **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Aatom)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 
