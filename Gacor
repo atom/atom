@@ -1,0 +1,46 @@
+{
+  "name": "server-terbaru-gacor",
+	"displayName": "Kumpulan Situs Slot Gacor Terbaru Mudah Kasih Maxwin Resmi Pagcor",
+	"description": "Daftar dan mainkan ribuan jenis game online bersama Kumpulan Situs Slot Gacor Terbaru Mudah Kasih Maxwin Resmi Pagcor",
+	"publisher": "amekganteng69",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.63.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"icon": "images/logo.png",
+	"galleryBanner": {
+		"color": "#062F4F",
+		"theme": "dark"
+	},
+	"activationEvents": [
+        "onCommand:amekganteng69.server-terbaru-gacor"
+	],
+	"main": "./extension.js",
+	"contributes": {
+		"commands": [{
+            "command": "amekganteng69.server-terbaru-gacor",
+            "title": "Kumpulan Situs Slot Gacor Terbaru Mudah Kasih Maxwin Resmi Pagcor"
+
+		}]
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "node ./test/runTest.js"
+	},
+	"devDependencies": {
+        "@types/vscode": "^1.63.0",
+        "@types/glob": "^7.2.0",
+        "@types/mocha": "^9.0.0",
+        "@types/node": "14.x",
+        "eslint": "^8.6.0",
+        "glob": "^7.2.0",
+        "mocha": "^9.1.3",
+        "typescript": "^4.5.4",
+        "@vscode/test-electron": "^2.0.3"
+    }
+
+}
