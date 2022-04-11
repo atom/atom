@@ -2,7 +2,7 @@
 
 if [ "$(uname)" == 'Darwin' ]; then
   OS='Mac'
-elif [ "$(expr substr $(uname -s) 1 5)" == 'Linux' ]; then
+elif [ "$(expr substr "$(uname -s)" 1 5)" == 'Linux' ]; then
   OS='Linux'
 else
   echo "Your platform ($(uname -a)) is not supported."
@@ -151,7 +151,7 @@ if [ $OS == 'Mac' ]; then
   fi
 elif [ $OS == 'Linux' ]; then
   SCRIPT=$(readlink -f "$0")
-  USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
+  USR_DIRECTORY=$(readlink -f "$(dirname $SCRIPT)"/..)
 
   case $CHANNEL in
     beta)
@@ -169,7 +169,7 @@ elif [ $OS == 'Linux' ]; then
   esac
 
   #Will allow user to get context menu on cinnamon desktop enviroment
-  if [[ "$(expr substr $(printenv | grep "DESKTOP_SESSION=") 17 8)" == "cinnamon" ]]; then
+  if [[ "$(expr substr "$(printenv | grep "DESKTOP_SESSION=")" 17 8)" == "cinnamon" ]]; then
     cp "resources/linux/desktopenviroment/cinnamon/atom.nemo_action" "/usr/share/nemo/actions/atom.nemo_action"
   fi
 
