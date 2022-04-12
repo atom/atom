@@ -45,7 +45,7 @@
     "random-seed": "^0.3.0",
     "season": "5.3.0",
     "semver": "5.3.0",
-    "simple-git": "^2.7.0",
+    "simple-git": "^3.5.0",
     "stylelint": "^9.0.0",
     "stylelint-config-standard": "^18.1.0",
     "sync-request": "3.0.1",
