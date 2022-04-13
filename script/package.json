@@ -5,7 +5,7 @@
     "7zip-bin": "^4.0.2",
     "@atom/electron-winstaller": "0.0.1",
     "@octokit/request": "^5.4.5",
-    "async": "^3.2.0",
+    "async": "^3.2.2",
     "babel-core": "5.8.38",
     "babel-eslint": "^10.0.1",
     "cheerio": "1.0.0-rc.2",
