@@ -9,9 +9,8 @@ process.env.ELECTRON_CUSTOM_VERSION = CONFIG.appMetadata.electronVersion;
 
 module.exports = function(ci) {
   console.log('Installing script dependencies');
-  const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   childProcess.execFileSync(
-    npmBinName,
+    CONFIG.getNpmBinPath(ci),
     ['--loglevel=error', ci ? 'ci' : 'install'],
     { env: process.env, cwd: CONFIG.scriptRootPath }
   );

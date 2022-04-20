@@ -54,6 +54,7 @@ module.exports = {
   homeDirPath,
   getApmBinPath,
   getNpmBinPath,
+  getLocalNpmBinPath,
   snapshotAuxiliaryData: {}
 };
 
@@ -111,7 +112,11 @@ function getApmBinPath() {
   );
 }
 
-function getNpmBinPath(external = false) {
+function getNpmBinPath() {
+  return process.platform === 'win32' ? 'npm.cmd' : 'npm';
+}
+
+function getLocalNpmBinPath() {
   const npmBinName = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const localNpmBinPath = path.resolve(
     repositoryRootPath,
