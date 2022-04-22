@@ -78,6 +78,9 @@ repeat these steps to upgrade to future releases.
 
 * Discuss Atom on [GitHub Discussions](https://github.com/atom/atom/discussions)
 
+## Developer 
+*  Developer setting [Setting View](https://github.com/atom/atom/setting-view) 
+
 ## License
 
 [MIT](https://github.com/atom/atom/blob/master/LICENSE.md)
