@@ -133,7 +133,16 @@ module.exports = function parseCommandLine(processArgs) {
       'Enable low-level logging messages from Electron.'
     );
   options.boolean('uri-handler');
+  options
+    .version(
+      dedent`Atom    : ${version}
+             Electron: ${process.versions.electron}
+             Chrome  : ${process.versions.chrome}
+             Node    : ${process.versions.node}`
+    )
+    .alias('v', 'version');
 
+  // NB: if --help or --version are given, this also displays the relevant message and exits
   let args = options.argv;
 
   // If --uri-handler is set, then we parse NOTHING else

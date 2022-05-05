@@ -12,15 +12,10 @@ const CSON = require('season');
 const yargs = require('yargs');
 const { app } = require('electron');
 
-const version = `Atom    : ${app.getVersion()}
-Electron: ${process.versions.electron}
-Chrome  : ${process.versions.chrome}
-Node    : ${process.versions.node}`;
-
 const args = yargs(process.argv)
-  .alias('v', 'version')
-  .version(version)
+  // Don't handle --help or --version here; they will be handled later.
   .help(false)
+  .version(false)
   .alias('d', 'dev')
   .alias('t', 'test')
   .alias('r', 'resource-path').argv;
