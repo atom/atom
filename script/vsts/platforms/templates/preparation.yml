@@ -33,6 +33,10 @@ steps:
   - script: npm install --global npm@6.14.8
     displayName: Update npm
 
+  # This is a common build step and is only needed until all tree-sitter languages have been updated
+  - script: git submodule update --init
+    displayName: Update submodules (temporary build step)
+
   # Windows Specific
   - task: UsePythonVersion@0
     inputs:
