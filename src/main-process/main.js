@@ -20,6 +20,7 @@ Node    : ${process.versions.node}`;
 const args = yargs(process.argv)
   .alias('v', 'version')
   .version(version)
+  .help(false)
   .alias('d', 'dev')
   .alias('t', 'test')
   .alias('r', 'resource-path').argv;

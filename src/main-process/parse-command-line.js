@@ -57,10 +57,7 @@ module.exports = function parseCommandLine(processArgs) {
     .alias('f', 'foreground')
     .boolean('f')
     .describe('f', 'Keep the main process in the foreground.');
-  options
-    .alias('h', 'help')
-    .boolean('h')
-    .describe('h', 'Print this usage message.');
+  options.help('help', 'Print this usage message.').alias('h', 'help');
   options
     .alias('l', 'log-file')
     .string('l')
@@ -146,11 +143,6 @@ module.exports = function parseCommandLine(processArgs) {
       'uri-handler': true,
       _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
     };
-  }
-
-  if (args.help) {
-    process.stdout.write(options.help());
-    process.exit(0);
   }
 
   const addToLastWindow = args['add'];
