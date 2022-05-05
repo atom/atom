@@ -114,7 +114,21 @@ class TreeSitterLanguageMode {
 
   parse(language, oldTree, ranges) {
     const parser = PARSER_POOL.pop() || new Parser();
-    parser.setLanguage(language);
+
+    try {
+      parser.setLanguage(language);
+    } catch (e) {
+      if (e instanceof RangeError) {
+        e.message = e.message.replace(
+          'Incompatible language version.',
+          `Incompatible tree-sitter language version for language: ${
+            language.name
+          }.`
+        );
+      }
+      throw e;
+    }
+
     const result = parser.parseTextBuffer(this.buffer.buffer, oldTree, {
       syncTimeoutMicros: this.syncTimeoutMicros,
       includedRanges: ranges
