@@ -3,13 +3,8 @@ steps:
   # Linux Specific
   - script: |
       sudo apt-get update
-      sudo apt-get install -y wget software-properties-common
-      sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git libsecret-1-dev rpm libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgconf2-4 libgtk-3-0 libasound2 libicu-dev
+      sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git rpm libsecret-1-dev libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev software-properties-common wget
       # clang 9 is included in the image
-      sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-9 10
-      sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-9 10
-      sudo update-alternatives --config clang
-      sudo update-alternatives --config clang++
       clang -v
     displayName: Install apt dependencies
     condition: eq(variables['Agent.OS'], 'Linux')
@@ -42,11 +37,6 @@ steps:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.8'
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
-
-  - script: |
-      npm install --global --production windows-build-tools@4.0
-    displayName: Install windows build tools
     condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - pwsh: |

@@ -40,18 +40,8 @@ This project and everyone participating in it is governed by the [Atom Code of C
 
 We have an official message board with a detailed FAQ and where the community chimes in with helpful advice if you have questions.
 
-* [Discuss, the official Atom and Electron message board](https://discuss.atom.io)
-* [Atom FAQ](https://discuss.atom.io/c/faq)
-
-If chat is more your speed, you can join the Atom and Electron Slack team:
-
-* [Join the Atom and Electron Slack Team](https://atom-slack.herokuapp.com/)
-    * Even though Slack is a chat service, sometimes it takes several hours for community members to respond &mdash; please be patient!
-    * Use the `#atom` channel for general questions or discussion about Atom
-    * Use the `#electron` channel for questions about Electron
-    * Use the `#packages` channel for questions or discussion about writing or contributing to Atom packages (both core and community)
-    * Use the `#ui` channel for questions and discussion about Atom UI and themes
-    * There are many other channels available, check the channel list
+* [Github Discussions, the official Atom message board](https://github.com/atom/atom/discussions)
+* [Atom FAQ](https://flight-manual.atom.io/faq/)
 
 ## What should I know before I get started?
 
@@ -87,7 +77,7 @@ Here's a list of the big ones:
 
 There are many more, but this list should be a good starting point. For more information on how to work with Atom's official packages, see [Contributing to Atom Packages][contributing-to-official-atom-packages].
 
-Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed. Each community package has its own repository too, the [Atom FAQ](https://discuss.atom.io/c/faq) has instructions on how to [contact the maintainers of any Atom community package or theme.](https://discuss.atom.io/t/i-have-a-question-about-a-specific-atom-community-package-where-is-the-best-place-to-ask-it/25581)
+Also, because Atom is so extensible, it's possible that a feature you've become accustomed to in Atom or an issue you're encountering isn't coming from a bundled package at all, but rather a [community package](https://atom.io/packages) you've installed. Each community package has its own repository too.
 
 #### Package Conventions
 
@@ -105,7 +95,7 @@ There are a few conventions that have developed over time around packages:
 
 ### Design Decisions
 
-When we make a significant decision in how we maintain the project and what we can or cannot support, we will document it in the [atom/design-decisions repository](https://github.com/atom/design-decisions). If you have a question around how we do things, check to see if it is documented there. If it is *not* documented there, please open a new topic on [Discuss, the official Atom message board](https://discuss.atom.io) and ask your question.
+When we make a significant decision in how we maintain the project and what we can or cannot support, we will document it in the [atom/design-decisions repository](https://github.com/atom/design-decisions). If you have a question around how we do things, check to see if it is documented there. If it is *not* documented there, please open a new topic on [Github Discussions, the official Atom message board](https://github.com/atom/atom/discussions) and ask your question.
 
 ## How Can I Contribute?
 
@@ -120,7 +110,7 @@ Before creating bug reports, please check [this list](#before-submitting-a-bug-r
 #### Before Submitting A Bug Report
 
 * **Check the [debugging guide](https://flight-manual.atom.io/hacking-atom/sections/debugging/).** You might be able to find the cause of the problem and fix things yourself. Most importantly, check if you can reproduce the problem [in the latest version of Atom](https://flight-manual.atom.io/hacking-atom/sections/debugging/#update-to-the-latest-version), if the problem happens when you run Atom in [safe mode](https://flight-manual.atom.io/hacking-atom/sections/debugging/#check-if-the-problem-shows-up-in-safe-mode), and if you can get the desired behavior by changing [Atom's or packages' config settings](https://flight-manual.atom.io/hacking-atom/sections/debugging/#check-atom-and-package-settings).
-* **Check the [FAQs on the forum](https://discuss.atom.io/c/faq)** for a list of common questions and problems.
+* **Check the [faq](https://flight-manual.atom.io/faq/) and the [discussions](https://github.com/atom/atom/discussions)** for a list of common questions and problems.
 * **Determine [which repository the problem should be reported in](#atom-and-packages)**.
 * **Perform a [cursory search](https://github.com/search?q=+is%3Aissue+user%3Aatom)** to see if the problem has already been reported. If it has **and the issue is still open**, add a comment to the existing issue instead of opening a new one.
 

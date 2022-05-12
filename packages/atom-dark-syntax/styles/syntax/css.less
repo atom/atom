@@ -1,0 +1,106 @@
+.syntax--source.syntax--css {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: #C5C8C6;
+
+      // url rgb
+      &.syntax--support {
+        color: #DAD085;
+      }
+    }
+
+    // .class :pseudo-class attribute
+    &.syntax--selector {
+      color: #FF73FD;
+
+      // div span
+      &.syntax--tag {
+        color: #96CBFE;
+        text-decoration: underline;
+      }
+
+      // #id
+      &.syntax--id {
+        color: #8B98AB;
+      }
+
+      // .class
+      &.syntax--class {
+        color: #62B1FE;
+      }
+    }
+
+    // property: constant
+    &.syntax--property {
+
+      // height position border
+      &.syntax--support {
+        color: #EDEDED;
+      }
+    }
+
+    // --variable
+    &.syntax--variable {
+      color: #C6C5FE;
+    }
+
+    // @keyframes keyframe
+    &.syntax--keyframe {
+      color: #C6C5FE;
+    }
+  }
+
+  // property: constant
+  .syntax--constant {
+    color: #C5C8C6;
+
+    // flex solid bold
+    &.syntax--support {
+      color: #F9EE98;
+    }
+
+    // 4 1.3
+    &.syntax--numeric {
+      color: #99CC99;
+
+      // px % cm hz
+      &.syntax--unit {
+        color: #99CC99;
+      }
+    }
+
+    // screen print
+    &.syntax--media {
+      color: #FFD2A7;
+    }
+
+    // #b294bb blue red
+    &.syntax--color {
+      color: #99CC99;
+    }
+
+    // from to 50%
+    &.syntax--offset {
+      color: #FFD2A7;
+
+      // %
+      &.syntax--unit {
+        color: #FFD2A7;
+      }
+    }
+  }
+
+  // . : :: # [] ()
+  .syntax--punctuation {
+    color: #C5C8C6;
+
+    // *
+    &.syntax--wildcard {
+      color: #96CBFE;
+      text-decoration: underline;
+    }
+  }
+}

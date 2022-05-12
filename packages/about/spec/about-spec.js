@@ -43,6 +43,7 @@ describe('About', () => {
   describe('when the Atom version number is clicked', () => {
     it('copies the version number to the clipboard', async () => {
       await atom.workspace.open('atom://about');
+      jasmine.attachToDOM(workspaceElement);
 
       let aboutElement = workspaceElement.querySelector('.about');
       let versionContainer = aboutElement.querySelector('.atom');
@@ -67,6 +68,7 @@ describe('About', () => {
   describe('when the Electron version number is clicked', () => {
     it('copies the version number to the clipboard', async () => {
       await atom.workspace.open('atom://about');
+      jasmine.attachToDOM(workspaceElement);
 
       let aboutElement = workspaceElement.querySelector('.about');
       let versionContainer = aboutElement.querySelector('.electron');
@@ -78,6 +80,7 @@ describe('About', () => {
   describe('when the Chrome version number is clicked', () => {
     it('copies the version number to the clipboard', async () => {
       await atom.workspace.open('atom://about');
+      jasmine.attachToDOM(workspaceElement);
 
       let aboutElement = workspaceElement.querySelector('.about');
       let versionContainer = aboutElement.querySelector('.chrome');
@@ -89,6 +92,7 @@ describe('About', () => {
   describe('when the Node version number is clicked', () => {
     it('copies the version number to the clipboard', async () => {
       await atom.workspace.open('atom://about');
+      jasmine.attachToDOM(workspaceElement);
 
       let aboutElement = workspaceElement.querySelector('.about');
       let versionContainer = aboutElement.querySelector('.node');

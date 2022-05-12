@@ -1,8 +1,6 @@
 # Atom
 
 [![Build status](https://dev.azure.com/github/Atom/_apis/build/status/Atom%20Production%20Branches?branchName=master)](https://dev.azure.com/github/Atom/_build/latest?definitionId=32&branchName=master)
-[![Dependency Status](https://david-dm.org/atom/atom.svg)](https://david-dm.org/atom/atom)
-[![Join the Atom Community on Slack](https://atom-slack.herokuapp.com/badge.svg)](https://atom-slack.herokuapp.com)
 
 Atom is a hackable text editor for the 21st century, built on [Electron](https://github.com/electron/electron), and based on everything we love about our favorite editors. We designed it to be deeply customizable, but still approachable using the default configuration.
 
@@ -10,7 +8,7 @@ Atom is a hackable text editor for the 21st century, built on [Electron](https:/
 
 ![Atom Screenshot](https://user-images.githubusercontent.com/378023/49132478-f4b77680-f31f-11e8-9e10-e8454d8d9b7e.png)
 
-Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://discuss.atom.io).
+Visit [atom.io](https://atom.io) to learn more or visit the [Atom forum](https://github.com/atom/atom/discussions).
 
 Follow [@AtomEditor](https://twitter.com/atomeditor) on Twitter for important
 announcements.
@@ -59,8 +57,10 @@ An archive is available for people who don't want to install `atom` as root.
 This version enables you to install multiple Atom versions in parallel. It has been built on Ubuntu 64-bit,
 but should be compatible with other Linux distributions.
 
-1. Install dependencies (on Ubuntu): `sudo apt install git gconf2 gconf-service libgtk2.0-0 libudev1 libgcrypt20 libnotify4 libxtst6 libnss3 python3 gvfs-bin xdg-utils libcap2`
-   1. (If the `python3` package isn't available, or is too old (Python 3 should be >= 3.5), either `python2` or `python` (2.6 or 2.7) will work in its place.)
+1. Install dependencies (on Ubuntu):
+```sh
+sudo apt install git libasound2 libcurl4 libgbm1 libgcrypt20 libgtk-3-0 libnotify4 libnss3 libglib2.0-bin xdg-utils libx11-xcb1 libxcb-dri3-0 libxss1 libxtst6 libxkbfile1
+```
 2. Download `atom-amd64.tar.gz` from the [Atom releases page](https://github.com/atom/atom/releases/latest).
 3. Run `tar xf atom-amd64.tar.gz` in the directory where you want to extract the Atom folder.
 4. Launch Atom using the installed `atom` command from the newly extracted directory.
@@ -76,8 +76,7 @@ repeat these steps to upgrade to future releases.
 
 ## Discussion
 
-* Discuss Atom on our [forums](https://discuss.atom.io/)
-* Chat about Atom on our Slack team -- [instructions for joining](https://discuss.atom.io/t/join-us-on-slack/16638?source_topic_id=25406)
+* Discuss Atom on [GitHub Discussions](https://github.com/atom/atom/discussions)
 
 ## License
 

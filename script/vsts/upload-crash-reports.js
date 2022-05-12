@@ -1,7 +1,7 @@
 'use strict';
 
 const glob = require('glob');
-const uploadToS3 = require('./lib/upload-to-s3');
+const uploadToAzure = require('./lib/upload-to-azure-blob');
 
 const yargs = require('yargs');
 const argv = yargs
@@ -12,28 +12,26 @@ const argv = yargs
     'The local path of a directory containing crash reports to upload'
   )
   .describe(
-    's3-path',
-    'Indicates the S3 path in which the crash reports should be uploaded'
+    'azure-blob-path',
+    'Indicates the azure blob storage path in which the crash reports should be uploaded'
   )
   .wrap(yargs.terminalWidth()).argv;
 
 async function uploadCrashReports() {
   const crashesPath = argv.crashReportPath;
   const crashes = glob.sync('/*.dmp', { root: crashesPath });
-  const bucketPath = argv.s3Path;
+  const azureBlobPath = argv.azureBlobPath;
 
   if (crashes && crashes.length > 0) {
     console.log(
       `Uploading ${
         crashes.length
-      } private crash reports to S3 under '${bucketPath}'`
+      } private crash reports to Azure Blob Storage under '${azureBlobPath}'`
     );
 
-    await uploadToS3(
-      process.env.ATOM_RELEASES_S3_KEY,
-      process.env.ATOM_RELEASES_S3_SECRET,
-      process.env.ATOM_RELEASES_S3_BUCKET,
-      bucketPath,
+    await uploadToAzure(
+      process.env.ATOM_RELEASES_AZURE_CONN_STRING,
+      azureBlobPath,
       crashes,
       'private'
     );

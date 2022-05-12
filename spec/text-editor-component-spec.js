@@ -18,15 +18,18 @@ const SAMPLE_TEXT = fs.readFileSync(
   'utf8'
 );
 
-document.registerElement('text-editor-component-test-element', {
-  prototype: Object.create(HTMLElement.prototype, {
-    attachedCallback: {
-      value: function() {
-        this.didAttach();
-      }
-    }
-  })
-});
+class DummyElement extends HTMLElement {
+  connectedCallback() {
+    this.didAttach();
+  }
+}
+
+window.customElements.define(
+  'text-editor-component-test-element',
+  DummyElement
+);
+
+document.createElement('text-editor-component-test-element');
 
 const editors = [];
 let verticalScrollbarWidth, horizontalScrollbarHeight;
@@ -239,8 +242,9 @@ describe('TextEditorComponent', () => {
       editor.setText('a\n'.repeat(30));
       await component.getNextUpdatePromise();
       expect(component.refs.content.offsetHeight).toBeGreaterThan(100);
-      expect(component.refs.content.offsetHeight).toBe(
-        component.getContentHeight()
+      expect(component.refs.content.offsetHeight).toBeNear(
+        component.getContentHeight(),
+        2
       );
     });
 
@@ -302,7 +306,7 @@ describe('TextEditorComponent', () => {
 
       const lineNumberGutterElement =
         component.refs.gutterContainer.refs.lineNumberGutter.element;
-      expect(lineNumberGutterElement.offsetHeight).toBe(
+      expect(lineNumberGutterElement.offsetHeight).toBeNear(
         component.getScrollHeight()
       );
 
@@ -319,7 +323,7 @@ describe('TextEditorComponent', () => {
 
       editor.setText('x\n'.repeat(99));
       await component.getNextUpdatePromise();
-      expect(lineNumberGutterElement.offsetHeight).toBe(
+      expect(lineNumberGutterElement.offsetHeight).toBeNear(
         component.getScrollHeight()
       );
       for (const child of lineNumberGutterElement.children) {
@@ -412,8 +416,12 @@ describe('TextEditorComponent', () => {
       });
       const verticalScrollbar = component.refs.verticalScrollbar.element;
       const horizontalScrollbar = component.refs.horizontalScrollbar.element;
-      expect(verticalScrollbar.scrollHeight).toBe(component.getContentHeight());
-      expect(horizontalScrollbar.scrollWidth).toBe(component.getContentWidth());
+      expect(verticalScrollbar.scrollHeight).toBeNear(
+        component.getContentHeight()
+      );
+      expect(horizontalScrollbar.scrollWidth).toBeNear(
+        component.getContentWidth()
+      );
       expect(getVerticalScrollbarWidth(component)).toBeGreaterThan(0);
       expect(getHorizontalScrollbarHeight(component)).toBeGreaterThan(0);
       expect(verticalScrollbar.style.bottom).toBe(
@@ -479,18 +487,20 @@ describe('TextEditorComponent', () => {
         TextEditor.didUpdateScrollbarStyles();
         await component.getNextUpdatePromise();
 
-        expect(getHorizontalScrollbarHeight(component)).toBe(10);
-        expect(getVerticalScrollbarWidth(component)).toBe(10);
-        expect(component.refs.horizontalScrollbar.element.style.right).toBe(
-          '10px'
+        expect(getHorizontalScrollbarHeight(component)).toBeNear(10);
+        expect(getVerticalScrollbarWidth(component)).toBeNear(10);
+        expect(
+          component.refs.horizontalScrollbar.element.style.right
+        ).toHaveNearPixels('10px');
+        expect(
+          component.refs.verticalScrollbar.element.style.bottom
+        ).toHaveNearPixels('10px');
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeNear(
+          10
         );
-        expect(component.refs.verticalScrollbar.element.style.bottom).toBe(
-          '10px'
-        );
-        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10);
-        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20);
-        expect(component.getScrollContainerClientHeight()).toBe(100 - 10);
-        expect(component.getScrollContainerClientWidth()).toBe(
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBeNear(20);
+        expect(component.getScrollContainerClientHeight()).toBeNear(100 - 10);
+        expect(component.getScrollContainerClientWidth()).toBeNear(
           100 - component.getGutterContainerWidth() - 10
         );
 
@@ -498,18 +508,20 @@ describe('TextEditorComponent', () => {
         element.remove();
         jasmine.attachToDOM(element);
 
-        expect(getHorizontalScrollbarHeight(component)).toBe(10);
-        expect(getVerticalScrollbarWidth(component)).toBe(10);
-        expect(component.refs.horizontalScrollbar.element.style.right).toBe(
-          '10px'
+        expect(getHorizontalScrollbarHeight(component)).toBeNear(10);
+        expect(getVerticalScrollbarWidth(component)).toBeNear(10);
+        expect(
+          component.refs.horizontalScrollbar.element.style.right
+        ).toHaveNearPixels('10px');
+        expect(
+          component.refs.verticalScrollbar.element.style.bottom
+        ).toHaveNearPixels('10px');
+        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBeNear(
+          10
         );
-        expect(component.refs.verticalScrollbar.element.style.bottom).toBe(
-          '10px'
-        );
-        expect(component.refs.horizontalScrollbar.element.scrollLeft).toBe(10);
-        expect(component.refs.verticalScrollbar.element.scrollTop).toBe(20);
-        expect(component.getScrollContainerClientHeight()).toBe(100 - 10);
-        expect(component.getScrollContainerClientWidth()).toBe(
+        expect(component.refs.verticalScrollbar.element.scrollTop).toBeNear(20);
+        expect(component.getScrollContainerClientHeight()).toBeNear(100 - 10);
+        expect(component.getScrollContainerClientWidth()).toBeNear(
           100 - component.getGutterContainerWidth() - 10
         );
 
@@ -596,8 +608,8 @@ describe('TextEditorComponent', () => {
     it('blinks cursors when the editor is focused and the cursors are not moving', async () => {
       assertDocumentFocused();
       const { component, element, editor } = buildComponent();
-      component.props.cursorBlinkPeriod = 40;
-      component.props.cursorBlinkResumeDelay = 40;
+      component.props.cursorBlinkPeriod = 30;
+      component.props.cursorBlinkResumeDelay = 30;
       editor.addCursorAtScreenPosition([1, 0]);
 
       element.focus();
@@ -723,7 +735,7 @@ describe('TextEditorComponent', () => {
       expect(hiddenInput.getBoundingClientRect().top).toBe(
         clientTopForLine(component, 7)
       );
-      expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBe(
+      expect(Math.round(hiddenInput.getBoundingClientRect().left)).toBeNear(
         clientLeftForCharacter(component, 7, 4)
       );
     });
@@ -750,14 +762,6 @@ describe('TextEditorComponent', () => {
       );
       expect(lineNodeForScreenRow(component, 4).textContent).toBe(
         '    right = [];'
-      );
-
-      await setEditorWidthInCharacters(component, 45);
-      expect(lineNodeForScreenRow(component, 3).textContent).toBe(
-        '    var pivot = items.shift(), current, left '
-      );
-      expect(lineNodeForScreenRow(component, 4).textContent).toBe(
-        '    = [], right = [];'
       );
 
       const { scrollContainer } = component.refs;
@@ -815,7 +819,7 @@ describe('TextEditorComponent', () => {
           verticalScrollbarWidth +
           2 * editorPadding
       );
-      expect(initialHeight).toBe(
+      expect(initialHeight).toBeNear(
         component.getContentHeight() +
           horizontalScrollbarHeight +
           2 * editorPadding
@@ -836,7 +840,7 @@ describe('TextEditorComponent', () => {
       // When autoHeight is enabled, height adjusts to content
       editor.insertText('\n'.repeat(5));
       await component.getNextUpdatePromise();
-      expect(element.offsetHeight).toBe(
+      expect(element.offsetHeight).toBeNear(
         component.getContentHeight() +
           horizontalScrollbarHeight +
           2 * editorPadding
@@ -854,7 +858,7 @@ describe('TextEditorComponent', () => {
     it('does not render the line numbers but still renders the line number gutter if showLineNumbers is false', async () => {
       function checkScrollContainerLeft(component) {
         const { scrollContainer, gutterContainer } = component.refs;
-        expect(scrollContainer.getBoundingClientRect().left).toBe(
+        expect(scrollContainer.getBoundingClientRect().left).toBeNear(
           Math.round(gutterContainer.element.getBoundingClientRect().right)
         );
       }
@@ -956,6 +960,7 @@ describe('TextEditorComponent', () => {
           '0',
           '1',
           '2',
+          '2',
           '3',
           '3',
           '4',
@@ -992,7 +997,8 @@ describe('TextEditorComponent', () => {
           '15',
           '16',
           '17',
-          '18'
+          '18',
+          '19'
         ]);
       }
 
@@ -1009,6 +1015,7 @@ describe('TextEditorComponent', () => {
           '0',
           '1',
           '2',
+          '3',
           '3',
           '4',
           '4',
@@ -1047,7 +1054,8 @@ describe('TextEditorComponent', () => {
           '16',
           '17',
           '18',
-          '19'
+          '19',
+          '20'
         ]);
       }
     });
@@ -1394,20 +1402,20 @@ describe('TextEditorComponent', () => {
 
       editor.scrollToScreenRange([[4, 0], [6, 0]]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (6 + 1 + editor.verticalScrollMargin) * component.getLineHeight()
       );
 
       editor.scrollToScreenPosition([8, 0]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (8 + 1 + editor.verticalScrollMargin) *
           component.measurements.lineHeight
       );
 
       editor.scrollToScreenPosition([3, 0]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTop()).toBeNear(
         (3 - editor.verticalScrollMargin) * component.measurements.lineHeight
       );
 
@@ -1430,25 +1438,25 @@ describe('TextEditorComponent', () => {
 
       editor.scrollToScreenPosition([6, 0]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (6 + 1 + scrollMarginInLines) * component.measurements.lineHeight
       );
 
       editor.scrollToScreenPosition([6, 4]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (6 + 1 + scrollMarginInLines) * component.measurements.lineHeight
       );
 
       editor.scrollToScreenRange([[4, 4], [6, 4]]);
       await component.getNextUpdatePromise();
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTop()).toBeNear(
         (4 - scrollMarginInLines) * component.measurements.lineHeight
       );
 
       editor.scrollToScreenRange([[4, 4], [6, 4]], { reversed: false });
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (6 + 1 + scrollMarginInLines) * component.measurements.lineHeight
       );
     });
@@ -1483,7 +1491,7 @@ describe('TextEditorComponent', () => {
         lineNodeForScreenRow(component, 1).getBoundingClientRect().left -
         editor.horizontalScrollMargin *
           component.measurements.baseCharacterWidth;
-      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0);
+      expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
 
       editor.scrollToScreenRange([[1, 12], [2, 28]], { reversed: false });
       await component.getNextUpdatePromise();
@@ -1494,7 +1502,7 @@ describe('TextEditorComponent', () => {
         editor.horizontalScrollMargin *
           component.measurements.baseCharacterWidth -
         component.getScrollContainerClientWidth();
-      expect(component.getScrollLeft()).toBeCloseTo(expectedScrollLeft, 0);
+      expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
     });
 
     it('does not horizontally autoscroll by more than half of the visible "base-width" characters if the editor is narrower than twice the scroll margin', async () => {
@@ -1516,7 +1524,7 @@ describe('TextEditorComponent', () => {
           Math.floor((editorWidthInChars - 1) / 2) *
             component.getBaseCharacterWidth()
       );
-      expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+      expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
     });
 
     it('correctly autoscrolls after inserting a line that exceeds the current content width', async () => {
@@ -1531,7 +1539,7 @@ describe('TextEditorComponent', () => {
       editor.insertText('x'.repeat(100));
       await component.getNextUpdatePromise();
 
-      expect(component.getScrollLeft()).toBe(
+      expect(component.getScrollLeft()).toBeNear(
         component.getScrollWidth() - component.getScrollContainerClientWidth()
       );
     });
@@ -1545,7 +1553,7 @@ describe('TextEditorComponent', () => {
       editor.scrollToBufferPosition([11, 5]);
       editor.getBuffer().deleteRows(11, 12);
       await component.getNextUpdatePromise();
-      expect(component.getScrollBottom()).toBe(
+      expect(component.getScrollBottom()).toBeNear(
         (10 + 1) * component.measurements.lineHeight
       );
     });
@@ -1562,10 +1570,10 @@ describe('TextEditorComponent', () => {
       editor.insertText('\n\n' + 'x'.repeat(100));
       await component.getNextUpdatePromise();
 
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTop()).toBeNear(
         component.getScrollHeight() - component.getScrollContainerClientHeight()
       );
-      expect(component.getScrollLeft()).toBe(
+      expect(component.getScrollLeft()).toBeNear(
         component.getScrollWidth() - component.getScrollContainerClientWidth()
       );
 
@@ -1592,36 +1600,36 @@ describe('TextEditorComponent', () => {
       // Assigns the scrollTop based on the logical position when attached
       jasmine.attachToDOM(element);
       const expectedScrollTop = Math.round(6 * component.getLineHeight());
-      expect(component.getScrollTopRow()).toBe(6);
-      expect(component.getScrollTop()).toBe(expectedScrollTop);
+      expect(component.getScrollTopRow()).toBeNear(6);
+      expect(component.getScrollTop()).toBeNear(expectedScrollTop);
       expect(component.refs.content.style.transform).toBe(
         `translate(0px, -${expectedScrollTop}px)`
       );
 
       // Allows the scrollTopRow to be updated while attached
       component.setScrollTopRow(4);
-      expect(component.getScrollTopRow()).toBe(4);
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTopRow()).toBeNear(4);
+      expect(component.getScrollTop()).toBeNear(
         Math.round(4 * component.getLineHeight())
       );
 
       // Preserves the scrollTopRow when detached
       element.remove();
-      expect(component.getScrollTopRow()).toBe(4);
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTopRow()).toBeNear(4);
+      expect(component.getScrollTop()).toBeNear(
         Math.round(4 * component.getLineHeight())
       );
 
       component.setScrollTopRow(6);
-      expect(component.getScrollTopRow()).toBe(6);
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTopRow()).toBeNear(6);
+      expect(component.getScrollTop()).toBeNear(
         Math.round(6 * component.getLineHeight())
       );
 
       jasmine.attachToDOM(element);
       element.style.height = '60px';
-      expect(component.getScrollTopRow()).toBe(6);
-      expect(component.getScrollTop()).toBe(
+      expect(component.getScrollTopRow()).toBeNear(6);
+      expect(component.getScrollTop()).toBeNear(
         Math.round(6 * component.getLineHeight())
       );
     });
@@ -1691,8 +1699,8 @@ describe('TextEditorComponent', () => {
           wheelDeltaY: -20,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollTop()).toBe(expectedScrollTop);
-        expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+        expect(component.getScrollTop()).toBeNear(expectedScrollTop);
+        expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
           `translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`
         );
@@ -1707,8 +1715,8 @@ describe('TextEditorComponent', () => {
           wheelDeltaY: 10,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollTop()).toBe(expectedScrollTop);
-        expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+        expect(component.getScrollTop()).toBeNear(expectedScrollTop);
+        expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
           `translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`
         );
@@ -1722,8 +1730,8 @@ describe('TextEditorComponent', () => {
           wheelDeltaY: 10,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollTop()).toBe(expectedScrollTop);
-        expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+        expect(component.getScrollTop()).toBeNear(expectedScrollTop);
+        expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
           `translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`
         );
@@ -1738,8 +1746,8 @@ describe('TextEditorComponent', () => {
           wheelDeltaY: -8,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollTop()).toBe(expectedScrollTop);
-        expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+        expect(component.getScrollTop()).toBeNear(expectedScrollTop);
+        expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
           `translate(${-expectedScrollLeft}px, ${-expectedScrollTop}px)`
         );
@@ -1764,7 +1772,7 @@ describe('TextEditorComponent', () => {
           wheelDeltaY: -20,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollTop()).toBe(expectedScrollTop);
+        expect(component.getScrollTop()).toBeNear(expectedScrollTop);
         expect(component.refs.content.style.transform).toBe(
           `translate(0px, -${expectedScrollTop}px)`
         );
@@ -1779,7 +1787,7 @@ describe('TextEditorComponent', () => {
           shiftKey: true,
           preventDefault: eventPreventDefaultStub
         });
-        expect(component.getScrollLeft()).toBe(expectedScrollLeft);
+        expect(component.getScrollLeft()).toBeNear(expectedScrollLeft);
         expect(component.refs.content.style.transform).toBe(
           `translate(-${expectedScrollLeft}px, 0px)`
         );
@@ -1913,20 +1921,20 @@ describe('TextEditorComponent', () => {
       setScrollTop(component, NaN);
       setScrollLeft(component, NaN);
       await component.getNextUpdatePromise();
-      expect(component.getScrollTop()).toBe(initialScrollTop);
-      expect(component.getScrollLeft()).toBe(initialScrollLeft);
+      expect(component.getScrollTop()).toBeNear(initialScrollTop);
+      expect(component.getScrollLeft()).toBeNear(initialScrollLeft);
 
       setScrollTop(component, null);
       setScrollLeft(component, null);
       await component.getNextUpdatePromise();
-      expect(component.getScrollTop()).toBe(initialScrollTop);
-      expect(component.getScrollLeft()).toBe(initialScrollLeft);
+      expect(component.getScrollTop()).toBeNear(initialScrollTop);
+      expect(component.getScrollLeft()).toBeNear(initialScrollLeft);
 
       setScrollTop(component, undefined);
       setScrollLeft(component, undefined);
       await component.getNextUpdatePromise();
-      expect(component.getScrollTop()).toBe(initialScrollTop);
-      expect(component.getScrollLeft()).toBe(initialScrollLeft);
+      expect(component.getScrollTop()).toBeNear(initialScrollTop);
+      expect(component.getScrollLeft()).toBeNear(initialScrollLeft);
     });
   });
 
@@ -2247,10 +2255,10 @@ describe('TextEditorComponent', () => {
         expect(regionRect.top).toBe(
           lineNodeForScreenRow(component, 1).getBoundingClientRect().top
         );
-        expect(Math.round(regionRect.left)).toBe(
+        expect(Math.round(regionRect.left)).toBeNear(
           clientLeftForCharacter(component, 1, 2)
         );
-        expect(Math.round(regionRect.right)).toBe(
+        expect(Math.round(regionRect.right)).toBeNear(
           clientLeftForCharacter(component, 1, 10)
         );
       }
@@ -2268,10 +2276,10 @@ describe('TextEditorComponent', () => {
         expect(regionRect.bottom).toBe(
           lineNodeForScreenRow(component, 1).getBoundingClientRect().bottom
         );
-        expect(Math.round(regionRect.left)).toBe(
+        expect(Math.round(regionRect.left)).toBeNear(
           clientLeftForCharacter(component, 1, 4)
         );
-        expect(Math.round(regionRect.right)).toBe(
+        expect(Math.round(regionRect.right)).toBeNear(
           clientLeftForCharacter(component, 1, 8)
         );
       }
@@ -2296,24 +2304,24 @@ describe('TextEditorComponent', () => {
         expect(region0Rect.bottom).toBe(
           lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom
         );
-        expect(Math.round(region0Rect.left)).toBe(
+        expect(Math.round(region0Rect.left)).toBeNear(
           clientLeftForCharacter(component, 2, 4)
         );
-        expect(Math.round(region0Rect.right)).toBe(
+        expect(Math.round(region0Rect.right)).toBeNear(
           component.refs.content.getBoundingClientRect().right
         );
 
         const region1Rect = regions[1].getBoundingClientRect();
-        expect(region1Rect.top).toBe(
+        expect(region1Rect.top).toBeNear(
           lineNodeForScreenRow(component, 3).getBoundingClientRect().top
         );
-        expect(region1Rect.bottom).toBe(
+        expect(region1Rect.bottom).toBeNear(
           lineNodeForScreenRow(component, 3).getBoundingClientRect().bottom
         );
-        expect(Math.round(region1Rect.left)).toBe(
+        expect(Math.round(region1Rect.left)).toBeNear(
           clientLeftForCharacter(component, 3, 0)
         );
-        expect(Math.round(region1Rect.right)).toBe(
+        expect(Math.round(region1Rect.right)).toBeNear(
           clientLeftForCharacter(component, 3, 4)
         );
       }
@@ -2328,44 +2336,44 @@ describe('TextEditorComponent', () => {
         expect(regions.length).toBe(3);
 
         const region0Rect = regions[0].getBoundingClientRect();
-        expect(region0Rect.top).toBe(
+        expect(region0Rect.top).toBeNear(
           lineNodeForScreenRow(component, 2).getBoundingClientRect().top
         );
-        expect(region0Rect.bottom).toBe(
+        expect(region0Rect.bottom).toBeNear(
           lineNodeForScreenRow(component, 2).getBoundingClientRect().bottom
         );
-        expect(Math.round(region0Rect.left)).toBe(
+        expect(Math.round(region0Rect.left)).toBeNear(
           clientLeftForCharacter(component, 2, 4)
         );
-        expect(Math.round(region0Rect.right)).toBe(
+        expect(Math.round(region0Rect.right)).toBeNear(
           component.refs.content.getBoundingClientRect().right
         );
 
         const region1Rect = regions[1].getBoundingClientRect();
-        expect(region1Rect.top).toBe(
+        expect(region1Rect.top).toBeNear(
           lineNodeForScreenRow(component, 3).getBoundingClientRect().top
         );
-        expect(region1Rect.bottom).toBe(
+        expect(region1Rect.bottom).toBeNear(
           lineNodeForScreenRow(component, 5).getBoundingClientRect().top
         );
-        expect(Math.round(region1Rect.left)).toBe(
+        expect(Math.round(region1Rect.left)).toBeNear(
           component.refs.content.getBoundingClientRect().left
         );
-        expect(Math.round(region1Rect.right)).toBe(
+        expect(Math.round(region1Rect.right)).toBeNear(
           component.refs.content.getBoundingClientRect().right
         );
 
         const region2Rect = regions[2].getBoundingClientRect();
-        expect(region2Rect.top).toBe(
+        expect(region2Rect.top).toBeNear(
           lineNodeForScreenRow(component, 5).getBoundingClientRect().top
         );
-        expect(region2Rect.bottom).toBe(
+        expect(region2Rect.bottom).toBeNear(
           lineNodeForScreenRow(component, 6).getBoundingClientRect().top
         );
-        expect(Math.round(region2Rect.left)).toBe(
+        expect(Math.round(region2Rect.left)).toBeNear(
           component.refs.content.getBoundingClientRect().left
         );
-        expect(Math.round(region2Rect.right)).toBe(
+        expect(Math.round(region2Rect.right)).toBeNear(
           clientLeftForCharacter(component, 5, 4)
         );
       }
@@ -2542,9 +2550,9 @@ describe('TextEditorComponent', () => {
 
       await component.getNextUpdatePromise();
       const regions = element.querySelectorAll('.highlight .region');
-      expect(regions[0].offsetTop).toBe(3 * component.getLineHeight());
-      expect(regions[0].offsetHeight).toBe(component.getLineHeight());
-      expect(regions[1].offsetTop).toBe(4 * component.getLineHeight() + 30);
+      expect(regions[0].offsetTop).toBeNear(3 * component.getLineHeight());
+      expect(regions[0].offsetHeight).toBeNear(component.getLineHeight());
+      expect(regions[1].offsetTop).toBeNear(4 * component.getLineHeight() + 30);
     });
   });
 
@@ -2596,33 +2604,33 @@ describe('TextEditorComponent', () => {
 
       const overlayWrapper = overlayElement.parentElement;
       expect(overlayWrapper.classList.contains('a')).toBe(true);
-      expect(overlayWrapper.getBoundingClientRect().top).toBe(
+      expect(overlayWrapper.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 5)
       );
-      expect(overlayWrapper.getBoundingClientRect().left).toBe(
+      expect(overlayWrapper.getBoundingClientRect().left).toBeNear(
         clientLeftForCharacter(component, 4, 25)
       );
 
       // Updates the horizontal position on scroll
       await setScrollLeft(component, 150);
-      expect(overlayWrapper.getBoundingClientRect().left).toBe(
+      expect(overlayWrapper.getBoundingClientRect().left).toBeNear(
         clientLeftForCharacter(component, 4, 25)
       );
 
       // Shifts the overlay horizontally to ensure the overlay element does not
       // overflow the window
       await setScrollLeft(component, 30);
-      expect(overlayElement.getBoundingClientRect().right).toBe(
+      expect(overlayElement.getBoundingClientRect().right).toBeNear(
         fakeWindow.getBoundingClientRect().right
       );
       await setScrollLeft(component, 280);
-      expect(overlayElement.getBoundingClientRect().left).toBe(
+      expect(overlayElement.getBoundingClientRect().left).toBeNear(
         fakeWindow.getBoundingClientRect().left
       );
 
       // Updates the vertical position on scroll
       await setScrollTop(component, 60);
-      expect(overlayWrapper.getBoundingClientRect().top).toBe(
+      expect(overlayWrapper.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 5)
       );
 
@@ -2630,25 +2638,25 @@ describe('TextEditorComponent', () => {
       // overflow the bottom of the window
       setScrollLeft(component, 100);
       await setScrollTop(component, 0);
-      expect(overlayWrapper.getBoundingClientRect().bottom).toBe(
+      expect(overlayWrapper.getBoundingClientRect().bottom).toBeNear(
         clientTopForLine(component, 4)
       );
 
       // Flips the overlay vertically on overlay resize if necessary
       await setScrollTop(component, 20);
-      expect(overlayWrapper.getBoundingClientRect().top).toBe(
+      expect(overlayWrapper.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 5)
       );
       overlayElement.style.height = 60 + 'px';
       await overlayComponent.getNextUpdatePromise();
-      expect(overlayWrapper.getBoundingClientRect().bottom).toBe(
+      expect(overlayWrapper.getBoundingClientRect().bottom).toBeNear(
         clientTopForLine(component, 4)
       );
 
       // Does not flip the overlay vertically if it would overflow the top of the window
       overlayElement.style.height = 80 + 'px';
       await overlayComponent.getNextUpdatePromise();
-      expect(overlayWrapper.getBoundingClientRect().top).toBe(
+      expect(overlayWrapper.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 5)
       );
 
@@ -2721,7 +2729,7 @@ describe('TextEditorComponent', () => {
       const { scrollContainer, gutterContainer } = component.refs;
 
       function checkScrollContainerLeft() {
-        expect(scrollContainer.getBoundingClientRect().left).toBe(
+        expect(scrollContainer.getBoundingClientRect().left).toBeNear(
           Math.round(gutterContainer.element.getBoundingClientRect().right)
         );
       }
@@ -2829,19 +2837,19 @@ describe('TextEditorComponent', () => {
       const [decorationNode3] = gutterB.getElement().firstChild.children;
 
       expect(decorationNode1.className).toBe('decoration a');
-      expect(decorationNode1.getBoundingClientRect().top).toBe(
+      expect(decorationNode1.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 2)
       );
-      expect(decorationNode1.getBoundingClientRect().bottom).toBe(
+      expect(decorationNode1.getBoundingClientRect().bottom).toBeNear(
         clientTopForLine(component, 5)
       );
       expect(decorationNode1.firstChild).toBeNull();
 
       expect(decorationNode2.className).toBe('decoration b');
-      expect(decorationNode2.getBoundingClientRect().top).toBe(
+      expect(decorationNode2.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 6)
       );
-      expect(decorationNode2.getBoundingClientRect().bottom).toBe(
+      expect(decorationNode2.getBoundingClientRect().bottom).toBeNear(
         clientTopForLine(component, 8)
       );
       expect(decorationNode2.firstChild).toBe(decorationElement1);
@@ -2851,10 +2859,10 @@ describe('TextEditorComponent', () => {
       expect(decorationElement1.offsetWidth).toBe(decorationNode2.offsetWidth);
 
       expect(decorationNode3.className).toBe('decoration');
-      expect(decorationNode3.getBoundingClientRect().top).toBe(
+      expect(decorationNode3.getBoundingClientRect().top).toBeNear(
         clientTopForLine(component, 9)
       );
-      expect(decorationNode3.getBoundingClientRect().bottom).toBe(
+      expect(decorationNode3.getBoundingClientRect().bottom).toBeNear(
         clientTopForLine(component, 12) + component.getLineHeight()
       );
       expect(decorationNode3.firstChild).toBe(decorationElement2);
@@ -2992,7 +3000,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item1) +
           getElementHeight(item2)
@@ -3039,7 +3047,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item1) +
           getElementHeight(item2) +
@@ -3078,7 +3086,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3113,7 +3121,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3147,7 +3155,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3183,7 +3191,7 @@ describe('TextEditorComponent', () => {
       );
       expect(component.getRenderedStartRow()).toBe(3);
       expect(component.getRenderedEndRow()).toBe(12);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3214,7 +3222,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3253,7 +3261,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3303,7 +3311,7 @@ describe('TextEditorComponent', () => {
       await component.getNextUpdatePromise();
       expect(component.getRenderedStartRow()).toBe(0);
       expect(component.getRenderedEndRow()).toBe(9);
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3341,7 +3349,7 @@ describe('TextEditorComponent', () => {
           component.getRenderedStartRow() === 0 &&
           component.getRenderedEndRow() === 13
       );
-      expect(component.getScrollHeight()).toBe(
+      expect(component.getScrollHeight()).toBeNear(
         editor.getScreenLineCount() * component.getLineHeight() +
           getElementHeight(item2) +
           getElementHeight(item3) +
@@ -3832,16 +3840,16 @@ describe('TextEditorComponent', () => {
           tile.tileStartRow
         ).parentElement;
         const linesTileBoundingRect = linesTileElement.getBoundingClientRect();
-        expect(linesTileBoundingRect.height).toBe(tile.height);
-        expect(linesTileBoundingRect.top).toBe(top);
+        expect(linesTileBoundingRect.height).toBeNear(tile.height);
+        expect(linesTileBoundingRect.top).toBeNear(top);
 
         const lineNumbersTileElement = lineNumberNodeForScreenRow(
           component,
           tile.tileStartRow
         ).parentElement;
         const lineNumbersTileBoundingRect = lineNumbersTileElement.getBoundingClientRect();
-        expect(lineNumbersTileBoundingRect.height).toBe(tile.height);
-        expect(lineNumbersTileBoundingRect.top).toBe(top);
+        expect(lineNumbersTileBoundingRect.height).toBeNear(tile.height);
+        expect(lineNumbersTileBoundingRect.top).toBeNear(top);
 
         top += tile.height;
       }
@@ -3853,7 +3861,7 @@ describe('TextEditorComponent', () => {
       for (let row = startRow; row < endRow; row++) {
         const lineNode = lineNodeForScreenRow(component, row);
         const lineNumberNode = lineNumberNodeForScreenRow(component, row);
-        expect(lineNumberNode.getBoundingClientRect().top).toBe(
+        expect(lineNumberNode.getBoundingClientRect().top).toBeNear(
           lineNode.getBoundingClientRect().top
         );
       }
@@ -3986,8 +3994,8 @@ describe('TextEditorComponent', () => {
       element.style.height = 4 * component.getLineHeight() + 'px';
       await component.getNextUpdatePromise();
       await setScrollTop(component, 4 * component.getLineHeight());
-      expect(component.getRenderedStartRow()).toBe(4);
-      expect(component.getRenderedEndRow()).toBe(9);
+      expect(component.getRenderedStartRow()).toBeNear(4);
+      expect(component.getRenderedEndRow()).toBeNear(9);
 
       const markerLayer = editor.addMarkerLayer();
       const marker1 = markerLayer.markBufferRange([[0, 0], [4, 5]]);
@@ -4781,8 +4789,8 @@ describe('TextEditorComponent', () => {
           didDrag({ clientX: 199, clientY: 199 });
           didDrag({ clientX: 199, clientY: 199 });
           didDrag({ clientX: 199, clientY: 199 });
-          expect(component.getScrollTop()).toBe(maxScrollTop);
-          expect(component.getScrollLeft()).toBe(maxScrollLeft);
+          expect(component.getScrollTop()).toBeNear(maxScrollTop);
+          expect(component.getScrollLeft()).toBeNear(maxScrollLeft);
         });
       });
 
@@ -5151,8 +5159,8 @@ describe('TextEditorComponent', () => {
         didDrag({ clientX: 199, clientY: 199 });
         didDrag({ clientX: 199, clientY: 199 });
         didDrag({ clientX: 199, clientY: 199 });
-        expect(component.getScrollTop()).toBe(maxScrollTop);
-        expect(component.getScrollLeft()).toBe(maxScrollLeft);
+        expect(component.getScrollTop()).toBeNear(maxScrollTop);
+        expect(component.getScrollLeft()).toBeNear(maxScrollLeft);
       });
     });
 
@@ -5761,7 +5769,7 @@ describe('TextEditorComponent', () => {
         expect(top).toBe(
           clientTopForLine(referenceComponent, 0) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 0, 5) -
             referenceContentRect.left
         );
@@ -5772,10 +5780,10 @@ describe('TextEditorComponent', () => {
           row: 12,
           column: 1
         });
-        expect(top).toBe(
+        expect(top).toBeNear(
           clientTopForLine(referenceComponent, 12) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 12, 1) -
             referenceContentRect.left
         );
@@ -5789,10 +5797,10 @@ describe('TextEditorComponent', () => {
           row: 3,
           column: 5
         });
-        expect(top).toBe(
+        expect(top).toBeNear(
           clientTopForLine(referenceComponent, 3) - referenceContentRect.top
         );
-        expect(left).toBe(
+        expect(left).toBeNear(
           clientLeftForCharacter(referenceComponent, 3, 5) -
             referenceContentRect.left
         );
@@ -5970,7 +5978,9 @@ describe('TextEditorComponent', () => {
         'px';
       await component.getNextUpdatePromise();
 
-      expect(component.getMaxScrollTop() / component.getLineHeight()).toBe(9);
+      expect(component.getMaxScrollTop() / component.getLineHeight()).toBeNear(
+        9
+      );
       expect(component.refs.verticalScrollbar.element.scrollTop).toBe(
         0 * component.getLineHeight()
       );
@@ -5978,21 +5988,21 @@ describe('TextEditorComponent', () => {
       editor.setFirstVisibleScreenRow(1);
       expect(component.getFirstVisibleRow()).toBe(1);
       await component.getNextUpdatePromise();
-      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBeNear(
         1 * component.getLineHeight()
       );
 
       editor.setFirstVisibleScreenRow(5);
       expect(component.getFirstVisibleRow()).toBe(5);
       await component.getNextUpdatePromise();
-      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBeNear(
         5 * component.getLineHeight()
       );
 
       editor.setFirstVisibleScreenRow(11);
       expect(component.getFirstVisibleRow()).toBe(9);
       await component.getNextUpdatePromise();
-      expect(component.refs.verticalScrollbar.element.scrollTop).toBe(
+      expect(component.refs.verticalScrollbar.element.scrollTop).toBeNear(
         9 * component.getLineHeight()
       );
     });
@@ -6198,7 +6208,7 @@ async function setEditorWidthInCharacters(component, widthInCharacters) {
 
 function verifyCursorPosition(component, cursorNode, row, column) {
   const rect = cursorNode.getBoundingClientRect();
-  expect(Math.round(rect.top)).toBe(clientTopForLine(component, row));
+  expect(Math.round(rect.top)).toBeNear(clientTopForLine(component, row));
   expect(Math.round(rect.left)).toBe(
     Math.round(clientLeftForCharacter(component, row, column))
   );

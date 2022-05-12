@@ -46,7 +46,7 @@ module.exports = class ApplicationDelegate {
 
   async getTemporaryWindowState() {
     const stateJSON = await ipcHelpers.call('get-temporary-window-state');
-    return JSON.parse(stateJSON);
+    return stateJSON && JSON.parse(stateJSON);
   }
 
   setTemporaryWindowState(state) {

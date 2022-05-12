@@ -8,13 +8,13 @@ const scrollbarStyle = require('scrollbar-style');
 const _ = require('underscore-plus');
 
 class WorkspaceElement extends HTMLElement {
-  attachedCallback() {
+  connectedCallback() {
     this.focus();
     this.htmlElement = document.querySelector('html');
     this.htmlElement.addEventListener('mouseleave', this.handleCenterLeave);
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.subscriptions.dispose();
     this.htmlElement.removeEventListener('mouseleave', this.handleCenterLeave);
   }
@@ -466,10 +466,6 @@ class WorkspaceElement extends HTMLElement {
   }
 }
 
-module.exports = document.registerElement('atom-workspace', {
-  prototype: WorkspaceElement.prototype
-});
-
 function isTab(element) {
   let el = element;
   while (el != null) {
@@ -478,3 +474,13 @@ function isTab(element) {
   }
   return false;
 }
+
+window.customElements.define('atom-workspace', WorkspaceElement);
+
+function createWorkspaceElement() {
+  return document.createElement('atom-workspace');
+}
+
+module.exports = {
+  createWorkspaceElement
+};

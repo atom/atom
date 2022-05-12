@@ -1,4 +1,10 @@
-const { BrowserWindow, app, dialog, ipcMain } = require('electron');
+const {
+  BrowserWindow,
+  app,
+  dialog,
+  ipcMain,
+  nativeImage
+} = require('electron');
 const getAppName = require('../get-app-name');
 const path = require('path');
 const url = require('url');
@@ -51,6 +57,8 @@ module.exports = class AtomWindow extends EventEmitter {
         nodeIntegration: true,
         webviewTag: true,
 
+        // TodoElectronIssue: remote module is deprecated https://www.electronjs.org/docs/breaking-changes#default-changed-enableremotemodule-defaults-to-false
+        enableRemoteModule: true,
         // node support in threads
         nodeIntegrationInWorker: true
       },
@@ -59,7 +67,8 @@ module.exports = class AtomWindow extends EventEmitter {
 
     // Don't set icon on Windows so the exe's ico will be used as window and
     // taskbar's icon. See https://github.com/atom/atom/issues/4811 for more.
-    if (process.platform === 'linux') options.icon = ICON_PATH;
+    if (process.platform === 'linux')
+      options.icon = nativeImage.createFromPath(ICON_PATH);
     if (this.shouldAddCustomTitleBar()) options.titleBarStyle = 'hidden';
     if (this.shouldAddCustomInsetTitleBar())
       options.titleBarStyle = 'hiddenInset';
@@ -227,7 +236,7 @@ module.exports = class AtomWindow extends EventEmitter {
       if (result.response === 0) this.browserWindow.destroy();
     });
 
-    this.browserWindow.webContents.on('crashed', async () => {
+    this.browserWindow.webContents.on('render-process-gone', async () => {
       if (this.headless) {
         console.log('Renderer process crashed, exiting');
         this.atomApplication.exit(100);
@@ -320,7 +329,19 @@ module.exports = class AtomWindow extends EventEmitter {
   }
 
   replaceEnvironment(env) {
-    this.browserWindow.webContents.send('environment', env);
+    const {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    } = env;
+
+    this.browserWindow.webContents.send('environment', {
+      NODE_ENV,
+      NODE_PATH,
+      ATOM_HOME,
+      ATOM_DISABLE_SHELLING_OUT_FOR_ENVIRONMENT
+    });
   }
 
   sendMessage(message, detail) {

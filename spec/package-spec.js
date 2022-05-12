@@ -45,6 +45,20 @@ describe('Package', function() {
       );
     });
 
+    it('detects the package as incompatible even if .node file is loaded conditionally', function() {
+      const packagePath = atom.project
+        .getDirectories()[0]
+        .resolve(
+          'packages/package-with-incompatible-native-module-loaded-conditionally'
+        );
+      const pack = buildPackage(packagePath);
+      expect(pack.isCompatible()).toBe(false);
+      expect(pack.incompatibleModules[0].name).toBe('native-module');
+      expect(pack.incompatibleModules[0].path).toBe(
+        path.join(packagePath, 'node_modules', 'native-module')
+      );
+    });
+
     it("utilizes _atomModuleCache if present to determine the package's native dependencies", function() {
       let packagePath = atom.project
         .getDirectories()[0]

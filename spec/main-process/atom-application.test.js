@@ -796,6 +796,7 @@ describe('AtomApplication', function() {
         app = scenario.getApplication(0);
         app.removeWindow(w);
         sinon.stub(app, 'promptForPathToOpen');
+        global.atom = { workspace: { getActiveTextEditor() {} } };
       });
 
       it('opens a new file', function() {

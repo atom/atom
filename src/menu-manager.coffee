@@ -78,7 +78,7 @@ class MenuManager
   #   atom.menu.add [
   #     {
   #       label: 'Hello'
-  #       submenu : [{label: 'World!', command: 'hello:world'}]
+  #       submenu : [{label: 'World!', id: 'World!', command: 'hello:world'}]
   #     }
   #   ]
   # ```
@@ -89,6 +89,7 @@ class MenuManager
   #   * `command` An optional {String} command to trigger when the item is
   #     clicked.
   #
+  #   * `id` (internal) A {String} containing the menu item's id.
   # Returns a {Disposable} on which `.dispose()` can be called to remove the
   # added menu items.
   add: (items) ->
@@ -201,7 +202,7 @@ class MenuManager
       []
 
   sortPackagesMenu: ->
-    packagesMenu = _.find @template, ({label}) -> MenuHelpers.normalizeLabel(label) is 'Packages'
+    packagesMenu = _.find @template, ({id}) -> MenuHelpers.normalizeLabel(id) is 'Packages'
     return unless packagesMenu?.submenu?
 
     packagesMenu.submenu.sort (item1, item2) ->

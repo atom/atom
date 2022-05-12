@@ -133,6 +133,13 @@ const decryptOptions = (optionsMessage, secret) => {
   return JSON.parse(message);
 };
 
+ipcMain.handle('isDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.isDefaultProtocolClient(protocol, path, args);
+});
+
+ipcMain.handle('setAsDefaultProtocolClient', (_, { protocol, path, args }) => {
+  return app.setAsDefaultProtocolClient(protocol, path, args);
+});
 // The application's singleton class.
 //
 // It's the entry point into the Atom application and maintains the global state
@@ -248,16 +255,6 @@ module.exports = class AtomApplication extends EventEmitter {
     StartupTime.addMarker('main-process:atom-application:initialize:start');
 
     global.atomApplication = this;
-
-    // DEPRECATED: This can be removed at some point (added in 1.13)
-    // It converts `useCustomTitleBar: true` to `titleBar: "custom"`
-    if (
-      process.platform === 'darwin' &&
-      this.config.get('core.useCustomTitleBar')
-    ) {
-      this.config.unset('core.useCustomTitleBar');
-      this.config.set('core.titleBar', 'custom');
-    }
 
     this.applicationMenu = new ApplicationMenu(
       this.version,
@@ -590,7 +587,7 @@ module.exports = class AtomApplication extends EventEmitter {
       shell.openExternal('http://flight-manual.atom.io')
     );
     this.on('application:open-discussions', () =>
-      shell.openExternal('https://discuss.atom.io')
+      shell.openExternal('https://github.com/atom/atom/discussions')
     );
     this.on('application:open-faq', () =>
       shell.openExternal('https://atom.io/faq')
@@ -619,6 +616,12 @@ module.exports = class AtomApplication extends EventEmitter {
 
     if (process.platform === 'darwin') {
       this.on('application:reopen-project', ({ paths }) => {
+        const focusedWindow = this.focusedWindow();
+        if (focusedWindow) {
+          const { safeMode, devMode } = focusedWindow;
+          this.openPaths({ pathsToOpen: paths, safeMode, devMode });
+          return;
+        }
         this.openPaths({ pathsToOpen: paths });
       });
 
@@ -802,11 +805,10 @@ module.exports = class AtomApplication extends EventEmitter {
     );
 
     this.disposable.add(
-      ipcHelpers.on(ipcMain, 'resolve-proxy', (event, requestId, url) => {
-        event.sender.session.resolveProxy(url, proxy => {
-          if (!event.sender.isDestroyed())
-            event.sender.send('did-resolve-proxy', requestId, proxy);
-        });
+      ipcHelpers.on(ipcMain, 'resolve-proxy', async (event, requestId, url) => {
+        const proxy = await event.sender.session.resolveProxy(url);
+        if (!event.sender.isDestroyed())
+          event.sender.send('did-resolve-proxy', requestId, proxy);
       })
     );
 
@@ -1479,9 +1481,14 @@ module.exports = class AtomApplication extends EventEmitter {
   async saveCurrentWindowOptions(allowEmpty = false) {
     if (this.quitting) return;
 
+    const windows = this.getAllWindows();
+    const hasASpecWindow = windows.some(window => window.isSpec);
+
+    if (windows.length === 1 && hasASpecWindow) return;
+
     const state = {
       version: APPLICATION_STATE_VERSION,
-      windows: this.getAllWindows()
+      windows: windows
         .filter(window => !window.isSpec)
         .map(window => ({ projectRoots: window.projectRoots }))
     };
@@ -2015,7 +2022,13 @@ module.exports = class AtomApplication extends EventEmitter {
 
     // File dialog defaults to project directory of currently active editor
     if (path) openOptions.defaultPath = path;
-    dialog.showOpenDialog(parentWindow, openOptions, callback);
+    dialog
+      .showOpenDialog(parentWindow, openOptions)
+      .then(({ filePaths, bookmarks }) => {
+        if (typeof callback === 'function') {
+          callback(filePaths, bookmarks);
+        }
+      });
   }
 
   async promptForRestart() {

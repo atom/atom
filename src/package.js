@@ -1,5 +1,5 @@
 const path = require('path');
-const async = require('async');
+const asyncEach = require('async/each');
 const CSON = require('season');
 const fs = require('fs-plus');
 const { Emitter, CompositeDisposable } = require('event-kit');
@@ -726,14 +726,14 @@ module.exports = class Package {
         this.packageManager.packagesCache[this.name]
       ) {
         const { grammarPaths } = this.packageManager.packagesCache[this.name];
-        return async.each(grammarPaths, loadGrammar, () => resolve());
+        return asyncEach(grammarPaths, loadGrammar, () => resolve());
       } else {
         const grammarsDirPath = path.join(this.path, 'grammars');
         fs.exists(grammarsDirPath, grammarsDirExists => {
           if (!grammarsDirExists) return resolve();
           fs.list(grammarsDirPath, ['json', 'cson'], (error, grammarPaths) => {
             if (error || !grammarPaths) return resolve();
-            async.each(grammarPaths, loadGrammar, () => resolve());
+            asyncEach(grammarPaths, loadGrammar, () => resolve());
           });
         });
       }
@@ -779,7 +779,7 @@ module.exports = class Package {
           if (!settingsDirExists) return resolve();
           fs.list(settingsDirPath, ['json', 'cson'], (error, settingsPaths) => {
             if (error || !settingsPaths) return resolve();
-            async.each(settingsPaths, loadSettingsFile, () => resolve());
+            asyncEach(settingsPaths, loadSettingsFile, () => resolve());
           });
         });
       });
@@ -916,6 +916,10 @@ module.exports = class Package {
           localStorage.setItem(
             this.getCanDeferMainModuleRequireStorageKey(),
             'true'
+          );
+        } else {
+          localStorage.removeItem(
+            this.getCanDeferMainModuleRequireStorageKey()
           );
         }
         return this.mainModule;
@@ -1126,46 +1130,60 @@ module.exports = class Package {
   // Does the given module path contain native code?
   isNativeModule(modulePath) {
     try {
-      return (
-        fs.listSync(path.join(modulePath, 'build', 'Release'), ['.node'])
-          .length > 0
-      );
+      return this.getModulePathNodeFiles(modulePath).length > 0;
     } catch (error) {
       return false;
     }
   }
 
-  // Get an array of all the native modules that this package depends on.
+  // get the list of `.node` files for the given module path
+  getModulePathNodeFiles(modulePath) {
+    try {
+      const modulePathNodeFiles = fs.listSync(
+        path.join(modulePath, 'build', 'Release'),
+        ['.node']
+      );
+      return modulePathNodeFiles;
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Get a Map of all the native modules => the `.node` files that this package depends on.
   //
   // First try to get this information from
   // @metadata._atomModuleCache.extensions. If @metadata._atomModuleCache doesn't
   // exist, recurse through all dependencies.
-  getNativeModuleDependencyPaths() {
-    const nativeModulePaths = [];
+  getNativeModuleDependencyPathsMap() {
+    const nativeModulePaths = new Map();
 
     if (this.metadata._atomModuleCache) {
+      const nodeFilePaths = [];
       const relativeNativeModuleBindingPaths =
         (this.metadata._atomModuleCache.extensions &&
           this.metadata._atomModuleCache.extensions['.node']) ||
         [];
       for (let relativeNativeModuleBindingPath of relativeNativeModuleBindingPaths) {
-        const nativeModulePath = path.join(
+        const nodeFilePath = path.join(
           this.path,
           relativeNativeModuleBindingPath,
           '..',
           '..',
           '..'
         );
-        nativeModulePaths.push(nativeModulePath);
+        nodeFilePaths.push(nodeFilePath);
       }
+      nativeModulePaths.set(this.path, nodeFilePaths);
       return nativeModulePaths;
     }
 
-    var traversePath = nodeModulesPath => {
+    const traversePath = nodeModulesPath => {
       try {
         for (let modulePath of fs.listSync(nodeModulesPath)) {
-          if (this.isNativeModule(modulePath))
-            nativeModulePaths.push(modulePath);
+          const modulePathNodeFiles = this.getModulePathNodeFiles(modulePath);
+          if (modulePathNodeFiles) {
+            nativeModulePaths.set(modulePath, modulePathNodeFiles);
+          }
           traversePath(path.join(modulePath, 'node_modules'));
         }
       } catch (error) {}
@@ -1174,6 +1192,12 @@ module.exports = class Package {
     traversePath(path.join(this.path, 'node_modules'));
 
     return nativeModulePaths;
+  }
+
+  // Get an array of all the native modules that this package depends on.
+  // See `getNativeModuleDependencyPathsMap` for more information
+  getNativeModuleDependencyPaths() {
+    return [...this.getNativeModuleDependencyPathsMap().keys()];
   }
 
   /*
@@ -1277,8 +1301,7 @@ module.exports = class Package {
   }
 
   // Get the incompatible native modules that this package depends on.
-  // This recurses through all dependencies and requires all modules that
-  // contain a `.node` file.
+  // This recurses through all dependencies and requires all `.node` files.
   //
   // This information is cached in local storage on a per package/version basis
   // to minimize the impact on startup time.
@@ -1293,9 +1316,13 @@ module.exports = class Package {
     }
 
     const incompatibleNativeModules = [];
-    for (let nativeModulePath of this.getNativeModuleDependencyPaths()) {
+    const nativeModulePaths = this.getNativeModuleDependencyPathsMap();
+    for (const [nativeModulePath, nodeFilesPaths] of nativeModulePaths) {
       try {
-        require(nativeModulePath);
+        // require each .node file
+        for (const nodeFilePath of nodeFilesPaths) {
+          require(nodeFilePath);
+        }
       } catch (error) {
         let version;
         try {

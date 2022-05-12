@@ -2,7 +2,6 @@
 
 'use strict'
 
-const path = require('path')
 const CONFIG = require('./config')
 const childProcess = require('child_process')
 const cleanDependencies = require('./lib/clean-dependencies')

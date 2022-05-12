@@ -1,11 +1,9 @@
-exports.repositoryForPath = function(goalPath) {
-  const directories = atom.project.getDirectories();
-  const repositories = atom.project.getRepositories();
-  for (let i = 0; i < directories.length; i++) {
-    const directory = directories[i];
-    if (goalPath === directory.getPath() || directory.contains(goalPath)) {
-      return repositories[i];
-    }
+'use babel';
+import { Directory } from 'atom';
+
+export default async function(goalPath) {
+  if (goalPath) {
+    return atom.project.repositoryForDirectory(new Directory(goalPath));
   }
   return null;
-};
+}

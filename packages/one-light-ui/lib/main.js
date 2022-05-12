@@ -8,12 +8,6 @@ module.exports = {
     atom.config.observe(`${themeName}.tabCloseButton`, setTabCloseButton);
     atom.config.observe(`${themeName}.hideDockButtons`, setHideDockButtons);
     atom.config.observe(`${themeName}.stickyHeaders`, setStickyHeaders);
-
-    // DEPRECATED: This can be removed at some point (added in Atom 1.17/1.18ish)
-    // It removes `layoutMode`
-    if (atom.config.get(`${themeName}.layoutMode`)) {
-      atom.config.unset(`${themeName}.layoutMode`);
-    }
   },
 
   deactivate() {

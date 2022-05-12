@@ -5,7 +5,7 @@ const { Disposable, Emitter } = require('event-kit');
 const { watchPath } = require('./path-watcher');
 const CSON = require('season');
 const Path = require('path');
-const async = require('async');
+const asyncQueue = require('async/queue');
 
 const EVENT_TYPES = new Set(['created', 'modified', 'renamed']);
 
@@ -32,16 +32,16 @@ module.exports = class ConfigFile {
     this.reloadCallbacks = [];
 
     // Use a queue to prevent multiple concurrent write to the same file.
-    const writeQueue = async.queue((data, callback) =>
+    const writeQueue = asyncQueue((data, callback) =>
       CSON.writeFile(this.path, data, error => {
         if (error) {
           this.emitter.emit(
             'did-error',
             dedent`
-            Failed to write \`${Path.basename(this.path)}\`.
+              Failed to write \`${Path.basename(this.path)}\`.
 
-            ${error.message}
-          `
+              ${error.message}
+            `
           );
         }
         callback();
