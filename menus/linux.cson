@@ -178,8 +178,11 @@
   }
 
   {
-    label: '&Packages'
-    submenu: []
+    label: 'Packages'
+    submenu: [
+      { label: 'Open Package Manager', command: 'settings-view:view-installed-packages' }
+      { type: 'separator' }
+    ]
   }
 
   {
