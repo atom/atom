@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const path = require('path');
 const util = require('util');
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, screen } = require('electron');
 
 const _ = require('underscore-plus');
 const { deprecate } = require('grim');
@@ -801,20 +801,28 @@ class AtomEnvironment {
     return Promise.all(steps);
   }
 
-  // Returns true if the dimensions are useable, false if they should be ignored.
-  // Work around for https://github.com/atom/atom-shell/issues/473
-  isValidDimensions({ x, y, width, height } = {}) {
-    return width > 0 && height > 0 && x + width > 0 && y + height > 0;
+  // Checks if window dimensions are onscreen (on the workArea part of a display).
+  // The dimensions currently have to be completely onscreen for this to return true.
+  dimensionsAreOnScreen(dimensions) {
+    for (const { workArea } of screen.getAllDisplays()) {
+      if (
+        workArea.x <= dimensions.x &&
+        workArea.y <= dimensions.y &&
+        workArea.x + workArea.width >= dimensions.x + dimensions.width &&
+        workArea.y + workArea.height >= dimensions.y + dimensions.height
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   storeWindowDimensions() {
     this.windowDimensions = this.getWindowDimensions();
-    if (this.isValidDimensions(this.windowDimensions)) {
-      localStorage.setItem(
-        'defaultWindowDimensions',
-        JSON.stringify(this.windowDimensions)
-      );
-    }
+    localStorage.setItem(
+      'defaultWindowDimensions',
+      JSON.stringify(this.windowDimensions)
+    );
   }
 
   getDefaultWindowDimensions() {
@@ -829,7 +837,7 @@ class AtomEnvironment {
       localStorage.removeItem('defaultWindowDimensions');
     }
 
-    if (dimensions && this.isValidDimensions(dimensions)) {
+    if (dimensions && this.dimensionsAreOnScreen(dimensions)) {
       return dimensions;
     } else {
       const {
