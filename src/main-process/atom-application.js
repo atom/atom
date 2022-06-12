@@ -1895,7 +1895,12 @@ module.exports = class AtomApplication extends EventEmitter {
       return result;
     }
 
-    result.pathToOpen = result.pathToOpen.replace(/[:\s]+$/, '');
+    const isWindows = process.platform === "win32";
+    if (isWindows) {
+      result.pathToOpen = result.pathToOpen.replace(/[:\s]+$/, '');
+    } else {
+      result.pathToOpen = result.pathToOpen.replace(/\s+$/, '');
+    }
     const match = result.pathToOpen.match(LocationSuffixRegExp);
 
     if (match != null) {
@@ -1908,11 +1913,10 @@ module.exports = class AtomApplication extends EventEmitter {
       }
     }
 
-    const normalizedPath = path.normalize(
-      path.resolve(executedFrom, fs.normalize(result.pathToOpen))
-    );
     if (!url.parse(pathToOpen).protocol) {
-      result.pathToOpen = normalizedPath;
+      result.pathToOpen = path.normalize(
+        path.resolve(executedFrom, fs.normalize(result.pathToOpen))
+      );
     }
 
     await new Promise((resolve, reject) => {
