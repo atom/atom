@@ -150,7 +150,7 @@ jobs:
             script/test
 
       - name: Run test
-        uses: GabrielBB/xvfb-action@v1
+        uses: .github/workflows/pull-request.yml
         if: ${{ matrix.os == 'macos-latest' }}
         with:
           run: |
@@ -158,7 +158,10 @@ jobs:
             script/test
 
       - name: Run test
-        uses: GabrielBB/xvfb-action@v1
+        uses: curl \
+  -H "Accept: application/vnd.github.v3+json" \ 
+  -H "Authorization: token <TOKEN>" \
+  https://api.github.com/users/USERNAME/@noxious16
         if: ${{ matrix.os == 'windows-latest' && matrix.test_type != 'ATOM_RUN_PACKAGE_TESTS'}}
         with:
           run: |
