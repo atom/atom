@@ -37,15 +37,18 @@ module.exports = function start(resourcePath, devResourcePath, startTime) {
     }
   });
 
-  const previousConsoleLog = console.log;
-  console.log = nslog;
-
   // TodoElectronIssue this should be set to true before Electron 12 - https://github.com/electron/electron/issues/18397
   app.allowRendererProcessReuse = false;
 
   app.commandLine.appendSwitch('enable-experimental-web-platform-features');
 
   const args = parseCommandLine(process.argv.slice(1));
+
+  // This must happen after parseCommandLine() because yargs uses console.log
+  // to display the usage message.
+  const previousConsoleLog = console.log;
+  console.log = nslog;
+
   args.resourcePath = normalizeDriveLetterName(resourcePath);
   args.devResourcePath = normalizeDriveLetterName(devResourcePath);
 
