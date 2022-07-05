@@ -8,7 +8,7 @@ This is a package for [Atom](https://atom.io), a hackable text editor for the 21
 
 ## Usage
 
-This package provides a cross-platform "About Atom" view that displays information about your Atom installation, which currently includes the current version, the license, and the Terms of Use.
+This package provides a cross-platform *"About Atom"* view that displays information about your Atom installation, which currently includes the current version, the license, and the Terms of Use.
 
 ## Contributing
 Always feel free to help out!  Whether it's filing bugs and feature requests
