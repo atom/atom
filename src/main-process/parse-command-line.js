@@ -57,10 +57,7 @@ module.exports = function parseCommandLine(processArgs) {
     .alias('f', 'foreground')
     .boolean('f')
     .describe('f', 'Keep the main process in the foreground.');
-  options
-    .alias('h', 'help')
-    .boolean('h')
-    .describe('h', 'Print this usage message.');
+  options.help('help', 'Print this usage message.').alias('h', 'help');
   options
     .alias('l', 'log-file')
     .string('l')
@@ -136,7 +133,16 @@ module.exports = function parseCommandLine(processArgs) {
       'Enable low-level logging messages from Electron.'
     );
   options.boolean('uri-handler');
+  options
+    .version(
+      dedent`Atom    : ${version}
+             Electron: ${process.versions.electron}
+             Chrome  : ${process.versions.chrome}
+             Node    : ${process.versions.node}`
+    )
+    .alias('v', 'version');
 
+  // NB: if --help or --version are given, this also displays the relevant message and exits
   let args = options.argv;
 
   // If --uri-handler is set, then we parse NOTHING else
@@ -146,11 +152,6 @@ module.exports = function parseCommandLine(processArgs) {
       'uri-handler': true,
       _: args._.filter(str => str.startsWith('atom://')).slice(0, 1)
     };
-  }
-
-  if (args.help) {
-    process.stdout.write(options.help());
-    process.exit(0);
   }
 
   const addToLastWindow = args['add'];

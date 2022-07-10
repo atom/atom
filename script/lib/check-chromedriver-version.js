@@ -5,6 +5,12 @@ const semver = require('semver');
 const chromedriverMetadataPath = require('electron-chromedriver/package.json');
 const mksnapshotMetadataPath = require('electron-mksnapshot/package.json');
 
+// The enviroment variable is usually set in install-script-dependencies.js
+const majorElectronVersion = semver.major(
+  process.env.ELECTRON_CUSTOM_VERSION ||
+    require('../config').appMetadata.electronVersion
+);
+
 module.exports = function() {
   // Chromedriver should be at least v9.0.0
   // Mksnapshot should be at least v9.0.2
@@ -26,15 +32,15 @@ module.exports = function() {
     );
   }
 
-  if (!semver.satisfies(chromedriverActualVer, '>=9.0.0')) {
+  if (!semver.satisfies(chromedriverActualVer, `>=${majorElectronVersion}`)) {
     throw new Error(
-      `electron-chromedriver should be at least v9.0.0 to support the ELECTRON_CUSTOM_VERSION environment variable.`
+      `electron-chromedriver should be at least v${majorElectronVersion} to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
 
-  if (!semver.satisfies(mksnapshotActualVer, '>=9.0.2')) {
+  if (!semver.satisfies(mksnapshotActualVer, `>=${majorElectronVersion}`)) {
     throw new Error(
-      `electron-mksnapshot should be at least v9.0.2 to support the ELECTRON_CUSTOM_VERSION environment variable.`
+      `electron-mksnapshot should be at least v${majorElectronVersion} to support the ELECTRON_CUSTOM_VERSION environment variable.`
     );
   }
 };
