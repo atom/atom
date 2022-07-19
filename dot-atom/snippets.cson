@@ -6,7 +6,7 @@
 # You can create a new snippet in this file by typing "snip" and then hitting
 # tab.
 #
-# An example CoffeeScript snippet to expand log to console.log:
+# Here is an example CoffeeScript snippet to expand log to console.log:
 #
 # '.source.coffee':
 #   'Console log':
