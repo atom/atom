@@ -50,7 +50,7 @@
     "stylelint-config-standard": "^18.1.0",
     "sync-request": "3.0.1",
     "tello": "1.2.0",
-    "terser": "^3.8.1",
+    "terser": "^4.8.1",
     "webdriverio": "^5.9.2",
     "yargs": "4.8.1"
   },
