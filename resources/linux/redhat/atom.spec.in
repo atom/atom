@@ -13,6 +13,8 @@ Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), (libcurl.so
 Requires: alsa-lib, git-core, (glib2 or kde-cli-tools or xdg-utils), (libcurl.so.3()(64bit) or libcurl.so.4()(64bit)), libgbm.so.1()(64bit), libgcrypt.so.20()(64bit), libnotify, libnss3.so()(64bit), libX11-xcb.so.1()(64bit), libxcb-dri3.so.0()(64bit), libxkbfile.so.1()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bit), gtk3, polkit
 %endif
 
+Recommends: /usr/bin/lsb_release
+
 # Disable Fedora's shebang mangling script,
 # which errors out on any file with versionless `python` in its shebang
 # See: https://github.com/atom/atom/issues/21937
