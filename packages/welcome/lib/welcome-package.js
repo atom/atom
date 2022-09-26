@@ -3,8 +3,9 @@
 import { CompositeDisposable } from 'atom';
 import ReporterProxy from './reporter-proxy';
 
-let WelcomeView, GuideView, ConsentView;
+let WelcomeView, GuideView, ConsentView, SunsettingView;
 
+const SUNSETTING_URI = 'atom://welcome/sunsetting';
 const WELCOME_URI = 'atom://welcome/welcome';
 const GUIDE_URI = 'atom://welcome/guide';
 const CONSENT_URI = 'atom://welcome/consent';
@@ -18,7 +19,15 @@ export default class WelcomePackage {
     this.subscriptions = new CompositeDisposable();
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
+        if (filePath === SUNSETTING_URI) {
+          return this.createSunsettingView({ uri: SUNSETTING_URI });
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      atom.workspace.addOpener((filePath) => {
         if (filePath === WELCOME_URI) {
           return this.createWelcomeView({ uri: WELCOME_URI });
         }
@@ -26,7 +35,7 @@ export default class WelcomePackage {
     );
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
         if (filePath === GUIDE_URI) {
           return this.createGuideView({ uri: GUIDE_URI });
         }
@@ -34,7 +43,7 @@ export default class WelcomePackage {
     );
 
     this.subscriptions.add(
-      atom.workspace.addOpener(filePath => {
+      atom.workspace.addOpener((filePath) => {
         if (filePath === CONSENT_URI) {
           return this.createConsentView({ uri: CONSENT_URI });
         }
@@ -42,7 +51,9 @@ export default class WelcomePackage {
     );
 
     this.subscriptions.add(
-      atom.commands.add('atom-workspace', 'welcome:show', () => this.show())
+      atom.commands.add('atom-workspace', 'welcome:show', () =>
+        this.showWelcome()
+      )
     );
 
     if (atom.config.get('core.telemetryConsent') === 'undecided') {
@@ -50,16 +61,26 @@ export default class WelcomePackage {
     }
 
     if (atom.config.get('welcome.showOnStartup')) {
-      await this.show();
+      await this.showWelcome();
       this.reporterProxy.sendEvent('show-on-initial-load');
+    }
+
+    if (atom.config.get('welcome.showSunsettingOnStartup')) {
+      await this.showSunsetting();
+      this.reporterProxy.sendEvent('show-sunsetting-on-initial-load');
     }
   }
 
-  show() {
+  showWelcome() {
     return Promise.all([
       atom.workspace.open(WELCOME_URI, { split: 'left' }),
-      atom.workspace.open(GUIDE_URI, { split: 'right' })
+      atom.workspace.open(SUNSETTING_URI, { split: 'left' }),
+      atom.workspace.open(GUIDE_URI, { split: 'right' }),
     ]);
+  }
+
+  showSunsetting() {
+    return atom.workspace.open(SUNSETTING_URI, { split: 'left' });
   }
 
   consumeReporter(reporter) {
@@ -68,6 +89,11 @@ export default class WelcomePackage {
 
   deactivate() {
     this.subscriptions.dispose();
+  }
+
+  createSunsettingView(state) {
+    if (SunsettingView == null) SunsettingView = require('./sunsetting-view');
+    return new SunsettingView({ reporterProxy: this.reporterProxy, ...state });
   }
 
   createWelcomeView(state) {

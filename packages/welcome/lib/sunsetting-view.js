@@ -3,7 +3,7 @@
 
 import etch from 'etch';
 
-export default class WelcomeView {
+export default class SunsettingView {
   constructor(props) {
     this.props = props;
     etch.initialize(this);
@@ -12,21 +12,21 @@ export default class WelcomeView {
       const link = event.target.closest('a');
       if (link && link.dataset.event) {
         this.props.reporterProxy.sendEvent(
-          `clicked-welcome-${link.dataset.event}-link`
+          `clicked-sunsetting-${link.dataset.event}-link`
         );
       }
     });
   }
 
   didChangeShowOnStartup() {
-    atom.config.set('welcome.showOnStartup', this.checked);
+    atom.config.set('welcome.showSunsettingOnStartup', this.checked);
   }
 
   update() {}
 
   serialize() {
     return {
-      deserializer: 'WelcomeView',
+      deserializer: 'SunsettingView',
       uri: this.props.uri,
     };
   }
@@ -36,7 +36,7 @@ export default class WelcomeView {
       <div className="welcome">
         <div className="welcome-container">
           <header className="welcome-header">
-            <a href="https://atom.io/">
+            <a href="https://github.blog/2022-06-08-sunsetting-atom/">
               <svg
                 className="welcome-logo"
                 width="330px"
@@ -87,45 +87,22 @@ export default class WelcomeView {
                   </g>
                 </g>
               </svg>
-              <h1 className="welcome-title">
-                A hackable text editor for the 21<sup>st</sup> Century
-              </h1>
+              <h1 className="welcome-title">We are sunsetting Atom</h1>
             </a>
           </header>
 
           <section className="welcome-panel">
-            <p>For help, please visit</p>
-            <ul>
-              <li>
-                The{' '}
-                <a
-                  href="https://www.atom.io/docs"
-                  dataset={{ event: 'atom-docs' }}
-                >
-                  Atom docs
-                </a>{' '}
-                for Guides and the API reference.
-              </li>
-              <li>
-                The Atom forum at{' '}
-                <a
-                  href="https://github.com/atom/atom/discussions"
-                  dataset={{ event: 'discussions' }}
-                >
-                  Github Discussions
-                </a>
-              </li>
-              <li>
-                The{' '}
-                <a
-                  href="https://github.com/atom"
-                  dataset={{ event: 'atom-org' }}
-                >
-                  Atom org
-                </a>
-                . This is where all GitHub-created Atom packages can be found.
-              </li>
-            </ul>
+            <p>
+              We are archiving Atom and all projects under the Atom organization
+              for an official sunset on December 15, 2022.
+            </p>
+            <p>
+              You can learn more about this in our{' '}
+              <a href="https://github.blog/2022-06-08-sunsetting-atom/">
+                blog post
+              </a>
+              .
+            </p>
           </section>
 
           <section className="welcome-panel">
@@ -133,10 +110,10 @@ export default class WelcomeView {
               <input
                 className="input-checkbox"
                 type="checkbox"
-                checked={atom.config.get('welcome.showOnStartup')}
+                checked={atom.config.get('welcome.showSunsettingOnStartup')}
                 onchange={this.didChangeShowOnStartup}
               />
-              Show Welcome Guide when opening Atom
+              Show this announce when opening Atom
             </label>
           </section>
 
@@ -161,10 +138,10 @@ export default class WelcomeView {
   }
 
   getTitle() {
-    return 'Welcome';
+    return 'Sunsetting Atom';
   }
 
   isEqual(other) {
-    return other instanceof WelcomeView;
+    return other instanceof SunsettingView;
   }
 }
