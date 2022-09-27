@@ -1,0 +1,15 @@
+[submodule "packages_temporary/language-html"]
+	path = packages_temporary/language-html
+	url = https://github.com/icecream17/language-html.git
+[submodule "packages_temporary/language-json"]
+	path = packages_temporary/language-json
+	url = https://github.com/icecream17/language-json.git
+[submodule "packages_temporary/language-python"]
+	path = packages_temporary/language-python
+	url = https://github.com/claytonrcarter/language-python.git
+[submodule "packages_temporary/language-shellscript"]
+	path = packages_temporary/language-shellscript
+	url = https://github.com/claytonrcarter/language-shellscript.git
+[submodule "packages_temporary/language-typescript"]
+	path = packages_temporary/language-typescript
+	url = https://github.com/claytonrcarter/language-typescript.git
