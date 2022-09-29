@@ -93,8 +93,8 @@ export default class SunsettingView {
 
           <section className="welcome-panel">
             <p>
-              We are archiving Atom and all projects under the Atom organization
-              for an official sunset on December 15, 2022.
+              We are archiving Atom and all repositories under the Atom
+              organization for an official sunset on December 15, 2022.
             </p>
             <p>
               You can learn more about this in our{' '}
@@ -113,7 +113,7 @@ export default class SunsettingView {
                 checked={atom.config.get('welcome.showSunsettingOnStartup')}
                 onchange={this.didChangeShowOnStartup}
               />
-              Show this announce when opening Atom
+              Show this announcement when opening Atom
             </label>
           </section>
 
