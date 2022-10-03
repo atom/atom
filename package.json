@@ -54,6 +54,7 @@
     "document-register-element": "^1.14.10",
     "electron-notarize": "1.0.0",
     "electron-osx-sign": "0.5.0",
+    "@electron/remote": "^2.0.1",
     "encoding-selector": "https://www.atom.io/api/packages/encoding-selector/versions/0.23.9/tarball",
     "etch": "0.14.1",
     "event-kit": "^2.5.3",
