@@ -1,9 +1,90 @@
+Sandbox
 
-## ******** NSkip to content
+AchryTylerWood@Administrator@it.git
+Settings
+Organization
+General
+Users
+Roles
+Accounting
+Connections
+Notifications
+Audit Trail
+Payments
+Approval Rules
+Compliance
+Case Rules
+Developers :
+Account :47-2041-6547-633441725-510500000 :
+Viewing :FEED :LIVE ::
+'?'' :
+Audit Record
+ID
+6e6ab42b-fe8f-4c77-98e1-7f7d428eb36f
+Action
+Create
+Entity
+Payment Order
+Event Time
+10/06/202210:49:36 CDT
+Source
+ALPHABET
+IP Address
+76.201.6.48
+Location
+Dallas
+Data
+{
+"id":"bece5e9f-7e86-4444-bf4e-0f01a6e8aa9f"
+"amount":64999900
+"status":"approved"
+"purpose":NULL
+"currency":"USD"
+"priority":"normal"
+"direction":"credit"
+"live_mode":false
+"created_at":"2022-10-06T15:49:36.250Z"
+"expires_at":NULL
+"updated_at":"2022-10-06T15:49:36.313Z"
+"description":NULL
+"webhook_url":NULL
+"lock_version":2
+"payment_type":"rtp"
+"charge_bearer":NULL
+"end_to_end_id":NULL
+"metadata_json":{}
+"nsf_protected":false
+"effective_date":"2022-10-06"
+"reviewer_token":{}
+"counterparty_id":NULL
+"creation_source":"dashboard_form"
+"organization_id":"5768dc71-e960-4024-88c6-45eec72b2779"
+"payment_subtype":NULL
+"payment_mandate_id":NULL
+"receiving_entity_id":"8793aa1e-14e2-4fae-8b98-9423690dfd05"
+"statement_descriptor":NULL
+"receiving_entity_type":"ExternalAccount"
+"accounting_category_id":NULL
+"originating_account_id":"b6317b9c-d8a2-48b4-91f8-b484f078fcd8"
+"originating_party_name":NULL
+"remittance_information":NULL
+"send_remittance_advice":NULL
+"source_payment_order_id":NULL
+"verification_attempt_id":NULL
+"foreign_exchange_contract":NULL
+"foreign_exchange_indicator":NULL
+"ultimate_receiving_party_name":NULL
+"transaction_monitoring_enabled":
+"ultimate_originating_party_name":NULL":,
+"ultimate_originating_party_type":NULL":,
+"current_payment_order_attempt_id":"dc6400d7102cda47d2041d6547adc071921891cd":,
+"ultimate_receiving_party_address_id":NULL":,
+"ultimate_receiving_party_identifier":NULL":,
+"ultimate_originating_party_address_id":NULL":,
+"ultimate_originating_party_identifier":NULL":,
+"ultimate_originating_party_taxpayer_identifier":"N@N :PAGE":"ZACHRYTYLERWOOD":,
+}
 
-Pull requestsIssues
-
-Marketplace
 
 Explorer/path/finder :
 Name :CONSTRUCTION :Mountain View, C.A. 94043
