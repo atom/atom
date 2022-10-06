@@ -1,4 +1,202 @@
-# Specs depend on character counts, if we don't specify the line endings the
+Jump to Content
+Modern Treasury
+Product
+Pricing
+Company
+Journal
+Changelog
+Support
+Log in
+Sign up
+Guides
+API Reference
+
+Search
+CTRL-K
+GETTING STARTED
+
+Quickstart Guide
+
+Sandbox Details
+
+Simulate an Incoming Payment Detail
+
+Countries
+
+Banks
+
+Webhooks
+Postman
+PAYMENTS
+
+ACH
+
+Wire
+
+Check
+
+Real-Time Payment (RTP)
+Silvergate Exchange Network (SEN)
+
+Global Payouts
+
+Canadian EFT
+
+Signet
+
+ProvXchange
+
+Interac e-Transfer
+COUNTERPARTIES
+
+External Account Verification
+BANK ACCOUNTS
+Virtual Accounts
+Balance Reporting
+CONTINUOUS ACCOUNTING
+Overview
+
+QuickBooks Online
+
+NetSuite
+Connect NetSuite
+Configure NetSuite role
+Configure NetSuite role using existing default
+Initiating payments from NetSuite
+RECONCILIATION
+Tentative Reconciliation
+LEDGERS
+Overview
+Guarantees
+Ledgers Objects
+Debits and Credits
+Ingesting Data from Other Systems
+
+Use Cases
+
+Quickstart Guides
+Nesting Accounts
+Transaction Status and Balances
+Handling Concurrency
+Working With Multiple Currencies
+Custom Currencies
+Linking to Other Modern Treasury Objects
+COMPLIANCE
+
+Onboarding Users
+
+Transaction Monitoring
+Case Management
+Connect NetSuite
+A step-by-step guide to connecting NetSuite to your Modern Treasury account
+
+Suggest Edits
+Setting up NetSuite requires a number of steps, some of which require that you have specific permissions in NetSuite. If you have questions or get stuck, please fill free to contact us. We are happy to set up a time to get you up and running with NetSuite.
+
+1. Enable REST Web Services feature
+In NetSuite, navigate to Setup > Company > Enable Features, then click the SuiteCloud subtab. Scroll to the SuiteTalk (Web Services) section and enable REST Web Services. To use the feature, you must accept the SuiteCloud Terms of Service.
+
+2. Enable SuiteAnalytics Workbook feature
+Enable the feature at Setup > Company > Enable Features. Navigate to the Analytics subtab and enable SuiteAnalytics Workbook.
+
+3. Confirm permissions for set up
+The user account you intend to use to set up the integration will require the following permissions:
+
+REST Web Services
+Log in using Access Tokens
+SuiteAnalytics Workbook
+You will also need the ability to create and manage roles.
+Your permissions vary based on which role you are assigned. You can edit roles in Setup > Users/Roles > User Management > Manage Roles. Ensure your user is assigned a role with the aforementioned permissions in order to complete the setup.
+
+🚧
+Permissions
+
+There are two different sets of permissions you will need:
+
+The permissions mentioned above are to set up your integration.
+Later when creating a token, you will need to assign a user with a role that has the necessary permissions to access records (e.g. customers, vendors, payments, invoices, bills, etc.)
+These can be the same or different roles. They can be assigned to one or many users.
+
+4. Set up role for Modern Treasury
+There are multiple options for configuring a role in NetSuite. Please choose the best one for your account:
+
+Configure NetSuite role using existing default (quickest method)
+Configure NetSuite role
+Once you have created the role, you can continue this guide from here.
+
+5. Retrieve Account ID
+The Account ID can be found in the URL when you are logged into the NetSuite dashboard in your browser. It will look something like the following:
+
+
+https://<ACCOUNT_ID>.app.netsuite.com/app/center/card.nl?sc=-29&whence=
+Example:
+
+
+https://123456.app.netsuite.com/app/center/card.nl?sc=-29&whence=
+You can paste a URL while logged into your NetSuite dashboard below to retrieve the Account ID:
+
+NetSuite Dashboard URL:
+NetSuite URL (e.g. https://12345.app.netsuite.com/...)
+
+The Account ID precedes .app.netsuite.com, which in this case is 123456. Note that your ID may include a hyphen and letters such as -sb1 (representing "Sandbox 1"). Be sure to include the entire ID as it appears in the URL, including any letters, numbers, and hyphens.
+
+Save the Account ID for a later step.
+
+6. Create Integration Record
+The consumer keys are retrieved when you create an Integration record. You can view the NetSuite documentation for the official documentation.
+
+🚧
+Uncheck "Authorization Code Grant"
+
+"Authorization Code Grant" may be checked by default. Ensure it is unchecked. Otherwise, you may receive the error: "Invalid Redirect URI"
+
+At the last step of creating an Integration record, save the consumer key and consumer secret. They will not be shown again once you navigate away from the page.
+
+Save the Consumer Secret and Consumer Key for a later step.
+
+7. Generate Access token
+To obtain your token_key and token_secret, you will need to create a Token. View the NetSuite documentation for the official documentation.
+
+You will use the integration record you created along with a user who has access to the Modern Treasury Role.
+
+Save the Token ID and Token Secret for a later step.
+
+8. Save credentials in Modern Treasury.
+In your settings in the Modern Treasury dashboard, choose to connect NetSuite. You will be prompted to enter the values we generated in the previous steps:
+
+Account ID
+Consumer Key
+Consumer Secret
+Token ID
+Token Secret
+9. Configure integration
+Modern Treasury offers a number of options for the NetSuite integration. From auto vs. manual syncing to default accounts and subsidiaries, you can customize the NetSuite integration to your needs.
+
+And that's it! Now NetSuite should be connected and ready to sync.
+
+📘
+Need help?
+
+Feel free to reach out to us should you need help getting connected.
+
+Updated 6 months ago
+
+NetSuite
+Configure NetSuite role
+Did this page help you?
+TABLE OF CONTENTS
+1. Enable REST Web Services feature
+2. Enable SuiteAnalytics Workbook feature
+3. Confirm permissions for set up
+4. Set up role for Modern Treasury
+5. Retrieve Account ID
+6. Create Integration Record
+7. Generate Access token
+8. Save credentials in Modern Treasury.
+9. Configure integration
+© Modern Treasury Corp.
+Privacy
+Terms of Service# Specs depend on character counts, if we don't specify the line endings the
 # fixtures will vary depending on platform
 spec/fixtures/**/*.js text eol=lf
 spec/fixtures/**/*.coffee text eol=lf
