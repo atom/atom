@@ -1,40 +1,8 @@
-Sandbox
-
-AchryTylerWood@Administrator@it.git
-Settings
-Organization
-General
-Users
-Roles
-Accounting
-Connections
-Notifications
-Audit Trail
-Payments
-Approval Rules
-Compliance
-Case Rules
-Developers :
-Account :47-2041-6547-633441725-510500000 :
-Viewing :FEED :LIVE ::
-'?'' :
-Audit Record
-ID
-6e6ab42b-fe8f-4c77-98e1-7f7d428eb36f
-Action
-Create
-Entity
-Payment Order
-Event Time
-10/06/202210:49:36 CDT
-Source
-ALPHABET
-IP Address
-76.201.6.48
-Location
-Dallas
-Data
-{
+'"'A'L'P''H'A'B'E'T":,''
+'"IP Address":"76.201.6.48":,
+"Location:<"
+"Dallas":,
+":Data":,
 "id":"bece5e9f-7e86-4444-bf4e-0f01a6e8aa9f"
 "amount":64999900
 "status":"approved"
