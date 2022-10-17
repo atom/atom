@@ -53,7 +53,7 @@ jasmine.getEnv().addEqualityTester (a, b) ->
   _.isEqual(a, b)
 
 if process.env.CI
-  jasmine.getEnv().defaultTimeoutInterval = 120000
+  jasmine.getEnv().defaultTimeoutInterval = 200000
 else
   jasmine.getEnv().defaultTimeoutInterval = 5000
 
