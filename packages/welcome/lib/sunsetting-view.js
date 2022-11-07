@@ -8,7 +8,7 @@ export default class SunsettingView {
     this.props = props;
     etch.initialize(this);
 
-    this.element.addEventListener('click', (event) => {
+    this.element.addEventListener('click', event => {
       const link = event.target.closest('a');
       if (link && link.dataset.event) {
         this.props.reporterProxy.sendEvent(
@@ -27,7 +27,7 @@ export default class SunsettingView {
   serialize() {
     return {
       deserializer: 'SunsettingView',
-      uri: this.props.uri,
+      uri: this.props.uri
     };
   }
 
