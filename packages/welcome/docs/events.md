@@ -14,23 +14,29 @@ Currently the Welcome package does not log any timing events.
 
 #### Welcome package shown
 
-* **eventType**: `welcome-v1`
-* **metadata**
+- **eventType**: `welcome-v1`
+- **metadata**
 
-  | field | value |
-  |-------|-------|
-  | `ea` | `show-on-initial-load`
+  | field | value                  |
+  | ----- | ---------------------- |
+  | `ea`  | `show-on-initial-load` |
 
+#### Sunsetting announcement shown
+
+- **eventType**: `sunsetting-v1`
+- **metadata**
+
+  | field | value                             |
+  | ----- | --------------------------------- |
+  | `ea`  | `show-sunsetting-on-initial-load` |
 
 #### Click on links
 
-* **eventType**: `welcome-v1`
-* **metadata**
+- **eventType**: `welcome-v1`
+- **metadata**
 
-  | field | value |
-  |-------|-------|
-  | `ea` | link that was clicked
+  | field | value                 |
+  | ----- | --------------------- |
+  | `ea`  | link that was clicked |
 
 (There are many potential values for the `ea` param, e.g: `clicked-welcome-atom-docs-link`,`clicked-welcome-atom-org-link`, `clicked-project-cta`, `clicked-init-script-cta`, ...).
-
-
