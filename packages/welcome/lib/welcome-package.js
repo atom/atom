@@ -74,7 +74,6 @@ export default class WelcomePackage {
   showWelcome() {
     return Promise.all([
       atom.workspace.open(WELCOME_URI, { split: 'left' }),
-      atom.workspace.open(SUNSETTING_URI, { split: 'left' }),
       atom.workspace.open(GUIDE_URI, { split: 'right' }),
     ]);
   }
