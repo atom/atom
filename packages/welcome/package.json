@@ -25,12 +25,18 @@
       "type": "boolean",
       "default": true,
       "description": "Show welcome panes with useful information when opening a new Atom window."
+    },
+    "showSunsettingOnStartup": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show sunsetting pane when opening a new Atom window."
     }
   },
   "deserializers": {
     "WelcomeView": "createWelcomeView",
     "GuideView": "createGuideView",
-    "ConsentView": "createConsentView"
+    "ConsentView": "createConsentView",
+    "SunsettingView": "createSunsettingView"
   },
   "dependencies": {
     "etch": "0.9.0"
