@@ -103,6 +103,17 @@ export default class SunsettingView {
               </a>
               .
             </p>
+            <p>
+               You can also check out the community forks from
+               <a href="https://github.com/atom-community/atom">
+                 atom-community
+              </a>
+              or
+               <a href="https://github.com/pulsar-edit/pulsar">
+                 pulsar-edit
+              </a>
+              .
+            </p>
           </section>
 
           <section className="welcome-panel">
