@@ -193,7 +193,6 @@ function setAtomHelperVersion(packagedAppPath) {
       helperPListPath
     ]);
   }
-
 }
 
 function chmodNodeFiles(packagedAppPath) {
