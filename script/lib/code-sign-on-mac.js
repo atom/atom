@@ -134,7 +134,7 @@ module.exports = async function(packagedAppPath) {
         app: packagedAppPath,
         entitlements: macEntitlementsPath,
         'entitlements-inherit': macEntitlementsPath,
-        // identity: 'Developer ID Application: GitHub',
+        identity: 'Developer ID Application: GitHub',
         keychain: process.env.ATOM_MAC_CODE_SIGNING_KEYCHAIN,
         platform: 'darwin',
         hardenedRuntime: true
