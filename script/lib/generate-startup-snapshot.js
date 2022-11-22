@@ -322,10 +322,20 @@ module.exports = function(packagedAppPath) {
 
     const snapshotBinaries = ['v8_context_snapshot.bin', 'snapshot_blob.bin'];
     for (let snapshotBinary of snapshotBinaries) {
-      const destinationPath = path.join(
+      let destinationPath = path.join(
         startupBlobDestinationPath,
         snapshotBinary
       );
+      if (
+        process.platform === 'darwin' &&
+        snapshotBinary === 'v8_context_snapshot.bin'
+      ) {
+        // TODO: check if we're building for arm64 and use the arm64 version of the binary
+        destinationPath = path.join(
+          startupBlobDestinationPath,
+          'v8_context_snapshot.x86_64.bin'
+        );
+      }
       console.log(`Moving generated startup blob into "${destinationPath}"`);
       try {
         fs.unlinkSync(destinationPath);
