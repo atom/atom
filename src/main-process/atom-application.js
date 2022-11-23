@@ -584,7 +584,7 @@ module.exports = class AtomApplication extends EventEmitter {
     });
 
     this.on('application:open-documentation', () =>
-      shell.openExternal('http://flight-manual.atom.io')
+      shell.openExternal('https://flight-manual.atom.io')
     );
     this.on('application:open-discussions', () =>
       shell.openExternal('https://github.com/atom/atom/discussions')
