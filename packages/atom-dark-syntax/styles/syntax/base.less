@@ -152,7 +152,7 @@
       color: #96CBFE;
     }
 
-    // <variable> \1
+    // <variable>
     &.syntax--variable {
       color: #C5C8C6;
     }
@@ -232,21 +232,10 @@
 .syntax--comment {
   color: #8A8A8A;
 
-  // @param TODO NOTE
-  &.syntax--caption {
+  // @param TODO NOTE type { }
+  &.syntax--part {
     color: lighten(#8A8A8A, 6);
     font-weight: bold;
-  }
-
-  // variable function type
-  &.syntax--term {
-    color: lighten(#8A8A8A, 9);
-  }
-
-  // { } / .
-  &.syntax--punctuation {
-    color: #8A8A8A;
-    font-weight: normal;
   }
 }
 

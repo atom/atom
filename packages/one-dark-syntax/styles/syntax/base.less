@@ -84,18 +84,18 @@
   }
 }
 
-// () [] {} => @
+// () [] {} :
 .syntax--punctuation {
   color: @mono-1;
 
+  // . -> ::
   &.syntax--accessor {
-    color: @mono-1;
+    color: @hue-3;
+  }
 
-    // . -> ::
-    &.syntax--member,
-    &.syntax--scope {
-      color: @hue-3;
-    }
+  // * ... =>
+  &.syntax--operation {
+    color: @hue-3;
   }
 
   // { } ~~~
@@ -132,13 +132,13 @@
       color: @hue-3;
     }
 
-    // <variable> \1
+    // <variable>
     &.syntax--variable {
       color: @hue-2;
     }
 
     // ( ) [^ ] (?= ) |
-    &.syntax--punctuation {
+    &.syntax--punctuation.syntax--part {
       color: @hue-3;
     }
   }
@@ -277,21 +277,10 @@
   color: @mono-3;
   font-style: italic;
 
-  // @param TODO NOTE
-  &.syntax--caption {
+  // @param TODO NOTE type { }
+  &.syntax--part {
     color: lighten(@mono-3, 6);
     font-weight: bold;
-  }
-
-  // variable function type
-  &.syntax--term {
-    color: lighten(@mono-3, 9);
-  }
-
-  // { } / .
-  &.syntax--punctuation {
-    color: @mono-3;
-    font-weight: normal;
   }
 }
 

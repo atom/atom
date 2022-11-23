@@ -101,3 +101,20 @@
     }
   }
 }
+
+.syntax--source.syntax--css.syntax--scss,
+.syntax--source.syntax--css.syntax--less {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @hue-2;
+
+      // url rgb
+      &.syntax--support {
+        color: @hue-1;
+      }
+    }
+  }
+}

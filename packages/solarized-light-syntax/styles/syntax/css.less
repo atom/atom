@@ -63,8 +63,8 @@
       color: @syntax-text-color;
     }
 
-    // @keyframes keyframe
-    &.syntax--keyframe {
+    // @keyframes keyframes
+    &.syntax--keyframes {
       color: @syntax-text-color;
     }
   }
@@ -123,6 +123,18 @@
     // ()
     &.syntax--arguments {
       color: @syntax-text-color;
+    }
+  }
+}
+
+.syntax--source.syntax--css.syntax--scss,
+.syntax--source.syntax--css.syntax--less {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @blue;
     }
   }
 }

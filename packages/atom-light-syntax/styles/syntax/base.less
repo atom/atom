@@ -131,13 +131,13 @@
       color: #222;
     }
 
-    // <variable> \1
+    // <variable>
     &.syntax--variable {
       color: #008080;
     }
 
-    // ( ) [^ ] (?= ) | r" /
-    &.syntax--punctuation {
+    // ( ) [^ ] (?= ) |
+    &.syntax--punctuation.syntax--part {
       color: #222;
     }
   }
@@ -197,21 +197,10 @@
   color: #999988;
   font-style: italic;
 
-  // @param TODO NOTE
-  &.syntax--caption {
+  // @param TODO NOTE type { }
+  &.syntax--part {
     color: lighten(#999988, 6);
     font-weight: bold;
-  }
-
-  // variable function type
-  &.syntax--term {
-    color: lighten(#999988, 9);
-  }
-
-  // { } / .
-  &.syntax--punctuation {
-    color: #999988;
-    font-weight: normal;
   }
 }
 

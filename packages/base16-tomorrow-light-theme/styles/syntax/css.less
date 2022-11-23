@@ -37,8 +37,8 @@
       color: @red;
     }
 
-    // @keyframes keyframe
-    &.syntax--keyframe {
+    // @keyframes keyframes
+    &.syntax--keyframes {
       color: @red;
     }
   }
@@ -107,6 +107,23 @@
       // []
       &.syntax--attribute {
         color: @syntax-text-color;
+      }
+    }
+  }
+}
+
+.syntax--source.syntax--css.syntax--scss,
+.syntax--source.syntax--css.syntax--less {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: @blue;
+
+      // url rgb
+      &.syntax--support {
+        color: @cyan;
       }
     }
   }

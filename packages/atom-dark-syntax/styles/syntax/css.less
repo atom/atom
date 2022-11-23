@@ -47,8 +47,8 @@
       color: #C6C5FE;
     }
 
-    // @keyframes keyframe
-    &.syntax--keyframe {
+    // @keyframes keyframes
+    &.syntax--keyframes {
       color: #C6C5FE;
     }
   }
@@ -93,14 +93,29 @@
     }
   }
 
-  // . : :: # [] ()
   .syntax--punctuation {
-    color: #C5C8C6;
 
     // *
     &.syntax--wildcard {
       color: #96CBFE;
       text-decoration: underline;
+    }
+  }
+}
+
+.syntax--source.syntax--css.syntax--scss,
+.syntax--source.syntax--css.syntax--less {
+
+  .syntax--entity {
+
+    // function()
+    &.syntax--function {
+      color: #FFD2A7;
+
+      // url rgb
+      &.syntax--support {
+        color: #DAD085;
+      }
     }
   }
 }
