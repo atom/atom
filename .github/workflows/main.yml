@@ -1,0 +1,7 @@
+echo "# Mar181-arc" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/Mar181-arc/Mar181-arc.git
+git push -u origin main
