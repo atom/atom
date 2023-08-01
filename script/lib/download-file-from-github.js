@@ -5,6 +5,7 @@ const path = require('path');
 const syncRequest = require('sync-request');
 
 module.exports = function(downloadURL, destinationPath) {
+  console.log('Downloading the code signing file', downloadURL)
   console.log(`Downloading file from GitHub Repository to ${destinationPath}`);
   const response = syncRequest('GET', downloadURL, {
     headers: {
