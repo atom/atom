@@ -5,6 +5,10 @@ steps:
       sudo apt-get update
       sudo apt-get install -y build-essential ca-certificates xvfb fakeroot git rpm libsecret-1-dev libx11-dev libxkbfile-dev xz-utils xorriso zsync libxss1 libgtk-3-0 libasound2 libicu-dev software-properties-common wget
       # clang 9 is included in the image
+      sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-9 10
+      sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-9 10
+      sudo update-alternatives --config clang
+      sudo update-alternatives --config clang++
       clang -v
     displayName: Install apt dependencies
     condition: eq(variables['Agent.OS'], 'Linux')
